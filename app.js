@@ -108,6 +108,8 @@
   const CUSTOM_ITEMS_KEY = "timeless-wardrobe-custom-items-v1";
   /** Merged on top of each `wardrobeBase` row with matching `id` (this browser only). */
   const ITEM_ARCHIVE_OVERRIDES_KEY = "timeless-wardrobe-archive-overrides-v1";
+  /** Seed / Supabase row ids removed from the grid in this browser only (not deleted from disk or cloud). */
+  const ARCHIVE_HIDDEN_IDS_KEY = "timeless-wardrobe-archive-hidden-v1";
   const SEASON_NAV_STORAGE_KEY = "timeless-wardrobe-season-nav-v1";
   /** Same-tab return from `item.html` → restore main list scroll (short TTL avoids stale jumps). */
   const ARCHIVE_SCROLL_RESTORE_KEY = "timeless-wardrobe-archive-scroll-v1";
@@ -293,6 +295,58 @@
     return s === SLOT_CLOTHING || s === SLOT_SHOES || s === SLOT_WATCHES;
   }
 
+  /** Browse column order when viewing All (or a main tab without a record-type drill). */
+  const BROWSE_SLOT_RANK = {
+    [SLOT_CLOTHING]: 0,
+    [SLOT_SHOES]: 1,
+    [SLOT_WATCHES]: 2,
+    [SLOT_JEWELRY]: 3,
+    [SLOT_FRAGRANCE]: 4,
+  };
+
+  /**
+   * Record `category` order within clothing (outer → jackets → … → bottoms) then footwear, accessories.
+   * Matches capsule language; unknown labels sort after these.
+   */
+  const RECORD_CATEGORY_RANK = {
+    Outerwear: 0,
+    Jackets: 1,
+    "Mid Layer": 2,
+    "Inner Layer": 3,
+    Shirts: 4,
+    Tops: 5,
+    Bottoms: 6,
+    Footwear: 7,
+    Watches: 8,
+    Fragrance: 9,
+    Jewellery: 10,
+    Jewelry: 11,
+    Future: 12,
+  };
+
+  function browseSlotRank(item) {
+    const k = itemSlot(item);
+    return Object.prototype.hasOwnProperty.call(BROWSE_SLOT_RANK, k) ? BROWSE_SLOT_RANK[k] : 99;
+  }
+
+  function recordCategoryRank(item) {
+    const c = String(item?.category ?? "").trim();
+    if (!c) return 999;
+    if (Object.prototype.hasOwnProperty.call(RECORD_CATEGORY_RANK, c)) return RECORD_CATEGORY_RANK[c];
+    return 800;
+  }
+
+  /** When not drilling to a single record type, sort by slot + garment category, not seed file order. */
+  function compareByTaxonomy(a, b) {
+    const sDiff = browseSlotRank(a) - browseSlotRank(b);
+    if (sDiff !== 0) return sDiff;
+    const rDiff = recordCategoryRank(a) - recordCategoryRank(b);
+    if (rDiff !== 0) return rDiff;
+    const ca = String(a?.category ?? "").trim();
+    const cb = String(b?.category ?? "").trim();
+    return ca.localeCompare(cb, undefined, { sensitivity: "base" });
+  }
+
   function sanitizeCurrentOutfit() {
     currentOutfitSlots = currentOutfitSlots.filter((slot) => {
       const it = itemById.get(slot.itemId);
@@ -382,15 +436,41 @@
     localStorage.setItem(ITEM_ARCHIVE_OVERRIDES_KEY, JSON.stringify(map));
   }
 
+  function loadArchiveHiddenIds() {
+    try {
+      const raw = localStorage.getItem(ARCHIVE_HIDDEN_IDS_KEY);
+      if (!raw) return new Set();
+      const p = JSON.parse(raw);
+      if (!Array.isArray(p)) return new Set();
+      return new Set(p.map((x) => String(x)));
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveArchiveHiddenIds(set) {
+    try {
+      localStorage.setItem(ARCHIVE_HIDDEN_IDS_KEY, JSON.stringify([...set]));
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
   function mergeWardrobeFromSources() {
     const ov = loadArchiveOverrides();
-    const mergedBase = wardrobeBase.map((row, idx) => {
-      if (!row || row.id == null) return row;
-      const id = String(row.id);
-      const patch = ov[id];
-      const base = patch && typeof patch === "object" ? { ...row, ...patch, id } : { ...row };
-      return { ...base, __archiveOrdinal: idx };
-    });
+    const hiddenArchive = loadArchiveHiddenIds();
+    const mergedBase = wardrobeBase
+      .filter((row) => {
+        if (!row || row.id == null) return false;
+        return !hiddenArchive.has(String(row.id));
+      })
+      .map((row, idx) => {
+        if (!row || row.id == null) return row;
+        const id = String(row.id);
+        const patch = ov[id];
+        const base = patch && typeof patch === "object" ? { ...row, ...patch, id } : { ...row };
+        return { ...base, __archiveOrdinal: idx };
+      });
     items = [...loadCustomItems(), ...mergedBase];
     rebuildItemIndex();
     coverResolutionCache.clear();
@@ -418,17 +498,19 @@
   let subcategoryFilter = "";
 
   /**
-   * After "Show filters", keep full chrome (tabs + drill) visible until the mobile sheet is dismissed
-   * or another filter interaction clears this flag.
+   * When a record-type is chosen in the drill, the drill panel can fold while season + main categories stay visible.
+   * "Show types" sets this true again.
    */
-  let keepFiltersChromeVisible = false;
+  let categoryDrillExpanded = true;
 
-  /** Item id currently shown in the detail dialog (for edit / duplicate actions). */
+  /** Item id currently shown on the item page (for edit / delete actions). */
   let detailItemId = null;
 
   const els = {
     grid: document.getElementById("grid"),
-    empty: document.getElementById("empty-state"),
+    emptyWrap: document.getElementById("empty-wrap"),
+    emptyMsg: document.getElementById("empty-state-msg"),
+    emptyReset: document.getElementById("empty-reset-filters"),
     count: document.getElementById("filter-count"),
     search: document.getElementById("filter-search"),
     outfitStrip: document.getElementById("outfit-strip"),
@@ -446,6 +528,28 @@
   }
 
   let itemDetailDelegatesInstalled = false;
+  let itemDetailPageKeyboardInstalled = false;
+
+  function itemDetailIsPageRoot(root) {
+    return root?.classList?.contains("item-detail__root--page") ?? false;
+  }
+
+  /** Scroll and focus for standalone item.html (not dialog). */
+  function afterItemDetailPageRender(root, edit) {
+    if (!itemDetailIsPageRoot(root)) return;
+    globalThis.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    queueMicrotask(() => {
+      if (edit) {
+        document.getElementById("item-edit-brand")?.focus();
+      } else {
+        const h = document.getElementById("item-detail-heading");
+        if (h) {
+          h.setAttribute("tabindex", "-1");
+          h.focus({ preventScroll: true });
+        }
+      }
+    });
+  }
 
   function uniqueSorted(values) {
     return [...new Set(values.filter(Boolean))].sort((a, b) =>
@@ -490,6 +594,41 @@
     };
   }
 
+  /** Category / record-type drill / search — not the season tab. */
+  function narrowingFiltersActive() {
+    return Boolean(
+      categoryNavFilter || String(subcategoryFilter ?? "").trim() || normalizeSearch(els.search?.value ?? "")
+    );
+  }
+
+  function describeNarrowingFiltersForUi() {
+    const bits = [];
+    if (categoryNavFilter) bits.push(categoryDisplayLabel(categoryNavFilter));
+    const sub = String(subcategoryFilter ?? "").trim();
+    if (sub) bits.push(friendlyRecordCategory(sub) || sub);
+    const rawQ = els.search?.value?.trim() ?? "";
+    if (rawQ) bits.push(`“${rawQ}”`);
+    return bits.join(" · ");
+  }
+
+  function countItemsForCurrentSeasonTab() {
+    return items.filter((it) => itemPassesSeasonNav(it, seasonNavFilter)).length;
+  }
+
+  function resetNarrowingFilters() {
+    categoryNavFilter = "";
+    subcategoryFilter = "";
+    if (els.search) els.search.value = "";
+    categoryDrillExpanded = true;
+    syncCategoryTabUI();
+    validateSubcategoryFilter();
+    renderCategoryDrill();
+    syncFiltersChromeVisibility();
+    syncFiltersMenuForViewport();
+    renderGrid();
+    collapseFiltersMenuPanel();
+  }
+
   /** S/S vs A/W: exact match, `All-season`, or blank season (visible in both tabs). */
   function itemPassesSeasonNav(item, nav) {
     const s = String(item.season ?? "").trim();
@@ -505,14 +644,40 @@
     return pool;
   }
 
+  /**
+   * Canonical `category` key for the type drill under a browse tab. Jewelry merges
+   * `Jewellery` / `Jewelry` / `Future` so the drill is not split into confusing parallel buckets.
+   */
+  function drillCategoryKey(item, browseSlot) {
+    const slot = browseSlot || categoryNavFilter;
+    const c = String(item?.category ?? "").trim();
+    if (!c) return "";
+    if (slot === SLOT_JEWELRY) {
+      if (c === "Jewellery" || c === "Jewelry" || c === "Future") return "Jewellery";
+    }
+    return c;
+  }
+
+  function itemMatchesDrillSubcategory(item, browseCategory, sub) {
+    if (!sub) return true;
+    const raw = String(item.category ?? "").trim();
+    if (browseCategory === SLOT_JEWELRY && sub === "Jewellery") {
+      return raw === "Jewellery" || raw === "Jewelry" || raw === "Future";
+    }
+    return raw === sub;
+  }
+
   function validateSubcategoryFilter() {
     if (!subcategoryFilter) return;
-    const cats = new Set(
-      poolItemsForDrillSubcategories()
-        .map((i) => String(i.category ?? "").trim())
-        .filter(Boolean)
-    );
-    if (!cats.has(subcategoryFilter)) subcategoryFilter = "";
+    const pool = poolItemsForDrillSubcategories();
+    const ok = pool.some((i) => itemMatchesDrillSubcategory(i, categoryNavFilter, subcategoryFilter));
+    if (!ok) subcategoryFilter = "";
+    else if (
+      categoryNavFilter === SLOT_JEWELRY &&
+      (subcategoryFilter === "Future" || subcategoryFilter === "Jewelry")
+    ) {
+      subcategoryFilter = "Jewellery";
+    }
   }
 
   function renderCategoryDrill() {
@@ -524,18 +689,31 @@
     validateSubcategoryFilter();
 
     if (!categoryNavFilter) {
+      categoryDrillExpanded = true;
       drill.hidden = true;
       drill.setAttribute("aria-hidden", "true");
       grid.innerHTML = "";
+      syncFiltersChromeVisibility();
       return;
     }
 
-    drill.hidden = false;
-    drill.removeAttribute("aria-hidden");
-    titleEl.textContent = categoryDisplayLabel(categoryNavFilter);
-
     const pool = poolItemsForDrillSubcategories();
-    const rawCats = uniqueSorted(pool.map((i) => String(i.category ?? "").trim()).filter(Boolean));
+    const rawCats = uniqueSorted(
+      pool.map((i) => drillCategoryKey(i, categoryNavFilter)).filter(Boolean)
+    );
+
+    /** No meaningful drill when every row shares the same record category (e.g. Perfume only). */
+    if (rawCats.length <= 1) {
+      categoryDrillExpanded = true;
+      subcategoryFilter = "";
+      drill.hidden = true;
+      drill.setAttribute("aria-hidden", "true");
+      grid.innerHTML = "";
+      syncFiltersChromeVisibility();
+      return;
+    }
+
+    titleEl.textContent = categoryDisplayLabel(categoryNavFilter);
 
     grid.innerHTML = "";
 
@@ -554,6 +732,18 @@
     for (const raw of rawCats) {
       appendChoice(raw, friendlyRecordCategory(raw), false);
     }
+
+    const specificType = Boolean(String(subcategoryFilter ?? "").trim());
+    const foldDrill = specificType && !categoryDrillExpanded;
+    if (foldDrill) {
+      drill.hidden = true;
+      drill.setAttribute("aria-hidden", "true");
+    } else {
+      drill.hidden = false;
+      drill.removeAttribute("aria-hidden");
+    }
+
+    syncFiltersChromeVisibility();
   }
 
   function applyFilters(list) {
@@ -561,7 +751,7 @@
     return list.filter((item) => {
       if (!itemPassesSeasonNav(item, f.seasonNav)) return false;
       if (f.category && itemSlot(item) !== f.category) return false;
-      if (f.subcategory && String(item.category ?? "").trim() !== f.subcategory) return false;
+      if (f.subcategory && !itemMatchesDrillSubcategory(item, f.category, f.subcategory)) return false;
       if (!itemMatchesSearch(item, f.search)) return false;
       return true;
     });
@@ -1427,16 +1617,45 @@
     return out;
   }
 
-  function deleteCustomItem(id) {
-    if (!id || !String(id).startsWith("custom-")) return;
-    currentOutfitSlots = currentOutfitSlots.filter((s) => s.itemId !== id);
-    const next = loadCustomItems().filter((x) => x.id !== id);
-    saveCustomItems(next);
+  /**
+   * Remove a piece from this browser’s wardrobe view: custom rows are dropped;
+   * archive / Supabase rows are hidden locally and any override for that id is cleared.
+   */
+  function deleteWardrobePieceFromBrowser(id) {
+    const sid = String(id);
+    if (!sid) return;
+    const isCustom = sid.startsWith("custom-");
+
+    currentOutfitSlots = currentOutfitSlots.filter((s) => s.itemId !== sid);
+
+    if (isCustom) {
+      const next = loadCustomItems().filter((x) => x.id !== sid);
+      saveCustomItems(next);
+    } else {
+      const hidden = loadArchiveHiddenIds();
+      hidden.add(sid);
+      saveArchiveHiddenIds(hidden);
+      try {
+        const all = loadArchiveOverrides();
+        if (Object.prototype.hasOwnProperty.call(all, sid)) {
+          delete all[sid];
+          saveArchiveOverrides(all);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     mergeWardrobeFromSources();
-    initFilters();
-    onOutfitChange();
-    showToast("Custom piece removed.");
-    if (!document.getElementById("grid") && detailItemId === id) {
+
+    if (document.getElementById("grid")) {
+      initFilters();
+      onOutfitChange();
+    }
+
+    showToast("Piece removed from this browser.");
+
+    if (!document.getElementById("grid") && String(detailItemId) === sid) {
       globalThis.location.href = "index.html";
     }
   }
@@ -1577,6 +1796,11 @@
     const addDlg = document.getElementById("add-item-dialog");
     const openAdd = document.getElementById("add-item-open");
     const closeAdd = document.getElementById("add-item-close");
+    openAdd?.setAttribute("aria-haspopup", "dialog");
+    openAdd?.setAttribute("aria-expanded", "false");
+    addDlg?.addEventListener("close", () => {
+      openAdd?.setAttribute("aria-expanded", "false");
+    });
     openAdd?.addEventListener("click", () => {
       if (!addDlg) return;
       try {
@@ -1584,6 +1808,7 @@
       } catch {
         /* already open */
       }
+      openAdd?.setAttribute("aria-expanded", "true");
       queueMicrotask(() => document.getElementById("add-item-brand")?.focus());
     });
     closeAdd?.addEventListener("click", () => addDlg?.close());
@@ -1610,6 +1835,7 @@
     article.className = "card" + (outfitHighlight ? " card--in-outfit" : "");
     article.setAttribute("role", "listitem");
     article.dataset.itemId = String(item.id);
+    article.title = "Double-click to open";
 
     if (item.season) {
       const intro = document.createElement("div");
@@ -1699,26 +1925,19 @@
       if (variants?.length) {
         addBtn.textContent = inOutfit ? "Add another colour…" : "Add to outfit…";
         addBtn.disabled = everyVariantTaken;
-        addBtn.title = everyVariantTaken ? "All colours are already in this outfit." : "Choose colour for this outfit.";
+        addBtn.title = everyVariantTaken ? "Every colour is already in this outfit." : "Pick a colour for this outfit.";
       } else {
-        addBtn.textContent = inOutfit ? "In outfit" : "Add to outfit";
+        addBtn.textContent = inOutfit ? "Added" : "Add to outfit";
         addBtn.disabled = singleTaken;
+        if (singleTaken) addBtn.title = "Already in this outfit.";
       }
       addBtn.dataset.outfitAdd = item.id;
       actions.appendChild(addBtn);
     } else {
       const note = document.createElement("p");
       note.className = "card__outfit-note";
-      note.textContent = "Archive — not for outfits";
+      note.textContent = "Not added to outfits (archive only).";
       actions.appendChild(note);
-    }
-    if (typeof item.id === "string" && item.id.startsWith("custom-")) {
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "btn btn--small btn--danger";
-      delBtn.textContent = "Delete";
-      delBtn.dataset.customDelete = item.id;
-      actions.appendChild(delBtn);
     }
     body.appendChild(actions);
 
@@ -1732,9 +1951,19 @@
   }
 
   /**
-   * Stable list order: custom pieces first (by brand / name / id), then archive rows in seed / `wardrobeBase` order.
+   * List order: when not filtered by drill record-type, outer → jackets → … → bottoms → shoes → …
+   * then brand / name. With a drill sub-type active, preserve archive seed order inside that type.
    */
   function compareArchiveGridItems(a, b) {
+    const drilled = Boolean(String(subcategoryFilter ?? "").trim());
+    if (!drilled) {
+      const tax = compareByTaxonomy(a, b);
+      if (tax !== 0) return tax;
+      const ka = `${String(a?.brand ?? "")}\0${String(a?.name ?? "")}\0${String(a?.id ?? "")}`;
+      const kb = `${String(b?.brand ?? "")}\0${String(b?.name ?? "")}\0${String(b?.id ?? "")}`;
+      return ka.localeCompare(kb, undefined, { sensitivity: "base" });
+    }
+
     const ca = isCustomWardrobeItem(a);
     const cb = isCustomWardrobeItem(b);
     if (ca !== cb) return ca ? -1 : 1;
@@ -1758,21 +1987,45 @@
       els.grid.appendChild(createCard(item));
     }
     const n = sorted.length;
+    const seasonalTotal = countItemsForCurrentSeasonTab();
+    const narrow = describeNarrowingFiltersForUi();
     if (els.count) {
-      els.count.textContent = `${n} piece${n === 1 ? "" : "s"}`;
+      if (narrowingFiltersActive()) {
+        els.count.textContent =
+          n === seasonalTotal
+            ? `${n} piece${n === 1 ? "" : "s"} · ${narrow}`
+            : `${n} of ${seasonalTotal} piece${seasonalTotal === 1 ? "" : "s"} · ${narrow}`;
+      } else {
+        els.count.textContent = `${n} piece${n === 1 ? "" : "s"} in ${seasonNavFilter === "A/W" ? "A/W" : "S/S"}`;
+      }
     }
-    els.empty.hidden = n > 0;
+    if (els.emptyMsg) {
+      els.emptyMsg.textContent = narrowingFiltersActive()
+        ? "Nothing matches that category, type, or search on this season tab."
+        : "No pieces on this season tab match.";
+    }
+    if (els.emptyReset) els.emptyReset.hidden = !narrowingFiltersActive();
+    if (els.emptyWrap) els.emptyWrap.hidden = n > 0;
     els.grid.hidden = n === 0;
   }
 
   let dragFromIndex = null;
 
+  function syncOutfitBuilderPanel() {
+    const dock = document.getElementById("outfit-dock");
+    if (!dock) return;
+    dock.classList.toggle("outfit-dock--builder-open", currentOutfitSlots.length > 0);
+  }
+
   function renderOutfitStrip() {
     if (!els.outfitStrip) return;
     els.outfitStrip.innerHTML = "";
     const empty = currentOutfitSlots.length === 0;
-    els.outfitEmpty.hidden = !empty;
-    if (empty) return;
+    if (els.outfitEmpty) els.outfitEmpty.hidden = !empty;
+    if (empty) {
+      syncOutfitBuilderPanel();
+      return;
+    }
 
     currentOutfitSlots.forEach((pieceSlot, index) => {
       const item = itemById.get(pieceSlot.itemId);
@@ -1855,6 +2108,7 @@
       slot.appendChild(rm);
       els.outfitStrip.appendChild(slot);
     });
+    syncOutfitBuilderPanel();
   }
 
   function formatSavedDate(iso) {
@@ -1939,59 +2193,182 @@
     renderOutfitStrip();
   }
 
-  function duplicateArchiveItemToCustom(sourceId) {
-    const src = itemById.get(sourceId);
-    if (!src || (typeof sourceId === "string" && sourceId.startsWith("custom-"))) return;
-    const image = String(src.image ?? "").trim();
-    if (!image) {
-      showToast("This archive row has no image to copy.");
-      return;
-    }
-    const id =
+  function newEditorVariantKey() {
+    const tail =
       typeof crypto !== "undefined" && crypto.randomUUID
-        ? `custom-${crypto.randomUUID()}`
-        : `custom-${Date.now()}`;
-    const gallery = itemGalleryList(src);
-    const copy = {
-      id,
-      brand: String(src.brand ?? "").trim(),
-      name: String(src.name ?? "").trim(),
-      section: "",
-      category: String(src.category ?? "").trim() || itemSlot(src),
-      season: String(src.season ?? "").trim(),
-      color: String(src.color ?? "").trim(),
-      fabric: String(src.fabric ?? "").trim(),
-      weight: String(src.weight ?? "").trim(),
-      size: String(src.size ?? "").trim(),
-      measuredDimensions: String(src.measuredDimensions ?? "").trim(),
-      image,
-      gallery: gallery.length ? gallery : undefined,
-      notes: String(src.notes ?? "").trim(),
-      pillar: "",
-      ...(Array.isArray(src.colorVariants) && src.colorVariants.length
-        ? { colorVariants: JSON.parse(JSON.stringify(src.colorVariants)) }
-        : {}),
-    };
-    const list = loadCustomItems();
-    list.unshift(copy);
-    try {
-      saveCustomItems(list);
-    } catch (e) {
-      showToast("Could not save the copy (storage may be full).");
-      return;
+        ? crypto.randomUUID().replace(/-/g, "").slice(0, 10)
+        : String(Date.now());
+    return `nv-${tail}`;
+  }
+
+  /** URL-ish slug for a new variant; falls back to nv-* if empty. */
+  function slugVariantKeyBase(label) {
+    const s = String(label ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]+/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    return s.slice(0, 48);
+  }
+
+  function syncVariantRemoveButtons(listEl) {
+    if (!listEl) return;
+    const rows = listEl.querySelectorAll(".item-edit-variant-row");
+    const n = rows.length;
+    listEl.querySelectorAll(".item-edit-variant-remove").forEach((b) => {
+      /** @type {HTMLButtonElement} */ (b).hidden = n <= 1;
+    });
+  }
+
+  /**
+   * @param {HTMLElement} listEl
+   * @param {{ key?: string, label?: string, color?: string, image?: string, gallery?: string[], notes?: string }} data
+   */
+  function appendVariantEditorRow(listEl, data) {
+    const key = String(data.key ?? "").trim() || newEditorVariantKey();
+    const label = String(data.label ?? "").trim();
+    const color = String(data.color ?? "").trim();
+    const image = String(data.image ?? "").trim();
+    const notes = data.notes != null ? String(data.notes) : "";
+    const fs = document.createElement("fieldset");
+    fs.className = "item-edit-variant-row";
+    if (image) fs.setAttribute("data-prev-image", image);
+
+    const leg = document.createElement("legend");
+    leg.className = "item-edit-variant-legend";
+    leg.textContent = "Colour";
+
+    const keyIn = document.createElement("input");
+    keyIn.type = "hidden";
+    keyIn.className = "item-edit-variant-key";
+    keyIn.value = key;
+
+    const labelIn = document.createElement("input");
+    labelIn.type = "text";
+    labelIn.className = "item-edit-variant-label";
+    labelIn.maxLength = 80;
+    labelIn.placeholder = "Label (outfit picker)";
+    labelIn.value = label;
+
+    const colorIn = document.createElement("input");
+    colorIn.type = "text";
+    colorIn.className = "item-edit-variant-color";
+    colorIn.maxLength = 80;
+    colorIn.placeholder = "Colour name";
+    colorIn.value = color;
+
+    const notesIn = document.createElement("input");
+    notesIn.type = "text";
+    notesIn.className = "item-edit-variant-notes";
+    notesIn.maxLength = 200;
+    notesIn.placeholder = "Notes (optional)";
+    notesIn.value = notes;
+
+    const coverLab = document.createElement("label");
+    coverLab.className = "item-edit-variant-cover-wrap";
+    const coverSpan = document.createElement("span");
+    coverSpan.className = "item-edit-variant-cover-label";
+    coverSpan.textContent = image ? "New cover image (optional)" : "Cover image (required)";
+    const coverIn = document.createElement("input");
+    coverIn.type = "file";
+    coverIn.className = "item-edit-variant-cover";
+    coverIn.accept = "image/*";
+    coverLab.appendChild(coverSpan);
+    coverLab.appendChild(coverIn);
+
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "btn btn--small btn--ghost item-edit-variant-remove";
+    rm.textContent = "Remove";
+    rm.hidden = true;
+
+    rm.addEventListener("click", () => {
+      fs.remove();
+      syncVariantRemoveButtons(listEl);
+    });
+
+    fs.appendChild(leg);
+    fs.appendChild(keyIn);
+    fs.appendChild(labelIn);
+    fs.appendChild(colorIn);
+    fs.appendChild(notesIn);
+    fs.appendChild(coverLab);
+    fs.appendChild(rm);
+    listEl.appendChild(fs);
+    syncVariantRemoveButtons(listEl);
+  }
+
+  /**
+   * @param {HTMLFormElement} form
+   * @param {object} prev
+   * @param {(t: string, err?: boolean) => void} setMsg
+   * @returns {Promise<{ key: string, label: string, color: string, image: string, gallery: string[], notes: string }[] | null>}
+   */
+  async function gatherColorVariantsFromEditForm(form, prev, setMsg) {
+    const wrap = form.querySelector("#item-edit-variants-wrap");
+    if (!wrap || wrap.dataset.active !== "1") return null;
+    const listEl = form.querySelector("#item-edit-variants-list");
+    if (!listEl) return null;
+    const rows = [...listEl.querySelectorAll(".item-edit-variant-row")];
+    if (!rows.length) {
+      setMsg("Add at least one colour row.", true);
+      return null;
     }
-    mergeWardrobeFromSources();
-    if (document.getElementById("grid")) {
-      initFilters();
-      onOutfitChange();
-      renderGrid();
+    /** @type {{ key: string, label: string, color: string, image: string, gallery: string[], notes: string }[]} */
+    const built = [];
+    const prevVars = Array.isArray(prev?.colorVariants) ? prev.colorVariants : [];
+    for (const row of rows) {
+      const key = row.querySelector(".item-edit-variant-key")?.value?.trim() || "";
+      const label = row.querySelector(".item-edit-variant-label")?.value?.trim() || "";
+      const color = row.querySelector(".item-edit-variant-color")?.value?.trim() || "";
+      const notes = row.querySelector(".item-edit-variant-notes")?.value?.trim() || "";
+      const coverIn = row.querySelector(".item-edit-variant-cover");
+      const file = coverIn?.files?.[0];
+      const prevIm = row.getAttribute("data-prev-image")?.trim() || "";
+      let image = prevIm;
+      if (file) {
+        try {
+          image = await fileToResizedDataUrl(file);
+        } catch (err) {
+          console.warn(err);
+          setMsg("Could not process a colour cover image.", true);
+          return null;
+        }
+      }
+      if (!key) {
+        setMsg("Each colour row needs an internal key (reload and try again).", true);
+        return null;
+      }
+      if (!label) {
+        setMsg("Each colour needs a label (shown when picking a colour for outfits).", true);
+        return null;
+      }
+      if (!image) {
+        setMsg("Each colour needs a cover image — upload one, or keep an existing row’s image.", true);
+        return null;
+      }
+      const match = prevVars.find((x) => x && String(x.key ?? "").trim() === key);
+      let gallery = [];
+      if (match && Array.isArray(match.gallery)) {
+        gallery = match.gallery.map((x) => String(x ?? "").trim()).filter(Boolean);
+      }
+      built.push({
+        key,
+        label,
+        color: color || label,
+        image,
+        gallery,
+        notes,
+      });
     }
-    const u = new URL("item.html", globalThis.location.href);
-    u.searchParams.set("id", copy.id);
-    u.searchParams.set("edit", "1");
-    showToast("Copy added to your wardrobe — opening editor…");
-    persistArchiveListScrollForReturn();
-    globalThis.location.assign(u.toString());
+    return built;
+  }
+
+  function itemEditVariantsActive(form) {
+    const wrap = form.querySelector("#item-edit-variants-wrap");
+    return Boolean(wrap && wrap.dataset.active === "1");
   }
 
   async function saveItemDetailEdit(form) {
@@ -2012,12 +2389,25 @@
     const name = form.querySelector("#item-edit-name")?.value?.trim() || "";
     const category = form.querySelector("#item-edit-category")?.value || "";
     const season = form.querySelector("#item-edit-season")?.value?.trim() || "";
-    const color = form.querySelector("#item-edit-color")?.value?.trim() || "";
     const fabric = form.querySelector("#item-edit-fabric")?.value?.trim() || "";
     const weight = form.querySelector("#item-edit-weight")?.value?.trim() || "";
     const size = form.querySelector("#item-edit-size")?.value?.trim() || "";
     const measuredDimensions = form.querySelector("#item-edit-measured-dimensions")?.value?.trim() || "";
     const notes = form.querySelector("#item-edit-notes")?.value?.trim() || "";
+
+    const variantsMode = itemEditVariantsActive(form);
+    /** @type {{ key: string, label: string, color: string, image: string, gallery: string[], notes: string }[] | null} */
+    let colorVariantsBuilt = null;
+    if (variantsMode) {
+      setMsg("Processing colour images…", false);
+      colorVariantsBuilt = await gatherColorVariantsFromEditForm(form, prev, setMsg);
+      if (colorVariantsBuilt == null) return;
+    }
+
+    const color =
+      variantsMode && colorVariantsBuilt?.length
+        ? String(colorVariantsBuilt[0].color ?? colorVariantsBuilt[0].label ?? "").trim()
+        : form.querySelector("#item-edit-color")?.value?.trim() || "";
 
     if (!brand || !name || !category) {
       setMsg("Brand, name, and category are required.", true);
@@ -2025,15 +2415,19 @@
     }
 
     let image = String(prev.image ?? "").trim();
-    const coverFile = form.querySelector("#item-edit-cover")?.files?.[0];
-    if (coverFile) {
-      setMsg("Processing images…", false);
-      try {
-        image = await fileToResizedDataUrl(coverFile);
-      } catch (err) {
-        console.warn(err);
-        setMsg("Could not process the new cover image.", true);
-        return;
+    if (variantsMode && colorVariantsBuilt?.length) {
+      image = String(colorVariantsBuilt[0].image ?? "").trim() || image;
+    } else {
+      const coverFile = form.querySelector("#item-edit-cover")?.files?.[0];
+      if (coverFile) {
+        setMsg("Processing images…", false);
+        try {
+          image = await fileToResizedDataUrl(coverFile);
+        } catch (err) {
+          console.warn(err);
+          setMsg("Could not process the new cover image.", true);
+          return;
+        }
       }
     }
 
@@ -2069,6 +2463,12 @@
     };
     if (gallery.length) updated.gallery = gallery;
     else delete updated.gallery;
+
+    if (variantsMode && colorVariantsBuilt?.length) {
+      updated.colorVariants = colorVariantsBuilt;
+    } else {
+      delete updated.colorVariants;
+    }
 
     if (isCustom) {
       const list = loadCustomItems();
@@ -2107,6 +2507,9 @@
       };
       if (gallery.length) patch.gallery = gallery;
       else patch.gallery = [];
+      if (variantsMode && colorVariantsBuilt?.length) {
+        patch.colorVariants = colorVariantsBuilt;
+      }
       try {
         const all = loadArchiveOverrides();
         all[id] = patch;
@@ -2229,12 +2632,134 @@
       }
       addField("Season (optional)", seaSel);
 
-      const colorIn = document.createElement("input");
-      colorIn.type = "text";
-      colorIn.id = "item-edit-color";
-      colorIn.maxLength = 80;
-      colorIn.value = String(item.color ?? "");
-      addField("Color (optional)", colorIn);
+      const initialVariants = getItemColorVariants(item);
+      const isCustomPiece = String(item.id ?? "").startsWith("custom-");
+
+      /** @type {HTMLLabelElement | null} */
+      let colorSingleField = null;
+
+      if (!initialVariants) {
+        const colorIn = document.createElement("input");
+        colorIn.type = "text";
+        colorIn.id = "item-edit-color";
+        colorIn.maxLength = 80;
+        colorIn.value = String(item.color ?? "");
+        const colorLab = document.createElement("label");
+        colorLab.className = "field";
+        const cspan = document.createElement("span");
+        cspan.className = "field__label";
+        cspan.textContent = "Color (optional)";
+        colorLab.appendChild(cspan);
+        colorLab.appendChild(colorIn);
+        if (isCustomPiece) {
+          const migrateHint = document.createElement("p");
+          migrateHint.className = "item-edit-variant-migrate-hint";
+          migrateHint.textContent =
+            "Same piece in another colour needs its own cover photo — outfits will ask which colour to use.";
+          const migrateBtn = document.createElement("button");
+          migrateBtn.type = "button";
+          migrateBtn.className = "btn btn--small btn--ghost item-edit-enable-variants";
+          migrateBtn.textContent = "Add another colour…";
+          colorLab.appendChild(migrateHint);
+          colorLab.appendChild(migrateBtn);
+        }
+        grid.appendChild(colorLab);
+        colorSingleField = colorLab;
+      }
+
+      const variantsWrap = document.createElement("div");
+      variantsWrap.id = "item-edit-variants-wrap";
+      variantsWrap.className = "field field--span2 item-edit-variants-wrap";
+      if (initialVariants) {
+        variantsWrap.dataset.active = "1";
+        variantsWrap.hidden = false;
+      } else {
+        variantsWrap.dataset.active = "0";
+        variantsWrap.hidden = true;
+      }
+
+      if (initialVariants) {
+        const variantsIntro = document.createElement("p");
+        variantsIntro.className = "item-edit-variants-intro";
+        variantsIntro.textContent =
+          "Edit each colour’s label and colour text. Keys stay fixed so saved outfits keep working — use “Add another colour” for a new option.";
+        variantsWrap.appendChild(variantsIntro);
+      }
+
+      const listEl = document.createElement("div");
+      listEl.id = "item-edit-variants-list";
+      listEl.className = "item-edit-variants-list";
+
+      const addVarBtn = document.createElement("button");
+      addVarBtn.type = "button";
+      addVarBtn.className = "btn btn--small btn--ghost item-edit-variant-add";
+      addVarBtn.textContent = "Add another colour";
+      addVarBtn.hidden = !initialVariants;
+
+      if (initialVariants) {
+        for (const v of initialVariants) {
+          appendVariantEditorRow(listEl, {
+            key: v.key,
+            label: v.label,
+            color: v.color,
+            image: v.image,
+            gallery: v.gallery,
+            notes: v.notes,
+          });
+        }
+      }
+
+      variantsWrap.appendChild(listEl);
+      variantsWrap.appendChild(addVarBtn);
+
+      addVarBtn.addEventListener("click", () => {
+        appendVariantEditorRow(listEl, {
+          key: newEditorVariantKey(),
+          label: "",
+          color: "",
+          image: "",
+          gallery: [],
+          notes: "",
+        });
+        variantsWrap.dataset.active = "1";
+        variantsWrap.hidden = false;
+        addVarBtn.hidden = false;
+      });
+
+      if (colorSingleField) {
+        const migrateBtn = colorSingleField.querySelector(".item-edit-enable-variants");
+        migrateBtn?.addEventListener("click", () => {
+          const colorIn = /** @type {HTMLInputElement | null} */ (colorSingleField.querySelector("#item-edit-color"));
+          const baseColor = colorIn?.value?.trim() || "";
+          const label0 = baseColor || "Colour 1";
+          const key0 = slugVariantKeyBase(label0) || "colour-1";
+          listEl.innerHTML = "";
+          appendVariantEditorRow(listEl, {
+            key: key0,
+            label: label0,
+            color: baseColor,
+            image: String(item.image ?? ""),
+            gallery: itemGalleryList(item),
+            notes: "",
+          });
+          appendVariantEditorRow(listEl, {
+            key: newEditorVariantKey(),
+            label: "",
+            color: "",
+            image: "",
+            gallery: [],
+            notes: "",
+          });
+          variantsWrap.dataset.active = "1";
+          variantsWrap.hidden = false;
+          colorSingleField.hidden = true;
+          addVarBtn.hidden = false;
+          const coverField = form.querySelector("#item-edit-cover")?.closest("label");
+          if (coverField instanceof HTMLElement) coverField.hidden = true;
+        });
+      }
+
+      grid.appendChild(variantsWrap);
 
       const fabIn = document.createElement("input");
       fabIn.type = "text";
@@ -2276,6 +2801,7 @@
       coverLab.appendChild(coverSpan);
       coverLab.appendChild(coverIn);
       grid.appendChild(coverLab);
+      coverLab.hidden = Boolean(initialVariants);
 
       const galLab = document.createElement("label");
       galLab.className = "field field--file field--span2";
@@ -2317,6 +2843,11 @@
         ev.preventDefault();
         void saveItemDetailEdit(form);
       });
+      form.addEventListener("keydown", (ev) => {
+        if (!(ev.ctrlKey || ev.metaKey) || ev.key !== "Enter") return;
+        ev.preventDefault();
+        void saveItemDetailEdit(form);
+      });
 
       const act = document.createElement("div");
       act.className = "item-detail__form-actions";
@@ -2324,11 +2855,13 @@
       saveBtn.type = "submit";
       saveBtn.className = "btn btn--small";
       saveBtn.textContent = "Save changes";
+      saveBtn.title = "Save (⌘ Enter or Ctrl+Enter)";
       const cancelBtn = document.createElement("button");
       cancelBtn.type = "button";
       cancelBtn.className = "btn btn--small btn--ghost";
       cancelBtn.id = "item-detail-cancel-edit";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.title = "Discard changes (Esc)";
       act.appendChild(saveBtn);
       act.appendChild(cancelBtn);
       form.appendChild(act);
@@ -2340,6 +2873,7 @@
       wrap.appendChild(h2);
       wrap.appendChild(form);
       root.appendChild(wrap);
+      afterItemDetailPageRender(root, true);
       return;
     }
 
@@ -2421,15 +2955,18 @@
     ed.id = "item-detail-edit";
     ed.textContent = "Edit";
     actions.appendChild(ed);
-    if (!isCustom) {
-      const du = document.createElement("button");
-      du.type = "button";
-      du.className = "btn btn--small";
-      du.id = "item-detail-duplicate";
-      du.textContent = "Duplicate to my wardrobe";
-      actions.appendChild(du);
-    }
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn btn--small btn--danger";
+    delBtn.id = "item-detail-delete";
+    delBtn.textContent = "Delete";
+    delBtn.title = isCustom
+      ? "Remove this custom piece from this browser."
+      : "Hide this archive row in this browser (does not change seed files or cloud).";
+    actions.appendChild(delBtn);
+    actions.id = "item-detail-actions";
     root.appendChild(actions);
+    afterItemDetailPageRender(root, false);
   }
 
   function replaceItemPageUrl(id, withEdit) {
@@ -2520,38 +3057,64 @@
 
   function initItemDetailRootDelegates() {
     const root = itemDetailMountRoot();
-    if (!root || itemDetailDelegatesInstalled) return;
-    itemDetailDelegatesInstalled = true;
+    if (!root) return;
 
-    root.addEventListener("click", (e) => {
-      const mount = /** @type {HTMLElement} */ (e.currentTarget);
-      const t = /** @type {Element | null} */ (e.target instanceof Element ? e.target : null);
-      if (t?.closest("#item-detail-copy-text")) {
-        const it = itemById.get(detailItemId);
-        if (it) void copyItemPlainTextForAi(it);
-        return;
-      }
-      if (t?.closest("#item-detail-edit")) {
-        const it = itemById.get(detailItemId);
-        if (it) {
-          renderItemDetailContent(mount, it, { edit: true });
-          replaceItemPageUrl(it.id, true);
+    if (!itemDetailDelegatesInstalled) {
+      itemDetailDelegatesInstalled = true;
+      root.addEventListener("click", (e) => {
+        const mount = /** @type {HTMLElement} */ (e.currentTarget);
+        const t = /** @type {Element | null} */ (e.target instanceof Element ? e.target : null);
+        if (t?.closest("#item-detail-copy-text")) {
+          const it = itemById.get(detailItemId);
+          if (it) void copyItemPlainTextForAi(it);
+          return;
         }
-        return;
-      }
-      if (t?.closest("#item-detail-duplicate")) {
-        duplicateArchiveItemToCustom(detailItemId);
-        return;
-      }
-      if (t?.closest("#item-detail-cancel-edit")) {
-        const it = itemById.get(detailItemId);
-        if (it) {
-          renderItemDetailContent(mount, it, { edit: false });
-          replaceItemPageUrl(it.id, false);
+        if (t?.closest("#item-detail-edit")) {
+          const it = itemById.get(detailItemId);
+          if (it) {
+            renderItemDetailContent(mount, it, { edit: true });
+            replaceItemPageUrl(it.id, true);
+          }
+          return;
         }
-        return;
-      }
-    });
+        if (t?.closest("#item-detail-delete")) {
+          const it = itemById.get(detailItemId);
+          if (!it) return;
+          const custom = String(it.id).startsWith("custom-");
+          const msg = custom
+            ? "Delete this piece from this browser? Its fields and images are removed and cannot be restored."
+            : "Remove this piece from your wardrobe in this browser? It disappears from the grid here; seed files and cloud data are not changed.";
+          if (!confirm(msg)) return;
+          deleteWardrobePieceFromBrowser(it.id);
+          return;
+        }
+        if (t?.closest("#item-detail-cancel-edit")) {
+          const it = itemById.get(detailItemId);
+          if (it) {
+            renderItemDetailContent(mount, it, { edit: false });
+            replaceItemPageUrl(it.id, false);
+          }
+          return;
+        }
+      });
+    }
+
+    if (!itemDetailPageKeyboardInstalled) {
+      itemDetailPageKeyboardInstalled = true;
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (document.querySelector("dialog[open]")) return;
+        const mount = itemDetailMountRoot();
+        if (!mount?.classList.contains("item-detail__root--page")) return;
+        if (document.getElementById("grid")) return;
+        if (!document.getElementById("item-detail-edit-form")) return;
+        const it = itemById.get(detailItemId);
+        if (!it || !mount) return;
+        e.preventDefault();
+        renderItemDetailContent(mount, it, { edit: false });
+        replaceItemPageUrl(it.id, false);
+      });
+    }
   }
 
   function runItemDetailPage(root, pageId) {
@@ -2561,8 +3124,13 @@
 
     if (!item) {
       root.innerHTML =
-        '<p class="item-page-not-found">This piece is not in the archive.</p><p><a class="btn btn--ghost" href="index.html">← Back to archive</a></p>';
+        '<div class="item-page-not-found-wrap" role="alert">' +
+        '<p class="item-page-not-found">This piece is not in the archive.</p>' +
+        '<p class="item-page-not-found__hint">The link may be outdated or the piece was removed.</p>' +
+        '<p><a class="btn" href="index.html">Back to archive</a></p>' +
+        "</div>";
       document.title = "Piece not found · Timeless Wardrobe";
+      globalThis.scrollTo({ top: 0, left: 0, behavior: "auto" });
       return;
     }
 
@@ -2614,12 +3182,11 @@
   }
 
   function syncFiltersChromeVisibility() {
-    const nav = document.getElementById("filters-nav");
     const showBtn = document.getElementById("filters-show-chrome");
-    if (!nav || !showBtn) return;
-    const hideChrome = Boolean(categoryNavFilter) && !keepFiltersChromeVisible;
-    nav.classList.toggle("filters--chrome-hidden", hideChrome);
-    showBtn.hidden = !hideChrome;
+    if (!showBtn) return;
+    const show =
+      Boolean(String(subcategoryFilter ?? "").trim()) && !categoryDrillExpanded;
+    showBtn.hidden = !show;
   }
 
   function collapseFiltersMenuPanel() {
@@ -2637,10 +3204,6 @@
     nav.classList.toggle("filters--menu-open");
     const open = nav.classList.contains("filters--menu-open");
     btn.setAttribute("aria-expanded", open ? "true" : "false");
-    if (!open && categoryNavFilter) {
-      keepFiltersChromeVisible = false;
-      syncFiltersChromeVisibility();
-    }
   }
 
   function initFilters() {
@@ -2676,6 +3239,11 @@
   }
 
   function wireEvents() {
+    els.emptyReset?.addEventListener("click", () => {
+      resetNarrowingFilters();
+      showToast("Category, type, and search cleared.");
+    });
+
     const catNav = document.getElementById("category-nav");
     if (catNav) {
       catNav.addEventListener("click", (e) => {
@@ -2684,6 +3252,7 @@
           seasonNavFilter = seasonTab.dataset.seasonFilter === "A/W" ? "A/W" : "S/S";
           persistSeasonNav();
           subcategoryFilter = "";
+          categoryDrillExpanded = true;
           syncSeasonTabUI();
           validateSubcategoryFilter();
           renderCategoryDrill();
@@ -2693,7 +3262,7 @@
         }
         const tab = e.target.closest(".category-nav__tab");
         if (!tab) return;
-        keepFiltersChromeVisible = false;
+        categoryDrillExpanded = true;
         categoryNavFilter = tab.dataset.categoryFilter ?? "";
         subcategoryFilter = "";
         syncCategoryTabUI();
@@ -2707,7 +3276,7 @@
     if (drill) {
       drill.addEventListener("click", (e) => {
         if (e.target.closest("#category-drill-back")) {
-          keepFiltersChromeVisible = false;
+          categoryDrillExpanded = true;
           categoryNavFilter = "";
           subcategoryFilter = "";
           syncCategoryTabUI();
@@ -2718,35 +3287,24 @@
         }
         const choice = e.target.closest(".category-drill__choice");
         if (!choice) return;
-        keepFiltersChromeVisible = false;
         subcategoryFilter = choice.dataset.subcategory ?? "";
+        categoryDrillExpanded = !Boolean(String(subcategoryFilter ?? "").trim());
         renderCategoryDrill();
         renderGrid();
-        collapseFiltersMenuPanel();
         syncFiltersChromeVisibility();
       });
     }
 
     if (els.grid) {
       els.grid.addEventListener("click", (e) => {
-        const del = e.target.closest("[data-custom-delete]");
-        if (del) {
-          const cid = del.dataset.customDelete;
-          if (
-            cid &&
-            confirm(
-              "Delete this custom piece? Its fields and images are removed from this browser and cannot be restored."
-            )
-          ) {
-            deleteCustomItem(cid);
-          }
-          return;
-        }
         const outfitBtn = e.target.closest("[data-outfit-add]");
         if (outfitBtn && !outfitBtn.disabled) {
           addToOutfit(outfitBtn.dataset.outfitAdd);
           return;
         }
+      });
+      els.grid.addEventListener("dblclick", (e) => {
+        if (e.target.closest("[data-outfit-add]")) return;
         if (e.target.closest(".card__actions")) return;
         if (e.target.closest(".card__gallery-thumb")) return;
         const card = e.target.closest(".card[data-item-id]");
@@ -2805,13 +3363,14 @@
     filtersMenuBtn?.addEventListener("click", () => toggleFiltersMenuPanel());
 
     document.getElementById("filters-show-chrome")?.addEventListener("click", () => {
-      keepFiltersChromeVisible = true;
-      const nav = document.getElementById("filters-nav");
+      categoryDrillExpanded = true;
       const showBtn = document.getElementById("filters-show-chrome");
-      if (nav) nav.classList.remove("filters--chrome-hidden");
       if (showBtn) showBtn.hidden = true;
-      if (isFiltersNarrowViewport() && nav) {
-        nav.classList.add("filters--menu-open");
+      renderCategoryDrill();
+      if (isFiltersNarrowViewport()) {
+        const nav = document.getElementById("filters-nav");
+        const filtersMenuBtn = document.getElementById("filters-menu-btn");
+        nav?.classList.add("filters--menu-open");
         if (filtersMenuBtn) filtersMenuBtn.setAttribute("aria-expanded", "true");
       }
       syncFiltersMenuForViewport();
@@ -2828,20 +3387,12 @@
           if (!(t instanceof Element)) return;
           if (filtersNav.contains(t)) return;
           collapseFiltersMenuPanel();
-          if (categoryNavFilter) {
-            keepFiltersChromeVisible = false;
-            syncFiltersChromeVisibility();
-          }
         },
         true
       );
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
         collapseFiltersMenuPanel();
-        if (categoryNavFilter) {
-          keepFiltersChromeVisible = false;
-          syncFiltersChromeVisibility();
-        }
       });
       globalThis.matchMedia?.("(max-width: 720px)")?.addEventListener?.("change", () => {
         syncFiltersMenuForViewport();

@@ -18,6 +18,7 @@
     <a class="skip-link" href="#category-nav">Skip to categories</a>
     <a class="skip-link" href="#category-drill">Skip to types</a>
     <a class="skip-link" href="#add-item-open">Skip to add item</a>
+    <a class="skip-link" href="#saved-outfits-heading">Skip to saved outfits</a>
     <header class="site-header">
       <div class="site-header__inner">
         <div class="site-header__row">
@@ -30,10 +31,16 @@
           </button>
         </div>
         <p class="site-tagline">
-          <strong>English Heritage × Mediterranean Leisure</strong> — one wardrobe, two hemispheres
-          (cloth, cut, context). Supabase optional; else local seed + cache. Match filenames to your
-          <code>image</code> paths.
+          <strong>English Heritage × Mediterranean Leisure</strong> — one wardrobe, two moods: country
+          classics and warm-weather ease.
         </p>
+        <details class="site-meta-details">
+          <summary>Data &amp; images</summary>
+          <p class="site-meta-details__body">
+            Pieces can load from this site’s seed list, your browser (custom items &amp; edits), or Supabase when
+            configured. Image paths in the data should match files under <code>images/</code>.
+          </p>
+        </details>
       </div>
     </header>
 
@@ -43,8 +50,9 @@
         class="filters-show-chrome"
         id="filters-show-chrome"
         hidden
+        aria-controls="category-drill"
       >
-        Show filters
+        Show types
       </button>
       <button
         type="button"
@@ -188,38 +196,40 @@
       </div>
     </nav>
 
-    <section class="outfit-dock" aria-labelledby="outfit-heading">
-      <div class="outfit-dock__head">
-        <h2 id="outfit-heading" class="outfit-dock__title">Outfit</h2>
-        <p class="outfit-dock__hint">
-          Add <strong>clothing</strong>, <strong>shoes</strong>, and <strong>watches</strong> only. Jewelry and fragrance are archive
-          entries and stay out of the outfit builder. Drag to reorder; name and save (Supabase syncs when configured).
-        </p>
-      </div>
-      <div
-        id="outfit-strip"
-        class="outfit-strip"
-        role="list"
-        aria-label="Pieces in current outfit"
-      ></div>
-      <p id="outfit-empty" class="outfit-empty" hidden>No pieces in this outfit yet.</p>
-      <div class="outfit-actions">
-        <label class="field field--inline">
-          <span class="field__label">Outfit name</span>
-          <input
-            id="outfit-name"
-            type="text"
-            maxlength="80"
-            placeholder="e.g. Monday · tonal layers"
-            autocomplete="off"
-          />
-        </label>
-        <button type="button" class="btn" id="outfit-save">Save outfit</button>
-        <button type="button" class="btn btn--ghost" id="outfit-clear">Clear</button>
+    <section id="outfit-dock" class="outfit-dock" aria-labelledby="outfit-heading">
+      <div class="outfit-dock__builder">
+        <div class="outfit-dock__head">
+          <h2 id="outfit-heading" class="outfit-dock__title">Outfit</h2>
+          <p class="outfit-dock__hint" id="outfit-hint">
+            Only <strong>clothing</strong>, <strong>shoes</strong>, and <strong>watches</strong> can go in an outfit. Jewelry and perfume stay in the archive for
+            reference. Drag slots to reorder, then name and save.
+          </p>
+        </div>
+        <div
+          id="outfit-strip"
+          class="outfit-strip"
+          role="list"
+          aria-label="Pieces in current outfit"
+        ></div>
+        <p id="outfit-empty" class="outfit-empty" hidden>No pieces in this outfit yet.</p>
+        <div class="outfit-actions">
+          <label class="field field--inline">
+            <span class="field__label">Outfit name</span>
+            <input
+              id="outfit-name"
+              type="text"
+              maxlength="80"
+              placeholder="e.g. Monday · tonal layers"
+              autocomplete="off"
+            />
+          </label>
+          <button type="button" class="btn" id="outfit-save">Save outfit</button>
+          <button type="button" class="btn btn--ghost" id="outfit-clear">Clear</button>
+        </div>
       </div>
       <p id="outfit-toast" class="outfit-toast" role="status" aria-live="polite"></p>
       <div class="saved-outfits">
-        <h3 class="saved-outfits__title">Saved outfits</h3>
+        <h3 class="saved-outfits__title" id="saved-outfits-heading">Saved outfits</h3>
         <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
         <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
           No saved outfits yet. Finish an outfit and click Save outfit to keep it.
@@ -229,11 +239,16 @@
 
     <main id="main">
       <div id="grid" class="grid" role="list"></div>
-      <p id="empty-state" class="empty-state" hidden>No pieces match these filters.</p>
+      <div id="empty-wrap" class="empty-wrap" hidden>
+        <p id="empty-state-msg" class="empty-wrap__msg">No pieces match these filters.</p>
+        <button type="button" class="btn btn--small" id="empty-reset-filters" hidden>
+          Clear category, type &amp; search
+        </button>
+      </div>
     </main>
 
     <footer class="site-footer">
-      <p>Timeless Wardrobe · local / Supabase MVP</p>
+      <p>Timeless Wardrobe</p>
     </footer>
 
     <dialog id="add-item-dialog" class="add-item-dialog" aria-labelledby="add-item-heading">
@@ -245,10 +260,8 @@
           <div class="add-item-panel__head">
             <h2 id="add-item-heading" class="add-item-panel__title">Add a piece</h2>
             <p class="add-item-panel__hint">
-              Enter <strong>brand</strong>, <strong>name</strong>, and <strong>category</strong>, and upload a <strong>cover image</strong> (required); you can add
-              <strong>more photos</strong> too. Categories are <strong>Clothing</strong>, <strong>Shoes</strong>, <strong>Jewelry</strong>,
-              <strong>Watches</strong>, and <strong>Fragrance</strong>—pick the one that matches the piece. Data and images live in
-              <strong>this browser</strong> (merged with seed / cloud); clearing site data removes them.
+              Required: <strong>brand</strong>, <strong>name</strong>, <strong>category</strong>, and one <strong>cover photo</strong>. Optional fields and extra photos
+              help later when you search or edit. Saved only in <strong>this browser</strong> unless you use cloud sync.
             </p>
           </div>
           <form id="add-item-form" class="add-item-form">
