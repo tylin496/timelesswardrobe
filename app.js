@@ -38,6 +38,20 @@
     return out.length ? out : null;
   }
 
+  /** First `#rgb` / `#rrggbb` in `color` or `label` for grid swatches. */
+  function extractSwatchHexFromVariant(v) {
+    const pools = [String(v?.color ?? "").trim(), String(v?.label ?? "").trim()];
+    for (const p of pools) {
+      const m = p.match(/#([0-9a-fA-F]{6})\b|#([0-9a-fA-F]{3})\b/);
+      if (!m) continue;
+      const raw = m[0];
+      let h = raw.slice(1);
+      if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+      return `#${h.toLowerCase()}`;
+    }
+    return "";
+  }
+
   /** Shallow row shaped for cover / gallery resolution for one outfit slot. */
   function itemProjectionForOutfitSlot(item, slot) {
     const vars = getItemColorVariants(item);
@@ -121,12 +135,43 @@
 
   /** Top-level archive category (filter + add-item). */
   const SLOT_CLOTHING = "Clothing";
+  const SLOT_ACCESSORIES = "Accessories";
   const SLOT_SHOES = "Shoes";
   const SLOT_JEWELRY = "Jewelry";
   const SLOT_WATCHES = "Watches";
   const SLOT_FRAGRANCE = "Fragrance";
 
-  const SLOT_OPTIONS = [SLOT_CLOTHING, SLOT_SHOES, SLOT_JEWELRY, SLOT_WATCHES, SLOT_FRAGRANCE];
+  const SLOT_OPTIONS = [
+    SLOT_CLOTHING,
+    SLOT_ACCESSORIES,
+    SLOT_SHOES,
+    SLOT_JEWELRY,
+    SLOT_WATCHES,
+    SLOT_FRAGRANCE,
+  ];
+
+  /**
+   * When `category` is empty or only repeats a broad browse tab, store one of these so every row has a real record type.
+   * `itemSlot()` maps them back to the correct browse tab.
+   */
+  const RECORD_UNSPEC_BY_SLOT = {
+    [SLOT_CLOTHING]: "Unspecified clothing",
+    [SLOT_ACCESSORIES]: "Unspecified accessories",
+    [SLOT_SHOES]: "Unspecified footwear",
+    [SLOT_WATCHES]: "Unspecified watches",
+    [SLOT_JEWELRY]: "Unspecified jewelry",
+    [SLOT_FRAGRANCE]: "Unspecified perfume",
+  };
+
+  /** @type {Record<string, string>} */
+  const RECORD_UNSPEC_TO_SLOT = Object.fromEntries(
+    Object.entries(RECORD_UNSPEC_BY_SLOT).map(([slot, label]) => [label, slot])
+  );
+
+  function fallbackRecordCategoryForSlot(slot) {
+    const s = String(slot ?? "").trim();
+    return RECORD_UNSPEC_BY_SLOT[s] || RECORD_UNSPEC_BY_SLOT[SLOT_CLOTHING];
+  }
 
   function categoryDisplayLabel(slot) {
     if (slot === SLOT_FRAGRANCE) return "Perfume";
@@ -148,6 +193,13 @@
     Jewellery: "Jewelry",
     Jewelry: "Jewelry",
     Future: "Planned pieces & rings",
+    Accessories: "Accessories",
+    "Unspecified clothing": "Clothing (unspecified type)",
+    "Unspecified accessories": "Accessories (unspecified type)",
+    "Unspecified footwear": "Footwear (unspecified type)",
+    "Unspecified watches": "Watches (unspecified type)",
+    "Unspecified jewelry": "Jewelry (unspecified type)",
+    "Unspecified perfume": "Perfume (unspecified type)",
   };
 
   function friendlyRecordCategory(raw) {
@@ -174,8 +226,8 @@
     lines.push(`Name: ${String(item.name ?? "").trim()}`);
     lines.push(`Name (display line): ${displayNameWithoutLeadingColor(item)}`);
     lines.push(`Browse category: ${categoryDisplayLabel(itemSlot(item))}`);
-    lines.push(`Record category: ${String(item.category ?? "").trim()}`);
-    lines.push(`Season: ${String(item.season ?? "").trim()}`);
+    lines.push(`Record category: ${recordCategoryForDrill(item, itemSlot(item))}`);
+    lines.push(`Season: ${seasonUiLabel(item.season)}`);
     lines.push(`Color: ${String(item.color ?? "").trim()}`);
     lines.push(`Fabric: ${String(item.fabric ?? "").trim()}`);
     lines.push(`Weight / specs: ${String(item.weight ?? "").trim()}`);
@@ -261,13 +313,17 @@
     if (cat === "Jewellery" || cat === "Jewelry") return SLOT_JEWELRY;
     if (cat === "Footwear") return SLOT_SHOES;
     if (cat === "Future") return SLOT_JEWELRY;
-    return SLOT_CLOTHING;
+    return SLOT_ACCESSORIES;
   }
 
   function itemSlot(item) {
     if (!item) return SLOT_CLOTHING;
     const rawCat = String(item.category ?? "").trim();
     const season = String(item.season ?? "");
+
+    if (Object.prototype.hasOwnProperty.call(RECORD_UNSPEC_TO_SLOT, rawCat)) {
+      return RECORD_UNSPEC_TO_SLOT[rawCat];
+    }
 
     if (rawCat === "Clothing (incl. shoes)") return SLOT_CLOTHING;
 
@@ -288,7 +344,7 @@
     return SLOT_CLOTHING;
   }
 
-  /** Outfit builder: clothing, shoes, and watches — jewelry & fragrance are archive-only. */
+  /** Outfit builder: clothing, shoes, and watches — other browse tabs stay in the archive. */
   function itemEligibleForOutfit(item) {
     if (!item) return false;
     const s = itemSlot(item);
@@ -298,10 +354,11 @@
   /** Browse column order when viewing All (or a main tab without a record-type drill). */
   const BROWSE_SLOT_RANK = {
     [SLOT_CLOTHING]: 0,
-    [SLOT_SHOES]: 1,
-    [SLOT_WATCHES]: 2,
-    [SLOT_JEWELRY]: 3,
-    [SLOT_FRAGRANCE]: 4,
+    [SLOT_ACCESSORIES]: 1,
+    [SLOT_SHOES]: 2,
+    [SLOT_WATCHES]: 3,
+    [SLOT_JEWELRY]: 4,
+    [SLOT_FRAGRANCE]: 5,
   };
 
   /**
@@ -322,6 +379,13 @@
     Jewellery: 10,
     Jewelry: 11,
     Future: 12,
+    Accessories: 13,
+    "Unspecified clothing": 14,
+    "Unspecified accessories": 14,
+    "Unspecified footwear": 14,
+    "Unspecified watches": 14,
+    "Unspecified jewelry": 14,
+    "Unspecified perfume": 14,
   };
 
   function browseSlotRank(item) {
@@ -330,7 +394,7 @@
   }
 
   function recordCategoryRank(item) {
-    const c = String(item?.category ?? "").trim();
+    const c = recordCategoryForDrill(item, itemSlot(item));
     if (!c) return 999;
     if (Object.prototype.hasOwnProperty.call(RECORD_CATEGORY_RANK, c)) return RECORD_CATEGORY_RANK[c];
     return 800;
@@ -342,8 +406,8 @@
     if (sDiff !== 0) return sDiff;
     const rDiff = recordCategoryRank(a) - recordCategoryRank(b);
     if (rDiff !== 0) return rDiff;
-    const ca = String(a?.category ?? "").trim();
-    const cb = String(b?.category ?? "").trim();
+    const ca = recordCategoryForDrill(a, itemSlot(a));
+    const cb = recordCategoryForDrill(b, itemSlot(b));
     return ca.localeCompare(cb, undefined, { sensitivity: "base" });
   }
 
@@ -406,7 +470,7 @@
   function loadPersistedSeasonNav() {
     try {
       const v = localStorage.getItem(SEASON_NAV_STORAGE_KEY);
-      if (v === "A/W" || v === "S/S") return v;
+      if (v === "A/W" || v === "S/S" || v === "All") return v;
     } catch {
       /* private mode / disabled */
     }
@@ -471,7 +535,14 @@
         const base = patch && typeof patch === "object" ? { ...row, ...patch, id } : { ...row };
         return { ...base, __archiveOrdinal: idx };
       });
-    items = [...loadCustomItems(), ...mergedBase];
+    const mergedList = [...loadCustomItems(), ...mergedBase];
+    items = mergedList.map((row) => {
+      const slot = itemSlot(row);
+      const canon = recordCategoryForDrill(row, slot);
+      const raw = String(row.category ?? "").trim();
+      if (raw === canon) return row;
+      return { ...row, category: canon };
+    });
     rebuildItemIndex();
     coverResolutionCache.clear();
     rebuildArchiveImagePathList();
@@ -483,6 +554,9 @@
   /** @type {{ id: string, name: string, slots: { itemId: string, colorKey?: string }[], createdAt: string }[]} */
   let savedOutfits = [];
 
+  /** When set, the next "Save outfit" updates this saved row instead of creating a new one. */
+  let editingSavedOutfitId = null;
+
   let toastTimer = null;
 
   /** @type {boolean} */
@@ -491,17 +565,11 @@
   /** Active category tab value (matches `itemSlot()`; empty string = all). */
   let categoryNavFilter = "";
 
-  /** Top strip: always "S/S" or "A/W" — narrows archive before category tabs (persisted in localStorage). */
+  /** Top strip: "All", "S/S", or "A/W" — narrows archive before category tabs (persisted in localStorage). */
   let seasonNavFilter = loadPersistedSeasonNav();
 
   /** Within main category: filter by seed `category` (e.g. Jackets); empty = all types. */
   let subcategoryFilter = "";
-
-  /**
-   * When a record-type is chosen in the drill, the drill panel can fold while season + main categories stay visible.
-   * "Show types" sets this true again.
-   */
-  let categoryDrillExpanded = true;
 
   /** Item id currently shown on the item page (for edit / delete actions). */
   let detailItemId = null;
@@ -523,12 +591,27 @@
     savedEmpty: document.getElementById("saved-outfits-empty"),
   };
 
+  let itemDetailDelegatesInstalled = false;
+  let itemDetailPageKeyboardInstalled = false;
+  let itemPageBackNavInstalled = false;
+
   function itemDetailMountRoot() {
     return document.getElementById("item-detail-root");
   }
 
-  let itemDetailDelegatesInstalled = false;
-  let itemDetailPageKeyboardInstalled = false;
+  /** Standalone item.html: prefer browser back so the archive tab (and in-memory filters) is restored when possible. */
+  function installItemPageBackNavigation() {
+    if (itemPageBackNavInstalled) return;
+    const back = document.querySelector(".item-page-header__back");
+    if (!back) return;
+    itemPageBackNavInstalled = true;
+    back.addEventListener("click", (e) => {
+      if (globalThis.history.length > 1) {
+        e.preventDefault();
+        globalThis.history.back();
+      }
+    });
+  }
 
   function itemDetailIsPageRoot(root) {
     return root?.classList?.contains("item-detail__root--page") ?? false;
@@ -611,6 +694,28 @@
     return bits.join(" · ");
   }
 
+  function countNarrowingFilterDims() {
+    let n = 0;
+    if (categoryNavFilter) n += 1;
+    if (String(subcategoryFilter ?? "").trim()) n += 1;
+    if (normalizeSearch(els.search?.value ?? "")) n += 1;
+    return n;
+  }
+
+  function syncFilterSummaryBar() {
+    const bar = document.getElementById("filter-summary-bar");
+    const text = document.getElementById("filter-summary-text");
+    if (!bar || !text) return;
+    const n = countNarrowingFilterDims();
+    if (n === 0) {
+      bar.hidden = true;
+      text.textContent = "";
+      return;
+    }
+    bar.hidden = false;
+    text.textContent = `${n} active — ${describeNarrowingFiltersForUi()}`;
+  }
+
   function countItemsForCurrentSeasonTab() {
     return items.filter((it) => itemPassesSeasonNav(it, seasonNavFilter)).length;
   }
@@ -619,22 +724,29 @@
     categoryNavFilter = "";
     subcategoryFilter = "";
     if (els.search) els.search.value = "";
-    categoryDrillExpanded = true;
     syncCategoryTabUI();
     validateSubcategoryFilter();
     renderCategoryDrill();
-    syncFiltersChromeVisibility();
     syncFiltersMenuForViewport();
     renderGrid();
     collapseFiltersMenuPanel();
   }
 
-  /** S/S vs A/W: exact match, `All-season`, or blank season (visible in both tabs). */
+  /** Season tab: "All" shows everything; S/S vs A/W use exact match plus `All-season` / blank / item `All`. */
   function itemPassesSeasonNav(item, nav) {
+    if (nav === "All") return true;
     const s = String(item.season ?? "").trim();
-    if (nav === "S/S") return s === "S/S" || s === "All-season" || s === "";
-    if (nav === "A/W") return s === "A/W" || s === "All-season" || s === "";
+    if (nav === "S/S") return s === "S/S" || s === "All-season" || s === "All" || s === "";
+    if (nav === "A/W") return s === "A/W" || s === "All-season" || s === "All" || s === "";
     return true;
+  }
+
+  /** UI / export: blank, `All-season`, or `All` → label "All". */
+  function seasonUiLabel(raw) {
+    const s = String(raw ?? "").trim();
+    if (!s || s === "All-season" || s === "All") return "All";
+    if (s === "A/W" || s === "S/S") return s;
+    return s;
   }
 
   function poolItemsForDrillSubcategories() {
@@ -644,76 +756,138 @@
     return pool;
   }
 
+  /** Pool for the browse slot across both season tabs — used so type drill options do not change with S/S vs A/W. */
+  function poolItemsForBrowseSlotAllSeasons(browseSlot) {
+    const slot = String(browseSlot ?? "").trim();
+    if (!slot) return items;
+    return items.filter((i) => itemSlot(i) === slot);
+  }
+
   /**
-   * Canonical `category` key for the type drill under a browse tab. Jewelry merges
-   * `Jewellery` / `Jewelry` / `Future` so the drill is not split into confusing parallel buckets.
+   * Stable record-type key for drill chips, filtering, and display under `browseSlot`.
+   * Broad tabs (Clothing / Accessories): empty or tab-only `category` maps to an explicit `Unspecified …` value.
    */
-  function drillCategoryKey(item, browseSlot) {
-    const slot = browseSlot || categoryNavFilter;
-    const c = String(item?.category ?? "").trim();
-    if (!c) return "";
+  function recordCategoryForDrill(item, browseSlot) {
+    const slot = String(browseSlot ?? "").trim() || itemSlot(item);
+    let raw = String(item?.category ?? "").trim();
+
     if (slot === SLOT_JEWELRY) {
-      if (c === "Jewellery" || c === "Jewelry" || c === "Future") return "Jewellery";
+      if (raw === "Jewellery" || raw === "Jewelry" || raw === "Future") raw = "Jewellery";
     }
-    return c;
+
+    if (!raw) return fallbackRecordCategoryForSlot(slot);
+
+    const broad = slot === SLOT_CLOTHING || slot === SLOT_ACCESSORIES;
+    if (broad && (raw === slot || raw === "Clothing" || raw === "Accessories")) {
+      return fallbackRecordCategoryForSlot(slot);
+    }
+
+    return raw;
   }
 
   function itemMatchesDrillSubcategory(item, browseCategory, sub) {
     if (!sub) return true;
-    const raw = String(item.category ?? "").trim();
-    if (browseCategory === SLOT_JEWELRY && sub === "Jewellery") {
-      return raw === "Jewellery" || raw === "Jewelry" || raw === "Future";
+    return recordCategoryForDrill(item, browseCategory) === sub;
+  }
+
+  /**
+   * Distinct record-type keys for the type drill / edit dropdown under `browseSlot`.
+   */
+  function drillSubcategoryKeysFromPool(browseSlot, pool) {
+    const slot = String(browseSlot ?? "").trim();
+    if (!slot) return [];
+    return uniqueSorted(
+      pool
+        .filter((i) => itemSlot(i) === slot)
+        .map((i) => recordCategoryForDrill(i, slot))
+        .filter(Boolean)
+    );
+  }
+
+  /**
+   * Populate record-type `<select>`: keys from the pool plus `preferKey` when valid; always includes the section fallback.
+   */
+  function fillItemEditRecordTypeSelect(selectEl, browseSlot, preferKey) {
+    const slot = String(browseSlot ?? "").trim() || SLOT_CLOTHING;
+    const prev = String(preferKey ?? "").trim();
+    const pool = items.filter((i) => itemSlot(i) === slot);
+    const fall = fallbackRecordCategoryForSlot(slot);
+    let keys = drillSubcategoryKeysFromPool(slot, pool);
+    if (!keys.includes(fall)) keys = uniqueSorted([fall, ...keys]);
+    if (prev && !keys.includes(prev)) {
+      const probe = { category: prev, season: "" };
+      if (itemSlot(probe) === slot && prev !== slot && !SLOT_OPTIONS.includes(prev)) {
+        keys = uniqueSorted([...keys, prev]);
+      }
     }
-    return raw === sub;
+    selectEl.innerHTML = "";
+    for (const k of keys) {
+      const o = document.createElement("option");
+      o.value = k;
+      o.textContent = friendlyRecordCategory(k) || k;
+      selectEl.appendChild(o);
+    }
+    const pick = prev && keys.includes(prev) ? prev : fall;
+    selectEl.value = pick;
   }
 
   function validateSubcategoryFilter() {
-    if (!subcategoryFilter) return;
-    const pool = poolItemsForDrillSubcategories();
-    const ok = pool.some((i) => itemMatchesDrillSubcategory(i, categoryNavFilter, subcategoryFilter));
-    if (!ok) subcategoryFilter = "";
-    else if (
-      categoryNavFilter === SLOT_JEWELRY &&
-      (subcategoryFilter === "Future" || subcategoryFilter === "Jewelry")
-    ) {
-      subcategoryFilter = "Jewellery";
+    const sub = String(subcategoryFilter ?? "").trim();
+    if (!sub) return;
+    if (!categoryNavFilter) {
+      subcategoryFilter = "";
+      return;
     }
+    if (categoryNavFilter === SLOT_JEWELRY && (sub === "Future" || sub === "Jewelry")) {
+      subcategoryFilter = "Jewellery";
+      return;
+    }
+    const seasonalPool = poolItemsForDrillSubcategories();
+    if (!seasonalPool.length) {
+      subcategoryFilter = "";
+      return;
+    }
+    const allSeasonPool = poolItemsForBrowseSlotAllSeasons(categoryNavFilter);
+    const allowed = drillSubcategoryKeysFromPool(categoryNavFilter, allSeasonPool);
+    const ok =
+      allowed.includes(sub) && seasonalPool.some((i) => itemMatchesDrillSubcategory(i, categoryNavFilter, sub));
+    if (!ok) subcategoryFilter = "";
   }
 
   function renderCategoryDrill() {
     const drill = document.getElementById("category-drill");
-    const titleEl = document.getElementById("category-drill-title");
     const grid = document.getElementById("category-drill-grid");
-    if (!drill || !titleEl || !grid) return;
+    if (!drill || !grid) return;
 
     validateSubcategoryFilter();
 
     if (!categoryNavFilter) {
-      categoryDrillExpanded = true;
       drill.hidden = true;
       drill.setAttribute("aria-hidden", "true");
       grid.innerHTML = "";
-      syncFiltersChromeVisibility();
       return;
     }
 
-    const pool = poolItemsForDrillSubcategories();
-    const rawCats = uniqueSorted(
-      pool.map((i) => drillCategoryKey(i, categoryNavFilter)).filter(Boolean)
-    );
-
-    /** No meaningful drill when every row shares the same record category (e.g. Perfume only). */
-    if (rawCats.length <= 1) {
-      categoryDrillExpanded = true;
+    const seasonalPool = poolItemsForDrillSubcategories();
+    if (!seasonalPool.length) {
       subcategoryFilter = "";
       drill.hidden = true;
       drill.setAttribute("aria-hidden", "true");
       grid.innerHTML = "";
-      syncFiltersChromeVisibility();
       return;
     }
 
-    titleEl.textContent = categoryDisplayLabel(categoryNavFilter);
+    const allSeasonPool = poolItemsForBrowseSlotAllSeasons(categoryNavFilter);
+    const typeKeys = drillSubcategoryKeysFromPool(categoryNavFilter, allSeasonPool);
+
+    /** No sub-type strip when there is nothing to choose or only one record type (main tabs are enough). */
+    if (typeKeys.length <= 1) {
+      subcategoryFilter = "";
+      drill.hidden = true;
+      drill.setAttribute("aria-hidden", "true");
+      grid.innerHTML = "";
+      return;
+    }
 
     grid.innerHTML = "";
 
@@ -729,21 +903,12 @@
     }
 
     appendChoice("", "All types", true);
-    for (const raw of rawCats) {
-      appendChoice(raw, friendlyRecordCategory(raw), false);
+    for (const raw of typeKeys) {
+      appendChoice(raw, friendlyRecordCategory(raw) || raw, false);
     }
 
-    const specificType = Boolean(String(subcategoryFilter ?? "").trim());
-    const foldDrill = specificType && !categoryDrillExpanded;
-    if (foldDrill) {
-      drill.hidden = true;
-      drill.setAttribute("aria-hidden", "true");
-    } else {
-      drill.hidden = false;
-      drill.removeAttribute("aria-hidden");
-    }
-
-    syncFiltersChromeVisibility();
+    drill.hidden = false;
+    drill.removeAttribute("aria-hidden");
   }
 
   function applyFilters(list) {
@@ -1368,7 +1533,9 @@
     const item = itemById.get(slot.itemId);
     if (!item) return;
     if (!itemEligibleForOutfit(item)) {
-      showToast("Only clothing, shoes, and watches go into outfits — jewelry and fragrance stay in the archive.");
+      showToast(
+        "Only clothing, shoes, and watches go into outfits — jewelry, perfume, and accessories stay in the archive."
+      );
       return;
     }
     const k = outfitSlotKey(slot);
@@ -1431,8 +1598,19 @@
   function clearOutfit() {
     currentOutfitSlots = [];
     els.outfitName.value = "";
+    editingSavedOutfitId = null;
+    syncOutfitSaveButtonLabel();
     onOutfitChange();
     showToast("Outfit cleared.");
+  }
+
+  function syncOutfitSaveButtonLabel() {
+    const btn = els.outfitSave || document.getElementById("outfit-save");
+    if (!btn) return;
+    btn.textContent = editingSavedOutfitId ? "Update outfit" : "Save outfit";
+    btn.title = editingSavedOutfitId
+      ? "Save changes to the outfit you opened with Edit."
+      : "Save the current strip as a new named outfit.";
   }
 
   function reorderOutfit(fromIndex, toIndex) {
@@ -1466,6 +1644,45 @@
     const slots = currentOutfitSlots.map((s) =>
       s.colorKey ? { itemId: s.itemId, colorKey: s.colorKey } : { itemId: s.itemId }
     );
+
+    const editId = editingSavedOutfitId;
+    if (editId) {
+      const prevIdx = savedOutfits.findIndex((o) => o.id === editId);
+      if (prevIdx < 0) {
+        editingSavedOutfitId = null;
+        syncOutfitSaveButtonLabel();
+        showToast("That saved outfit is no longer here — use Save outfit to create a new one.");
+        return;
+      }
+      const prev = savedOutfits[prevIdx];
+      const record = {
+        id: editId,
+        name,
+        slots,
+        createdAt: prev.createdAt,
+      };
+
+      if (supabaseClient && useCloudOutfits) {
+        const api = await import("./js/supabase-client.js");
+        const res = await api.updateOutfitWithItems(supabaseClient, record);
+        if (!res.ok) {
+          showToast(`Cloud update failed: ${res.error}`);
+          return;
+        }
+      }
+
+      const next = [...savedOutfits];
+      next[prevIdx] = record;
+      savedOutfits = next;
+      persistSavedOutfitsCache();
+      editingSavedOutfitId = null;
+      syncOutfitSaveButtonLabel();
+      els.outfitName.value = "";
+      renderSavedOutfits();
+      showToast(`Updated: “${name}”`);
+      return;
+    }
+
     const record = {
       id: newOutfitRecordId(),
       name,
@@ -1490,6 +1707,10 @@
   }
 
   async function deleteSavedOutfit(id) {
+    if (editingSavedOutfitId === id) {
+      editingSavedOutfitId = null;
+      syncOutfitSaveButtonLabel();
+    }
     if (supabaseClient && useCloudOutfits) {
       const api = await import("./js/supabase-client.js");
       const res = await api.deleteOutfitById(supabaseClient, id);
@@ -1504,7 +1725,12 @@
     showToast("Outfit deleted.");
   }
 
-  function loadSavedIntoBuilder(id) {
+  /**
+   * @param {string} id
+   * @param {{ forEdit?: boolean }} [opts] Pass `forEdit: true` to update that outfit on next save (name field filled).
+   */
+  function loadSavedIntoBuilder(id, opts = {}) {
+    const forEdit = Boolean(opts.forEdit);
     const found = savedOutfits.find((o) => o.id === id);
     if (!found) return;
     const rawSlots = outfitSlotsFromRecord(found);
@@ -1514,9 +1740,19 @@
     });
     const before = rawSlots.length;
     currentOutfitSlots = valid;
+    editingSavedOutfitId = forEdit ? id : null;
+    if (els.outfitName) els.outfitName.value = forEdit ? String(found.name ?? "").trim() : "";
+    syncOutfitSaveButtonLabel();
     onOutfitChange();
     const skipped = before - valid.length;
-    if (skipped > 0) {
+    if (forEdit) {
+      els.outfitName?.focus();
+      if (skipped > 0) {
+        showToast(`Editing “${found.name}” — skipped ${skipped} archive-only piece(s). Save updates this outfit.`);
+      } else {
+        showToast(`Editing “${found.name}” — Save updates this outfit.`);
+      }
+    } else if (skipped > 0) {
       showToast(`Loaded: “${found.name}” — skipped ${skipped} archive-only piece(s).`);
     } else {
       showToast(`Loaded: “${found.name}”`);
@@ -1665,7 +1901,9 @@
     const form = /** @type {HTMLFormElement} */ (ev.target);
     const brand = document.getElementById("add-item-brand")?.value?.trim() || "";
     const name = document.getElementById("add-item-name")?.value?.trim() || "";
-    const category = document.getElementById("add-item-category")?.value || "";
+    const browseSlot = document.getElementById("add-item-category")?.value || "";
+    const recordPick = document.getElementById("add-item-record-type")?.value?.trim() || "";
+    const category = recordPick || fallbackRecordCategoryForSlot(browseSlot);
     const season = document.getElementById("add-item-season")?.value?.trim() || "";
     const color = document.getElementById("add-item-color")?.value?.trim() || "";
     const fabric = document.getElementById("add-item-fabric")?.value?.trim() || "";
@@ -1676,8 +1914,12 @@
     const notes = document.getElementById("add-item-notes")?.value?.trim() || "";
     const fileInput = document.getElementById("add-item-image");
     const file = fileInput?.files?.[0];
-    if (!brand || !name || !category || !file) {
+    if (!brand || !name || !browseSlot || !file) {
       showAddItemFormMsg("Fill required fields and choose a cover image.", true);
+      return;
+    }
+    if (itemSlot({ category, season: season || "" }) !== browseSlot) {
+      showAddItemFormMsg("Pick a record type that fits the selected section.", true);
       return;
     }
     showAddItemFormMsg("Processing images…", false);
@@ -1745,6 +1987,9 @@
     initFilters();
     renderGrid();
     form.reset();
+    const catEl = document.getElementById("add-item-category");
+    const recordEl = document.getElementById("add-item-record-type");
+    if (catEl && recordEl) fillItemEditRecordTypeSelect(recordEl, catEl.value, "");
     const prev = document.getElementById("add-item-preview");
     if (prev) {
       prev.hidden = true;
@@ -1758,9 +2003,10 @@
   function initAddItemForm() {
     const form = document.getElementById("add-item-form");
     const cat = document.getElementById("add-item-category");
+    const recordSel = document.getElementById("add-item-record-type");
     const imgInput = document.getElementById("add-item-image");
     const preview = document.getElementById("add-item-preview");
-    if (!form || !cat) return;
+    if (!form || !cat || !recordSel) return;
     cat.innerHTML = "";
     for (const c of SLOT_OPTIONS) {
       const o = document.createElement("option");
@@ -1768,6 +2014,12 @@
       o.textContent = categoryDisplayLabel(c);
       cat.appendChild(o);
     }
+
+    function syncAddItemRecordTypes() {
+      fillItemEditRecordTypeSelect(recordSel, cat.value, "");
+    }
+    cat.addEventListener("change", syncAddItemRecordTypes);
+    syncAddItemRecordTypes();
 
     imgInput?.addEventListener("change", () => {
       const f = imgInput.files?.[0];
@@ -1790,6 +2042,7 @@
         preview.hidden = true;
         preview.removeAttribute("src");
         showAddItemFormMsg("", false);
+        syncAddItemRecordTypes();
       });
     });
 
@@ -1830,25 +2083,18 @@
       Boolean(variants?.length) && allVariantKeys.length > 0 && allVariantKeys.every((k) => takenKeys.has(k));
     const singleTaken = !variants?.length && outfitSlotKeySet().has(outfitSlotKey({ itemId: item.id }));
 
+    const slotLab = itemSlot(item);
+    const recKey = recordCategoryForDrill(item, slotLab);
+
     const article = document.createElement("article");
     const outfitHighlight = inOutfit && itemEligibleForOutfit(item);
     article.className = "card" + (outfitHighlight ? " card--in-outfit" : "");
     article.setAttribute("role", "listitem");
     article.dataset.itemId = String(item.id);
-    article.title = "Double-click to open";
-
-    if (item.season) {
-      const intro = document.createElement("div");
-      intro.className = "card__intro";
-      const seasonP = document.createElement("p");
-      seasonP.className = "card__season";
-      seasonP.textContent = item.season;
-      intro.appendChild(seasonP);
-      article.appendChild(intro);
-    }
 
     const media = document.createElement("div");
-    media.className = "card__media";
+    media.className = "card__media card__media--opens-detail";
+    if (variants?.length) media.classList.add("card__media--variant-colors");
 
     const img = document.createElement("img");
     img.className = "card__media-img";
@@ -1865,26 +2111,113 @@
     });
 
     media.appendChild(img);
-    mountHeroGalleryStrip(media, img, item);
+    if (!variants?.length) {
+      mountHeroGalleryStrip(media, img, item);
+    } else if (itemGalleryList(item).length) {
+      mountHeroGalleryStrip(media, img, item);
+    }
+
+    const rawSe = String(item.season ?? "").trim();
+    if (rawSe === "A/W" || rawSe === "S/S" || rawSe === "All-season" || rawSe === "All") {
+      const chip = document.createElement("span");
+      chip.className = "card__season-chip";
+      chip.textContent = seasonUiLabel(rawSe);
+      media.appendChild(chip);
+    }
+
+    if (itemEligibleForOutfit(item)) {
+      const quick = document.createElement("button");
+      quick.type = "button";
+      quick.className = "card__quick-outfit";
+      quick.dataset.outfitAdd = item.id;
+      const blocked = everyVariantTaken || singleTaken;
+      if (variants?.length) {
+        quick.title = everyVariantTaken ? "Every colour is already in this outfit." : "Add a colour to outfit";
+      } else {
+        quick.title = singleTaken ? "Already in this outfit." : "Add to outfit";
+      }
+      quick.textContent = blocked ? "✓" : "+";
+      quick.disabled = Boolean(blocked);
+      media.appendChild(quick);
+    }
+
+    const openHint = "Open piece";
+    media.title = openHint;
+    function openCardDetail(ev) {
+      openItemDetail(String(item.id), ev);
+    }
+    media.addEventListener("click", (ev) => {
+      if (ev.target.closest(".card__quick-outfit")) return;
+      if (ev.target.closest(".card__gallery-thumb")) return;
+      if (ev.target.closest(".card__season-chip")) return;
+      openCardDetail(ev);
+    });
 
     const body = document.createElement("div");
     body.className = "card__body";
 
-    const catP = document.createElement("p");
-    catP.className = "card__category";
-    catP.textContent = categoryDisplayLabel(itemSlot(item));
-    const rawCat = String(item.category ?? "").trim();
-    if (rawCat && !SLOT_OPTIONS.includes(rawCat)) {
-      catP.title = `Record field: ${rawCat}`;
-    }
+    const title = document.createElement("h2");
+    title.className = "card__title card__title--opens-detail";
+    title.textContent = displayNameWithoutLeadingColor(item);
+    title.title = openHint;
+    title.tabIndex = 0;
+    title.addEventListener("click", openCardDetail);
+    title.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Enter" && ev.key !== " ") return;
+      ev.preventDefault();
+      openCardDetail(ev);
+    });
 
     const brand = document.createElement("p");
     brand.className = "card__brand";
     brand.textContent = item.brand;
 
-    const title = document.createElement("h2");
-    title.className = "card__title";
-    title.textContent = displayNameWithoutLeadingColor(item);
+    const metaLine = document.createElement("p");
+    metaLine.className = "card__meta-line";
+    const fr = friendlyRecordCategory(recKey) || recKey;
+    metaLine.textContent = `${fr} · ${categoryDisplayLabel(slotLab)}`;
+
+    body.appendChild(title);
+    body.appendChild(brand);
+    body.appendChild(metaLine);
+
+    if (variants?.length) {
+      const sw = document.createElement("div");
+      sw.className = "card__swatches";
+      sw.setAttribute("role", "group");
+      sw.setAttribute("aria-label", "Colours");
+      variants.forEach((v, idx) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "card__swatch" + (idx === 0 ? " is-active" : "");
+        const lbl = String(v.label ?? v.color ?? "").trim() || `Colour ${idx + 1}`;
+        const colorText = String(v.color ?? "").trim();
+        const vu = String(v.image ?? "").trim();
+        const hex = extractSwatchHexFromVariant(v);
+        b.title = [lbl, colorText].filter(Boolean).join(" · ");
+        b.setAttribute("aria-label", lbl);
+        if (hex) {
+          b.style.backgroundColor = hex;
+          b.style.boxShadow = "inset 0 0 0 1px rgba(0, 0, 0, 0.2)";
+        } else {
+          const si = document.createElement("img");
+          if (vu) si.src = vu;
+          si.alt = "";
+          b.appendChild(si);
+        }
+        b.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          sw.querySelectorAll(".card__swatch").forEach((x) => x.classList.remove("is-active"));
+          b.classList.add("is-active");
+          if (vu) {
+            img.src = vu;
+            img.alt = `${item.brand} — ${lbl}`;
+          }
+        });
+        sw.appendChild(b);
+      });
+      body.appendChild(sw);
+    }
 
     const specs = document.createElement("ul");
     specs.className = "card__specs";
@@ -1904,42 +2237,7 @@
       specs.appendChild(li);
     }
 
-    body.appendChild(catP);
-    body.appendChild(brand);
-    body.appendChild(title);
     if (specs.children.length) body.appendChild(specs);
-
-    if (item.notes) {
-      const notes = document.createElement("p");
-      notes.className = "card__notes";
-      notes.textContent = item.notes;
-      body.appendChild(notes);
-    }
-
-    const actions = document.createElement("div");
-    actions.className = "card__actions";
-    if (itemEligibleForOutfit(item)) {
-      const addBtn = document.createElement("button");
-      addBtn.type = "button";
-      addBtn.className = "btn btn--small";
-      if (variants?.length) {
-        addBtn.textContent = inOutfit ? "Add another colour…" : "Add to outfit…";
-        addBtn.disabled = everyVariantTaken;
-        addBtn.title = everyVariantTaken ? "Every colour is already in this outfit." : "Pick a colour for this outfit.";
-      } else {
-        addBtn.textContent = inOutfit ? "Added" : "Add to outfit";
-        addBtn.disabled = singleTaken;
-        if (singleTaken) addBtn.title = "Already in this outfit.";
-      }
-      addBtn.dataset.outfitAdd = item.id;
-      actions.appendChild(addBtn);
-    } else {
-      const note = document.createElement("p");
-      note.className = "card__outfit-note";
-      note.textContent = "Not added to outfits (archive only).";
-      actions.appendChild(note);
-    }
-    body.appendChild(actions);
 
     article.appendChild(media);
     article.appendChild(body);
@@ -1996,17 +2294,29 @@
             ? `${n} piece${n === 1 ? "" : "s"} · ${narrow}`
             : `${n} of ${seasonalTotal} piece${seasonalTotal === 1 ? "" : "s"} · ${narrow}`;
       } else {
-        els.count.textContent = `${n} piece${n === 1 ? "" : "s"} in ${seasonNavFilter === "A/W" ? "A/W" : "S/S"}`;
+        const where =
+          seasonNavFilter === "All"
+            ? "all seasons"
+            : seasonNavFilter === "A/W"
+              ? "A/W"
+              : "S/S";
+        els.count.textContent = `${n} piece${n === 1 ? "" : "s"} in ${where}`;
       }
     }
     if (els.emptyMsg) {
+      const onSeasonTab = seasonNavFilter !== "All";
       els.emptyMsg.textContent = narrowingFiltersActive()
-        ? "Nothing matches that category, type, or search on this season tab."
-        : "No pieces on this season tab match.";
+        ? onSeasonTab
+          ? "Nothing matches that category, type, or search on this season tab."
+          : "Nothing matches that category, type, or search."
+        : onSeasonTab
+          ? "No pieces on this season tab match."
+          : "No pieces match.";
     }
     if (els.emptyReset) els.emptyReset.hidden = !narrowingFiltersActive();
     if (els.emptyWrap) els.emptyWrap.hidden = n > 0;
     els.grid.hidden = n === 0;
+    syncFilterSummaryBar();
   }
 
   let dragFromIndex = null;
@@ -2171,12 +2481,19 @@
       loadBtn.className = "btn btn--small btn--ghost";
       loadBtn.textContent = "Load into outfit";
       loadBtn.dataset.outfitLoad = outfit.id;
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "btn btn--small btn--ghost";
+      editBtn.textContent = "Edit";
+      editBtn.title = "Load this outfit into the builder and update it on save.";
+      editBtn.dataset.outfitEdit = outfit.id;
       const delBtn = document.createElement("button");
       delBtn.type = "button";
       delBtn.className = "btn btn--small btn--danger";
       delBtn.textContent = "Delete";
       delBtn.dataset.outfitDelete = outfit.id;
       act.appendChild(loadBtn);
+      act.appendChild(editBtn);
       act.appendChild(delBtn);
 
       card.appendChild(main);
@@ -2387,7 +2704,9 @@
 
     const brand = form.querySelector("#item-edit-brand")?.value?.trim() || "";
     const name = form.querySelector("#item-edit-name")?.value?.trim() || "";
-    const category = form.querySelector("#item-edit-category")?.value || "";
+    const browseSlot = form.querySelector("#item-edit-browse-slot")?.value || "";
+    const recordPick = form.querySelector("#item-edit-record-type")?.value?.trim() ?? "";
+    const category = recordPick || fallbackRecordCategoryForSlot(browseSlot);
     const season = form.querySelector("#item-edit-season")?.value?.trim() || "";
     const fabric = form.querySelector("#item-edit-fabric")?.value?.trim() || "";
     const weight = form.querySelector("#item-edit-weight")?.value?.trim() || "";
@@ -2409,8 +2728,20 @@
         ? String(colorVariantsBuilt[0].color ?? colorVariantsBuilt[0].label ?? "").trim()
         : form.querySelector("#item-edit-color")?.value?.trim() || "";
 
-    if (!brand || !name || !category) {
-      setMsg("Brand, name, and category are required.", true);
+    if (!brand || !name || !browseSlot) {
+      setMsg("Brand, name, and section are required.", true);
+      return;
+    }
+    const slotProbe = {
+      ...prev,
+      category,
+      season: season || String(prev.season ?? "").trim(),
+    };
+    if (itemSlot(slotProbe) !== browseSlot) {
+      setMsg(
+        'That record type does not fit the chosen section — pick one of the types listed under Record type.',
+        true
+      );
       return;
     }
 
@@ -2606,7 +2937,7 @@
       addField("Name", nameIn);
 
       const catSel = document.createElement("select");
-      catSel.id = "item-edit-category";
+      catSel.id = "item-edit-browse-slot";
       catSel.required = true;
       const rawCat = String(item.category ?? "").trim();
       const slotPick = SLOT_OPTIONS.includes(rawCat) ? rawCat : itemSlot(item);
@@ -2617,17 +2948,33 @@
         if (c === slotPick) o.selected = true;
         catSel.appendChild(o);
       }
-      addField("Category", catSel);
+      addField("Section", catSel);
+
+      const recordTypeSel = document.createElement("select");
+      recordTypeSel.id = "item-edit-record-type";
+      recordTypeSel.title =
+        'Same labels as the archive "type" strip — controls filtering and default browse order.';
+      const currentRecKey = recordCategoryForDrill(item, slotPick);
+      addField("Record type", recordTypeSel);
+      fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
+      catSel.addEventListener("change", () => {
+        fillItemEditRecordTypeSelect(recordTypeSel, catSel.value, recordTypeSel.value);
+      });
 
       const seaSel = document.createElement("select");
       seaSel.id = "item-edit-season";
-      const seasons = ["", "A/W", "S/S", "All-season"];
+      const seasonRows = [
+        { value: "All-season", label: "All" },
+        { value: "A/W", label: "A/W" },
+        { value: "S/S", label: "S/S" },
+      ];
       const curSe = String(item.season ?? "").trim();
-      for (const s of seasons) {
+      const curPick = curSe === "A/W" || curSe === "S/S" ? curSe : "All-season";
+      for (const row of seasonRows) {
         const o = document.createElement("option");
-        o.value = s;
-        o.textContent = s || "—";
-        if (s === curSe) o.selected = true;
+        o.value = row.value;
+        o.textContent = row.label;
+        if (row.value === curPick) o.selected = true;
         seaSel.appendChild(o);
       }
       addField("Season (optional)", seaSel);
@@ -2851,6 +3198,17 @@
 
       const act = document.createElement("div");
       act.className = "item-detail__form-actions";
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn btn--small btn--danger";
+      delBtn.id = "item-detail-delete";
+      delBtn.textContent = "Delete";
+      delBtn.title = isCustomPiece
+        ? "Remove this custom piece from this browser."
+        : "Hide this archive row in this browser (does not change seed files or cloud).";
+      act.appendChild(delBtn);
+      const actPush = document.createElement("div");
+      actPush.className = "item-detail__form-actions-push";
       const saveBtn = document.createElement("button");
       saveBtn.type = "submit";
       saveBtn.className = "btn btn--small";
@@ -2862,8 +3220,9 @@
       cancelBtn.id = "item-detail-cancel-edit";
       cancelBtn.textContent = "Cancel";
       cancelBtn.title = "Discard changes (Esc)";
-      act.appendChild(saveBtn);
-      act.appendChild(cancelBtn);
+      actPush.appendChild(saveBtn);
+      actPush.appendChild(cancelBtn);
+      act.appendChild(actPush);
       form.appendChild(act);
 
       const h2 = document.createElement("h2");
@@ -2914,9 +3273,9 @@
 
     const slotLabel = itemSlot(item);
     addRow("Category", categoryDisplayLabel(slotLabel));
-    const rawCat = String(item.category ?? "").trim();
-    if (rawCat && rawCat !== slotLabel) addRow("Record type", rawCat);
-    addRow("Season", item.season || "");
+    const rk = recordCategoryForDrill(item, slotLabel);
+    addRow("Record type", friendlyRecordCategory(rk) || rk);
+    addRow("Season", seasonUiLabel(item.season));
     addRow("Size", item.size);
     addRow("Measured dimensions", item.measuredDimensions);
     const specLine = specParts(item).join(" · ");
@@ -3178,15 +3537,6 @@
       btn.tabIndex = 0;
       btn.setAttribute("aria-expanded", nav.classList.contains("filters--menu-open") ? "true" : "false");
     }
-    syncFiltersChromeVisibility();
-  }
-
-  function syncFiltersChromeVisibility() {
-    const showBtn = document.getElementById("filters-show-chrome");
-    if (!showBtn) return;
-    const show =
-      Boolean(String(subcategoryFilter ?? "").trim()) && !categoryDrillExpanded;
-    showBtn.hidden = !show;
   }
 
   function collapseFiltersMenuPanel() {
@@ -3195,6 +3545,12 @@
     nav.classList.remove("filters--menu-open");
     const btn = document.getElementById("filters-menu-btn");
     if (btn) btn.setAttribute("aria-expanded", "false");
+    queueMicrotask(() => {
+      const n = document.getElementById("filters-nav");
+      if (!n || n.classList.contains("filters--menu-open")) return;
+      const y = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      if (y >= 48) document.body.classList.add("archive-ui--nav-folded");
+    });
   }
 
   function toggleFiltersMenuPanel() {
@@ -3204,6 +3560,16 @@
     nav.classList.toggle("filters--menu-open");
     const open = nav.classList.contains("filters--menu-open");
     btn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      document.body.classList.remove("archive-ui--nav-folded");
+    } else {
+      queueMicrotask(() => {
+        const n = document.getElementById("filters-nav");
+        if (!n || n.classList.contains("filters--menu-open")) return;
+        const y = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+        if (y >= 48) document.body.classList.add("archive-ui--nav-folded");
+      });
+    }
   }
 
   function initFilters() {
@@ -3212,6 +3578,44 @@
     validateSubcategoryFilter();
     renderCategoryDrill();
     syncFiltersMenuForViewport();
+    syncFilterSummaryBar();
+  }
+
+  let archiveNavScrollFoldLastY = 0;
+  let archiveNavScrollFoldTicking = false;
+
+  /** Sticky #filters-nav: compact “folded” chrome while scrolling down on the archive page. */
+  function initArchiveNavScrollFold() {
+    if (!document.getElementById("grid")) return;
+    const nav = document.getElementById("filters-nav");
+    if (!nav) return;
+    const body = document.body;
+
+    function onScrollNavFold() {
+      if (archiveNavScrollFoldTicking) return;
+      archiveNavScrollFoldTicking = true;
+      requestAnimationFrame(() => {
+        archiveNavScrollFoldTicking = false;
+        const y = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+        const dy = y - archiveNavScrollFoldLastY;
+        if (nav.classList.contains("filters--menu-open")) {
+          body.classList.remove("archive-ui--nav-folded");
+          archiveNavScrollFoldLastY = y;
+          return;
+        }
+        if (y < 48) {
+          body.classList.remove("archive-ui--nav-folded");
+        } else if (dy > 6) {
+          body.classList.add("archive-ui--nav-folded");
+        } else if (dy < -6) {
+          body.classList.remove("archive-ui--nav-folded");
+        }
+        archiveNavScrollFoldLastY = y;
+      });
+    }
+
+    globalThis.addEventListener("scroll", onScrollNavFold, { passive: true });
+    onScrollNavFold();
   }
 
   function initOutfitVariantDialog() {
@@ -3244,54 +3648,44 @@
       showToast("Category, type, and search cleared.");
     });
 
+    document.getElementById("filter-summary-clear")?.addEventListener("click", () => {
+      resetNarrowingFilters();
+      showToast("Filters cleared.");
+    });
+
     const catNav = document.getElementById("category-nav");
     if (catNav) {
       catNav.addEventListener("click", (e) => {
         const seasonTab = e.target.closest(".season-strip__tab");
         if (seasonTab) {
-          seasonNavFilter = seasonTab.dataset.seasonFilter === "A/W" ? "A/W" : "S/S";
+          const v = String(seasonTab.dataset.seasonFilter ?? "").trim();
+          seasonNavFilter = v === "A/W" ? "A/W" : v === "All" ? "All" : "S/S";
           persistSeasonNav();
           subcategoryFilter = "";
-          categoryDrillExpanded = true;
           syncSeasonTabUI();
           validateSubcategoryFilter();
           renderCategoryDrill();
           renderGrid();
-          syncFiltersChromeVisibility();
           return;
         }
         const tab = e.target.closest(".category-nav__tab");
         if (!tab) return;
-        categoryDrillExpanded = true;
         categoryNavFilter = tab.dataset.categoryFilter ?? "";
         subcategoryFilter = "";
         syncCategoryTabUI();
         renderCategoryDrill();
         renderGrid();
-        syncFiltersChromeVisibility();
       });
     }
 
     const drill = document.getElementById("category-drill");
     if (drill) {
       drill.addEventListener("click", (e) => {
-        if (e.target.closest("#category-drill-back")) {
-          categoryDrillExpanded = true;
-          categoryNavFilter = "";
-          subcategoryFilter = "";
-          syncCategoryTabUI();
-          renderCategoryDrill();
-          renderGrid();
-          syncFiltersChromeVisibility();
-          return;
-        }
         const choice = e.target.closest(".category-drill__choice");
         if (!choice) return;
         subcategoryFilter = choice.dataset.subcategory ?? "";
-        categoryDrillExpanded = !Boolean(String(subcategoryFilter ?? "").trim());
         renderCategoryDrill();
         renderGrid();
-        syncFiltersChromeVisibility();
       });
     }
 
@@ -3301,15 +3695,6 @@
         if (outfitBtn && !outfitBtn.disabled) {
           addToOutfit(outfitBtn.dataset.outfitAdd);
           return;
-        }
-      });
-      els.grid.addEventListener("dblclick", (e) => {
-        if (e.target.closest("[data-outfit-add]")) return;
-        if (e.target.closest(".card__actions")) return;
-        if (e.target.closest(".card__gallery-thumb")) return;
-        const card = e.target.closest(".card[data-item-id]");
-        if (card) {
-          openItemDetail(card.dataset.itemId, e);
         }
       });
     }
@@ -3349,6 +3734,11 @@
           loadSavedIntoBuilder(loadBtn.dataset.outfitLoad);
           return;
         }
+        const editBtn = e.target.closest("[data-outfit-edit]");
+        if (editBtn) {
+          loadSavedIntoBuilder(editBtn.dataset.outfitEdit, { forEdit: true });
+          return;
+        }
         const delBtn = e.target.closest("[data-outfit-delete]");
         if (delBtn) {
           void deleteSavedOutfit(delBtn.dataset.outfitDelete);
@@ -3361,20 +3751,6 @@
     const filtersNav = document.getElementById("filters-nav");
     const filtersMenuBtn = document.getElementById("filters-menu-btn");
     filtersMenuBtn?.addEventListener("click", () => toggleFiltersMenuPanel());
-
-    document.getElementById("filters-show-chrome")?.addEventListener("click", () => {
-      categoryDrillExpanded = true;
-      const showBtn = document.getElementById("filters-show-chrome");
-      if (showBtn) showBtn.hidden = true;
-      renderCategoryDrill();
-      if (isFiltersNarrowViewport()) {
-        const nav = document.getElementById("filters-nav");
-        const filtersMenuBtn = document.getElementById("filters-menu-btn");
-        nav?.classList.add("filters--menu-open");
-        if (filtersMenuBtn) filtersMenuBtn.setAttribute("aria-expanded", "true");
-      }
-      syncFiltersMenuForViewport();
-    });
 
     if (filtersNav && !filtersMenuDismissListenersInstalled) {
       filtersMenuDismissListenersInstalled = true;
@@ -3398,6 +3774,8 @@
         syncFiltersMenuForViewport();
       });
     }
+
+    initArchiveNavScrollFold();
   }
 
   function seedItemsFromScript() {
@@ -3472,12 +3850,14 @@
     const pageId = new URLSearchParams(globalThis.location.search).get("id");
     if (itemRoot && pageId && !hasArchiveGrid) {
       initItemDetailRootDelegates();
+      installItemPageBackNavigation();
       runItemDetailPage(itemRoot, pageId);
       return;
     }
 
     initFilters();
     wireEvents();
+    syncOutfitSaveButtonLabel();
     initAddItemForm();
     renderGrid();
     renderOutfitStrip();

@@ -142,3 +142,29 @@ export async function deleteOutfitById(client, id) {
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
+
+/**
+ * Replace name and line items for an existing outfit (local id must match cloud row).
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ id: string, name: string, slots: { itemId: string, colorKey?: string }[] }} record
+ */
+export async function updateOutfitWithItems(client, record) {
+  const { error: eDel } = await client.from("outfit_items").delete().eq("outfit_id", record.id);
+  if (eDel) return { ok: false, error: eDel.message };
+
+  const { error: eUp } = await client.from("outfits").update({ name: record.name }).eq("id", record.id);
+  if (eUp) return { ok: false, error: eUp.message };
+
+  const slots = Array.isArray(record.slots) ? record.slots : [];
+  const rows = slots.map((s, sort_order) => ({
+    outfit_id: record.id,
+    item_id: String(s.itemId ?? "").trim(),
+    sort_order,
+    color_key: s.colorKey && String(s.colorKey).trim() ? String(s.colorKey).trim() : null,
+  }));
+  if (rows.length) {
+    const { error: eIns } = await client.from("outfit_items").insert(rows);
+    if (eIns) return { ok: false, error: eIns.message };
+  }
+  return { ok: true };
+}
