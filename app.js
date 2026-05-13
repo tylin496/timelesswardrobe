@@ -623,6 +623,14 @@
   }
 
   function itemToCloudRow(item) {
+    const meta =
+      item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? { ...item.metadata } : {};
+    if (Array.isArray(item.colorVariants) && item.colorVariants.length) {
+      meta.colorVariants = item.colorVariants;
+    } else {
+      delete meta.colorVariants;
+    }
+    const metadataOut = Object.keys(meta).length ? meta : null;
     return {
       id: String(item.id ?? "").trim(),
       pillar: String(item.pillar ?? "").trim(),
@@ -640,7 +648,7 @@
       image: String(item.image ?? "").trim(),
       gallery: Array.isArray(item.gallery) ? item.gallery : [],
       notes: String(item.notes ?? ""),
-      metadata: item.metadata ?? null,
+      metadata: metadataOut,
     };
   }
 
@@ -2273,18 +2281,47 @@
     }
   }
 
+  /** Target max decoded size per embedded photo (local JSON + uploads). Tune here (bytes). */
+  const STORAGE_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+
   /**
-   * Resize an uploaded image and return a data URL.
-   *
-   * PNG / WebP / GIF inputs are re-encoded as **PNG** so any alpha channel (e.g. background
-   * removal) is preserved. JPEG / other inputs default to JPEG to keep storage small. Pass
-   * `forcePng: true` to force PNG output regardless of source.
-   * Pass `preferJpeg: true` to always use JPEG output (e.g. **gallery** slots — smaller in `localStorage`).
-   *
+   * Approximate binary size of a `data:*;base64,…` payload (decoded bytes).
+   * @param {string} dataUrl
+   */
+  function dataUrlDecodedByteLength(dataUrl) {
+    const s = String(dataUrl ?? "");
+    const marker = "base64,";
+    const idx = s.indexOf(marker);
+    if (idx === -1) return 0;
+    const b64 = s.slice(idx + marker.length);
+    const pad = b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0;
+    return Math.max(0, Math.floor((b64.length * 3) / 4) - pad);
+  }
+
+  /**
+   * Read a file as a data URL without re-encoding (for small files under `STORAGE_IMAGE_MAX_BYTES`).
+   * @param {File} file
+   * @returns {Promise<string>}
+   */
+  function fileToRawDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || typeof file !== "object") {
+        reject(new Error("Invalid file"));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () =>
+        reject(reader.error instanceof Error ? reader.error : new Error("Could not read file"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
+   * Resize / re-encode an image via canvas and return a data URL.
+   * PNG / WebP / GIF default to PNG when not `preferJpeg`, so alpha is kept until size forces JPEG.
    * @param {File} file
    * @param {number | { maxSide?: number, maxWidth?: number, quality?: number, forcePng?: boolean, preferJpeg?: boolean }} [opts]
-   *   Defaults: longest edge **1920px** (Full HD class), JPEG quality **0.82**. Prefer `maxSide` so tall images shrink too.
-   *   Legacy: `maxWidth` only caps width (omit `maxSide` to use width-only behaviour).
    * @returns {Promise<string>}
    */
   function fileToResizedDataUrl(file, opts) {
@@ -2366,46 +2403,55 @@
     });
   }
 
-  /** Encode steps for `localStorage` / JSON — tries progressively smaller until under a soft byte budget. */
-  const STORAGE_IMAGE_TIERS = [
-    { maxSide: 1920, quality: 0.88 },
-    { maxSide: 1920, quality: 0.82 },
-    { maxSide: 1680, quality: 0.84 },
-    { maxSide: 1536, quality: 0.82 },
-    { maxSide: 1440, quality: 0.8 },
-    { maxSide: 1280, quality: 0.78 },
-    { maxSide: 1152, quality: 0.75 },
-    { maxSide: 1080, quality: 0.72 },
-    { maxSide: 960, quality: 0.7 },
-    { maxSide: 840, quality: 0.66 },
-    { maxSide: 720, quality: 0.62 },
-    { maxSide: 640, quality: 0.58 },
-    { maxSide: 520, quality: 0.54 },
-  ];
-
-  /** Stop stepping down when data URL is under this (chars); PNG stays smaller so use a lower cap. */
-  const STORAGE_IMAGE_SOFT_LIMIT_JPEG = 1_200_000;
-  const STORAGE_IMAGE_SOFT_LIMIT_PNG = 650_000;
-
   /** After `QuotaExceededError`: one aggressive re-encode (still HD-class before tiny fallbacks). */
   const QUOTA_SHRINK_MAX_SIDE = 1280;
   const QUOTA_SHRINK_QUALITY = 0.72;
 
   /**
+   * Encode for storage: under `STORAGE_IMAGE_MAX_BYTES` (decoded). Small files stay lossless as raw data URLs.
    * @param {File} file
-   * @param {{ preferJpeg?: boolean }} [codecOpts] When `preferJpeg: true`, gallery-style encoding (always JPEG tiers).
+   * @param {{ preferJpeg?: boolean }} [codecOpts] Gallery slots pass `preferJpeg: true` (smaller, no alpha path).
    * @returns {Promise<string>}
    */
   async function fileToStorageDataUrl(file, codecOpts) {
-    /** @type {string} */
-    let chosen = "";
     const extra = codecOpts && typeof codecOpts === "object" ? codecOpts : {};
-    for (const t of STORAGE_IMAGE_TIERS) {
-      chosen = await fileToResizedDataUrl(file, { ...t, ...extra });
-      const png = chosen.startsWith("data:image/png");
-      if (chosen.length <= (png ? STORAGE_IMAGE_SOFT_LIMIT_PNG : STORAGE_IMAGE_SOFT_LIMIT_JPEG)) return chosen;
+    const cap = STORAGE_IMAGE_MAX_BYTES;
+
+    try {
+      const raw = await fileToRawDataUrl(file);
+      if (raw.startsWith("data:image") && dataUrlDecodedByteLength(raw) <= cap) {
+        return raw;
+      }
+    } catch {
+      /* fall through to canvas */
     }
-    return chosen;
+
+    let maxSide = 2560;
+    let quality = 0.88;
+    let preferJpeg = Boolean(extra.preferJpeg);
+    /** @type {string} */
+    let last = "";
+
+    for (let i = 0; i < 40; i++) {
+      last = await fileToResizedDataUrl(file, { ...extra, maxSide, quality, preferJpeg });
+      if (dataUrlDecodedByteLength(last) <= cap) {
+        return last;
+      }
+      const isPng = last.startsWith("data:image/png");
+      if (isPng && !preferJpeg) {
+        maxSide = Math.max(320, Math.round(maxSide * 0.83));
+        if (maxSide <= 420) {
+          preferJpeg = true;
+        }
+      } else {
+        if (quality > 0.42) {
+          quality = Math.max(0.35, quality - 0.055);
+        } else {
+          maxSide = Math.max(320, Math.round(maxSide * 0.83));
+        }
+      }
+    }
+    return last;
   }
 
   /**
@@ -2684,7 +2730,7 @@
         showAddItemFormMsg("Save failed. Try again.", true);
         return;
       }
-      showAddItemFormMsg("Storage almost full — compressing photos once more…", false);
+      showAddItemFormMsg("Storage almost full — one-time resize to fit browser storage (~5MB)…", false);
       try {
         list[0] = await shrinkCustomItemRowForQuota(newItem);
         synced = await commitCustomItems(list);
@@ -2933,6 +2979,32 @@
     }
 
     if (specs.children.length) body.appendChild(specs);
+
+    if (isCustomWardrobeItem(item)) {
+      const cardActions = document.createElement("div");
+      cardActions.className = "card__actions";
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn btn--small btn--danger card__delete-btn";
+      del.textContent = "Delete";
+      const pieceLabel = `${String(item.brand ?? "").trim()} ${String(item.name ?? "").trim()}`.trim() || "this piece";
+      del.setAttribute("aria-label", `Delete ${pieceLabel}`);
+      del.title = "Remove this custom piece from your wardrobe";
+      del.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (
+          !confirm(
+            "Delete this piece from your wardrobe? Its fields and images are removed and cannot be restored."
+          )
+        ) {
+          return;
+        }
+        void deleteWardrobePieceFromBrowser(String(item.id));
+      });
+      cardActions.appendChild(del);
+      body.appendChild(cardActions);
+    }
 
     article.appendChild(media);
     article.appendChild(body);
@@ -3360,9 +3432,10 @@
    * @param {HTMLFormElement} form
    * @param {object} prev
    * @param {(t: string, err?: boolean) => void} setMsg
+   * @param {{ cloudItemId?: string }} [opts]
    * @returns {Promise<{ key: string, label: string, color: string, image: string, gallery: string[], notes: string }[] | null>}
    */
-  async function gatherColorVariantsFromEditForm(form, prev, setMsg) {
+  async function gatherColorVariantsFromEditForm(form, prev, setMsg, opts = {}) {
     const wrap = form.querySelector("#item-edit-variants-wrap");
     if (!wrap || wrap.dataset.active !== "1") return null;
     const listEl = form.querySelector("#item-edit-variants-list");
@@ -3387,7 +3460,10 @@
       let image = prevIm;
       if (file) {
         try {
-          image = await fileToStorageDataUrl(file);
+          const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
+          image = cloudId
+            ? await uploadWardrobeImageFileToCloud(file, cloudId, `variant-${key}-cover`)
+            : await fileToStorageDataUrl(file);
         } catch (err) {
           console.warn(err);
           setMsg("Could not process a colour cover image.", true);
@@ -3465,13 +3541,13 @@
     let colorVariantsBuilt = null;
     if (variantsMode) {
       setMsg("Processing colour images…", false);
-      colorVariantsBuilt = await gatherColorVariantsFromEditForm(form, prev, setMsg);
+      colorVariantsBuilt = await gatherColorVariantsFromEditForm(form, prev, setMsg, { cloudItemId: id });
       if (colorVariantsBuilt == null) return;
     }
 
     const color =
       variantsMode && colorVariantsBuilt?.length
-        ? String(colorVariantsBuilt[0].colour ?? colorVariantsBuilt[0].label ?? "").trim()
+        ? String(colorVariantsBuilt[0].color ?? colorVariantsBuilt[0].colour ?? colorVariantsBuilt[0].label ?? "").trim()
         : form.querySelector("#item-edit-color")?.value?.trim() || "";
 
     if (!brand || !name || !browseSlot) {
@@ -3502,7 +3578,9 @@
       if (coverFile) {
         setMsg("Processing images…", false);
         try {
-          image = await fileToStorageDataUrl(coverFile);
+          image = isSupabaseReady() && isCustom
+            ? await uploadWardrobeImageFileToCloud(coverFile, id, "cover-edit")
+            : await fileToStorageDataUrl(coverFile);
         } catch (err) {
           console.warn(err);
           setMsg("Could not process the new cover image.", true);
@@ -3527,7 +3605,11 @@
       : [];
     for (const gf of gFiles.slice(0, 12)) {
       try {
-        gallery.push(await fileToStorageDataUrl(gf, { preferJpeg: true }));
+        const url =
+          isSupabaseReady() && isCustom
+            ? await uploadWardrobeImageFileToCloud(gf, id, `gallery-edit-${gallery.length + 1}`)
+            : await fileToStorageDataUrl(gf, { preferJpeg: true });
+        gallery.push(url);
       } catch (e) {
         console.warn(e);
         setMsg("Some new gallery images were skipped.", true);
@@ -3563,6 +3645,7 @@
 
     /** When saving a custom piece, whether `data/custom-items.json` was updated (npm run dev). */
     let customProjectSynced = true;
+    let customCloudSynced = false;
 
     if (isCustom) {
       const list = loadCustomItems();
@@ -3582,7 +3665,7 @@
           setMsg("Save failed. Try again.", true);
           return;
         }
-        setMsg("Storage almost full — compressing photos once more…", false);
+        setMsg("Storage almost full — one-time resize to fit browser storage (~5MB)…", false);
         try {
           list[idx] = await shrinkCustomItemRowForQuota(updated);
           synced = await commitCustomItems(list);
@@ -3593,6 +3676,19 @@
         }
       }
       customProjectSynced = synced;
+      if (isSupabaseReady()) {
+        try {
+          const saved = await saveWardrobeItemToCloud(updated);
+          cloudBackedCustomItems = [
+            saved,
+            ...cloudBackedCustomItems.filter((x) => String(x.id) !== String(saved.id)),
+          ];
+          customCloudSynced = true;
+        } catch (e) {
+          console.warn(e);
+          setMsg("Saved locally; Supabase sync failed. Check network and RLS policies.", true);
+        }
+      }
     } else {
       const patch = {
         brand,
@@ -3626,7 +3722,9 @@
       }
     }
 
-    setMsg("", false);
+    if (!(isCustom && isSupabaseReady() && !customCloudSynced)) {
+      setMsg("", false);
+    }
     mergeWardrobeFromSources();
     if (document.getElementById("grid")) {
       initFilters();
@@ -3639,9 +3737,13 @@
     replaceItemPageUrl(id, false);
     showToast(
       isCustom
-        ? customProjectSynced
-          ? "Saved changes (and project file)."
-          : "Saved changes. Run npm run dev to mirror to data/custom-items.json."
+        ? customCloudSynced
+          ? "Saved to Supabase and this browser."
+          : isSupabaseReady() && !customCloudSynced
+            ? "Saved in this browser. Supabase update failed — check the message above."
+            : customProjectSynced
+              ? "Saved changes (and project file)."
+              : "Saved changes. Run npm run dev to mirror to data/custom-items.json."
         : "Saved changes for this browser (archive override)."
     );
   }
