@@ -322,61 +322,6 @@ body {
   margin-top: 0.1rem;
 }
 
-.filter-summary-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 0 0 0.65rem;
-  padding: 0.55rem 0.7rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-.filter-summary-bar__text {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.35;
-  color: var(--ink);
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.filter-summary-bar__clear {
-  flex-shrink: 0;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: transparent;
-  border: none;
-  min-height: 2.25rem;
-  padding: 0.4rem 0.55rem;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  border-radius: var(--radius);
-}
-
-@media (pointer: coarse) {
-  .filter-summary-bar__clear {
-    min-height: var(--tap-min);
-    padding: 0.45rem 0.65rem;
-  }
-}
-
-.filter-summary-bar__clear:hover {
-  color: var(--ink);
-}
-
-.filter-summary-bar__clear:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .filters__menu-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -407,10 +352,6 @@ body {
   flex: 1 1 100%;
   min-width: 0;
   max-width: none;
-}
-
-.filter-summary-bar[hidden] {
-  display: none !important;
 }
 
 @media (max-width: 720px) {
@@ -456,9 +397,13 @@ body {
     flex: 1 1 100%;
     min-width: 0;
   }
+
+  body.archive-ui--nav-folded #filters-nav:not(.filters--menu-open) .filters__quick-search {
+    display: none !important;
+  }
 }
 
-/* Archive: scroll down → hide site header & filter extras; sticky bar ≈ categories + record-type chips (wide). */
+/* Archive: scroll down → hide site header & search row; sticky bar ≈ categories + record-type chips. */
 body.archive-ui--nav-folded .site-header {
   display: none;
 }
@@ -470,7 +415,6 @@ body.archive-ui--nav-folded .site-header {
   }
 
   body.archive-ui--nav-folded #filters-nav:not(.filters--menu-open) .filters__quick-search,
-  body.archive-ui--nav-folded #filters-nav:not(.filters--menu-open) .filter-summary-bar:not([hidden]),
   body.archive-ui--nav-folded #filters-nav:not(.filters--menu-open) .filters__meta {
     display: none !important;
   }
@@ -717,6 +661,8 @@ body.archive-ui--nav-folded .site-header {
 }
 
 .category-drill {
+  display: flex;
+  flex-direction: column;
   margin: 0 0 1rem;
   padding: 0.65rem 1rem 0.85rem;
   background: var(--bg-elevated);
@@ -735,6 +681,40 @@ body.archive-ui--nav-folded .site-header {
      often hides this row (single type); Clothing has enough chips to overflow. */
   padding: 0.15rem 0 0.35rem;
   margin: 0;
+  width: 100%;
+}
+
+.category-drill__clear-all {
+  align-self: flex-end;
+  margin: 0.15rem 0 0;
+  padding: 0.2rem 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.category-drill__clear-all:hover {
+  color: var(--ink);
+}
+
+.category-drill__clear-all:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .category-drill__clear-all {
+    min-height: var(--tap-min);
+    padding: 0.35rem 0.25rem;
+  }
 }
 
 .category-drill__choice {

@@ -117,12 +117,6 @@
       >
         Categories
       </button>
-      <div id="filter-summary-bar" class="filter-summary-bar" hidden>
-        <p id="filter-summary-text" class="filter-summary-bar__text"></p>
-        <button type="button" class="filter-summary-bar__clear" id="filter-summary-clear">
-          Clear all
-        </button>
-      </div>
       <div id="filters-menu-panel" class="filters__panel">
         <div class="filters__collapsible">
         <div id="category-nav" class="category-nav">
@@ -219,6 +213,9 @@
           hidden
         >
           <div id="category-drill-grid" class="category-drill__grid"></div>
+          <button type="button" id="category-drill-clear-all" class="category-drill__clear-all">
+            Clear all
+          </button>
         </section>
         <p class="filters__meta" id="filter-count" aria-live="polite"></p>
         </div>

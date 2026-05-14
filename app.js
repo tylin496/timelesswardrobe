@@ -206,7 +206,7 @@
         const vu = String(variantSwatchImageUrl(v) ?? "").trim();
         if (vu) {
           const si = document.createElement("img");
-          si.src = vu;
+          si.src = withWardrobeImageCacheBust(vu, item);
           si.alt = "";
           si.setAttribute("aria-hidden", "true");
           el.appendChild(si);
@@ -221,7 +221,7 @@
           const fallback = String(v.image ?? "").trim();
           if (fallback) {
             const si = document.createElement("img");
-            si.src = fallback;
+            si.src = withWardrobeImageCacheBust(fallback, item);
             si.alt = "";
             si.setAttribute("aria-hidden", "true");
             el.appendChild(si);
@@ -782,6 +782,7 @@
     hasSupabaseSdk: Boolean(globalThis.supabase?.createClient),
     hasClient: Boolean(supabaseClient),
     isReady: isSupabaseReady(),
+    wardrobeItemsUpsertSpelling: "uk-first-us-fallback",
   });
 
   const WARDROBE_TABLE = "wardrobe_items";
@@ -851,10 +852,130 @@
       __source: "supabase",
     };
     if (colourVariants) out.colourVariants = colourVariants;
+    const ts =
+      String(row.updated_at ?? row.updatedAt ?? "").trim() || String(row.created_at ?? row.createdAt ?? "").trim();
+    if (ts) out.updatedAt = ts;
     return out;
   }
 
-  function itemToCloudRow(item) {
+  /** Strip legacy variant keys inside `metadata` before writing JSONB. */
+  function sanitizeWardrobeMetadataForPostgres(meta) {
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
+    const m = /** @type {Record<string, unknown>} */ ({ ...meta });
+    if (Array.isArray(m.colourVariants) && m.colourVariants.length) {
+      delete m.colorVariants;
+    } else if (Array.isArray(m.colorVariants) && m.colorVariants.length) {
+      m.colourVariants = m.colorVariants;
+      delete m.colorVariants;
+    } else {
+      delete m.colourVariants;
+      delete m.colorVariants;
+    }
+    return Object.keys(m).length ? m : null;
+  }
+
+  /**
+   * Normalise any in-memory item (edit save merges `…prev`) so `itemToCloudRow` does not see stray `color` / camelCase DB keys.
+   * @param {object} item
+   */
+  function coerceLooseWardrobeItemForCloudWrite(item) {
+    if (!item || typeof item !== "object") return /** @type {any} */ ({});
+    const x = /** @type {Record<string, unknown>} */ ({ ...item });
+    delete x.__source;
+    const ct = String(x.colour ?? x.color ?? "").trim();
+    x.colour = ct;
+    delete x.color;
+    x.colourCode = itemColourCode(/** @type {any} */ (x));
+    delete x.colorCode;
+    delete x.color_code;
+    delete x.colour_code;
+    if (!Array.isArray(x.colourVariants) || !x.colourVariants.length) {
+      if (Array.isArray(x.colorVariants) && x.colorVariants.length) x.colourVariants = x.colorVariants;
+    }
+    delete x.colorVariants;
+    return /** @type {any} */ (x);
+  }
+
+  /** PostgREST column allowlist for `wardrobe_items` upsert (British spelling). */
+  const WARDROBE_ITEMS_UPSERT_KEYS_UK = [
+    "id",
+    "pillar",
+    "section",
+    "category",
+    "brand",
+    "name",
+    "season",
+    "colour",
+    "colour_code",
+    "fabric",
+    "weight",
+    "size",
+    "measured_dimensions",
+    "purchase_date",
+    "image",
+    "gallery",
+    "notes",
+    "metadata",
+  ];
+
+  /** Same row shape with American column names (legacy DBs PostgREST still exposes). */
+  const WARDROBE_ITEMS_UPSERT_KEYS_US = [
+    "id",
+    "pillar",
+    "section",
+    "category",
+    "brand",
+    "name",
+    "season",
+    "color",
+    "color_code",
+    "fabric",
+    "weight",
+    "size",
+    "measured_dimensions",
+    "purchase_date",
+    "image",
+    "gallery",
+    "notes",
+    "metadata",
+  ];
+
+  /**
+   * PostgREST error: missing colour column on wardrobe_items (wrong spelling vs cache).
+   * @param {unknown} err
+   * @returns {"" | "colour" | "colour_code" | "color" | "color_code"}
+   */
+  function missingWardrobeItemsColourColumnFromPostgrest(err) {
+    const d = formatSupabaseUserMessage(err);
+    const m = d.match(/Could not find the '(colour|colour_code|color|color_code)' column of 'wardrobe_items'/i);
+    return m ? /** @type {"colour" | "colour_code" | "color" | "color_code"} */ (m[1].toLowerCase()) : "";
+  }
+
+  /**
+   * @param {Record<string, unknown>} raw from {@link itemToCloudRow}
+   * @param {"uk" | "us"} spelling
+   */
+  function pickWardrobeItemsUpsertPayload(raw, spelling = "uk") {
+    const keys = spelling === "us" ? WARDROBE_ITEMS_UPSERT_KEYS_US : WARDROBE_ITEMS_UPSERT_KEYS_UK;
+    const o = /** @type {Record<string, unknown>} */ ({});
+    for (const k of keys) {
+      if (Object.prototype.hasOwnProperty.call(raw, k)) o[k] = raw[k];
+    }
+    if (spelling === "us") {
+      delete o.colour;
+      delete o.colour_code;
+    } else {
+      delete o.color;
+      delete o.color_code;
+    }
+    return o;
+  }
+
+  /**
+   * @param {object} item
+   * @param {"uk" | "us"} spelling DB column spelling PostgREST expects for this upsert.
+   */
+  function itemToCloudRow(item, spelling = "uk") {
     const meta =
       item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? { ...item.metadata } : {};
     if (Array.isArray(item.colourVariants) && item.colourVariants.length) {
@@ -863,8 +984,10 @@
       delete meta.colourVariants;
       delete meta.colorVariants;
     }
-    const metadataOut = Object.keys(meta).length ? meta : null;
-    return {
+    const metadataOut = sanitizeWardrobeMetadataForPostgres(meta);
+    const colourText = String(item.colour ?? item.color ?? "").trim();
+    const codeText = itemColourCode(item);
+    const base = {
       id: String(item.id ?? "").trim(),
       pillar: String(item.pillar ?? "").trim(),
       section: String(item.section ?? "").trim(),
@@ -872,8 +995,6 @@
       brand: String(item.brand ?? "").trim(),
       name: String(item.name ?? "").trim(),
       season: normalizeStoredItemSeason(item.season),
-      colour: String(item.colour ?? item.color ?? "").trim(),
-      colour_code: itemColourCode(item),
       fabric: String(item.fabric ?? "").trim(),
       weight: String(item.weight ?? "").trim(),
       size: String(item.size ?? "").trim(),
@@ -884,6 +1005,16 @@
       notes: String(item.notes ?? ""),
       metadata: metadataOut,
     };
+    if (spelling === "us") {
+      return { ...base, color: colourText, color_code: codeText };
+    }
+    return { ...base, colour: colourText, colour_code: codeText };
+  }
+
+  /** Canonical DB row for `wardrobe_items` upsert (coerce → cloud row → allowlist only). */
+  function wardrobeItemsStrictUpsertRowFromItem(item, spelling = "uk") {
+    const coerced = coerceLooseWardrobeItemForCloudWrite(item);
+    return pickWardrobeItemsUpsertPayload(itemToCloudRow(coerced, spelling), spelling);
   }
 
   function safeStorageSegment(value, fallback = "item") {
@@ -909,21 +1040,99 @@
     return "jpg";
   }
 
-  async function uploadWardrobeImageFileToCloud(file, itemId, label = "cover") {
+  /**
+   * Readable object path under `wardrobe-images` (Supabase Storage file browser).
+   * `{itemId}/` = one wardrobe row; `main/` = row cover + gallery; `variants/` = per colour key.
+   *
+   * @param {string} itemId
+   * @param {File} file
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   * @returns {string} object path (no bucket prefix)
+   */
+  function wardrobeImageStorageObjectPath(itemId, file, slot) {
+    const root = safeStorageSegment(itemId);
+    const ext = fileExtensionFromFile(file);
+    if (!slot || slot.type === "main_cover") {
+      return `${root}/main/cover.${ext}`;
+    }
+    if (slot.type === "main_gallery") {
+      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+      return `${root}/main/gallery/${String(n).padStart(2, "0")}.${ext}`;
+    }
+    if (slot.type === "variant_cover" || slot.type === "variant_preview") {
+      const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+      const role = slot.type === "variant_preview" ? "preview" : "cover";
+      return `${root}/variants/${vk}/${role}.${ext}`;
+    }
+    return `${root}/main/cover.${ext}`;
+  }
+
+  /**
+   * @param {File} file
+   * @param {string} itemId
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   */
+  async function uploadWardrobeImageFileToCloud(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
     if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
     if (!file) return "";
-    const ext = fileExtensionFromFile(file);
-    const path = `${safeStorageSegment(itemId)}/${Date.now()}-${safeStorageSegment(label, "image")}.${ext}`;
+    const path = wardrobeImageStorageObjectPath(itemId, file, slot);
 
     const { error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).upload(path, file, {
       cacheControl: "31536000",
-      upsert: false,
-      contentType: file.type || `image/${ext}`,
+      upsert: true,
+      contentType: file.type || `image/${fileExtensionFromFile(file)}`,
     });
     if (error) throw error;
 
     const { data } = supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).getPublicUrl(path);
     return data?.publicUrl || "";
+  }
+
+  /** Bust browser/CDN cache for Supabase Storage wardrobe images (same path after upsert). */
+  function wardrobeImageCacheBustToken(item) {
+    if (!item || typeof item !== "object") return "";
+    const o = /** @type {any} */ (item);
+    if (typeof o.__displayNonce === "number" && Number.isFinite(o.__displayNonce)) {
+      return String(Math.floor(o.__displayNonce));
+    }
+    const u = String(o.updatedAt ?? o.updated_at ?? "").trim();
+    if (u) return u.slice(0, 120);
+    const c = String(o.createdAt ?? o.created_at ?? "").trim();
+    if (c) return c.slice(0, 120);
+    return "";
+  }
+
+  function withWardrobeImageCacheBust(url, item) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return "";
+    if (!storagePathFromWardrobeImageUrl(raw)) return raw;
+    const token = wardrobeImageCacheBustToken(item);
+    if (!token) return raw;
+    try {
+      const u = new URL(raw);
+      u.searchParams.set("cb", token);
+      return u.href;
+    } catch {
+      const sep = raw.includes("?") ? "&" : "?";
+      return `${raw}${sep}cb=${encodeURIComponent(token)}`;
+    }
+  }
+
+  function clearCoverResolutionCacheForItem(itemId) {
+    const sid = String(itemId ?? "").trim();
+    if (!sid) return;
+    for (const k of [...coverResolutionCache.keys()]) {
+      if (k === sid || k.startsWith(`${sid}::`)) coverResolutionCache.delete(k);
+    }
+  }
+
+  function stampWardrobeItemMediaNonce(row, nonce = Date.now()) {
+    const o = /** @type {any} */ (row);
+    if (!o || typeof o !== "object") return nonce;
+    const t = typeof nonce === "number" && Number.isFinite(nonce) ? Math.floor(nonce) : Date.now();
+    o.__displayNonce = t;
+    clearCoverResolutionCacheForItem(String(o.id ?? ""));
+    return t;
   }
 
   function storagePathFromWardrobeImageUrl(url) {
@@ -1035,12 +1244,26 @@
   /** Upsert one custom row to `wardrobe_items` and return the normalized row from Postgres. */
   async function saveWardrobeItemToCloud(item) {
     if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
-    const row = itemToCloudRow(item);
-    const { data, error } = await supabaseClient.from(WARDROBE_TABLE).upsert(row, { onConflict: "id" }).select("*").single();
-    if (error) throw error;
-    const norm = normalizeCloudItemRow(data);
-    if (!norm) throw new Error("Supabase returned an invalid wardrobe row.");
-    return norm;
+    /** Prefer British columns; if PostgREST / DB only exposes American names, retry once. */
+    const spellings = /** @type {const} */ (["uk", "us"]);
+    let lastErr = /** @type {any} */ (null);
+    for (const sp of spellings) {
+      const row = wardrobeItemsStrictUpsertRowFromItem(item, sp);
+      const { data, error } = await supabaseClient.from(WARDROBE_TABLE).upsert(row, { onConflict: "id" }).select("*").single();
+      if (!error) {
+        const norm = normalizeCloudItemRow(data);
+        if (!norm) throw new Error("Supabase returned an invalid wardrobe row.");
+        return norm;
+      }
+      lastErr = error;
+      const missing = missingWardrobeItemsColourColumnFromPostgrest(error);
+      const tryAlternate =
+        (sp === "uk" && (missing === "colour" || missing === "colour_code")) ||
+        (sp === "us" && (missing === "color" || missing === "color_code"));
+      if (tryAlternate) continue;
+      throw error;
+    }
+    throw lastErr;
   }
 
   /** @type {object[]} */
@@ -1607,29 +1830,6 @@
     const rawQ = els.search?.value?.trim() ?? "";
     if (rawQ) bits.push(`“${rawQ}”`);
     return bits.join(" · ");
-  }
-
-  function countNarrowingFilterDims() {
-    let n = 0;
-    if (categoryNavFilter) n += 1;
-    if (String(subcategoryFilter ?? "").trim()) n += 1;
-    if (normalizeSearch(els.search?.value ?? "")) n += 1;
-    return n;
-  }
-
-  function syncFilterSummaryBar() {
-    const bar = document.getElementById("filter-summary-bar");
-    const text = document.getElementById("filter-summary-text");
-    if (!bar || !text) return;
-    const summary = describeNarrowingFiltersForUi().trim();
-    if (!narrowingFiltersActive() || !summary) {
-      bar.hidden = true;
-      text.textContent = "";
-      return;
-    }
-    bar.hidden = false;
-    const nFilters = countNarrowingFilterDims();
-    text.textContent = `${nFilters} filter${nFilters === 1 ? "" : "s"} active — ${summary}`;
   }
 
   function countItemsForCurrentSeasonTab() {
@@ -2302,6 +2502,15 @@
     return n;
   }
 
+  /** Cover / gallery / variant URLs we may put on an `<img>` (https, data, blob, or same-site `images/…`). */
+  function isUsableWardrobeImageSrc(u) {
+    const s = String(u ?? "").trim();
+    if (!s) return false;
+    if (isDisplayableCloudImageUrl(s)) return true;
+    if (s.startsWith("images/") && !s.startsWith("data:")) return true;
+    return false;
+  }
+
   /**
    * Ordered URLs to try for the cover: declared path, extension / parenthesis variants,
    * `images/<id>.*`, then best fuzzy matches against all archive paths.
@@ -2319,16 +2528,16 @@
 
     if (!primary) {
       for (const u of itemGalleryList(item)) {
-        if (isDisplayableCloudImageUrl(u)) add(u);
+        if (isUsableWardrobeImageSrc(u)) add(u);
       }
       const vars = getItemColourVariants(item);
       if (vars) {
         for (const v of vars) {
           const u = String(v?.image ?? "").trim();
-          if (isDisplayableCloudImageUrl(u)) add(u);
+          if (isUsableWardrobeImageSrc(u)) add(u);
         }
       }
-      return out;
+      return out.map((u) => withWardrobeImageCacheBust(u, item));
     }
 
     if (!isDisplayableCloudImageUrl(primary)) {
@@ -2337,7 +2546,17 @@
     }
 
     add(primary);
-    return out;
+    for (const u of itemGalleryList(item)) {
+      if (isUsableWardrobeImageSrc(u)) add(u);
+    }
+    const vars = getItemColourVariants(item);
+    if (vars) {
+      for (const v of vars) {
+        const u = String(v?.image ?? "").trim();
+        if (isUsableWardrobeImageSrc(u)) add(u);
+      }
+    }
+    return out.map((u) => withWardrobeImageCacheBust(u, item));
   }
 
   function effectiveCoverSrc(item) {
@@ -2347,14 +2566,14 @@
         : item?.id != null
           ? String(item.id)
           : "";
-  
+
     if (cacheKey && coverResolutionCache.has(cacheKey)) {
       return coverResolutionCache.get(cacheKey);
     }
-  
+
     const src = String(item?.image ?? "").trim();
-  
-    return isDisplayableCloudImageUrl(src) ? src : "";
+    const base = isDisplayableCloudImageUrl(src) ? src : "";
+    return base ? withWardrobeImageCacheBust(base, item) : "";
   }
 
   /**
@@ -2386,6 +2605,13 @@
 
     let idx = 0;
     let done = false;
+    function cacheKeyForItem() {
+      return item?.__coverCacheKey != null
+        ? String(item.__coverCacheKey)
+        : item?.id != null
+          ? String(item.id)
+          : "";
+    }
     function cleanup() {
       if (done) return;
       done = true;
@@ -2393,32 +2619,42 @@
       img.removeEventListener("load", onLoad);
       /** @type {any} */ (img).__twCoverWireAbort = undefined;
     }
-    function onLoad() {
+    function finishFail() {
+      cleanup();
+      const ck = cacheKeyForItem();
+      if (ck) coverResolutionCache.delete(ck);
+      if (host && missingClass) host.classList.add(missingClass);
+      onExhausted?.();
+      img.removeAttribute("src");
+    }
+    function finishSuccess() {
       cleanup();
       if (host && missingClass) host.classList.remove(missingClass);
       const url = img.currentSrc || img.src;
-      const cacheKey =
-        item?.__coverCacheKey != null
-          ? String(item.__coverCacheKey)
-          : item?.id != null
-            ? String(item.id)
-            : "";
-      if (cacheKey) coverResolutionCache.set(cacheKey, url);
+      const ck = cacheKeyForItem();
+      if (ck) coverResolutionCache.set(ck, url);
       onResolved?.(url);
     }
-    function onErr() {
+    function tryNext() {
       idx += 1;
       if (idx >= candidates.length) {
-        cleanup();
-        if (host && missingClass) host.classList.add(missingClass);
-        onExhausted?.();
-        img.removeAttribute("src");
+        finishFail();
         return;
       }
       img.src = candidates[idx];
     }
+    function onLoad() {
+      if (!img.naturalWidth && !img.naturalHeight) {
+        tryNext();
+        return;
+      }
+      finishSuccess();
+    }
+    function onErr() {
+      tryNext();
+    }
 
-    img.addEventListener("load", onLoad, { once: true });
+    img.addEventListener("load", onLoad);
     img.addEventListener("error", onErr);
     img.src = candidates[0];
 
@@ -2467,12 +2703,12 @@
       btn.className = "card__gallery-thumb";
       btn.title = `Photo ${i + 2}`;
       const ti = document.createElement("img");
-      ti.src = url;
+      ti.src = withWardrobeImageCacheBust(url, item);
       ti.alt = "";
       ti.draggable = false;
       btn.appendChild(ti);
       btn.addEventListener("click", () => {
-        heroImgEl.src = url;
+        heroImgEl.src = withWardrobeImageCacheBust(url, item);
         heroImgEl.alt = `${item.brand} — ${displayNameWithoutLeadingColour(item)} (detail)`;
         setActive(btn);
       });
@@ -3146,12 +3382,27 @@
 
   /** Short line for wardrobe_items upsert failures (add / edit / duplicate). */
   function messageForFailedWardrobeUpsert(err) {
-    const detail = formatSupabaseUserMessage(err);
+    const o = /** @type {any} */ (err);
+    let detail = formatSupabaseUserMessage(err);
+    if (!detail && typeof o?.details === "string" && o.details.trim()) detail = o.details.trim();
     if (!detail) {
       return "Supabase save failed — check project URL, anon key, and network. If the DB is new, run pending migrations (see supabase/migrations).";
     }
+    if (/failed to fetch|networkerror|load failed|network request failed/i.test(detail)) {
+      const tail = detail.length > 90 ? `${detail.slice(0, 87)}…` : detail;
+      return (
+        `Supabase unreachable (${tail}). ` +
+        `Net::ERR_FAILED / HTTP 522 usually means the edge timed out, the project is paused, or a brief outage — not a missing CORS rule in this app (failed responses often omit Access-Control-Allow-Origin, so DevTools shows a misleading CORS message). ` +
+        `Open the Supabase dashboard: resume the project if needed, confirm URL and anon key, then retry. See https://status.supabase.com for incidents.`
+      );
+    }
     const d = detail.length > 140 ? `${detail.slice(0, 137)}…` : detail;
-    return `Supabase save failed: ${d}`;
+    let msg = `Supabase save failed: ${d}`;
+    if (/schema cache/i.test(detail) && /color_code|colour_code|\bcolour\b|\bcolor\b/i.test(detail)) {
+      msg +=
+        " Run migration `20260613180000_wardrobe_items_ensure_british_colour_columns.sql` if `colour_code` is missing in Postgres; then SQL: NOTIFY pgrst, 'reload schema'; or wait ~1 min.";
+    }
+    return msg;
   }
 
   function toastCloudDeleteFailure(step, err) {
@@ -3305,11 +3556,16 @@
 
     if (file || galleryFiles.length) showAddItemFormMsg("Processing images…", false);
 
+    const newId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? `custom-${crypto.randomUUID()}`
+        : `custom-${Date.now()}`;
+
     let dataUrl = "";
     if (file) {
       try {
         dataUrl = isSupabaseReady()
-          ? await uploadWardrobeImageFileToCloud(file, `custom-${Date.now()}`, "cover")
+          ? await uploadWardrobeImageFileToCloud(file, newId, { type: "main_cover" })
           : await fileToStorageDataUrl(file);
       } catch (err) {
         console.warn(err);
@@ -3320,11 +3576,13 @@
     const MAX_GALLERY = 12;
     /** @type {string[]} */
     const galleryUrls = [];
-    for (const gf of galleryFiles.slice(0, MAX_GALLERY)) {
+    const gallerySlice = galleryFiles.slice(0, MAX_GALLERY);
+    for (let gi = 0; gi < gallerySlice.length; gi++) {
+      const gf = gallerySlice[gi];
       try {
         galleryUrls.push(
           isSupabaseReady()
-            ? await uploadWardrobeImageFileToCloud(gf, `custom-${Date.now()}`, `gallery-${galleryUrls.length + 1}`)
+            ? await uploadWardrobeImageFileToCloud(gf, newId, { type: "main_gallery", index: gi + 1 })
             : await fileToStorageDataUrl(gf, { preferJpeg: true })
         );
       } catch (err) {
@@ -3338,10 +3596,7 @@
     const colourTrim = String(colourVal ?? "").trim();
     const colourCodeTrim = String(colourCodeInput ?? "").trim();
     const newItem = {
-      id:
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? `custom-${crypto.randomUUID()}`
-          : `custom-${Date.now()}`,
+      id: newId,
       brand,
       name,
       section: "",
@@ -3363,6 +3618,7 @@
     if (isSupabaseReady()) {
       try {
         const savedCloudItem = await saveWardrobeItemToCloud(newItem);
+        stampWardrobeItemMediaNonce(savedCloudItem);
         cloudBackedCustomItems = [
           savedCloudItem,
           ...cloudBackedCustomItems.filter((x) => String(x.id) !== String(savedCloudItem.id)),
@@ -3491,6 +3747,7 @@
   async function persistNewCustomItemRow(row) {
     if (isSupabaseReady()) {
       const saved = await saveWardrobeItemToCloud(row);
+      stampWardrobeItemMediaNonce(saved);
       cloudBackedCustomItems = [
         saved,
         ...cloudBackedCustomItems.filter((x) => String(x.id) !== String(saved.id)),
@@ -3806,7 +4063,6 @@
     if (els.emptyReset) els.emptyReset.hidden = !narrowingFiltersActive();
     if (els.emptyWrap) els.emptyWrap.hidden = n > 0;
     els.grid.hidden = n === 0;
-    syncFilterSummaryBar();
   }
 
   /** Search box: avoid rebuilding the whole grid on every keystroke (main-thread jank). */
@@ -4269,7 +4525,7 @@
         try {
           const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
           image = cloudId
-            ? await uploadWardrobeImageFileToCloud(file, cloudId, `variant-${key}-cover`)
+            ? await uploadWardrobeImageFileToCloud(file, cloudId, { type: "variant_cover", key })
             : await fileToStorageDataUrl(file);
         } catch (err) {
           console.warn(err);
@@ -4316,7 +4572,7 @@
           try {
             const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
             previewImage = cloudId
-              ? await uploadWardrobeImageFileToCloud(previewFile2, cloudId, `variant-${key}-preview`)
+              ? await uploadWardrobeImageFileToCloud(previewFile2, cloudId, { type: "variant_preview", key })
               : await fileToStorageDataUrl(previewFile2);
           } catch (err) {
             console.warn(err);
@@ -4426,7 +4682,7 @@
         setMsg("Processing images…", false);
         try {
           image = isSupabaseReady()
-            ? await uploadWardrobeImageFileToCloud(coverFile, id, "cover-edit")
+            ? await uploadWardrobeImageFileToCloud(coverFile, id, { type: "main_cover" })
             : await fileToStorageDataUrl(coverFile);
         } catch (err) {
           console.warn(err);
@@ -4453,7 +4709,7 @@
     for (const gf of gFiles.slice(0, 12)) {
       try {
         const url = isSupabaseReady()
-          ? await uploadWardrobeImageFileToCloud(gf, id, `gallery-edit-${gallery.length + 1}`)
+          ? await uploadWardrobeImageFileToCloud(gf, id, { type: "main_gallery", index: gallery.length + 1 })
           : await fileToStorageDataUrl(gf, { preferJpeg: true });
         gallery.push(url);
       } catch (e) {
@@ -4518,6 +4774,7 @@
       if (isSupabaseReady()) {
         try {
           const saved = await saveWardrobeItemToCloud(updated);
+          const mediaBust = stampWardrobeItemMediaNonce(saved);
           stripCustomIdsFromLocalStorage([id]);
           await mirrorLocalCustomItemsToProjectFile();
           customCloudSynced = true;
@@ -4526,12 +4783,16 @@
           try {
             await refreshCloudBackedCustomItems();
             didCloudListRefresh = true;
+            const hit = cloudBackedCustomItems.find((x) => String(x.id) === String(id));
+            if (hit) /** @type {any} */ (hit).__displayNonce = mediaBust;
           } catch (re) {
             console.warn(re);
             cloudBackedCustomItems = [
               saved,
               ...cloudBackedCustomItems.filter((x) => String(x.id) !== String(saved.id)),
             ];
+            const hit2 = cloudBackedCustomItems.find((x) => String(x.id) === String(id));
+            if (hit2) /** @type {any} */ (hit2).__displayNonce = mediaBust;
           }
         } catch (e) {
           console.warn(e);
@@ -5585,11 +5846,10 @@
     validateSubcategoryFilter();
     renderCategoryDrill();
     syncFiltersMenuForViewport();
-    syncFilterSummaryBar();
   }
 
-  /** When true, scrolling the archive adds `archive-ui--nav-folded` (Chrome had touch/scroll issues with this). */
-  const ENABLE_ARCHIVE_NAV_SCROLL_FOLD = false;
+  /** When true, scrolling down on the archive adds `archive-ui--nav-folded` (compact sticky bar; search row hidden via CSS). */
+  const ENABLE_ARCHIVE_NAV_SCROLL_FOLD = true;
 
   let archiveNavScrollFoldLastY = 0;
   let archiveNavScrollFoldTicking = false;
@@ -5662,7 +5922,7 @@
       showToast("Category, type, and search cleared.");
     });
 
-    document.getElementById("filter-summary-clear")?.addEventListener("click", () => {
+    document.getElementById("category-drill-clear-all")?.addEventListener("click", () => {
       resetNarrowingFilters();
       showToast("Filters cleared.");
     });
