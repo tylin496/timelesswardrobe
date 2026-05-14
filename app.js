@@ -204,7 +204,7 @@
         }
       } else {
         const vu = String(variantSwatchImageUrl(v) ?? "").trim();
-        if (vu) {
+        if (vu && isDisplayableCloudImageUrl(vu)) {
           const si = document.createElement("img");
           si.src = withWardrobeImageCacheBust(vu, item);
           si.alt = "";
@@ -219,7 +219,7 @@
           el.appendChild(codeEl);
         } else {
           const fallback = String(v.image ?? "").trim();
-          if (fallback) {
+          if (fallback && isDisplayableCloudImageUrl(fallback)) {
             const si = document.createElement("img");
             si.src = withWardrobeImageCacheBust(fallback, item);
             si.alt = "";
@@ -1272,12 +1272,6 @@
   /** Document-level dismiss listeners for the mobile filters panel (installed once). */
   let filtersMenuDismissListenersInstalled = false;
 
-  /** Every non-data image path in the merged archive (for loose cover matching). */
-  let archiveImagePathList = [];
-
-  /** From `images/_manifest.json` — files on disk that no row references yet. */
-  let archiveManifestPaths = [];
-
   /** After a cover loads, remember the working URL for gallery / outfit UI. */
   const coverResolutionCache = new Map();
 
@@ -1674,7 +1668,6 @@
     });
     rebuildItemIndex();
     coverResolutionCache.clear();
-    rebuildArchiveImagePathList();
   }
 
   /** @type {{ itemId: string, colourKey?: string }[]} */
@@ -2232,288 +2225,13 @@
     return arr.filter((u) => u && u !== main);
   }
 
-  function rebuildArchiveImagePathList() {
-    const seen = new Set();
-    for (const it of items) {
-      const m = String(it?.image ?? "").trim();
-      if (m && !m.startsWith("data:")) seen.add(m);
-      for (const g of itemGalleryList(it)) {
-        const u = String(g ?? "").trim();
-        if (u && !u.startsWith("data:")) seen.add(u);
-      }
-      const vars = getItemColourVariants(it);
-      if (vars) {
-        for (const v of vars) {
-          const im = String(v.image ?? "").trim();
-          if (im && !im.startsWith("data:")) seen.add(im);
-          const pv = String(v.previewImage ?? "").trim();
-          if (pv && !pv.startsWith("data:")) seen.add(pv);
-          for (const g of v.gallery || []) {
-            const u = String(g ?? "").trim();
-            if (u && !u.startsWith("data:")) seen.add(u);
-          }
-        }
-      }
-    }
-    for (const p of archiveManifestPaths) {
-      const u = String(p ?? "").trim().replace(/\\/g, "/");
-      if (u && !u.startsWith("data:")) seen.add(u);
-    }
-    archiveImagePathList = [...seen];
-  }
-
-  async function loadArchiveImageManifest() {
-    try {
-      const href = globalThis.location?.href;
-      if (!href) return;
-      const url = new URL("images/_manifest.json", href);
-      const res = await fetch(url.href, { cache: "reload" });
-      if (!res.ok) return;
-      const data = await res.json();
-      const arr = Array.isArray(data) ? data : Array.isArray(data?.paths) ? data.paths : [];
-      const next = [];
-      const dup = new Set();
-      for (const x of arr) {
-        const u = String(x ?? "").trim().replace(/\\/g, "/");
-        if (!u || u.startsWith("data:") || dup.has(u)) continue;
-        dup.add(u);
-        next.push(u);
-      }
-      archiveManifestPaths = next;
-      coverResolutionCache.clear();
-      rebuildArchiveImagePathList();
-    } catch {
-      /* offline, invalid JSON, or file missing */
-    }
-  }
-
-  const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".PNG", ".JPG", ".JPEG", ".WEBP", ".GIF"];
-
-  /** Keep missing image handling quiet: one declared URL only, then use the interface to upload/fix covers later. */
-  const MANUAL_IMAGE_UPLOAD_MODE = true;
-
-  /** Too generic for cross-file image matching — would map many rows to one photo. */
-  const IMAGE_MATCH_STOPWORDS = new Set([
-    "trouser",
-    "trousers",
-    "pant",
-    "pants",
-    "bottom",
-    "bottoms",
-    "shirt",
-    "shirts",
-    "jacket",
-    "jackets",
-    "coat",
-    "coats",
-    "blazer",
-    "blazers",
-    "shoe",
-    "shoes",
-    "boot",
-    "boots",
-    "loafer",
-    "loafers",
-    "sneaker",
-    "sneakers",
-    "watch",
-    "watches",
-    "ring",
-    "rings",
-    "chain",
-    "chains",
-    "bracelet",
-    "bracelets",
-    "jewelry",
-    "jewellery",
-    "top",
-    "tops",
-    "knit",
-    "knits",
-    "vest",
-    "vests",
-    "polo",
-    "polos",
-    "dress",
-    "jean",
-    "jeans",
-    "outerwear",
-    "layer",
-    "layers",
-    "inner",
-    "mid",
-    "fragrance",
-    "perfume",
-    "collection",
-    "piece",
-    "pieces",
-    "all",
-    "season",
-    "seasons",
-    "cotton",
-    "wool",
-    "linen",
-    "silk",
-    "denim",
-    "leather",
-    "suede",
-  ]);
-
-  function isBlobOrAbsoluteUrl(u) {
-    const s = String(u ?? "").trim();
-    return !s || s.startsWith("data:") || s.startsWith("blob:") || /^https?:\/\//i.test(s);
-  }
-
   function isDisplayableCloudImageUrl(u) {
     const s = String(u ?? "").trim();
     return s.startsWith("data:") || s.startsWith("blob:") || /^https?:\/\//i.test(s);
   }
 
-  function splitDirFile(path) {
-    const s = String(path ?? "").trim().replace(/\\/g, "/");
-    const i = s.lastIndexOf("/");
-    if (i < 0) return { dir: "", file: s };
-    return { dir: s.slice(0, i + 1), file: s.slice(i + 1) };
-  }
-
-  function stemAndExt(file) {
-    const m = String(file).match(/^(.+)(\.[a-z0-9]+)$/i);
-    if (m) return { stem: m[1], ext: m[2] };
-    return { stem: String(file), ext: "" };
-  }
-
-  /** Filename stem normalized to a single space-separated word string (for stem-prefix match). */
-  function normalizeImageStem(imagePath) {
-    const { file } = splitDirFile(String(imagePath ?? ""));
-    const { stem } = stemAndExt(file);
-    return String(stem)
-      .toLowerCase()
-      .replace(/\u00d7/g, "x")
-      .replace(/(?<![0-9])([0-9])-([0-9])(?![0-9])/g, "$1$2")
-      .replace(/[^a-z0-9]+/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  /** `…_2.png` / `… copy 2` → drop trailing numeric token for fuzzy stem compare. */
-  function stripTrailingOrdinalStemSuffix(norm) {
-    return String(norm ?? "")
-      .trim()
-      .replace(/\s+\d+$/u, "")
-      .trim();
-  }
-
   /**
-   * Filename sometimes repeats the brand (`GU GU olive…`). If the first token matches the
-   * declared stem's first token twice in a row, collapse to one so prefix / token logic works.
-   */
-  function collapseDuplicateLeadingTokenMatchingDeclared(declNorm, candNorm) {
-    const dw = declNorm.split(/\s+/).filter(Boolean);
-    let cw = candNorm.split(/\s+/).filter(Boolean);
-    if (dw.length < 1 || cw.length < 2) return candNorm;
-    const head = dw[0];
-    while (cw.length >= 2 && cw[0] === cw[1] && cw[0] === head) cw = cw.slice(1);
-    return cw.join(" ");
-  }
-
-  /** Declared / candidate stems aligned for “same photo, messier filename” rules. */
-  function alignedCandidateStemForFuzzy(declStripped, candNormRaw) {
-    const c0 = stripTrailingOrdinalStemSuffix(candNormRaw);
-    return collapseDuplicateLeadingTokenMatchingDeclared(declStripped, c0);
-  }
-
-  /**
-   * File dropped the leading brand in the filename (`Tank Solo…` vs declared `CARTIER Tank Solo…`).
-   * True when `decl` ends with the same token sequence as `cand` (word-level suffix).
-   */
-  function declaredStemEndsWithCandidateStem(declNorm, candNorm) {
-    const d = stripTrailingOrdinalStemSuffix(declNorm);
-    const c = stripTrailingOrdinalStemSuffix(candNorm);
-    if (c.length < 6 || d.length <= c.length) return false;
-    const dw = d.split(/\s+/).filter(Boolean);
-    const cw = c.split(/\s+/).filter(Boolean);
-    if (cw.length < 2 || dw.length <= cw.length) return false;
-    for (let i = 0; i < cw.length; i++) {
-      if (dw[dw.length - cw.length + i] !== cw[i]) return false;
-    }
-    return true;
-  }
-
-  /**
-   * Disk filename dropped a leading brand segment (`JWA Straight Jeans.png` vs declared
-   * `UNIQLO × JWA Straight Jeans …`). Every candidate word appears in the same order inside
-   * the declared stem. Guarded so two-word tails like `new york` do not match broadly.
-   */
-  function candidateStemIsOrderedSubsequenceOfDeclared(declNorm, candNorm) {
-    const hw = stripTrailingOrdinalStemSuffix(declNorm).split(/\s+/).filter(Boolean);
-    const cw = stripTrailingOrdinalStemSuffix(candNorm).split(/\s+/).filter(Boolean);
-    if (cw.length < 2 || cw.length > hw.length) return false;
-    const joined = cw.join(" ");
-    if (cw.length < 3 && joined.length < 12) return false;
-    let j = 0;
-    for (let i = 0; i < hw.length && j < cw.length; i++) {
-      if (hw[i] === cw[j]) j += 1;
-    }
-    return j === cw.length;
-  }
-
-  function looseTokens(s) {
-    return String(s ?? "")
-      .toLowerCase()
-      .replace(/&/g, " and ")
-      .replace(/[^a-z0-9]+/gi, " ")
-      .split(/\s+/)
-      .filter((t) => t.length >= 2);
-  }
-
-  /** Filename stem only, lowercased, padded with spaces for whole-token checks (` token `). */
-  function tokenHaystackFromImagePath(imagePath) {
-    const inner = normalizeImageStem(imagePath);
-    return ` ${inner} `;
-  }
-
-  /** Brand / display name / name tokens (length ≥ 3), minus generic garment words — for fuzzy file match. */
-  function compileStrictMatchTokens(item) {
-    const out = [];
-    const seen = new Set();
-    function pushFrom(arr, minLen) {
-      const m = minLen ?? 3;
-      for (const t of arr) {
-        if (t.length < m) continue;
-        if (IMAGE_MATCH_STOPWORDS.has(t)) continue;
-        if (seen.has(t)) continue;
-        seen.add(t);
-        out.push(t);
-      }
-    }
-    pushFrom(looseTokens(item.brand), 2);
-    pushFrom(looseTokens(displayNameWithoutLeadingColour(item)));
-    pushFrom(looseTokens(item.name));
-    return out;
-  }
-
-  /** How many tokens appear as **whole** words in the stem (not substring of another word). */
-  function countWholeWordMatchesInStem(imagePath, tokens) {
-    const hay = tokenHaystackFromImagePath(imagePath);
-    let n = 0;
-    for (const t of tokens) {
-      if (hay.includes(` ${t} `)) n += 1;
-    }
-    return n;
-  }
-
-  /** Cover / gallery / variant URLs we may put on an `<img>` (https, data, blob, or same-site `images/…`). */
-  function isUsableWardrobeImageSrc(u) {
-    const s = String(u ?? "").trim();
-    if (!s) return false;
-    if (isDisplayableCloudImageUrl(s)) return true;
-    if (s.startsWith("images/") && !s.startsWith("data:")) return true;
-    return false;
-  }
-
-  /**
-   * Ordered URLs to try for the cover: declared path, extension / parenthesis variants,
-   * `images/<id>.*`, then best fuzzy matches against all archive paths.
+   * Ordered URLs to try for the cover: primary plus gallery / variant images (https, data, or blob only).
    */
   function buildCoverCandidates(item) {
     const primary = String(item?.image ?? "").trim();
@@ -2528,32 +2246,31 @@
 
     if (!primary) {
       for (const u of itemGalleryList(item)) {
-        if (isUsableWardrobeImageSrc(u)) add(u);
+        if (isDisplayableCloudImageUrl(u)) add(u);
       }
       const vars = getItemColourVariants(item);
       if (vars) {
         for (const v of vars) {
           const u = String(v?.image ?? "").trim();
-          if (isUsableWardrobeImageSrc(u)) add(u);
+          if (isDisplayableCloudImageUrl(u)) add(u);
         }
       }
       return out.map((u) => withWardrobeImageCacheBust(u, item));
     }
 
     if (!isDisplayableCloudImageUrl(primary)) {
-      console.info("Local image paths are disabled; upload this cover to Supabase Storage and save the public URL:", primary);
       return [];
     }
 
     add(primary);
     for (const u of itemGalleryList(item)) {
-      if (isUsableWardrobeImageSrc(u)) add(u);
+      if (isDisplayableCloudImageUrl(u)) add(u);
     }
     const vars = getItemColourVariants(item);
     if (vars) {
       for (const v of vars) {
         const u = String(v?.image ?? "").trim();
-        if (isUsableWardrobeImageSrc(u)) add(u);
+        if (isDisplayableCloudImageUrl(u)) add(u);
       }
     }
     return out.map((u) => withWardrobeImageCacheBust(u, item));
@@ -2572,8 +2289,8 @@
     }
 
     const src = String(item?.image ?? "").trim();
-    const base = isDisplayableCloudImageUrl(src) ? src : "";
-    return base ? withWardrobeImageCacheBust(base, item) : "";
+    if (!isDisplayableCloudImageUrl(src)) return "";
+    return withWardrobeImageCacheBust(src, item);
   }
 
   /**
@@ -6171,7 +5888,6 @@
       await mirrorLocalCustomItemsToProjectFile();
     }
     mergeWardrobeFromSources();
-    await loadArchiveImageManifest();
     if (!items.length) {
       console.warn("No wardrobe items loaded.");
     }

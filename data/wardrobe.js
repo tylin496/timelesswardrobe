@@ -4,11 +4,29 @@
  * Collection thesis is described in the site header. Each row uses `category` (and optional
  * `season`) for browsing; `section` / `pillar` are legacy fields and not shown in the UI.
  *
- * Image paths: `images/<Brand> <Name…>.png` (or `.jpg` / `.webp` / `.gif`) — filenames must match paths.
- * Optional `gallery`: string[] of extra image URLs (same folder or absolute); `image` is always the cover.
+ * Images: use Supabase Storage public URLs under bucket `wardrobe-images` (same project as `js/tw-supabase-config.js`).
+ * Source rows still name files as `images/<Brand> <Name…>.png`; the normalizer below turns those into full `https://…` URLs at load time (objects must exist at that path in Storage).
+ * Optional `gallery`: string[] of extra image URLs; `image` is always the cover.
  * Optional `colourVariants`: same product in multiple colours — one archive row; outfit builder asks which colour.
  * Optional `size` (label size), `measuredDimensions` (實量／平量尺寸文字，可空), and `purchaseDate` (YYYY-MM-DD or short text，可空).
  */
+
+const SEED_WARDROBE_IMAGE_PUBLIC_BASE =
+  "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/";
+
+/** @param {string} rel */
+function seedRelativeImageToPublicUrl(rel) {
+  const s = String(rel ?? "").trim().replace(/\\/g, "/");
+  if (!s.startsWith("images/")) return s;
+  return (
+    SEED_WARDROBE_IMAGE_PUBLIC_BASE +
+    s
+      .split("/")
+      .map((seg) => encodeURIComponent(seg))
+      .join("/")
+  );
+}
+
 const WARDROBE_ITEMS = [
   // ——— A/W – Country Classics ———
   {
@@ -818,3 +836,30 @@ const WARDROBE_ITEMS = [
     notes: "Curb 5.2 mm: 7.5 g. Curb 3.6 mm: 3.7 g. Figaro 5.2 mm: 5.7 g.",
   },
 ];
+
+(function normalizeSeedWardrobeImageUrls() {
+  /** @param {string} u */
+  function upgrade(u) {
+    const s = String(u ?? "").trim();
+    return seedRelativeImageToPublicUrl(s);
+  }
+  /** @param {Record<string, unknown>} v */
+  function walkVariant(v) {
+    if (!v || typeof v !== "object") return;
+    if (typeof v.image === "string") v.image = upgrade(v.image);
+    if (typeof v.previewImage === "string") v.previewImage = upgrade(v.previewImage);
+    if (Array.isArray(v.gallery)) {
+      v.gallery = v.gallery.map((g) => (typeof g === "string" ? upgrade(g) : g));
+    }
+  }
+  for (const it of WARDROBE_ITEMS) {
+    if (typeof it.image === "string") it.image = upgrade(it.image);
+    if (Array.isArray(it.gallery)) {
+      it.gallery = it.gallery.map((g) => (typeof g === "string" ? upgrade(g) : g));
+    }
+    const variants = it.colourVariants ?? it.colorVariants;
+    if (Array.isArray(variants)) {
+      for (const v of variants) walkVariant(v);
+    }
+  }
+})();
