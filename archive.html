@@ -28,28 +28,20 @@
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
     <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
 
-    <div class="site-header-shell">
     <div class="site-utility-bar" role="note" aria-label="Archive ethos">
       <div class="site-utility-bar__inner">
         <span class="site-utility-bar__left">Archive Pieces Only</span>
         <span class="site-utility-bar__center">English Heritage × Mediterranean Leisure</span>
-        <span class="site-utility-bar__right">Since MMXX</span>
+        <span class="site-utility-bar__right">Since 2020</span>
       </div>
     </div>
-    <header class="site-header">
-      <div class="site-header__inner">
-        <div class="site-header__mega">
-        <div class="site-header__brand-nav" aria-label="Primary header">
+    <div class="site-header-shell">
+    <header class="site-header site-header--solid">
+      <div class="site-header__container site-header__inner">
+        <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
           <h1 class="site-title">
             <a href="/" id="site-header-home" class="site-title__primary">
-              <img
-                src="logo.png"
-                alt=""
-                class="site-title__mark"
-                width="44"
-                height="44"
-                decoding="async"
-              />
+              <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
               <span class="site-title__text-stack">
                 <span class="site-title__wordmark">Timeless Wardrobe</span>
               </span>
@@ -121,7 +113,7 @@
               id="site-header-menu-btn"
               class="site-header__menu-btn"
               aria-expanded="false"
-              aria-controls="site-header-mobile-panel"
+              aria-controls="site-mobile-shell"
               aria-label="Open categories menu"
               title="Open categories"
             >
@@ -250,32 +242,6 @@
       </div>
     </header>
     </div>
-
-    <nav
-      id="site-header-mobile-panel"
-      class="site-header__mobile-panel"
-      aria-label="Mobile categories"
-      aria-hidden="true"
-    >
-      <div class="site-header__mobile-panel-scroll">
-        <div class="site-header__mobile-group">
-          <a href="#main" class="site-header__mobile-link" data-category-jump="Clothing">Clothing</a>
-          <a href="#main" class="site-header__mobile-browse-all" data-category-jump="Clothing">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="#main" class="site-header__mobile-link" data-category-jump="Accessories">Accessories</a>
-          <a href="#main" class="site-header__mobile-browse-all" data-category-jump="Accessories">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="#main" class="site-header__mobile-link" data-category-jump="Watches">Watches</a>
-          <a href="#main" class="site-header__mobile-browse-all" data-category-jump="Watches">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="#main" class="site-header__mobile-link" data-category-jump="Fragrance">Fragrance</a>
-          <a href="#main" class="site-header__mobile-browse-all" data-category-jump="Fragrance">Browse all</a>
-        </div>
-      </div>
-    </nav>
 
     <aside
       id="local-data-risk-banner"
@@ -617,7 +583,7 @@
             <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-sort-heading">Sort by</h3>
             <div
               id="archive-drawer-sort-chips"
-              class="archive-filter-drawer__sort-chips"
+              class="archive-filter-drawer__chip-row"
               role="group"
               aria-labelledby="archive-drawer-sort-heading"
             >
@@ -633,12 +599,6 @@
               <button type="button" class="archive-drawer-sort-chip" data-archive-sort="brand-desc" aria-pressed="false">
                 Brand Z–A
               </button>
-              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-asc" aria-pressed="false">
-                Price Low to High
-              </button>
-              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-desc" aria-pressed="false">
-                Price High to Low
-              </button>
             </div>
           </section>
           <section
@@ -648,7 +608,7 @@
             <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-season-heading">Season</h3>
             <div
               id="archive-drawer-season-chips"
-              class="archive-filter-drawer__season-chips"
+              class="archive-filter-drawer__chip-row"
               role="group"
               aria-labelledby="archive-drawer-season-heading"
             >
@@ -671,20 +631,42 @@
           >
             <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-record-types-label">Categories</h3>
             <div
-              class="archive-filter-drawer__record-type-chips"
+              class="archive-filter-drawer__chip-row archive-filter-drawer__record-type-chips"
               id="archive-drawer-record-type-chips"
               role="group"
               aria-labelledby="archive-drawer-record-types-label"
             ></div>
           </section>
-          <section class="archive-filter-drawer__block archive-filter-drawer__block--colour items-toolbar__colour-block archive-filter-drawer__colour" aria-labelledby="archive-colour-filter-label">
+          <section
+            class="archive-filter-drawer__block archive-filter-drawer__block--colour"
+            aria-labelledby="archive-colour-filter-label"
+          >
             <h3 class="archive-filter-drawer__section-heading" id="archive-colour-filter-label">Colour</h3>
             <div
-              class="items-toolbar__colour-chips archive-filter-drawer__colour-chips"
+              class="archive-filter-drawer__chip-row archive-filter-drawer__colour-chips"
               role="group"
               aria-labelledby="archive-colour-filter-label"
               id="archive-colour-chips"
             ></div>
+          </section>
+          <section
+            class="archive-filter-drawer__block archive-filter-drawer__block--price"
+            aria-labelledby="archive-drawer-price-heading"
+          >
+            <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-price-heading">Price</h3>
+            <div
+              class="archive-filter-drawer__chip-row"
+              id="archive-drawer-price-chips"
+              role="group"
+              aria-labelledby="archive-drawer-price-heading"
+            >
+              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-asc" aria-pressed="false">
+                Low to high
+              </button>
+              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-desc" aria-pressed="false">
+                High to low
+              </button>
+            </div>
           </section>
         </div>
         <div class="archive-filter-drawer__footer">

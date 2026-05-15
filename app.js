@@ -585,9 +585,9 @@
   }
 
   function syncArchiveSortChipUi() {
-    const wrap = document.getElementById("archive-drawer-sort-chips");
-    if (!wrap) return;
-    wrap.querySelectorAll("[data-archive-sort]").forEach((btn) => {
+    const drawer = document.getElementById("archive-filter-drawer");
+    if (!drawer) return;
+    drawer.querySelectorAll("[data-archive-sort]").forEach((btn) => {
       const on = String(btn.getAttribute("data-archive-sort") ?? "").trim() === archiveSortMode;
       btn.classList.toggle("is-active", on);
       btn.setAttribute("aria-pressed", on ? "true" : "false");
@@ -3165,41 +3165,291 @@
       wireCoverImageWithFallbacks(img, it, {
         host: layer,
         missingClass: "ed-lp__hero-layer--missing",
-        coverRenderWidth: 1920,
-        coverRenderHeight: 1080,
-        coverRenderZoom: 1.08,
+        coverRenderWidth: 1536,
+        coverRenderHeight: 1024,
         coverRenderQuality: 86,
       });
       heroHost.appendChild(layer);
     });
   }
 
+  /** Random first slide (session), then remaining hero assets in catalog order. */
+  function orderedHomeHeroImagePaths() {
+    const first = pickHomeHeroImagePath();
+    const rest = HOME_HERO_IMAGES.filter((p) => p !== first);
+    return [first, ...rest];
+  }
+
+  function preloadHomeHeroImage(src) {
+    const path = String(src ?? "").trim();
+    if (!path) return;
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = path;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function initEditorialHomeHeroCarousel(slideCount) {
+    const carouselUi = document.getElementById("ed-lp-hero-carousel");
+    const heroHost = document.getElementById("ed-lp-hero-layers");
+    const dotsHost = document.getElementById("ed-lp-hero-dots");
+    if (!heroHost || slideCount < 1) return;
+
+    const slides = [...heroHost.querySelectorAll(".ed-lp__hero-slide")];
+    const n = slides.length;
+    if (n < 1) return;
+
+    if (carouselUi) carouselUi.hidden = n < 2;
+    if (n < 2) return;
+
+    if (heroHost.dataset.twHeroCarouselWired === "1") return;
+    heroHost.dataset.twHeroCarouselWired = "1";
+
+    let index = slides.findIndex((s) => s.classList.contains("is-active"));
+    if (index < 0) index = 0;
+
+    let autoplayTimer = 0;
+    let slideAnimTimer = 0;
+    let animating = false;
+    const reduceMotion = Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+    const HERO_SLIDE_MS = 780;
+
+    const slideMotionClasses = [
+      "is-prep-enter-next",
+      "is-prep-enter-prev",
+      "is-exit-next",
+      "is-exit-prev",
+      "is-no-transition",
+    ];
+
+    const autoplayMs = () => 6000 + Math.floor(Math.random() * 2001);
+
+    const syncHeroSlideUi = () => {
+      slides.forEach((slide, i) => {
+        const on = i === index;
+        slide.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      dotsHost?.querySelectorAll(".ed-lp__hero-dot").forEach((dot, i) => {
+        const on = i === index;
+        dot.classList.toggle("is-active", on);
+        dot.setAttribute("aria-selected", on ? "true" : "false");
+        dot.setAttribute("tabindex", on ? "0" : "-1");
+      });
+      const nextPath = slides[index]?.querySelector("img")?.getAttribute("src");
+      if (nextPath) preloadHomeHeroImage(nextPath);
+    };
+
+    const resetSlideMotionClasses = () => {
+      slides.forEach((slide) => slide.classList.remove(...slideMotionClasses));
+    };
+
+    const finishSlideTransition = () => {
+      if (slideAnimTimer) {
+        clearTimeout(slideAnimTimer);
+        slideAnimTimer = 0;
+      }
+      if (!animating) return;
+      animating = false;
+      slides.forEach((slide, i) => {
+        slide.classList.remove(...slideMotionClasses);
+        slide.classList.toggle("is-active", i === index);
+      });
+    };
+
+    const setActiveInstant = (targetIndex) => {
+      index = ((targetIndex % n) + n) % n;
+      slides.forEach((slide, i) => {
+        slide.classList.remove(...slideMotionClasses);
+        slide.classList.toggle("is-active", i === index);
+      });
+      syncHeroSlideUi();
+    };
+
+    const directionFor = (from, to) => {
+      if (from === to) return 1;
+      const forward = (to - from + n) % n;
+      const backward = (from - to + n) % n;
+      return forward <= backward ? 1 : -1;
+    };
+
+    const goTo = (targetIndex, direction) => {
+      const to = ((targetIndex % n) + n) % n;
+      if (to === index) return;
+      if (animating) return;
+
+      if (reduceMotion) {
+        setActiveInstant(to);
+        return;
+      }
+
+      const from = index;
+      const forward = direction === 1 || direction === -1 ? direction > 0 : directionFor(from, to);
+      const outgoing = slides[from];
+      const incoming = slides[to];
+
+      animating = true;
+      if (slideAnimTimer) {
+        clearTimeout(slideAnimTimer);
+        slideAnimTimer = 0;
+      }
+
+      slides.forEach((slide, i) => {
+        if (i === from || i === to) return;
+        slide.classList.remove("is-active", ...slideMotionClasses);
+      });
+
+      outgoing.classList.remove(...slideMotionClasses);
+      incoming.classList.remove(...slideMotionClasses);
+
+      incoming.classList.add("is-no-transition", forward ? "is-prep-enter-next" : "is-prep-enter-prev");
+      void incoming.offsetWidth;
+      incoming.classList.remove("is-no-transition");
+
+      outgoing.classList.remove("is-active");
+      outgoing.classList.add(forward ? "is-exit-next" : "is-exit-prev");
+      incoming.classList.remove("is-prep-enter-next", "is-prep-enter-prev");
+      incoming.classList.add("is-active");
+
+      index = to;
+      syncHeroSlideUi();
+
+      const onTransitionEnd = (e) => {
+        if (e.target !== incoming) return;
+        incoming.removeEventListener("transitionend", onTransitionEnd);
+        finishSlideTransition();
+      };
+      incoming.addEventListener("transitionend", onTransitionEnd);
+      slideAnimTimer = setTimeout(() => {
+        incoming.removeEventListener("transitionend", onTransitionEnd);
+        finishSlideTransition();
+      }, HERO_SLIDE_MS + 80);
+    };
+
+    const clearAutoplay = () => {
+      if (!autoplayTimer) return;
+      clearTimeout(autoplayTimer);
+      autoplayTimer = 0;
+    };
+
+    const scheduleAutoplay = () => {
+      clearAutoplay();
+      if (reduceMotion || n < 2) return;
+      autoplayTimer = setTimeout(() => {
+        autoplayTimer = 0;
+        goTo(index + 1, 1);
+        scheduleAutoplay();
+      }, autoplayMs());
+    };
+
+    const step = (delta, { manual = false } = {}) => {
+      goTo(index + delta, delta > 0 ? 1 : -1);
+      if (manual) scheduleAutoplay();
+    };
+
+    if (dotsHost) {
+      dotsHost.replaceChildren();
+      slides.forEach((_, i) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "ed-lp__hero-dot";
+        dot.setAttribute("role", "tab");
+        dot.setAttribute("aria-label", `View photograph ${i + 1} of ${n}`);
+        dot.addEventListener("click", () => {
+          goTo(i, directionFor(index, i));
+          scheduleAutoplay();
+        });
+        dotsHost.appendChild(dot);
+      });
+    }
+
+    carouselUi?.addEventListener("click", (e) => {
+      const t = e.target;
+      if (!(t instanceof Element)) return;
+      if (t.closest("#ed-lp-hero-prev")) {
+        e.preventDefault();
+        step(-1, { manual: true });
+        return;
+      }
+      if (t.closest("#ed-lp-hero-next")) {
+        e.preventDefault();
+        step(1, { manual: true });
+      }
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const onHeroTouchStart = (e) => {
+      const t = e.touches?.[0];
+      if (!t) return;
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    };
+    const onHeroTouchEnd = (e) => {
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      if (Math.abs(dx) < 48) return;
+      if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < 0) step(1, { manual: true });
+      else step(-1, { manual: true });
+    };
+    const heroSwipeSurface = document.querySelector(".ed-lp__hero") || heroHost;
+    heroSwipeSurface.addEventListener("touchstart", onHeroTouchStart, { passive: true });
+    heroSwipeSurface.addEventListener("touchend", onHeroTouchEnd, { passive: true });
+
+    setActiveInstant(index);
+    scheduleAutoplay();
+  }
+
   function mountEditorialHomeHeroLayers(heroHost) {
-    const heroSrc = pickHomeHeroImagePath();
-    const existingFixed = heroHost.querySelector(".ed-lp__hero-layer--fixed .ed-lp__hero-layer-img");
-    if (existingFixed instanceof HTMLImageElement && existingFixed.getAttribute("src") === heroSrc) {
+    const paths = orderedHomeHeroImagePaths();
+    if (heroHost.dataset.twHeroCarouselMounted === "1") {
+      initEditorialHomeHeroCarousel(paths.length);
       return;
     }
 
     heroHost.replaceChildren();
-    const layer = document.createElement("div");
-    layer.className = "ed-lp__hero-layer ed-lp__hero-layer--fixed";
-    const img = document.createElement("img");
-    img.className = "ed-lp__hero-layer-img";
-    img.alt = "";
-    img.src = heroSrc;
-    img.fetchPriority = "high";
-    img.loading = "eager";
-    img.decoding = "async";
-    img.addEventListener(
-      "error",
-      () => {
-        mountEditorialHomeHeroCatalogFallback(heroHost);
-      },
-      { once: true }
-    );
-    layer.appendChild(img);
-    heroHost.appendChild(layer);
+    let firstError = false;
+
+    paths.forEach((src, i) => {
+      const slide = document.createElement("div");
+      slide.className = "ed-lp__hero-slide" + (i === 0 ? " is-active" : "");
+      slide.dataset.heroSlide = String(i);
+      slide.setAttribute("aria-hidden", i === 0 ? "false" : "true");
+
+      const img = document.createElement("img");
+      img.className = "ed-lp__hero-layer-img";
+      img.alt = "";
+      img.src = src;
+      img.fetchPriority = i === 0 ? "high" : "low";
+      img.loading = i === 0 ? "eager" : "lazy";
+      img.decoding = "async";
+
+      img.addEventListener(
+        "error",
+        () => {
+          if (i !== 0 || firstError) return;
+          firstError = true;
+          heroHost.dataset.twHeroCarouselMounted = "";
+          heroHost.dataset.twHeroCarouselWired = "";
+          mountEditorialHomeHeroCatalogFallback(heroHost);
+          const carouselUi = document.getElementById("ed-lp-hero-carousel");
+          if (carouselUi) carouselUi.hidden = true;
+        },
+        { once: true }
+      );
+
+      slide.appendChild(img);
+      heroHost.appendChild(slide);
+      if (i > 0) preloadHomeHeroImage(src);
+    });
+
+    heroHost.dataset.twHeroCarouselMounted = "1";
+    initEditorialHomeHeroCarousel(paths.length);
   }
 
   function pickEditorialHeroBackdropItems(pool, maxN) {
@@ -3514,10 +3764,58 @@
     return a;
   }
 
+  /** Homepage: solid brand masthead; transparent nav over primary hero until scroll / overlays. */
+  function initHomeHeroHeader() {
+    if (!document.body.classList.contains("home-page")) return;
+    const hero = document.querySelector(".site-home-stage .ed-lp__hero") || document.querySelector(".ed-lp__hero");
+    const siteHeader = document.querySelector(".site-header");
+    const shell = document.querySelector(".site-header-shell--home-overlay") || document.querySelector(".site-header-shell");
+    if (!hero || !siteHeader || !shell) return;
+
+    const syncHeights = () => {
+      document.body.style.setProperty("--home-header-nav-height", `${siteHeader.offsetHeight}px`);
+    };
+
+    const shouldUseSolidHeader = () => {
+      if (document.body.classList.contains("archive-ui--header-search-open")) return true;
+      if (document.body.classList.contains("archive-ui--header-submenu-open")) return true;
+      if (document.body.classList.contains("archive-ui--styling-board")) return true;
+      const heroBottom = hero.getBoundingClientRect().bottom;
+      return heroBottom <= siteHeader.offsetHeight + 4;
+    };
+
+    const update = () => {
+      syncHeights();
+      const solid = shouldUseSolidHeader();
+      siteHeader.classList.toggle("site-header--overlay", !solid);
+      siteHeader.classList.toggle("site-header--solid", solid);
+    };
+
+    if (initHomeHeroHeader._wired) {
+      update();
+      return;
+    }
+    initHomeHeroHeader._wired = true;
+
+    update();
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(update);
+      ro.observe(shell);
+      ro.observe(siteHeader);
+      ro.observe(hero);
+    }
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    const mo = new MutationObserver(update);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  }
+
   function renderEditorialLandingPage() {
     if (!document.body.classList.contains("home-page")) return;
     const root = document.getElementById("main");
     if (!root?.classList.contains("ed-lp")) return;
+
+    initHomeHeroHeader();
 
     const heroHost = document.getElementById("ed-lp-hero-layers");
     const catsHost = document.getElementById("ed-lp-featured-cats");
@@ -3705,6 +4003,9 @@
 
   /** Active main-nav slot filter (`itemSlot()`). Empty string = all slots — default archive view. */
   let categoryNavFilter = "";
+
+  /** Top nav underline while desktop mega menu is open (hover); cleared when panel closes. */
+  let headerNavOpenSlot = "";
 
   /** Top strip: "All", "S/S", or "A/W" — narrows archive before category tabs (persisted in localStorage). */
   let seasonNavFilter = loadPersistedSeasonNav();
@@ -5189,6 +5490,38 @@
           .filter(Boolean)
       )
     );
+  }
+
+  /**
+   * Header mega menu + mobile type list: pool-derived keys plus slot fallbacks (no per-slot layout exceptions).
+   * @returns {{ raw: string, label: string }[]}
+   */
+  function megaMenuSubcategoryEntriesForSlot(browseSlot, pool) {
+    const slot = String(browseSlot ?? "").trim();
+    if (!slot || !SLOT_OPTIONS.includes(slot)) return [];
+    const fall = defaultRecordCategoryForSlot(slot);
+    let keys = drillSubcategoryKeysFromPool(slot, pool);
+    const knownExtra = KNOWN_RECORD_TYPES_BY_SLOT[slot];
+    if (knownExtra?.length) keys = sortRecordTypeKeysForSlot(slot, [...keys, ...knownExtra]);
+    if (slot === SLOT_ACCESSORIES) {
+      keys = keys.filter((k) => k && !["Jewellery", "Jewellery", "Future"].includes(k));
+      keys = keys.filter(
+        (k) => k && !["Everyday", "Watches", "Beater", "Dress watch", "Dive watch"].includes(k)
+      );
+      if (!keys.includes("Jewellery")) keys.push("Jewellery");
+      keys = sortRecordTypeKeysForSlot(slot, keys);
+    }
+    if (!keys.includes(fall)) keys = sortRecordTypeKeysForSlot(slot, [fall, ...keys]);
+
+    const entries = [];
+    const seenLabels = new Set();
+    for (const raw of keys) {
+      const label = friendlyRecordCategory(raw) || raw;
+      if (seenLabels.has(label)) continue;
+      seenLabels.add(label);
+      entries.push({ raw, label });
+    }
+    return entries;
   }
 
   /** Legacy Chinese `category` / drill keys saved before English migration. */
@@ -9976,10 +10309,13 @@
   function syncCategoryTabUI() {
     const filter = String(categoryNavFilter ?? "").trim();
     const subF = String(subcategoryFilter ?? "").trim();
+    const submenuOpen = document.body.classList.contains("archive-ui--header-submenu-open");
+    const openSlot = submenuOpen ? String(headerNavOpenSlot ?? "").trim() : "";
     const jumpMatches = (el) => String(el.getAttribute("data-category-jump") ?? "").trim() === filter;
 
     document.querySelectorAll(".site-header__nav-link[data-category-jump]").forEach((el) => {
-      const active = jumpMatches(el);
+      const jump = String(el.getAttribute("data-category-jump") ?? "").trim();
+      const active = openSlot ? jump === openSlot : Boolean(filter) && jump === filter;
       el.classList.toggle("is-active", active);
       if (active) el.setAttribute("aria-current", "page");
       else el.removeAttribute("aria-current");
@@ -10352,12 +10688,12 @@
   }
 
   function wireArchiveBrowseToolControls() {
-    const sortWrap = document.getElementById("archive-drawer-sort-chips");
-    if (sortWrap && sortWrap.dataset.twSortChipWired !== "1") {
-      sortWrap.dataset.twSortChipWired = "1";
-      sortWrap.addEventListener("click", (e) => {
+    const filterDrawer = document.getElementById("archive-filter-drawer");
+    if (filterDrawer && filterDrawer.dataset.twSortChipWired !== "1") {
+      filterDrawer.dataset.twSortChipWired = "1";
+      filterDrawer.addEventListener("click", (e) => {
         const btn = e.target.closest("[data-archive-sort]");
-        if (!btn || !sortWrap.contains(btn)) return;
+        if (!btn || !filterDrawer.contains(btn)) return;
         const v = String(btn.getAttribute("data-archive-sort") ?? "").trim();
         if (!ARCHIVE_SORT_MODES.includes(v)) return;
         archiveSortMode = persistArchiveSortMode(v);
@@ -10461,7 +10797,8 @@
     const drawerRoot = document.getElementById("archive-filter-drawer");
     const drawerOpen = !!drawerRoot && !drawerRoot.hasAttribute("hidden");
     const headerSearchOpen = document.getElementById("site-header-search-wrap")?.classList.contains("is-open");
-    if (!drawerOpen && !headerSearchOpen) {
+    const mobileNavOpen = document.getElementById("site-mobile-shell")?.classList.contains("is-open");
+    if (!drawerOpen && !headerSearchOpen && !mobileNavOpen) {
       document.body.classList.remove("archive-ui--filter-drawer");
     }
   }
@@ -10600,6 +10937,116 @@
     initNavigationPrefetch();
     const archiveMainHref = () => (document.getElementById("grid") ? "#main" : ARCHIVE_HOME_MAIN_URL);
 
+    /** Full-screen mobile nav shell (below utility bar); replaces legacy slide-in panel. */
+    function mountMobileNavigationShell() {
+      let shell = document.getElementById("site-mobile-shell");
+      if (shell) return shell;
+      document.getElementById("site-header-mobile-panel")?.remove();
+
+      shell = document.createElement("div");
+      shell.id = "site-mobile-shell";
+      shell.className = "site-mobile-shell";
+      shell.hidden = true;
+      shell.setAttribute("aria-hidden", "true");
+
+      const bar = document.createElement("header");
+      bar.className = "site-mobile-shell__bar";
+
+      const logo = document.createElement("a");
+      logo.href = "/";
+      logo.className = "site-mobile-shell__logo";
+      logo.setAttribute("aria-label", "Timeless Wardrobe home");
+      logo.innerHTML =
+        '<span class="site-title__mark" role="img" aria-hidden="true"></span><span class="site-mobile-shell__wordmark">Timeless Wardrobe</span>';
+
+      const tools = document.createElement("div");
+      tools.className = "site-mobile-shell__tools";
+
+      const shellSearchBtn = document.createElement("button");
+      shellSearchBtn.type = "button";
+      shellSearchBtn.id = "site-mobile-shell-search-btn";
+      shellSearchBtn.className =
+        "site-mobile-shell__tool site-mobile-shell__tool--search site-header__search-btn";
+      shellSearchBtn.setAttribute("aria-label", "Search");
+      shellSearchBtn.innerHTML = '<span class="site-header__search-icon" aria-hidden="true"></span>';
+
+      const shellStylingBtn = document.createElement("button");
+      shellStylingBtn.type = "button";
+      shellStylingBtn.id = "site-mobile-shell-styling-btn";
+      shellStylingBtn.className =
+        "site-mobile-shell__tool site-mobile-shell__tool--board site-header__styling-board-btn";
+      shellStylingBtn.setAttribute("aria-label", "Open Styling Board");
+      shellStylingBtn.innerHTML =
+        '<span class="site-header__styling-board-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7.5" height="7.5" rx="1" stroke="currentColor" stroke-width="1.75"/><rect x="13.5" y="3" width="7.5" height="5" rx="1" stroke="currentColor" stroke-width="1.75"/><rect x="13.5" y="10" width="7.5" height="11" rx="1" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="12.5" width="7.5" height="8.5" rx="1" stroke="currentColor" stroke-width="1.75"/></svg></span>';
+
+      const shellCloseBtn = document.createElement("button");
+      shellCloseBtn.type = "button";
+      shellCloseBtn.id = "site-mobile-shell-close-btn";
+      shellCloseBtn.className = "site-mobile-shell__tool site-mobile-shell__tool--close";
+      shellCloseBtn.setAttribute("aria-label", "Close menu");
+      shellCloseBtn.innerHTML = '<span class="site-mobile-shell__close-icon" aria-hidden="true"></span>';
+
+      tools.append(shellSearchBtn, shellStylingBtn, shellCloseBtn);
+      bar.append(logo, tools);
+
+      const body = document.createElement("div");
+      body.className = "site-mobile-shell__body";
+
+      const nav = document.createElement("nav");
+      nav.id = "site-mobile-nav";
+      nav.className = "site-mobile-nav";
+      nav.setAttribute("aria-label", "Shop categories");
+
+      const rootLevel = document.createElement("div");
+      rootLevel.id = "site-mobile-nav-root";
+      rootLevel.className = "site-mobile-nav__level site-mobile-nav__level--root is-active";
+
+      const rootList = document.createElement("ul");
+      rootList.className = "site-mobile-nav__list";
+      for (const slot of SLOT_OPTIONS) {
+        const rowLi = document.createElement("li");
+        rowLi.className = "site-mobile-nav__item";
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "site-mobile-nav__row";
+        row.dataset.mobileNavSlot = slot;
+        row.innerHTML = `<span class="site-mobile-nav__label">${slot}</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+        rowLi.appendChild(row);
+        rootList.appendChild(rowLi);
+
+        const browseLi = document.createElement("li");
+        browseLi.className = "site-mobile-nav__item site-mobile-nav__item--browse";
+        const browse = document.createElement("a");
+        browse.href = archiveMainHref();
+        browse.className = "site-mobile-nav__browse";
+        browse.setAttribute("data-category-jump", slot);
+        browse.textContent = `Browse all ${slot}`;
+        browseLi.appendChild(browse);
+        rootList.appendChild(browseLi);
+      }
+      rootLevel.appendChild(rootList);
+
+      const drillLevel = document.createElement("div");
+      drillLevel.id = "site-mobile-nav-drill";
+      drillLevel.className = "site-mobile-nav__level site-mobile-nav__level--drill";
+      drillLevel.hidden = true;
+      drillLevel.innerHTML = `
+        <button type="button" class="site-mobile-nav__back" id="site-mobile-nav-back">
+          <span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>
+          <span class="site-mobile-nav__back-label">Back</span>
+        </button>
+        <p class="site-mobile-nav__drill-title" id="site-mobile-nav-drill-title"></p>
+        <ul class="site-mobile-nav__list" id="site-mobile-nav-drill-list"></ul>
+        <a class="site-mobile-nav__browse site-mobile-nav__browse--drill" id="site-mobile-nav-drill-browse" href="#">Browse all</a>
+      `;
+
+      nav.append(rootLevel, drillLevel);
+      body.appendChild(nav);
+      shell.append(bar, body);
+      document.body.appendChild(shell);
+      return shell;
+    }
+
     const jumpHeaderCategory = (jump) => {
       clearArchiveKeywordColourNarrowing();
       if (archiveSubmittedSearchNorm) exitArchiveSearchPlpRestoreBrowse({ skipRestore: true });
@@ -10623,7 +11070,6 @@
     let headerSubmenuHideTimer = 0;
     let headerSubmenuSwitchAnimTimer = 0;
     let headerSubmenuOpenAnimTimer = 0;
-    let headerSubmenuActiveSlot = "";
     const cancelHeaderSubmenuHide = () => {
       if (!headerSubmenuHideTimer) return;
       clearTimeout(headerSubmenuHideTimer);
@@ -10653,7 +11099,8 @@
       wrap.classList.remove("site-header__submenu--opening");
       wrap.classList.remove("site-header__submenu--switching");
       document.body.classList.remove("archive-ui--header-submenu-open");
-      headerSubmenuActiveSlot = "";
+      headerNavOpenSlot = "";
+      syncCategoryTabUI();
       const title = document.getElementById("site-header-submenu-title");
       const links = document.getElementById("site-header-submenu-links");
       const preview = document.getElementById("site-header-submenu-preview");
@@ -10663,8 +11110,10 @@
     };
 
     const headerMenuBtn = document.getElementById("site-header-menu-btn");
-    const headerMobilePanel = document.getElementById("site-header-mobile-panel");
-    const siteHeaderEl = document.querySelector(".site-header-shell") || document.querySelector(".site-header");
+    const mobileShell = mountMobileNavigationShell();
+    const siteHeaderEl =
+      document.querySelector(".site-header-shell") || document.querySelector(".site-header");
+    const siteUtilityBarEl = document.querySelector(".site-utility-bar");
     const headerSearchBtn = document.getElementById("site-header-search-btn");
     const headerSearchWrap = document.getElementById("site-header-search-wrap");
     const headerSearchInput = /** @type {HTMLInputElement | null} */ (document.getElementById("filter-search"));
@@ -10752,35 +11201,119 @@
       return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
     }
 
-    function syncMobileCategoryPanelTop() {
-      if (!isHeaderCompactLayout() || !siteHeaderEl) return;
-      const h = Math.ceil(siteHeaderEl.getBoundingClientRect().height) + 2;
-      document.documentElement.style.setProperty("--site-header-mobile-panel-top", `${Math.max(h, 48)}px`);
+    function syncMobileShellTop() {
+      if (!isHeaderCompactLayout()) return;
+      const bar = siteUtilityBarEl || document.querySelector(".site-utility-bar");
+      const h = bar ? Math.ceil(bar.getBoundingClientRect().height) : 38;
+      document.documentElement.style.setProperty("--site-mobile-shell-top", `${Math.max(h, 36)}px`);
+    }
+
+    function resetMobileNavDrill() {
+      const root = document.getElementById("site-mobile-nav-root");
+      const drill = document.getElementById("site-mobile-nav-drill");
+      if (!root || !drill) return;
+      root.hidden = false;
+      root.classList.add("is-active");
+      drill.hidden = true;
+      drill.classList.remove("is-active");
+    }
+
+    function openMobileNavDrill(slot) {
+      const root = document.getElementById("site-mobile-nav-root");
+      const drill = document.getElementById("site-mobile-nav-drill");
+      const title = document.getElementById("site-mobile-nav-drill-title");
+      const list = document.getElementById("site-mobile-nav-drill-list");
+      const browse = /** @type {HTMLAnchorElement | null} */ (
+        document.getElementById("site-mobile-nav-drill-browse")
+      );
+      if (!root || !drill || !title || !list || !browse) return;
+      const pool = poolItemsForDrillSubcategories({ respectCategory: false });
+      const entries = megaMenuSubcategoryEntriesForSlot(slot, pool);
+      if (!entries.length) {
+        handleMobileCategoryNavigation(slot, "");
+        return;
+      }
+      title.textContent = slot;
+      browse.href = archiveMainHref();
+      browse.setAttribute("data-category-jump", slot);
+      browse.removeAttribute("data-subcategory-jump");
+      browse.textContent = `Browse all ${slot}`;
+      list.replaceChildren();
+      for (const { raw, label } of entries) {
+        const li = document.createElement("li");
+        li.className = "site-mobile-nav__item";
+        const a = document.createElement("a");
+        a.href = archiveMainHref();
+        a.className = "site-mobile-nav__subrow";
+        a.setAttribute("data-category-jump", slot);
+        a.setAttribute("data-subcategory-jump", raw);
+        a.textContent = label;
+        li.appendChild(a);
+        list.appendChild(li);
+      }
+      root.classList.remove("is-active");
+      root.hidden = true;
+      drill.hidden = false;
+      drill.classList.add("is-active");
+    }
+
+    function handleMobileCategoryNavigation(jump, sub) {
+      clearArchiveKeywordColourNarrowing();
+      if (archiveSubmittedSearchNorm) exitArchiveSearchPlpRestoreBrowse({ skipRestore: true });
+      categoryNavFilter = SLOT_OPTIONS.includes(jump) ? jump : SLOT_CLOTHING;
+      subcategoryFilter = sub;
+      noteArchiveSearchUserChoseMainSlotFilter();
+      syncCategoryTabUI();
+      if (!document.getElementById("grid")) {
+        validateSubcategoryFilter();
+        writeArchiveBrowseRestoreSnapshot();
+        navigateToArchiveMain();
+        closeMobileCategoryPanel();
+        collapseFiltersMenuPanel();
+        return;
+      }
+      validateSubcategoryFilter();
+      renderCategoryDrill();
+      renderGrid();
+      scrollArchiveViewportTop();
+      closeMobileCategoryPanel();
+      collapseFiltersMenuPanel();
     }
 
     function closeMobileCategoryPanel() {
-      if (!headerMobilePanel) return;
-      headerMobilePanel.classList.remove("is-open");
-      headerMobilePanel.setAttribute("aria-hidden", "true");
-      headerMobilePanel.querySelectorAll(".site-header__mobile-link.is-open").forEach((el) => el.classList.remove("is-open"));
-      headerMobilePanel.querySelectorAll(".site-header__mobile-submenu.is-open").forEach((el) => el.classList.remove("is-open"));
+      if (!mobileShell) return;
+      mobileShell.classList.remove("is-open");
+      mobileShell.hidden = true;
+      mobileShell.setAttribute("aria-hidden", "true");
+      resetMobileNavDrill();
       headerMenuBtn?.setAttribute("aria-expanded", "false");
       headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
       document.body.classList.remove("archive-ui--mobile-nav-open");
+      ensureBodyScrollUnlockedWhenNoOverlay();
     }
 
     function openMobileCategoryPanel() {
-      if (!headerMobilePanel) return;
-      syncMobileCategoryPanelTop();
-      headerMobilePanel.classList.add("is-open");
-      headerMobilePanel.setAttribute("aria-hidden", "false");
+      if (!mobileShell) return;
+      syncMobileShellTop();
+      resetMobileNavDrill();
+      mobileShell.hidden = false;
+      mobileShell.classList.add("is-open");
+      mobileShell.setAttribute("aria-hidden", "false");
       document.body.classList.add("archive-ui--mobile-nav-open");
       headerMenuBtn?.setAttribute("aria-expanded", "true");
       headerMenuBtn?.setAttribute("aria-label", "Close categories menu");
       requestAnimationFrame(() => {
-        syncMobileCategoryPanelTop();
+        syncMobileShellTop();
       });
     }
+
+    function openMobileHeaderSearch() {
+      if (!headerSearchWrap || headerSearchWrap.classList.contains("is-open")) return;
+      closeMobileCategoryPanel();
+      headerSearchBtn?.click();
+    }
+
+    syncMobileShellTop();
 
     const renderHeaderSubmenuPreview = (slot, subcategory) => {
       const preview = document.getElementById("site-header-submenu-preview");
@@ -10810,13 +11343,24 @@
         const im = document.createElement("img");
         im.alt = imageAltForItem(item);
         im.loading = "lazy";
-        wireCoverImageWithFallbacks(im, item, { host: media, missingClass: null });
+        wireCoverImageWithFallbacks(im, item, {
+          host: media,
+          missingClass: "site-header__submenu-preview-media--missing",
+          coverRenderWidth: 474,
+          coverRenderHeight: 626,
+          coverRenderZoom: 1.06,
+          coverRenderQuality: 86,
+        });
         media.appendChild(im);
+        const shade = document.createElement("div");
+        shade.className = "site-header__submenu-preview-shade";
+        shade.setAttribute("aria-hidden", "true");
         const nm = document.createElement("p");
         nm.className = "site-header__submenu-preview-name";
         nm.textContent = `${item.brand} · ${displayNameWithoutLeadingColour(item)}`;
+        media.appendChild(shade);
+        media.appendChild(nm);
         a.appendChild(media);
-        a.appendChild(nm);
         preview.appendChild(a);
       }
     };
@@ -10846,7 +11390,7 @@
         }
         wrap.classList.remove("site-header__submenu--opening");
       }
-      const switchingSlot = !wrap.hidden && headerSubmenuActiveSlot && headerSubmenuActiveSlot !== slot;
+      const switchingSlot = !wrap.hidden && headerNavOpenSlot && headerNavOpenSlot !== slot;
       if (switchingSlot) {
         if (headerSubmenuSwitchAnimTimer) {
           clearTimeout(headerSubmenuSwitchAnimTimer);
@@ -10862,39 +11406,15 @@
       }
 
       const seasonalPool = poolItemsForDrillSubcategories({ respectCategory: false });
-      const keys = [...new Set(drillSubcategoryKeysFromPool(slot, seasonalPool).filter(Boolean))];
-      const dedupedEntries = [];
-      const seenLabels = new Set();
-      for (const raw of keys) {
-        const label = friendlyRecordCategory(raw) || raw;
-        if (seenLabels.has(label)) continue;
-        seenLabels.add(label);
-        dedupedEntries.push({ raw, label });
-      }
-      const hasPreviewOnly = slot === SLOT_FRAGRANCE || slot === SLOT_WATCHES;
-      if (dedupedEntries.length <= 1 && !hasPreviewOnly) {
+      const dedupedEntries = megaMenuSubcategoryEntriesForSlot(slot, seasonalPool);
+      if (!dedupedEntries.length) {
         hideHeaderSubmenu();
         return;
       }
 
-      wrap.classList.toggle("site-header__submenu--preview-only", hasPreviewOnly);
+      wrap.classList.remove("site-header__submenu--preview-only");
       links.replaceChildren();
       title.textContent = "";
-      if (hasPreviewOnly) {
-        renderHeaderSubmenuPreview(slot, "");
-        wrap.hidden = false;
-        if (openingNow) {
-          void wrap.offsetWidth;
-          wrap.classList.add("site-header__submenu--opening");
-          headerSubmenuOpenAnimTimer = setTimeout(() => {
-            headerSubmenuOpenAnimTimer = 0;
-            wrap.classList.remove("site-header__submenu--opening");
-          }, 620);
-        }
-        document.body.classList.add("archive-ui--header-submenu-open");
-        headerSubmenuActiveSlot = slot;
-        return;
-      }
 
       dedupedEntries.forEach(({ raw, label }, idx) => {
         const a = document.createElement("a");
@@ -10927,7 +11447,8 @@
         }, 620);
       }
       document.body.classList.add("archive-ui--header-submenu-open");
-      headerSubmenuActiveSlot = slot;
+      headerNavOpenSlot = slot;
+      syncCategoryTabUI();
     };
 
     const headerCategoryNav = document.querySelector(".site-header__primary-nav");
@@ -11070,7 +11591,7 @@
       if (isFiltersNarrowViewport()) return;
       queueMicrotask(() => {
         const active = document.activeElement;
-        const wrap = document.querySelector(".site-header__inner");
+        const wrap = document.querySelector(".site-header__container, .site-header__inner");
         if (!(active instanceof Element) || !wrap?.contains(active)) {
           hideHeaderSubmenu();
         }
@@ -11096,6 +11617,7 @@
         closeMobileCategoryPanel();
         syncHeaderSearchFeaturedSubcategoryCards();
         document.body.classList.add("archive-ui--header-search-open");
+        if (isHeaderCompactLayout()) syncMobileShellTop();
         relocateFilterSearchFieldIntoHeaderOverlayPillWrap();
         queueMicrotask(() => {
           headerSearchInput?.focus();
@@ -11173,8 +11695,8 @@
       closeHeaderSearch({ clear: false });
     });
     headerMenuBtn?.addEventListener("click", () => {
-      if (!headerMobilePanel) return;
-      const open = !headerMobilePanel.classList.contains("is-open");
+      if (!mobileShell) return;
+      const open = !mobileShell.classList.contains("is-open");
       if (open) {
         closeHeaderSearch();
         hideHeaderSubmenu();
@@ -11183,75 +11705,41 @@
         closeMobileCategoryPanel();
       }
     });
-    headerMobilePanel?.addEventListener("click", (e) => {
-      const link = e.target.closest("[data-category-jump]");
-      if (!link) return;
-      e.preventDefault();
-      const jump = String(link.getAttribute("data-category-jump") ?? "").trim();
-      const topLevel = link.classList.contains("site-header__mobile-link");
-      if (ARCHIVE_RECORD_TYPE_SUBNAV_ENABLED && topLevel && SLOT_OPTIONS.includes(jump)) {
-        const seasonalPool = poolItemsForDrillSubcategories({ respectCategory: false });
-        const keys = [...new Set(drillSubcategoryKeysFromPool(jump, seasonalPool).filter(Boolean))];
-        const group = link.closest(".site-header__mobile-group");
-        const old = group?.querySelector(":scope > .site-header__mobile-submenu") ?? link.nextElementSibling;
-        if (old?.classList?.contains("site-header__mobile-submenu")) {
-          const open = !old.classList.contains("is-open");
-          headerMobilePanel.querySelectorAll(".site-header__mobile-link.is-open").forEach((el) => el.classList.remove("is-open"));
-          headerMobilePanel
-            .querySelectorAll(".site-header__mobile-submenu.is-open")
-            .forEach((el) => el.classList.remove("is-open"));
-          if (open) {
-            old.classList.add("is-open");
-            link.classList.add("is-open");
-          }
-          return;
-        }
-        if (keys.length > 1) {
-          const sub = document.createElement("div");
-          sub.className = "site-header__mobile-submenu is-open";
-          for (const k of keys) {
-            const a = document.createElement("a");
-            a.href = archiveMainHref();
-            a.className = "site-header__mobile-submenu-link";
-            a.setAttribute("data-category-jump", jump);
-            a.setAttribute("data-subcategory-jump", k);
-            a.textContent = friendlyRecordCategory(k) || k;
-            sub.appendChild(a);
-          }
-          headerMobilePanel.querySelectorAll(".site-header__mobile-link.is-open").forEach((el) => el.classList.remove("is-open"));
-          headerMobilePanel
-            .querySelectorAll(".site-header__mobile-submenu.is-open")
-            .forEach((el) => el.classList.remove("is-open"));
-          link.classList.add("is-open");
-          (group ?? link.parentElement)?.appendChild(sub);
-          return;
-        }
-      }
-      clearArchiveKeywordColourNarrowing();
-      if (archiveSubmittedSearchNorm) exitArchiveSearchPlpRestoreBrowse({ skipRestore: true });
-      const sub = String(link.getAttribute("data-subcategory-jump") ?? "").trim();
-      categoryNavFilter = SLOT_OPTIONS.includes(jump) ? jump : SLOT_CLOTHING;
-      subcategoryFilter = sub;
-      noteArchiveSearchUserChoseMainSlotFilter();
-      syncCategoryTabUI();
-      if (!document.getElementById("grid")) {
-        validateSubcategoryFilter();
-        writeArchiveBrowseRestoreSnapshot();
-        navigateToArchiveMain();
-        closeMobileCategoryPanel();
-        collapseFiltersMenuPanel();
+    document.getElementById("site-mobile-shell-close-btn")?.addEventListener("click", () => {
+      closeMobileCategoryPanel();
+    });
+    document.getElementById("site-mobile-shell-search-btn")?.addEventListener("click", () => {
+      openMobileHeaderSearch();
+    });
+    document.getElementById("site-mobile-shell-styling-btn")?.addEventListener("click", () => {
+      closeMobileCategoryPanel();
+      document.getElementById("site-header-saved-toggle")?.click();
+    });
+    document.getElementById("site-mobile-nav-back")?.addEventListener("click", () => {
+      resetMobileNavDrill();
+    });
+    document.getElementById("site-mobile-nav")?.addEventListener("click", (e) => {
+      const row = /** @type {HTMLElement | null} */ (e.target.closest(".site-mobile-nav__row"));
+      if (row) {
+        const slot = String(row.dataset.mobileNavSlot ?? "").trim();
+        if (SLOT_OPTIONS.includes(slot)) openMobileNavDrill(slot);
         return;
       }
-      validateSubcategoryFilter();
-      renderCategoryDrill();
-      renderGrid();
-      scrollArchiveViewportTop();
-      closeMobileCategoryPanel();
-      collapseFiltersMenuPanel();
+      const link = /** @type {HTMLElement | null} */ (e.target.closest("[data-category-jump]"));
+      if (!link || !mobileShell?.contains(link)) return;
+      e.preventDefault();
+      const jump = String(link.getAttribute("data-category-jump") ?? "").trim();
+      const sub = String(link.getAttribute("data-subcategory-jump") ?? "").trim();
+      handleMobileCategoryNavigation(jump, sub);
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
-      if (headerMobilePanel?.classList.contains("is-open")) {
+      if (mobileShell?.classList.contains("is-open")) {
+        const drill = document.getElementById("site-mobile-nav-drill");
+        if (drill && !drill.hidden) {
+          resetMobileNavDrill();
+          return;
+        }
         closeMobileCategoryPanel();
       }
       if (headerSearchWrap?.classList.contains("is-open")) {
@@ -11278,14 +11766,6 @@
       },
       { passive: true, capture: true }
     );
-    document.addEventListener("click", (e) => {
-      if (!headerMobilePanel?.classList.contains("is-open")) return;
-      const t = e.target;
-      if (!(t instanceof Element)) return;
-      if (headerMobilePanel.contains(t)) return;
-      if (headerMenuBtn?.contains(t)) return;
-      closeMobileCategoryPanel();
-    });
     document.addEventListener("click", (e) => {
       if (!headerSearchWrap?.classList.contains("is-open")) return;
       const t = e.target;
@@ -11339,7 +11819,8 @@
     globalThis.addEventListener(
       "resize",
       () => {
-        if (headerMobilePanel?.classList.contains("is-open")) syncMobileCategoryPanelTop();
+        if (mobileShell?.classList.contains("is-open")) syncMobileShellTop();
+        if (headerSearchWrap?.classList.contains("is-open") && isHeaderCompactLayout()) syncMobileShellTop();
       },
       { passive: true }
     );
@@ -11738,18 +12219,14 @@
     root.setAttribute("aria-label", "Loading");
     const inner = document.createElement("div");
     inner.className = "tw-page-loader__brand";
-    const img = document.createElement("img");
-    img.className = "tw-page-loader__mark";
-    img.src = "logo.png";
-    img.alt = "";
-    img.width = 56;
-    img.height = 56;
-    img.decoding = "async";
-    img.loading = "eager";
+    const mark = document.createElement("span");
+    mark.className = "tw-page-loader__mark";
+    mark.setAttribute("role", "img");
+    mark.setAttribute("aria-label", "Timeless Wardrobe");
     const wm = document.createElement("span");
     wm.className = "tw-page-loader__wordmark";
     wm.textContent = "Timeless Wardrobe";
-    inner.appendChild(img);
+    inner.appendChild(mark);
     inner.appendChild(wm);
     root.appendChild(inner);
     document.body.insertBefore(root, document.body.firstChild);

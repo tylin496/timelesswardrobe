@@ -27,28 +27,59 @@
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
     <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
 
-    <div class="site-header-shell">
     <div class="site-utility-bar" role="note" aria-label="Archive ethos">
       <div class="site-utility-bar__inner">
         <span class="site-utility-bar__left">Archive Pieces Only</span>
         <span class="site-utility-bar__center">English Heritage × Mediterranean Leisure</span>
-        <span class="site-utility-bar__right">Since MMXX</span>
+        <span class="site-utility-bar__right">Since 2020</span>
       </div>
     </div>
-    <header class="site-header">
-      <div class="site-header__inner">
-        <div class="site-header__mega">
-        <div class="site-header__brand-nav" aria-label="Primary header">
+    <div class="site-home-stage">
+      <section class="ed-lp__hero" aria-labelledby="ed-lp-hero-heading">
+        <div class="ed-lp__hero-layers" id="ed-lp-hero-layers" aria-hidden="true"></div>
+        <div class="ed-lp__hero-scrim" aria-hidden="true"></div>
+        <div class="ed-lp__hero-carousel" id="ed-lp-hero-carousel" hidden>
+          <button
+            type="button"
+            class="ed-lp__hero-nav ed-lp__hero-nav--prev"
+            id="ed-lp-hero-prev"
+            aria-label="Previous photograph"
+          >
+            <span class="ed-lp__hero-nav-icon" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="ed-lp__hero-nav ed-lp__hero-nav--next"
+            id="ed-lp-hero-next"
+            aria-label="Next photograph"
+          >
+            <span class="ed-lp__hero-nav-icon" aria-hidden="true"></span>
+          </button>
+          <div
+            class="ed-lp__hero-dots"
+            id="ed-lp-hero-dots"
+            role="tablist"
+            aria-label="Hero photographs"
+          ></div>
+        </div>
+        <div class="ed-lp__hero-inner">
+          <p class="ed-lp__hero-eyebrow">PERMANENT COLLECTION</p>
+          <h1 id="ed-lp-hero-heading" class="ed-lp__hero-title">Timeless Wardrobe</h1>
+          <p class="ed-lp__hero-sub">A Private Archive of Classic Menswear</p>
+          <p class="ed-lp__hero-line">English Heritage × Mediterranean Leisure</p>
+          <div class="ed-lp__hero-cta">
+            <a class="ed-lp__btn ed-lp__btn--solid" href="/archive.html#main">Browse collection</a>
+            <a class="ed-lp__btn ed-lp__btn--ghost" href="/archive.html#main">Explore archive</a>
+          </div>
+        </div>
+      </section>
+      <div class="site-header-shell site-header-shell--home-overlay">
+    <header class="site-header site-header--overlay">
+      <div class="site-header__container site-header__inner">
+        <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
           <div class="site-title">
             <a href="/" id="site-header-home" class="site-title__primary">
-              <img
-                src="logo.png"
-                alt=""
-                class="site-title__mark"
-                width="44"
-                height="44"
-                decoding="async"
-              />
+              <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
               <span class="site-title__text-stack">
                 <span class="site-title__wordmark">Timeless Wardrobe</span>
               </span>
@@ -120,7 +151,7 @@
               id="site-header-menu-btn"
               class="site-header__menu-btn"
               aria-expanded="false"
-              aria-controls="site-header-mobile-panel"
+              aria-controls="site-mobile-shell"
               aria-label="Open categories menu"
               title="Open categories"
             >
@@ -245,36 +276,11 @@
             </div>
           </div>
         </div>
-        </div>
       </div>
     </header>
     </div>
+    </div>
 
-    <nav
-      id="site-header-mobile-panel"
-      class="site-header__mobile-panel"
-      aria-label="Mobile categories"
-      aria-hidden="true"
-    >
-      <div class="site-header__mobile-panel-scroll">
-        <div class="site-header__mobile-group">
-          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Clothing">Clothing</a>
-          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Clothing">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Accessories">Accessories</a>
-          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Accessories">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Watches">Watches</a>
-          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Watches">Browse all</a>
-        </div>
-        <div class="site-header__mobile-group">
-          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Fragrance">Fragrance</a>
-          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Fragrance">Browse all</a>
-        </div>
-      </div>
-    </nav>
 
     <aside
       id="local-data-risk-banner"
@@ -296,20 +302,6 @@
       </div>
     </aside>
 <main id="main" class="ed-lp" tabindex="-1">
-          <section class="ed-lp__hero" aria-labelledby="ed-lp-hero-heading">
-            <div class="ed-lp__hero-layers" id="ed-lp-hero-layers" aria-hidden="true"></div>
-            <div class="ed-lp__hero-scrim" aria-hidden="true"></div>
-            <div class="ed-lp__hero-inner">
-              <p class="ed-lp__hero-eyebrow">PERMANENT COLLECTION</p>
-              <h1 id="ed-lp-hero-heading" class="ed-lp__hero-title">Timeless Wardrobe</h1>
-              <p class="ed-lp__hero-sub">A Private Archive of Classic Menswear</p>
-              <p class="ed-lp__hero-line">English Heritage × Mediterranean Leisure</p>
-              <div class="ed-lp__hero-cta">
-                <a class="ed-lp__btn ed-lp__btn--solid" href="/archive.html#main">Browse collection</a>
-                <a class="ed-lp__btn ed-lp__btn--ghost" href="/archive.html#main">Explore archive</a>
-              </div>
-            </div>
-          </section>
 
           <section class="ed-lp__band" aria-labelledby="ed-lp-cats-heading">
             <div class="ed-lp__band-inner">
@@ -330,7 +322,10 @@
           </section>
 
           <section class="ed-lp__philosophy" aria-label="Philosophy">
-            <p class="ed-lp__philosophy-text">I Collect Canonical Designs, Not Variations.</p>
+            <p class="ed-lp__philosophy-text">
+              I Collect Canonical Designs,<br class="ed-lp__philosophy-break" aria-hidden="true" />
+              Not Variations.
+            </p>
           </section>
 
           <section class="ed-lp__band" aria-labelledby="ed-lp-recent-heading">
@@ -351,13 +346,13 @@
                 data-ed-archive="1"
                 data-ed-seasonal-entry="1"
                 data-season-filter="A/W"
-                aria-label="Browse A/W Country Classics"
+                aria-label="Browse A/W English Heritage"
               >
                 <div class="ed-lp__season-media" id="ed-lp-season-aw-media" aria-hidden="true"></div>
                 <div class="ed-lp__season-scrim" aria-hidden="true"></div>
                 <div class="ed-lp__season-copy">
                   <span class="ed-lp__season-kicker">A/W</span>
-                  <span class="ed-lp__season-title">Country Classics</span>
+                  <span class="ed-lp__season-title">English Heritage</span>
                 </div>
               </a>
               <a

@@ -34,4 +34,7 @@
   link.setAttribute("fetchpriority", "high");
   link.setAttribute("data-tw-hero-preload", hero);
   document.head.appendChild(link);
+
+  /* Other carousel slides are warmed after mount via app.js `preloadHomeHeroImage`
+     (link preload for unused slides triggers "preloaded but not used" warnings). */
 })();
