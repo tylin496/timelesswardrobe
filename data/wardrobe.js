@@ -639,7 +639,7 @@ const WARDROBE_ITEMS = [
   {
     id: "tissot-prx-quartz-35mm-gold-pvd",
     section: "Watch Collection",
-    category: "Dress watch",
+    category: "Everyday",
     brand: "TISSOT",
     name: "PRX Quartz 35mm Gold PVD",
     season: "",
@@ -653,7 +653,7 @@ const WARDROBE_ITEMS = [
   {
     id: "tudor-black-bay-58",
     section: "Watch Collection",
-    category: "Sports watch",
+    category: "Dive watch",
     brand: "TUDOR",
     name: "Black Bay 58",
     season: "",
@@ -678,12 +678,25 @@ const WARDROBE_ITEMS = [
     notes:
       "Price NT$100,000. Ref: W5200004. Cal. 690 quartz. 34.8×27.4mm 18ct YG, 5.55mm, 17mm lugs. Brown alligator. Date: 3 Nov 2024. Solid-gold anchor of the collection.",
   },
+  {
+    id: "casio-g-shock-dw-5600e",
+    section: "Watch Collection",
+    category: "Beater",
+    brand: "CASIO",
+    name: "G-Shock DW-5600",
+    season: "",
+    colour: "Black resin",
+    fabric: "",
+    weight: "",
+    image: "",
+    notes: "Quartz digital; 200m WR. Beater / travel / gym watch.",
+  },
 
   // ——— Fragrance ———
   {
     id: "nicolai-new-york",
     section: "Fragrance",
-    category: "Fragrance",
+    category: "Day",
     brand: "NICOLAÏ",
     name: "New York",
     season: "",
@@ -696,7 +709,7 @@ const WARDROBE_ITEMS = [
   {
     id: "mfk-grand-soir",
     section: "Fragrance",
-    category: "Fragrance",
+    category: "Evening",
     brand: "MAISON FRANCIS KURKDJIAN",
     name: "Grand Soir",
     season: "",

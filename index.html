@@ -12,27 +12,35 @@
     <title>Timeless Wardrobe</title>
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="js/tw-home-hero.js"></script>
+    <script src="js/tw-admin-boot.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
       rel="stylesheet"
     />
   </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to archive</a>
+  <body class="home-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
     <a class="skip-link" href="#filter-search">Skip to search</a>
-    <a class="skip-link" href="#add-item-open">Skip to add item</a>
-    <a class="skip-link" href="#season-nav">Skip to season</a>
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
-    <a class="skip-link" href="#saved-outfits-heading">Skip to saved outfits</a>
+    <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
 
+    <div class="site-header-shell">
+    <div class="site-utility-bar" role="note" aria-label="Archive ethos">
+      <div class="site-utility-bar__inner">
+        <span class="site-utility-bar__left">Archive Pieces Only</span>
+        <span class="site-utility-bar__center">English Heritage × Mediterranean Leisure</span>
+        <span class="site-utility-bar__right">Since MMXX</span>
+      </div>
+    </div>
     <header class="site-header">
       <div class="site-header__inner">
         <div class="site-header__mega">
         <div class="site-header__brand-nav" aria-label="Primary header">
-          <h1 class="site-title">
-            <a href="#main" id="site-header-home" class="site-title__primary">
+          <div class="site-title">
+            <a href="/" id="site-header-home" class="site-title__primary">
               <img
                 src="logo.png"
                 alt=""
@@ -41,22 +49,22 @@
                 height="44"
                 decoding="async"
               />
-              <span class="site-title__wordmark">Timeless Wardrobe</span>
+              <span class="site-title__text-stack">
+                <span class="site-title__wordmark">Timeless Wardrobe</span>
+              </span>
             </a>
-            <span class="site-title__territory">
-              <strong>English Heritage × Mediterranean Leisure</strong>
-            </span>
-          </h1>
+          </div>
           <nav
             id="site-header-primary-nav"
             class="site-header__primary-nav"
             aria-label="Main categories"
           >
-            <a href="#main" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
-            <a href="#main" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
-            <a href="#main" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
-            <a href="#main" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
+            <a href="/archive.html#main" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
+            <a href="/archive.html#main" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
+            <a href="/archive.html#main" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
+            <a href="/archive.html#main" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
           </nav>
+          <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
           <div class="site-header__tools">
             <div class="site-header__season-mini" id="season-nav-mini" aria-label="Season quick filter">
               <button
@@ -90,23 +98,22 @@
             <button
               type="button"
               id="site-header-saved-toggle"
-              class="site-header__saved-btn"
+              class="site-header__styling-board-btn"
               aria-expanded="false"
-              aria-controls="outfit-dock"
-              aria-label="Open saved outfits"
-              title="Saved outfits"
+              aria-controls="styling-board-drawer"
+              aria-label="Open Styling Board"
+              title="Styling Board"
             >
-              <span class="site-header__saved-icon" aria-hidden="true">
+              <span class="site-header__styling-board-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
+                  <rect x="3" y="3" width="7.5" height="7.5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="3" width="7.5" height="5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="10" width="7.5" height="11" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="3" y="12.5" width="7.5" height="8.5" rx="1" stroke="currentColor" stroke-width="1.75" />
                 </svg>
               </span>
+              <span class="site-header__styling-board-label">Styling Board</span>
+              <span id="styling-board-count" class="site-header__styling-board-count" hidden></span>
             </button>
             <button
               type="button"
@@ -131,8 +138,10 @@
             <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
           </div>
         </div>
-        </div>
         <div id="site-header-search-wrap" class="site-header__search-wrap" aria-hidden="true">
+          <div class="site-header__search-dim" aria-hidden="true"></div>
+          <div class="site-header__search-megamenu">
+            <div class="site-header__search-megamenu-inner">
           <div class="site-header__search-surface">
             <div class="site-header__search-head">
               <label class="site-header__search-field" for="filter-search">
@@ -166,6 +175,14 @@
               </label>
               <button
                 type="button"
+                id="site-header-search-submit"
+                class="site-header__search-submit"
+                aria-label="Run search"
+              >
+                Search
+              </button>
+              <button
+                type="button"
                 id="site-header-search-close"
                 class="site-header__search-close"
                 aria-label="Close search"
@@ -173,75 +190,65 @@
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div class="site-header__search-trending" aria-label="Trending searches">
-              <p class="site-header__search-trending-heading">Trending searches</p>
-              <div class="site-header__search-trending-scroll">
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Shorts">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Shorts</span>
-                </button>
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Dress">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Dress</span>
-                </button>
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Polo shirt">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Polo shirt</span>
-                </button>
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Bags">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Bags</span>
-                </button>
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Trench">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Trench</span>
-                </button>
-                <button type="button" class="site-header__search-trending-chip" data-trending-search="Loafers">
-                  <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
-                  <span>Loafers</span>
-                </button>
-              </div>
-            </div>
+            <div id="site-header-search-browse" class="site-header__search-browse">
             <div class="site-header__search-dropdown-body">
               <div class="site-header__search-dropdown-aside">
-                <p class="site-header__search-aside-heading">Quick browse</p>
-                <nav class="site-header__search-aside-nav" aria-label="Search shortcuts">
-                  <a href="#main" class="site-header__search-aside-link" data-category-jump="Clothing">Clothing</a>
-                  <a href="#main" class="site-header__search-aside-link" data-category-jump="Accessories">Accessories</a>
-                  <a href="#main" class="site-header__search-aside-link" data-category-jump="Watches">Watches</a>
-                  <a href="#main" class="site-header__search-aside-link" data-category-jump="Fragrance">Fragrance</a>
+                <p class="site-header__search-trending-heading">Trending searches</p>
+                <nav class="site-header__search-trending-aside-nav" aria-label="Trending searches">
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Polo shirt">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Polo Shirt</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Bags">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Bags</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Watches">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Watches</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Fragrance">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Fragrance</span>
+                  </button>
                 </nav>
               </div>
               <div class="site-header__search-dropdown-main">
-                <p class="site-header__search-main-heading">Popular categories</p>
-                <div class="site-header__search-category-grid" aria-label="Sections">
-                  <a href="#main" class="site-header__search-category-card" data-category-jump="Clothing">
-                    <div class="site-header__search-category-card__media" aria-hidden="true"></div>
-                    <span class="site-header__search-category-card__title">Clothing</span>
-                    <span class="site-header__search-category-card__cta">Browse archive</span>
-                  </a>
-                  <a href="#main" class="site-header__search-category-card" data-category-jump="Accessories">
-                    <div class="site-header__search-category-card__media" aria-hidden="true"></div>
-                    <span class="site-header__search-category-card__title">Accessories</span>
-                    <span class="site-header__search-category-card__cta">Browse archive</span>
-                  </a>
-                  <a href="#main" class="site-header__search-category-card" data-category-jump="Watches">
-                    <div class="site-header__search-category-card__media" aria-hidden="true"></div>
-                    <span class="site-header__search-category-card__title">Watches</span>
-                    <span class="site-header__search-category-card__cta">Browse archive</span>
-                  </a>
-                  <a href="#main" class="site-header__search-category-card" data-category-jump="Fragrance">
-                    <div class="site-header__search-category-card__media" aria-hidden="true"></div>
-                    <span class="site-header__search-category-card__title">Fragrance</span>
-                    <span class="site-header__search-category-card__cta">Browse archive</span>
-                  </a>
-                </div>
+                <p class="site-header__search-main-heading">Popular Categories</p>
+                <div
+                  id="site-header-search-featured-subcats"
+                  class="site-header__search-category-grid"
+                  role="list"
+                  aria-label="Featured subcategories"
+                ></div>
               </div>
+            </div>
+            </div>
+            <div
+              id="site-header-search-results-pane"
+              class="site-header__search-results-pane"
+              hidden
+              aria-live="polite"
+            >
+              <div id="site-header-search-results-empty" class="site-header__search-results-empty" hidden>
+                <p class="site-header__search-results-empty__title">No results found</p>
+                <p class="site-header__search-results-empty__hint">Try another search term.</p>
+              </div>
+              <div
+                id="site-header-search-results-grid"
+                class="site-header__search-results-grid"
+                role="list"
+                aria-label="Search results"
+              ></div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
+        </div>
       </div>
     </header>
+    </div>
 
     <nav
       id="site-header-mobile-panel"
@@ -250,17 +257,29 @@
       aria-hidden="true"
     >
       <div class="site-header__mobile-panel-scroll">
-        <a href="#main" class="site-header__mobile-link" data-category-jump="Clothing">Clothing</a>
-        <a href="#main" class="site-header__mobile-link" data-category-jump="Accessories">Accessories</a>
-        <a href="#main" class="site-header__mobile-link" data-category-jump="Watches">Watches</a>
-        <a href="#main" class="site-header__mobile-link" data-category-jump="Fragrance">Fragrance</a>
+        <div class="site-header__mobile-group">
+          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Clothing">Clothing</a>
+          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Clothing">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Accessories">Accessories</a>
+          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Accessories">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Watches">Watches</a>
+          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Watches">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/archive.html#main" class="site-header__mobile-link" data-category-jump="Fragrance">Fragrance</a>
+          <a href="/archive.html#main" class="site-header__mobile-browse-all" data-category-jump="Fragrance">Browse all</a>
+        </div>
       </div>
     </nav>
 
     <aside
       id="local-data-risk-banner"
-      class="local-data-risk-banner"
-      hidden
+      class="local-data-risk-banner tw-admin-only"
+      hidden=""
       aria-label="Browser-only storage reminder"
     >
       <div class="local-data-risk-banner__inner">
@@ -276,221 +295,96 @@
         </div>
       </div>
     </aside>
+<main id="main" class="ed-lp" tabindex="-1">
+          <section class="ed-lp__hero" aria-labelledby="ed-lp-hero-heading">
+            <div class="ed-lp__hero-layers" id="ed-lp-hero-layers" aria-hidden="true"></div>
+            <div class="ed-lp__hero-scrim" aria-hidden="true"></div>
+            <div class="ed-lp__hero-inner">
+              <p class="ed-lp__hero-eyebrow">PERMANENT COLLECTION</p>
+              <h1 id="ed-lp-hero-heading" class="ed-lp__hero-title">Timeless Wardrobe</h1>
+              <p class="ed-lp__hero-sub">A Private Archive of Classic Menswear</p>
+              <p class="ed-lp__hero-line">English Heritage × Mediterranean Leisure</p>
+              <div class="ed-lp__hero-cta">
+                <a class="ed-lp__btn ed-lp__btn--solid" href="/archive.html#main">Browse collection</a>
+                <a class="ed-lp__btn ed-lp__btn--ghost" href="/archive.html#main">Explore archive</a>
+              </div>
+            </div>
+          </section>
 
-    <section id="outfit-dock" class="outfit-dock" aria-labelledby="outfit-heading" hidden>
-      <div class="outfit-dock__builder">
-        <div class="outfit-dock__head">
-          <h2 id="outfit-heading" class="outfit-dock__title">Outfit</h2>
-          <p class="outfit-dock__hint" id="outfit-hint">
-            Only <strong>clothing</strong>, <strong>shoes</strong>, <strong>watches</strong>, and <strong>accessories</strong> can go in an outfit. Jewellery and perfume stay in the archive for
-            reference. Drag slots to reorder, then name and save.
-          </p>
-        </div>
-        <div
-          id="outfit-strip"
-          class="outfit-strip"
-          role="list"
-          aria-label="Pieces in current outfit"
-        ></div>
-        <p id="outfit-empty" class="outfit-empty" hidden>No pieces in this outfit yet.</p>
-        <div class="outfit-actions">
-          <label class="field field--inline">
-            <span class="field__label">Outfit name</span>
-            <input
-              id="outfit-name"
-              type="text"
-              maxlength="80"
-              placeholder="e.g. Monday · tonal layers"
-              autocomplete="off"
-            />
-          </label>
-          <button type="button" class="btn" id="outfit-save">Save outfit</button>
-          <button type="button" class="btn btn--ghost" id="outfit-clear">Clear</button>
-        </div>
-      </div>
-      <p id="outfit-toast" class="outfit-toast" role="status" aria-live="polite" hidden></p>
-      <div class="saved-outfits">
-        <h3 class="saved-outfits__title" id="saved-outfits-heading">Saved outfits</h3>
-        <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
-        <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
-          No saved outfits yet. Finish an outfit and click Save outfit to keep it.
-        </p>
-      </div>
-    </section>
+          <section class="ed-lp__band" aria-labelledby="ed-lp-cats-heading">
+            <div class="ed-lp__band-inner">
+              <header class="ed-lp__band-head">
+                <h2 id="ed-lp-cats-heading" class="ed-lp__h2">Featured categories</h2>
+              </header>
+              <div class="ed-lp__cat-grid" id="ed-lp-featured-cats" role="list"></div>
+            </div>
+          </section>
 
-    <main id="main" tabindex="-1">
-      <section class="items-toolbar" aria-label="Item tools">
-        <div id="category-drill" class="category-drill category-drill--toolbar" hidden>
-          <div id="category-drill-grid" class="category-drill__grid"></div>
-        </div>
-        <div class="items-toolbar__top-row">
-          <div class="items-toolbar__archive-summary" aria-live="polite">
-            <p class="items-toolbar__spend-line" id="filter-spend-total"></p>
-            <p class="items-toolbar__count-line" id="filter-count"></p>
-          </div>
-          <button
-            type="button"
-            class="items-toolbar__filter-sort-btn"
-            id="archive-filter-drawer-open"
-            aria-haspopup="dialog"
-            aria-controls="archive-filter-drawer"
-            aria-expanded="false"
-          >
-            <span class="items-toolbar__filter-sort-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <line x1="4" y1="21" x2="4" y2="14" />
-                <line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" />
-                <line x1="20" y1="12" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" />
-                <line x1="9" y1="8" x2="15" y2="8" />
-                <line x1="17" y1="16" x2="23" y2="16" />
-              </svg>
-            </span>
-            <span>Filter &amp; Sort</span>
-          </button>
-        </div>
-        <div
-          class="items-toolbar__chips filters__count-row"
-          id="filter-count-row"
-          aria-label="Active filters"
-          aria-live="polite"
-        >
-          <button type="button" class="filter-search-chip" id="filter-category-chip" hidden>
-            <span class="filter-search-chip__text" id="filter-category-chip-text"></span>
-            <span class="filter-search-chip__close" aria-hidden="true">×</span>
-          </button>
-          <button type="button" class="filter-search-chip" id="filter-search-chip" hidden>
-            <span class="filter-search-chip__text" id="filter-search-chip-text"></span>
-            <span class="filter-search-chip__close" aria-hidden="true">×</span>
-          </button>
-          <button type="button" class="filter-search-chip" id="filter-colour-chip" hidden>
-            <span class="filter-search-chip__text" id="filter-colour-chip-text"></span>
-            <span class="filter-search-chip__close" aria-hidden="true">×</span>
-          </button>
-          <button type="button" class="filter-search-chip" id="filter-subcategory-chip" hidden>
-            <span class="filter-search-chip__text" id="filter-subcategory-chip-text"></span>
-            <span class="filter-search-chip__close" aria-hidden="true">×</span>
-          </button>
-        </div>
-      </section>
-      <div id="grid" class="grid" role="list"></div>
-      <div id="empty-wrap" class="empty-wrap" hidden>
-        <p id="empty-state-msg" class="empty-wrap__msg">No pieces match these filters.</p>
-        <button type="button" class="btn btn--small" id="empty-reset-filters" hidden>
-          Clear category, type, colour &amp; search
-        </button>
-      </div>
-    </main>
+          <section class="ed-lp__band ed-lp__band--muted" aria-labelledby="ed-lp-high-heading">
+            <div class="ed-lp__band-inner">
+              <header class="ed-lp__band-head">
+                <h2 id="ed-lp-high-heading" class="ed-lp__h2">Archive highlights</h2>
+              </header>
+              <div class="ed-lp__product-grid ed-lp__product-grid--8" id="ed-lp-highlights" role="list"></div>
+            </div>
+          </section>
 
-    <div id="archive-filter-drawer" class="archive-filter-drawer" hidden aria-hidden="true">
-      <button
-        type="button"
-        class="archive-filter-drawer__backdrop"
-        id="archive-filter-drawer-backdrop"
-        tabindex="-1"
-        aria-label="Close filter and sort"
-      ></button>
-      <div
-        class="archive-filter-drawer__sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="archive-filter-drawer-title"
-        tabindex="-1"
-      >
-        <div class="archive-filter-drawer__header">
-          <h2 class="archive-filter-drawer__title" id="archive-filter-drawer-title">Filter &amp; Sort</h2>
-          <button
-            type="button"
-            class="archive-filter-drawer__close"
-            id="archive-filter-drawer-close"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-        <div class="archive-filter-drawer__body">
-          <div class="archive-filter-drawer__section">
-            <span class="items-toolbar__label">Order by</span>
-            <label class="items-toolbar__field archive-filter-drawer__full-row" for="archive-sort">
-              <select id="archive-sort" class="items-toolbar__select archive-filter-drawer__select">
-                <option value="archive">Archive order</option>
-                <option value="price-asc">Price · low to high</option>
-                <option value="price-desc">Price · high to low</option>
-                <option value="date-asc">Purchase date · oldest first</option>
-                <option value="date-desc">Purchase date · newest first</option>
-              </select>
-            </label>
-          </div>
-          <div class="items-toolbar__colour-block archive-filter-drawer__colour" aria-label="Filter by colour">
-            <span class="items-toolbar__colour-heading" id="archive-colour-filter-label">Colour</span>
-            <div
-              class="items-toolbar__colour-chips"
-              role="group"
-              aria-labelledby="archive-colour-filter-label"
-              id="archive-colour-chips"
-            ></div>
-          </div>
-        </div>
-        <div class="archive-filter-drawer__footer">
-          <button type="button" class="btn archive-filter-drawer__done" id="archive-filter-drawer-done">Done</button>
-        </div>
-      </div>
-    </div>
+          <section class="ed-lp__philosophy" aria-label="Philosophy">
+            <p class="ed-lp__philosophy-text">I Collect Canonical Designs, Not Variations.</p>
+          </section>
 
-    <section class="archive-actions" aria-label="Archive actions">
-      <button type="button" class="btn btn--ghost archive-actions__add" id="add-item-open">Add a piece</button>
-    </section>
+          <section class="ed-lp__band" aria-labelledby="ed-lp-recent-heading">
+            <div class="ed-lp__band-inner">
+              <header class="ed-lp__band-head">
+                <h2 id="ed-lp-recent-heading" class="ed-lp__h2">Recent acquisitions</h2>
+              </header>
+              <div class="ed-lp__product-grid ed-lp__product-grid--4" id="ed-lp-recent" role="list"></div>
+            </div>
+          </section>
 
-    <section class="data-load-note" aria-label="Where this data comes from">
-      <h2 class="data-load-note__title">Where this data comes from</h2>
-      <p class="data-load-note__lead">
-        Each reload builds one merged wardrobe list: rows you added are merged first, then the catalogue (from
-        Supabase or the bundled seed), with per-piece edits applied the same way whether the piece started as seed or
-        custom. Cover and gallery URLs are plain strings on each row (often <code>https://…</code> public object URLs).
-      </p>
-      <ul class="data-load-note__list">
-        <li>
-          <strong>Catalogue source</strong> — With <code>js/tw-supabase-config.js</code> and a non-empty
-          <code>wardrobe_items</code> fetch, that table is the catalogue. Otherwise the app uses
-          <code>data/wardrobe.js</code> (<code>WARDROBE_ITEMS</code>).
-        </li>
-        <li>
-          <strong>Your wardrobe in the browser</strong> — Extra rows and any edits not yet in the cloud live under
-          <code>localStorage</code> keys such as <code>timeless-wardrobe-custom-items-v1</code>,
-          <code>timeless-wardrobe-archive-overrides-v1</code>, and <code>timeless-wardrobe-archive-hidden-v1</code>, plus
-          optional <code>data/custom-items.json</code> when you use <code>npm run dev</code>.
-        </li>
-        <li>
-          <strong>Supabase sync (same bar for every piece)</strong> — With cloud configured, new pieces and edits are
-          written to <code>wardrobe_items</code> (catalogue pieces you changed are mirrored there like any other row).
-          Hidden archive ids and any legacy per-id override blobs still round-trip through
-          <code>wardrobe_app_state</code> row <code>id = default</code> when needed.
-        </li>
-        <li>
-          <strong>Saved outfits</strong> — Supabase tables <code>outfits</code> + <code>outfit_items</code> when the
-          wardrobe is cloud-backed and outfit fetch succeeds; otherwise <code>localStorage</code> key
-          <code>timeless-wardrobe-outfits-v1</code>.
-        </li>
-      </ul>
-      <p class="data-load-note__backup">
-        <button type="button" class="btn btn--small btn--ghost" id="data-note-backup-json">
-          Download browser backup JSON
-        </button>
-        <span class="data-load-note__backup-hint">
-          — full snapshot: custom rows, catalogue overrides, hidden ids, outfits, and display prefs (keep this file
-          somewhere safe when you are not on cloud sync).
-        </span>
-      </p>
-    </section>
+          <section class="ed-lp__band ed-lp__band--season" aria-label="Seasonal entry">
+            <div class="ed-lp__season-grid">
+              <a
+                href="/archive.html#main"
+                class="ed-lp__season-tile"
+                id="ed-lp-season-aw"
+                data-ed-archive="1"
+                data-ed-seasonal-entry="1"
+                data-season-filter="A/W"
+                aria-label="Browse A/W Country Classics"
+              >
+                <div class="ed-lp__season-media" id="ed-lp-season-aw-media" aria-hidden="true"></div>
+                <div class="ed-lp__season-scrim" aria-hidden="true"></div>
+                <div class="ed-lp__season-copy">
+                  <span class="ed-lp__season-kicker">A/W</span>
+                  <span class="ed-lp__season-title">Country Classics</span>
+                </div>
+              </a>
+              <a
+                href="/archive.html#main"
+                class="ed-lp__season-tile ed-lp__season-tile--ss"
+                id="ed-lp-season-ss"
+                data-ed-archive="1"
+                data-ed-seasonal-entry="1"
+                data-season-filter="S/S"
+                aria-label="Browse S/S Mediterranean Leisure"
+              >
+                <div class="ed-lp__season-media" id="ed-lp-season-ss-media" aria-hidden="true"></div>
+                <div class="ed-lp__season-scrim" aria-hidden="true"></div>
+                <div class="ed-lp__season-copy">
+                  <span class="ed-lp__season-kicker">S/S</span>
+                  <span class="ed-lp__season-title">Mediterranean Leisure</span>
+                </div>
+              </a>
+            </div>
+          </section>
+        </main>
 
     <footer class="site-footer">
       <p>Timeless Wardrobe</p>
     </footer>
 
-    <dialog id="add-item-dialog" class="add-item-dialog" aria-labelledby="add-item-heading" aria-modal="true">
+    <dialog id="add-item-dialog" class="add-item-dialog tw-admin-only" hidden aria-labelledby="add-item-heading" aria-modal="true">
       <div class="add-item-dialog__inner">
         <div class="add-item-dialog__toolbar">
           <button type="button" class="btn btn--ghost" id="add-item-close" aria-label="Close add piece dialog">
@@ -549,7 +443,8 @@
               <label class="field">
                 <span class="field__label">Broad colour (optional)</span>
                 <select id="add-item-basic-colour" name="basicColour" aria-label="Broad colour for archive filters">
-                  <option value="">Auto (from name / code / hex)</option>
+                  <option value="__omit__">None (not filtered by colour)</option>
+                  <option value="" selected>Auto (from name / code / hex)</option>
                   <option value="blue">Blue</option>
                   <option value="brown">Brown</option>
                   <option value="red">Red</option>
@@ -636,18 +531,98 @@
             <div class="add-item-form__actions">
               <button type="submit" class="btn" id="add-item-submit">Add to wardrobe</button>
               <button type="reset" class="btn btn--ghost" id="add-item-reset">Reset form</button>
-              <button type="button" class="btn btn--ghost" id="add-item-export-custom-json">
-                Export custom JSON…
-              </button>
-              <button type="button" class="btn btn--ghost" id="add-item-sync-custom-to-project">
-                Save browser customs to project file…
-              </button>
+              <span class="tw-admin-only add-item-form__dev-actions">
+                <button type="button" class="btn btn--ghost" id="add-item-export-custom-json">
+                  Export custom JSON…
+                </button>
+                <button type="button" class="btn btn--ghost" id="add-item-sync-custom-to-project">
+                  Save browser customs to project file…
+                </button>
+              </span>
             </div>
           </form>
         </section>
       </div>
     </dialog>
 
+    <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="styling-board-drawer__backdrop"
+        id="styling-board-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close Styling Board"
+      ></button>
+      <div
+        class="styling-board-drawer__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="styling-board-heading"
+      >
+        <header class="styling-board-drawer__header">
+          <h2 id="styling-board-heading" class="styling-board-drawer__title">Styling Board</h2>
+          <button
+            type="button"
+            class="styling-board-drawer__close"
+            id="styling-board-drawer-close"
+            aria-label="Close Styling Board"
+          >
+            Close
+          </button>
+        </header>
+        <div class="styling-board-drawer__body">
+          <p class="styling-board-drawer__lede" id="outfit-hint">
+            Add clothing, shoes, watches, and accessories from the archive. Drag pieces to reorder, then save as a named outfit.
+          </p>
+          <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
+            <h3 id="styling-board-current-heading" class="styling-board__section-title">Current board</h3>
+            <div
+              id="outfit-strip"
+              class="styling-board__pieces outfit-strip"
+              role="list"
+              aria-label="Pieces on styling board"
+            ></div>
+            <p id="outfit-empty" class="styling-board__empty" hidden>
+              Save pieces here to build outfits from the archive.
+            </p>
+            <div class="styling-board__save outfit-actions">
+              <label class="field field--inline">
+                <span class="field__label">Outfit name</span>
+                <input
+                  id="outfit-name"
+                  type="text"
+                  maxlength="80"
+                  placeholder="e.g. Monday · tonal layers"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--notes">
+                <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
+                <textarea
+                  id="outfit-notes"
+                  class="textarea-autosize styling-board__notes"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="Occasion, weather, or styling notes"
+                ></textarea>
+              </label>
+              <div class="styling-board__save-actions">
+                <button type="button" class="btn" id="outfit-save">Save outfit</button>
+                <button type="button" class="btn btn--ghost" id="outfit-clear">Clear board</button>
+              </div>
+            </div>
+          </section>
+          <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
+            <h3 class="saved-outfits__title styling-board__section-title" id="saved-outfits-heading">Saved outfits</h3>
+            <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
+            <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
+              No saved outfits yet. Add pieces to the board, name your look, and save.
+            </p>
+          </section>
+        </div>
+        <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
+      </div>
+    </div>
     <dialog id="outfit-variant-dialog" class="add-item-dialog" aria-labelledby="outfit-variant-heading" aria-modal="true">
       <div class="add-item-dialog__inner">
         <div class="add-item-dialog__toolbar">
@@ -659,11 +634,11 @@
         <div class="add-item-panel add-item-panel--dialog">
           <p id="outfit-variant-title" class="add-item-panel__hint"></p>
           <label class="field">
-            <span class="field__label">Colour for this outfit</span>
+            <span class="field__label">Colour for this board</span>
             <select id="outfit-variant-select" class="outfit-variant-select"></select>
           </label>
           <div class="add-item-form__actions">
-            <button type="button" class="btn" id="outfit-variant-confirm">Add to outfit</button>
+            <button type="button" class="btn" id="outfit-variant-confirm">Add to Styling Board</button>
           </div>
         </div>
       </div>

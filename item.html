@@ -9,27 +9,364 @@
     <title>Timeless Wardrobe</title>
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="js/tw-admin-boot.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
       rel="stylesheet"
     />
   </head>
   <body class="item-page">
     <a class="skip-link" href="#item-page-main">Skip to main content</a>
+    <a class="skip-link" href="#filter-search">Skip to search</a>
     <a class="skip-link" href="#item-detail-heading">Skip to title</a>
     <a class="skip-link" href="#item-detail-actions">Skip to actions</a>
     <a class="skip-link" href="#item-detail-root">Skip to piece</a>
-    <header class="item-page-header">
-      <div class="item-page-header__row">
-        <a class="btn btn--ghost item-page-header__back" href="index.html" aria-label="Back">← Archive</a>
+    <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
+
+    <div class="site-header-shell">
+    <div class="site-utility-bar" role="note" aria-label="Archive ethos">
+      <div class="site-utility-bar__inner">
+        <span class="site-utility-bar__left">Archive Pieces Only</span>
+        <span class="site-utility-bar__center">English Heritage × Mediterranean Leisure</span>
+        <span class="site-utility-bar__right">Since MMXX</span>
+      </div>
+    </div>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <div class="site-header__mega">
+          <div class="site-header__brand-nav" aria-label="Primary header">
+            <h1 class="site-title">
+              <a href="/" id="site-header-home" class="site-title__primary">
+                <img
+                  src="logo.png"
+                  alt=""
+                  class="site-title__mark"
+                  width="44"
+                  height="44"
+                  decoding="async"
+                />
+                <span class="site-title__text-stack">
+                  <span class="site-title__wordmark">Timeless Wardrobe</span>
+                </span>
+              </a>
+            </h1>
+            <nav
+              id="site-header-primary-nav"
+              class="site-header__primary-nav"
+              aria-label="Main categories"
+            >
+              <a href="/#main" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
+              <a href="/#main" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
+              <a href="/#main" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
+              <a href="/#main" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
+            </nav>
+            <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
+            <div class="site-header__tools">
+              <div class="site-header__season-mini" id="season-nav-mini" aria-label="Season quick filter">
+                <button
+                  type="button"
+                  class="site-header__season-mini-tab"
+                  data-season-filter="S/S"
+                  id="season-mini-ss"
+                >
+                  S/S
+                </button>
+                <button
+                  type="button"
+                  class="site-header__season-mini-tab"
+                  data-season-filter="A/W"
+                  id="season-mini-aw"
+                >
+                  A/W
+                </button>
+              </div>
+              <button
+                type="button"
+                id="site-header-search-btn"
+                class="site-header__search-btn"
+                aria-expanded="false"
+                aria-controls="site-header-search-wrap"
+                aria-label="Open search"
+                title="Search"
+              >
+                <span class="site-header__search-icon" aria-hidden="true"></span>
+              </button>
+              <button
+              type="button"
+              id="site-header-saved-toggle"
+              class="site-header__styling-board-btn"
+              aria-expanded="false"
+              aria-controls="styling-board-drawer"
+              aria-label="Open Styling Board"
+              title="Styling Board"
+            >
+              <span class="site-header__styling-board-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="7.5" height="7.5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="3" width="7.5" height="5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="10" width="7.5" height="11" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="3" y="12.5" width="7.5" height="8.5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                </svg>
+              </span>
+              <span class="site-header__styling-board-label">Styling Board</span>
+              <span id="styling-board-count" class="site-header__styling-board-count" hidden></span>
+            </button>
+              <button
+                type="button"
+                id="site-header-menu-btn"
+                class="site-header__menu-btn"
+                aria-expanded="false"
+                aria-controls="site-header-mobile-panel"
+                aria-label="Open categories menu"
+                title="Open categories"
+              >
+                <span class="site-header__menu-icon" aria-hidden="true">
+                  <span class="site-header__menu-line site-header__menu-line--top"></span>
+                  <span class="site-header__menu-line site-header__menu-line--bottom"></span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div id="site-header-submenu" class="site-header__submenu" hidden>
+            <div id="site-header-submenu-title" class="site-header__submenu-title"></div>
+            <div class="site-header__submenu-body">
+              <div id="site-header-submenu-links" class="site-header__submenu-links"></div>
+              <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
+            </div>
+          </div>
+          <div id="site-header-search-wrap" class="site-header__search-wrap" aria-hidden="true">
+          <div class="site-header__search-dim" aria-hidden="true"></div>
+          <div class="site-header__search-megamenu">
+            <div class="site-header__search-megamenu-inner">
+          <div class="site-header__search-surface">
+            <div class="site-header__search-head">
+              <label class="site-header__search-field" for="filter-search">
+                <span class="site-header__search-label">Search</span>
+                <div class="site-header__search-pill-wrap">
+                  <span class="site-header__search-pill-icon" aria-hidden="true"></span>
+                  <span class="filters__search-field">
+                    <input
+                      id="filter-search"
+                      type="search"
+                      aria-label="Search wardrobe"
+                      placeholder="Search"
+                      autocomplete="off"
+                      spellcheck="false"
+                      autocorrect="off"
+                      autocapitalize="off"
+                      enterkeyhint="search"
+                      title="Search wardrobe by brand, name, category, season, colour, notes…"
+                    />
+                    <button
+                      type="button"
+                      id="filter-search-clear"
+                      class="filters__search-clear"
+                      aria-label="Clear search"
+                      hidden
+                    >
+                      <span class="filters__search-clear-icon" aria-hidden="true">×</span>
+                    </button>
+                  </span>
+                </div>
+              </label>
+              <button
+                type="button"
+                id="site-header-search-close"
+                class="site-header__search-close"
+                aria-label="Close search"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div id="site-header-search-browse" class="site-header__search-browse">
+            <div class="site-header__search-dropdown-body">
+              <div class="site-header__search-dropdown-aside">
+                <p class="site-header__search-trending-heading">Trending searches</p>
+                <nav class="site-header__search-trending-aside-nav" aria-label="Trending searches">
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Polo shirt">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Polo Shirt</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Bags">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Bags</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Watches">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Watches</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Fragrance">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Fragrance</span>
+                  </button>
+                </nav>
+              </div>
+              <div class="site-header__search-dropdown-main">
+                <p class="site-header__search-main-heading">Popular Categories</p>
+                <div
+                  id="site-header-search-featured-subcats"
+                  class="site-header__search-category-grid"
+                  role="list"
+                  aria-label="Featured subcategories"
+                ></div>
+              </div>
+            </div>
+            </div>
+            <div
+              id="site-header-search-results-pane"
+              class="site-header__search-results-pane"
+              hidden
+              aria-live="polite"
+            >
+              <div id="site-header-search-results-empty" class="site-header__search-results-empty" hidden>
+                <p class="site-header__search-results-empty__title">No results found</p>
+                <p class="site-header__search-results-empty__hint">Try another search term.</p>
+              </div>
+              <div
+                id="site-header-search-results-grid"
+                class="site-header__search-results-grid"
+                role="list"
+                aria-label="Search results"
+              ></div>
+            </div>
+          </div>
+            </div>
+          </div>
+        </div>
+        </div>
       </div>
     </header>
+    </div>
+
+    <nav
+      id="site-header-mobile-panel"
+      class="site-header__mobile-panel"
+      aria-label="Mobile categories"
+      aria-hidden="true"
+    >
+      <div class="site-header__mobile-panel-scroll">
+        <div class="site-header__mobile-group">
+          <a href="/#main" class="site-header__mobile-link" data-category-jump="Clothing">Clothing</a>
+          <a href="/#main" class="site-header__mobile-browse-all" data-category-jump="Clothing">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/#main" class="site-header__mobile-link" data-category-jump="Accessories">Accessories</a>
+          <a href="/#main" class="site-header__mobile-browse-all" data-category-jump="Accessories">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/#main" class="site-header__mobile-link" data-category-jump="Watches">Watches</a>
+          <a href="/#main" class="site-header__mobile-browse-all" data-category-jump="Watches">Browse all</a>
+        </div>
+        <div class="site-header__mobile-group">
+          <a href="/#main" class="site-header__mobile-link" data-category-jump="Fragrance">Fragrance</a>
+          <a href="/#main" class="site-header__mobile-browse-all" data-category-jump="Fragrance">Browse all</a>
+        </div>
+      </div>
+    </nav>
+
     <main id="item-page-main" class="item-page-main" tabindex="-1">
       <div id="item-detail-root" class="item-detail__root item-detail__root--page"></div>
     </main>
-    <p id="outfit-toast" class="outfit-toast item-page-toast" role="status" aria-live="polite" hidden></p>
+    <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="styling-board-drawer__backdrop"
+        id="styling-board-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close Styling Board"
+      ></button>
+      <div
+        class="styling-board-drawer__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="styling-board-heading"
+      >
+        <header class="styling-board-drawer__header">
+          <h2 id="styling-board-heading" class="styling-board-drawer__title">Styling Board</h2>
+          <button
+            type="button"
+            class="styling-board-drawer__close"
+            id="styling-board-drawer-close"
+            aria-label="Close Styling Board"
+          >
+            Close
+          </button>
+        </header>
+        <div class="styling-board-drawer__body">
+          <p class="styling-board-drawer__lede" id="outfit-hint">
+            Add clothing, shoes, watches, and accessories from the archive. Drag pieces to reorder, then save as a named outfit.
+          </p>
+          <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
+            <h3 id="styling-board-current-heading" class="styling-board__section-title">Current board</h3>
+            <div
+              id="outfit-strip"
+              class="styling-board__pieces outfit-strip"
+              role="list"
+              aria-label="Pieces on styling board"
+            ></div>
+            <p id="outfit-empty" class="styling-board__empty" hidden>
+              Save pieces here to build outfits from the archive.
+            </p>
+            <div class="styling-board__save outfit-actions">
+              <label class="field field--inline">
+                <span class="field__label">Outfit name</span>
+                <input
+                  id="outfit-name"
+                  type="text"
+                  maxlength="80"
+                  placeholder="e.g. Monday · tonal layers"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--notes">
+                <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
+                <textarea
+                  id="outfit-notes"
+                  class="textarea-autosize styling-board__notes"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="Occasion, weather, or styling notes"
+                ></textarea>
+              </label>
+              <div class="styling-board__save-actions">
+                <button type="button" class="btn" id="outfit-save">Save outfit</button>
+                <button type="button" class="btn btn--ghost" id="outfit-clear">Clear board</button>
+              </div>
+            </div>
+          </section>
+          <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
+            <h3 class="saved-outfits__title styling-board__section-title" id="saved-outfits-heading">Saved outfits</h3>
+            <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
+            <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
+              No saved outfits yet. Add pieces to the board, name your look, and save.
+            </p>
+          </section>
+        </div>
+        <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
+      </div>
+    </div>
+    <dialog id="outfit-variant-dialog" class="add-item-dialog" aria-labelledby="outfit-variant-heading" aria-modal="true">
+      <div class="add-item-dialog__inner">
+        <div class="add-item-dialog__toolbar">
+          <h2 id="outfit-variant-heading" class="add-item-panel__title">Choose a colour</h2>
+          <button type="button" class="btn btn--ghost" id="outfit-variant-cancel" aria-label="Close">
+            Close
+          </button>
+        </div>
+        <div class="add-item-panel add-item-panel--dialog">
+          <p id="outfit-variant-title" class="add-item-panel__hint"></p>
+          <label class="field">
+            <span class="field__label">Colour for this board</span>
+            <select id="outfit-variant-select" class="outfit-variant-select"></select>
+          </label>
+          <div class="add-item-form__actions">
+            <button type="button" class="btn" id="outfit-variant-confirm">Add to styling board</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
     <script src="data/wardrobe.js"></script>
     <script src="js/tw-supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
