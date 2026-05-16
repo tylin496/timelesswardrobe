@@ -5608,6 +5608,22 @@
     return [{ raw: "", label: SUBCATEGORY_ALL_LABEL }, ...entries];
   }
 
+  /** Mobile drawer: “All Clothing”, “All Accessories”, etc. */
+  function mobileNavSubcategoryAllLabel(browseSlot) {
+    const cat = categoryDisplayLabel(String(browseSlot ?? "").trim()) || String(browseSlot ?? "").trim();
+    return cat ? `All ${cat}` : SUBCATEGORY_ALL_LABEL;
+  }
+
+  /** @returns {{ raw: string, label: string }[]} */
+  function mobileNavSubcategoryEntriesForSlot(browseSlot, pool) {
+    const entries = megaMenuSubcategoryEntriesForSlot(browseSlot, pool);
+    if (!entries.length) return entries;
+    const allLabel = mobileNavSubcategoryAllLabel(browseSlot);
+    return entries.map((entry, index) =>
+      index === 0 && entry.raw === "" ? { ...entry, label: allLabel } : entry
+    );
+  }
+
   function subcategoryFilterMatchesEntry(raw, subF) {
     const key = String(raw ?? "").trim();
     const active = String(subF ?? "").trim();
@@ -11360,8 +11376,8 @@
       let shell = document.getElementById("site-mobile-shell");
       if (shell) {
         const hasRlLayout =
-          shell.querySelector(".site-mobile-nav__season-link") &&
-          shell.querySelector(".site-mobile-nav__title-wrap");
+          shell.querySelector(".site-mobile-shell__bar--submenu") &&
+          shell.querySelector(".site-mobile-nav__season-link");
         if (hasRlLayout) return shell;
         shell.remove();
         shell = null;
@@ -11374,15 +11390,18 @@
       shell.hidden = true;
       shell.setAttribute("aria-hidden", "true");
 
-      const bar = document.createElement("header");
-      bar.className = "site-mobile-shell__bar";
+      const chrome = document.createElement("div");
+      chrome.className = "site-mobile-shell__chrome";
+
+      const mainBar = document.createElement("header");
+      mainBar.className = "site-mobile-shell__bar site-mobile-shell__bar--main";
 
       const logo = document.createElement("a");
       logo.href = "/";
       logo.className = "site-mobile-shell__logo";
       logo.setAttribute("aria-label", "Timeless Wardrobe home");
       logo.innerHTML =
-        '<span class="site-title__mark" role="img" aria-hidden="true"></span><span class="site-mobile-shell__wordmark">Timeless Wardrobe</span>';
+        '<span class="site-title__mark" role="img" aria-hidden="true"></span><span class="site-mobile-shell__wordmark">TIMELESS WARDROBE</span>';
 
       const tools = document.createElement("div");
       tools.className = "site-mobile-shell__tools";
@@ -11417,7 +11436,22 @@
       });
 
       tools.append(shellSearchBtn, shellStylingBtn, shellCloseBtn);
-      bar.append(logo, tools);
+      mainBar.append(logo, tools);
+
+      const submenuBar = document.createElement("header");
+      submenuBar.className = "site-mobile-shell__bar site-mobile-shell__bar--submenu";
+      submenuBar.setAttribute("aria-hidden", "true");
+      submenuBar.innerHTML = `
+        <button type="button" class="site-mobile-shell__submenu-back" id="site-mobile-nav-back" aria-label="Back to main menu">
+          <span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>
+        </button>
+        <h2 class="site-mobile-shell__submenu-title" id="site-mobile-nav-drill-title"></h2>
+        <button type="button" class="site-mobile-shell__submenu-close" id="site-mobile-nav-drill-close" aria-label="Close menu">
+          <span class="site-mobile-shell__close-icon" aria-hidden="true"></span>
+        </button>
+      `;
+
+      chrome.append(mainBar, submenuBar);
 
       const body = document.createElement("div");
       body.className = "site-mobile-shell__body";
@@ -11429,7 +11463,7 @@
 
       const rootLevel = document.createElement("div");
       rootLevel.id = "site-mobile-nav-root";
-      rootLevel.className = "site-mobile-nav__level site-mobile-nav__level--root is-active";
+      rootLevel.className = "site-mobile-nav__level site-mobile-nav__level--root";
 
       const rootList = document.createElement("ul");
       rootList.className = "site-mobile-nav__list site-mobile-nav__list--root";
@@ -11440,7 +11474,8 @@
         row.type = "button";
         row.className = "site-mobile-nav__row";
         row.dataset.mobileNavSlot = slot;
-        row.innerHTML = `<span class="site-mobile-nav__label">${slot.toUpperCase()}</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+        const label = categoryDisplayLabel(slot) || slot;
+        row.innerHTML = `<span class="site-mobile-nav__label">${label}</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
         rowLi.appendChild(row);
         rootList.appendChild(rowLi);
       }
@@ -11461,24 +11496,15 @@
       const drillLevel = document.createElement("div");
       drillLevel.id = "site-mobile-nav-drill";
       drillLevel.className = "site-mobile-nav__level site-mobile-nav__level--drill";
-      drillLevel.innerHTML = `
-        <header class="site-mobile-nav__drill-head mobile-submenu-header">
-          <div class="site-mobile-nav__title-wrap mobile-submenu-title-wrap">
-            <button type="button" class="site-mobile-nav__back" id="site-mobile-nav-back" aria-label="Back">
-              <span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>
-            </button>
-            <h2 class="site-mobile-nav__drill-title mobile-submenu-title" id="site-mobile-nav-drill-title"></h2>
-          </div>
-          <button type="button" class="site-mobile-nav__drill-close" id="site-mobile-nav-drill-close" aria-label="Close menu">
-            <span class="site-mobile-shell__close-icon" aria-hidden="true"></span>
-          </button>
-        </header>
-        <ul class="site-mobile-nav__list site-mobile-nav__list--drill" id="site-mobile-nav-drill-list"></ul>
-      `;
+      drillLevel.setAttribute("aria-hidden", "true");
+      const drillList = document.createElement("ul");
+      drillList.id = "site-mobile-nav-drill-list";
+      drillList.className = "site-mobile-nav__list site-mobile-nav__list--drill";
+      drillLevel.appendChild(drillList);
 
       nav.append(rootLevel, drillLevel);
       body.appendChild(nav);
-      shell.append(bar, body);
+      shell.append(chrome, body);
       document.body.appendChild(shell);
       return shell;
     }
@@ -11726,25 +11752,36 @@
 
     const MOBILE_NAV_MOTION_MS = 320;
 
-    function resetMobileNavDrill() {
+    function resetMobileNavDrill({ focusMain = false } = {}) {
+      const shell = document.getElementById("site-mobile-shell");
       const nav = document.getElementById("site-mobile-nav");
       const root = document.getElementById("site-mobile-nav-root");
       const drill = document.getElementById("site-mobile-nav-drill");
+      const submenuBar = shell?.querySelector(".site-mobile-shell__bar--submenu");
       if (!nav || !root || !drill) return;
       nav.classList.remove("site-mobile-nav--drill-open");
-      root.classList.add("is-active");
       drill.classList.remove("is-active");
+      shell?.classList.remove("site-mobile-shell--submenu");
+      submenuBar?.setAttribute("aria-hidden", "true");
+      root.removeAttribute("aria-hidden");
+      drill.setAttribute("aria-hidden", "true");
+      if (focusMain) {
+        const firstRow = root.querySelector(".site-mobile-nav__row");
+        if (firstRow instanceof HTMLElement) firstRow.focus();
+      }
     }
 
     function openMobileNavDrill(slot) {
+      const shell = document.getElementById("site-mobile-shell");
       const nav = document.getElementById("site-mobile-nav");
       const root = document.getElementById("site-mobile-nav-root");
       const drill = document.getElementById("site-mobile-nav-drill");
       const title = document.getElementById("site-mobile-nav-drill-title");
       const list = document.getElementById("site-mobile-nav-drill-list");
+      const submenuBar = shell?.querySelector(".site-mobile-shell__bar--submenu");
       if (!nav || !root || !drill || !title || !list) return;
       const pool = poolItemsForDrillSubcategories({ respectCategory: false });
-      const entries = megaMenuSubcategoryEntriesForSlot(slot, pool);
+      const entries = mobileNavSubcategoryEntriesForSlot(slot, pool);
       if (!entries.length) {
         handleMobileCategoryNavigation(slot, "");
         return;
@@ -11764,9 +11801,16 @@
         li.appendChild(a);
         list.appendChild(li);
       }
-      root.classList.add("is-active");
-      drill.classList.add("is-active");
-      nav.classList.add("site-mobile-nav--drill-open");
+      drill.classList.remove("is-active");
+      shell?.classList.add("site-mobile-shell--submenu");
+      submenuBar?.setAttribute("aria-hidden", "false");
+      root.setAttribute("aria-hidden", "true");
+      drill.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => {
+        nav.classList.add("site-mobile-nav--drill-open");
+        drill.classList.add("is-active");
+        document.getElementById("site-mobile-nav-back")?.focus();
+      });
     }
 
     function scrollArchiveIntro() {
@@ -12275,7 +12319,7 @@
       document.getElementById("site-header-saved-toggle")?.click();
     });
     document.getElementById("site-mobile-nav-back")?.addEventListener("click", () => {
-      resetMobileNavDrill();
+      resetMobileNavDrill({ focusMain: true });
     });
     document.getElementById("site-mobile-nav-drill-close")?.addEventListener("click", () => {
       closeMobileCategoryPanel();
@@ -12314,7 +12358,7 @@
       if (mobileShell?.classList.contains("is-open")) {
         const nav = document.getElementById("site-mobile-nav");
         if (nav?.classList.contains("site-mobile-nav--drill-open")) {
-          resetMobileNavDrill();
+          resetMobileNavDrill({ focusMain: true });
           return;
         }
         closeMobileCategoryPanel();
