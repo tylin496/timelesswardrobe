@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A personal wardrobe archive — browse pieces by category and season, track spend, build outfits, and save looks."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161514" />
+    <title>Collection · Timeless Wardrobe</title>
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <script src="js/tw-page-theme-boot.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="js/tw-admin-boot.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="theme-catalogue archive-page">
+    <a class="skip-link" href="#main">Skip to collection</a>
+    <a class="skip-link" href="#filter-search">Skip to search</a>
+    <a class="skip-link tw-admin-only" href="#add-item-open">Skip to add item</a>
+    <a class="skip-link" href="#season-nav">Skip to season</a>
+    <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
+    <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
+
+    <div class="site-utility-bar" role="note" aria-label="Brand masthead">
+      <div class="site-utility-bar__inner">
+        <span class="site-utility-bar__left">CVM IVDICIO ET CONSTANTIA</span>
+        <span class="site-utility-bar__center">Only What Endures</span>
+        <span class="site-utility-bar__right">Since 2020</span>
+      </div>
+    </div>
+    <div class="site-header-shell">
+    <header class="site-header site-header--solid">
+      <div class="site-header__container site-header__inner">
+        <div class="site-header__flyout">
+        <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
+          <h1 class="site-title site-brand">
+            <a href="/collection" id="site-header-home" class="site-title__primary">
+              <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
+              <span class="site-title__text-stack site-brand-wordmark">
+                <span class="site-title__wordmark-line">Timeless</span>
+                <span class="site-title__wordmark-line">Wardrobe</span>
+              </span>
+            </a>
+          </h1>
+          <div class="site-header__division-hover-zone">
+            <nav
+              id="site-header-primary-nav"
+              class="site-header__primary-nav main-nav"
+              aria-label="Main categories"
+            >
+              <a href="/collection/clothing" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
+              <a href="/collection/accessories" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
+              <a href="/collection/watches" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
+              <a href="/collection/fragrance" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
+            </nav>
+          </div>
+          <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
+          <div class="site-header__tools">
+            <div class="site-header__season-mini" id="season-nav-mini" aria-label="Season quick filter">
+              <button
+                type="button"
+                class="site-header__season-mini-tab season-toggle"
+                data-season-filter="S/S"
+                id="season-mini-ss"
+                aria-label="S/S"
+              >
+                S/S
+              </button>
+              <button
+                type="button"
+                class="site-header__season-mini-tab season-toggle"
+                data-season-filter="A/W"
+                id="season-mini-aw"
+                aria-label="A/W"
+              >
+                A/W
+              </button>
+            </div>
+            <button
+              type="button"
+              id="site-header-search-btn"
+              class="site-header__search-btn"
+              aria-expanded="false"
+              aria-controls="site-header-search-wrap"
+              aria-label="Open search"
+              title="Search"
+            >
+              <span class="site-header__search-icon" aria-hidden="true"></span>
+            </button>
+            <button
+              type="button"
+              id="site-header-saved-toggle"
+              class="site-header__styling-board-btn"
+              aria-expanded="false"
+              aria-controls="styling-board-drawer"
+              aria-label="Open Styling Board"
+              title="Styling Board"
+            >
+              <span class="site-header__styling-board-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="7.5" height="7.5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="3" width="7.5" height="5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="13.5" y="10" width="7.5" height="11" rx="1" stroke="currentColor" stroke-width="1.75" />
+                  <rect x="3" y="12.5" width="7.5" height="8.5" rx="1" stroke="currentColor" stroke-width="1.75" />
+                </svg>
+              </span>
+              <span class="site-header__styling-board-label">Styling Board</span>
+              <span id="styling-board-count" class="site-header__styling-board-count" hidden></span>
+            </button>
+            <button
+              type="button"
+              id="site-header-menu-btn"
+              class="site-header__menu-btn"
+              aria-expanded="false"
+              aria-controls="site-mobile-shell"
+              aria-label="Open categories menu"
+              title="Open categories"
+            >
+              <span class="site-header__menu-icon" aria-hidden="true">
+                <span class="site-header__menu-line site-header__menu-line--top"></span>
+                <span class="site-header__menu-line site-header__menu-line--bottom"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div
+          id="site-header-submenu"
+          class="site-header__submenu mega-menu desktop-mega-menu"
+          data-submenu-state="closed"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="desktop-mega-menu-inner mega-menu-inner site-header__submenu-body">
+            <aside
+              id="site-header-submenu-links"
+              class="desktop-mega-menu-left mega-menu-left site-header__submenu-links site-header__submenu-zone site-header__submenu-zone--nav"
+              aria-label="Browse types"
+            ></aside>
+            <section
+              class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
+              aria-label="Category preview"
+            >
+              <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
+            </section>
+          </div>
+        </div>
+        </div>
+        <div
+          id="site-header-search-wrap"
+          class="site-header__search-wrap desktop-search-flyout"
+          data-search-state="closed"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="site-header__search-dim" aria-hidden="true"></div>
+          <div class="desktop-search-flyout-inner site-header__search-megamenu-inner">
+            <div class="site-header__search-surface">
+              <div class="site-header__search-head">
+                <div class="site-header__search-row site-header__search-field--rl">
+                  <span class="site-header__search-field-icon" aria-hidden="true"></span>
+                  <label class="site-header__search-input-label" for="filter-search">
+                    <span class="filters__search-field">
+                    <input
+                      id="filter-search"
+                      type="search"
+                      aria-label="Search wardrobe"
+                      placeholder="Search"
+                      autocomplete="off"
+                      spellcheck="false"
+                      autocorrect="off"
+                      autocapitalize="off"
+                      enterkeyhint="search"
+                      title="Search wardrobe by brand, name, category, season, colour, notes…"
+                    />
+                    <button
+                      type="button"
+                      id="filter-search-clear"
+                      class="filters__search-clear"
+                      aria-label="Clear search"
+                      hidden
+                    >
+                      <span class="filters__search-clear-icon" aria-hidden="true">×</span>
+                    </button>
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    id="site-header-search-close"
+                    class="site-header__search-close"
+                    aria-label="Close search"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button>
+                </div>
+              </div>
+              <div id="site-header-search-browse" class="site-header__search-browse">
+                <div class="site-header__search-dropdown-body">
+                  <div class="site-header__search-dropdown-aside">
+                    <p class="site-header__search-trending-heading">Trending Searches</p>
+                    <nav class="site-header__search-trending-aside-nav" aria-label="Trending searches">
+                      <button type="button" class="site-header__search-trending-row" data-trending-search="Polo shirt">
+                        <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                        <span>Polo Shirt</span>
+                      </button>
+                      <button type="button" class="site-header__search-trending-row" data-trending-search="Bags">
+                        <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                        <span>Bags</span>
+                      </button>
+                      <button type="button" class="site-header__search-trending-row" data-trending-search="Watches">
+                        <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                        <span>Watches</span>
+                      </button>
+                      <button type="button" class="site-header__search-trending-row" data-trending-search="Fragrance">
+                        <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                        <span>Fragrance</span>
+                      </button>
+                    </nav>
+                  </div>
+                  <div class="site-header__search-dropdown-main">
+                    <p class="site-header__search-main-heading">Popular Categories</p>
+                    <div
+                      id="site-header-search-featured-subcats"
+                      class="site-header__search-category-grid"
+                      role="list"
+                      aria-label="Featured subcategories"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div
+                id="site-header-search-results-pane"
+                class="site-header__search-results-pane"
+                hidden
+                aria-live="polite"
+              >
+                <div id="site-header-search-results-empty" class="site-header__search-results-empty" hidden>
+                  <p class="site-header__search-results-empty__title">No results found</p>
+                  <p class="site-header__search-results-empty__hint">Try another search term.</p>
+                </div>
+                <div
+                  id="site-header-search-results-grid"
+                  class="site-header__search-results-grid"
+                  role="list"
+                  aria-label="Search results"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </header>
+    </div>
+
+    <aside
+      id="local-data-risk-banner"
+      class="local-data-risk-banner tw-admin-only"
+      hidden=""
+      aria-label="Browser-only storage reminder"
+    >
+      <div class="local-data-risk-banner__inner">
+        <p class="local-data-risk-banner__text">
+          <strong>Browser-only mode</strong> — Without Supabase (<code>js/tw-supabase-config.js</code>), everything you
+          change in your wardrobe (pieces you added yourself <em>and</em> edits to any catalogue piece), plus hidden rows
+          and saved outfits, stays in this browser + site origin (domain/protocol/port). Clearing site data, private
+          browsing, switching devices, or changing local dev port can make that data unavailable.
+        </p>
+        <div class="local-data-risk-banner__actions">
+          <button type="button" class="btn btn--small" id="local-data-backup-json">Download backup JSON</button>
+          <button type="button" class="btn btn--small btn--ghost" id="local-data-risk-dismiss">Dismiss</button>
+        </div>
+      </div>
+    </aside>
+<main id="main" tabindex="-1">
+      <div class="archive-container">
+      <section
+        id="archive-search-results-plp"
+        class="archive-search-results-plp"
+        hidden
+        aria-label="Search results"
+      >
+        <div class="archive-search-results-plp__bar">
+          <span class="archive-search-results-plp__search-icon" aria-hidden="true"></span>
+          <div id="archive-search-results-plp-field-anchor" class="archive-search-results-plp__field-anchor"></div>
+          <button
+            type="button"
+            id="archive-search-results-clear"
+            class="archive-search-results-plp__clear"
+          >
+            CLEAR
+          </button>
+        </div>
+        <h2 id="archive-search-results-heading" class="archive-search-results-plp__heading"></h2>
+        <div
+          id="archive-search-results-pills"
+          class="archive-search-results-plp__pills"
+          role="tablist"
+          aria-label="Filter by type in search results"
+        ></div>
+        <div
+          id="archive-search-results-active-chips"
+          class="items-toolbar__active-chips items-toolbar__active-chips--search-plp"
+          role="group"
+          aria-label="Active search filters"
+          hidden
+        ></div>
+      </section>
+      <section class="items-toolbar" aria-label="Item tools">
+        <div class="items-toolbar__head">
+          <div class="items-toolbar__intro-lead">
+            <div class="items-toolbar__intro">
+              <div class="archive-heading" id="archive-heading" aria-label="Collection">
+                <div class="archive-heading__context" id="archive-heading-context"></div>
+                <h2 class="archive-heading__title items-toolbar__page-title" id="items-toolbar-page-title"></h2>
+                <div class="items-toolbar__archive-summary items-toolbar__archive-summary--under-title" aria-live="polite">
+                  <p class="items-toolbar__count-line" id="filter-count"></p>
+                  <p class="items-toolbar__spend-line" id="filter-spend-total" hidden></p>
+                </div>
+              </div>
+              <nav
+                id="season-nav"
+                class="items-toolbar__season-nav filters__season season-strip"
+                aria-label="Season"
+              >
+                <span class="season-strip__label">Season</span>
+                <div class="season-strip__list" role="group" aria-label="Filter by season">
+                  <button type="button" class="season-strip__tab" data-season-filter="All">All</button>
+                  <button type="button" class="season-strip__tab season-toggle" data-season-filter="A/W" aria-label="A/W">
+                    A/W
+                  </button>
+                  <button type="button" class="season-strip__tab season-toggle" data-season-filter="S/S" aria-label="S/S">
+                    S/S
+                  </button>
+                </div>
+              </nav>
+              <div id="category-drill" class="category-drill category-drill--toolbar" hidden>
+                <div id="category-drill-grid" class="category-drill__grid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="items-toolbar__actions">
+          <div class="items-toolbar__control-bar">
+            <div
+              id="items-toolbar-active-filter-chips"
+              class="items-toolbar__active-chips items-toolbar__active-chips--browse"
+              role="group"
+              aria-label="Active filters"
+              hidden
+            ></div>
+            <button
+              type="button"
+              class="items-toolbar__filter-sort-btn"
+                id="archive-filter-drawer-open"
+              aria-haspopup="dialog"
+              aria-controls="archive-filter-drawer"
+              aria-expanded="false"
+            >
+              <span class="items-toolbar__filter-sort-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="4" y1="21" x2="4" y2="14" />
+                <line x1="4" y1="10" x2="4" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12" y2="3" />
+                <line x1="20" y1="21" x2="20" y2="16" />
+                <line x1="20" y1="12" x2="20" y2="3" />
+                <line x1="1" y1="14" x2="7" y2="14" />
+                <line x1="9" y1="8" x2="15" y2="8" />
+                <line x1="17" y1="16" x2="23" y2="16" />
+              </svg>
+            </span>
+              <span>Filter &amp; Sort</span>
+            </button>
+          </div>
+        </div>
+        <div
+          class="items-toolbar__chips filters__count-row"
+          id="filter-count-row"
+          aria-label="Active filters"
+          aria-live="polite"
+        >
+          <button type="button" class="filter-search-chip" id="filter-category-chip" hidden>
+            <span class="filter-search-chip__text" id="filter-category-chip-text"></span>
+            <span class="filter-search-chip__close" aria-hidden="true">×</span>
+          </button>
+          <button type="button" class="filter-search-chip" id="filter-search-chip" hidden>
+            <span class="filter-search-chip__text" id="filter-search-chip-text"></span>
+            <span class="filter-search-chip__close" aria-hidden="true">×</span>
+          </button>
+          <button type="button" class="filter-search-chip" id="filter-colour-chip" hidden>
+            <span class="filter-search-chip__text" id="filter-colour-chip-text"></span>
+            <span class="filter-search-chip__close" aria-hidden="true">×</span>
+          </button>
+          <button type="button" class="filter-search-chip" id="filter-subcategory-chip" hidden>
+            <span class="filter-search-chip__text" id="filter-subcategory-chip-text"></span>
+            <span class="filter-search-chip__close" aria-hidden="true">×</span>
+          </button>
+        </div>
+      </section>
+      <div id="grid" class="grid" role="list"></div>
+      <div id="empty-wrap" class="empty-wrap" hidden>
+        <p id="empty-state-msg" class="empty-wrap__msg">No pieces match these filters.</p>
+        <button type="button" class="btn btn--small" id="empty-reset-filters" hidden>
+          Clear category, type, colour &amp; search
+        </button>
+      </div>
+      </div>
+    </main>
+
+    <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="styling-board-drawer__backdrop"
+        id="styling-board-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close Styling Board"
+      ></button>
+      <div
+        class="styling-board-drawer__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="styling-board-heading"
+      >
+        <header class="styling-board-drawer__header">
+          <div class="styling-board-drawer__status" id="styling-board-drawer-status" hidden>
+            <span class="styling-board-drawer__status-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="styling-board-drawer__status-text" id="styling-board-drawer-status-text">Piece added to board</p>
+          </div>
+          <h2 id="styling-board-heading" class="styling-board-drawer__title">Styling Board</h2>
+          <button
+            type="button"
+            class="styling-board-drawer__close"
+            id="styling-board-drawer-close"
+            aria-label="Close Styling Board"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <section
+          id="styling-board-drawer-added"
+          class="styling-board-drawer__added"
+          hidden
+          aria-labelledby="styling-board-drawer-status-text"
+        >
+          <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+        </section>
+        <div class="styling-board-drawer__scroll">
+          <p class="styling-board-drawer__lede" id="outfit-hint">
+            Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
+          </p>
+          <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
+            <h3 id="styling-board-current-heading" class="styling-board__section-title">On your board</h3>
+            <div
+              id="outfit-strip"
+              class="styling-board__pieces outfit-strip"
+              role="list"
+              aria-label="Pieces on styling board"
+            ></div>
+            <p id="outfit-empty" class="styling-board__empty" hidden>
+              Save pieces here to build outfits from the collection.
+            </p>
+            <div class="styling-board__save outfit-actions">
+              <label class="field field--inline">
+                <span class="field__label">Outfit name</span>
+                <input
+                  id="outfit-name"
+                  type="text"
+                  maxlength="80"
+                  placeholder="e.g. Monday · tonal layers"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--notes">
+                <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
+                <textarea
+                  id="outfit-notes"
+                  class="textarea-autosize styling-board__notes"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="Occasion, weather, or styling notes"
+                ></textarea>
+              </label>
+              <button type="button" class="btn btn--ghost styling-board__clear-link" id="outfit-clear">Clear board</button>
+            </div>
+          </section>
+          <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
+            <h3 class="saved-outfits__title styling-board__section-title" id="saved-outfits-heading">Saved outfits</h3>
+            <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
+            <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
+              No saved outfits yet. Add pieces to the board, name your look, and save.
+            </p>
+          </section>
+        </div>
+        <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
+            Save outfit
+          </button>
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue browsing
+          </button>
+        </footer>
+      </div>
+      <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
+    </div>
+
+    <div id="archive-filter-drawer" class="archive-filter-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="archive-filter-drawer__backdrop"
+        id="archive-filter-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close filter and sort"
+      ></button>
+      <div
+        class="archive-filter-drawer__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="archive-filter-drawer-title"
+        tabindex="-1"
+      >
+        <div class="archive-filter-drawer__header">
+          <h2 class="archive-filter-drawer__title" id="archive-filter-drawer-title">Filter &amp; Sort</h2>
+          <button
+            type="button"
+            class="archive-filter-drawer__close"
+            id="archive-filter-drawer-close"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <div class="archive-filter-drawer__body">
+          <section class="archive-filter-drawer__block archive-filter-drawer__block--sort" aria-labelledby="archive-drawer-sort-heading">
+            <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-sort-heading">Sort by</h3>
+            <div
+              id="archive-drawer-sort-chips"
+              class="archive-filter-drawer__chip-row archive-filter-drawer__chip-row--sort"
+              role="group"
+              aria-labelledby="archive-drawer-sort-heading"
+            >
+              <button
+                type="button"
+                class="archive-drawer-sort-chip is-active"
+                data-archive-sort="date-desc"
+                data-archive-sort-default="true"
+                aria-pressed="true"
+              >
+                Newest
+              </button>
+              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="date-asc" aria-pressed="false">
+                Oldest
+              </button>
+              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-asc" aria-pressed="false">
+                Price low–high
+              </button>
+              <button type="button" class="archive-drawer-sort-chip" data-archive-sort="price-desc" aria-pressed="false">
+                Price high–low
+              </button>
+            </div>
+          </section>
+          <section
+            class="archive-filter-drawer__block archive-filter-drawer__block--season"
+            aria-labelledby="archive-drawer-season-heading"
+          >
+            <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-season-heading">Season</h3>
+            <div
+              id="archive-drawer-season-chips"
+              class="archive-filter-drawer__chip-row"
+              role="group"
+              aria-labelledby="archive-drawer-season-heading"
+            >
+              <button type="button" class="archive-drawer-sort-chip" data-season-filter="All" aria-pressed="false">
+                All seasons
+              </button>
+              <button
+                type="button"
+                class="archive-drawer-sort-chip season-toggle"
+                data-season-filter="A/W"
+                aria-pressed="false"
+                aria-label="A/W"
+              >
+                A/W
+              </button>
+              <button
+                type="button"
+                class="archive-drawer-sort-chip season-toggle"
+                data-season-filter="S/S"
+                aria-pressed="false"
+                aria-label="S/S"
+              >
+                S/S
+              </button>
+            </div>
+          </section>
+          <section
+            id="archive-drawer-record-types"
+            class="archive-filter-drawer__block archive-filter-drawer__block--categories archive-filter-drawer__record-types"
+            aria-labelledby="archive-drawer-record-types-label"
+            hidden
+          >
+            <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-record-types-label">Categories</h3>
+            <div
+              class="archive-filter-drawer__chip-row archive-filter-drawer__record-type-chips"
+              id="archive-drawer-record-type-chips"
+              role="group"
+              aria-labelledby="archive-drawer-record-types-label"
+            ></div>
+          </section>
+          <section
+            class="archive-filter-drawer__block archive-filter-drawer__block--colour"
+            aria-labelledby="archive-colour-filter-label"
+          >
+            <h3 class="archive-filter-drawer__section-heading" id="archive-colour-filter-label">Colour</h3>
+            <div
+              class="archive-filter-drawer__chip-row archive-filter-drawer__colour-chips"
+              role="group"
+              aria-labelledby="archive-colour-filter-label"
+              id="archive-colour-chips"
+            ></div>
+          </section>
+          <section
+            class="archive-filter-drawer__block archive-filter-drawer__block--brands"
+            aria-labelledby="archive-drawer-brands-heading"
+          >
+            <h3 class="archive-filter-drawer__section-heading" id="archive-drawer-brands-heading">Brands</h3>
+            <div
+              id="archive-drawer-brand-chips"
+              class="archive-filter-drawer__chip-row archive-filter-drawer__brand-chips"
+              role="group"
+              aria-labelledby="archive-drawer-brands-heading"
+            ></div>
+          </section>
+        </div>
+        <div class="archive-filter-drawer__footer">
+          <button type="button" class="archive-filter-drawer__done" id="archive-filter-drawer-done">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="archive-actions tw-admin-only" hidden aria-label="Archive actions">
+      <button type="button" class="btn btn--ghost archive-actions__add" id="add-item-open">Add a piece</button>
+    </section>
+
+    <section class="data-load-note tw-admin-only" aria-label="Where this data comes from">
+      <h2 class="data-load-note__title">Where this data comes from</h2>
+      <p class="data-load-note__lead">
+        Each reload builds one merged wardrobe list: rows you added are merged first, then the catalogue (from
+        Supabase or the bundled seed), with per-piece edits applied the same way whether the piece started as seed or
+        custom. Cover and gallery URLs are plain strings on each row (often <code>https://…</code> public object URLs).
+      </p>
+      <ul class="data-load-note__list">
+        <li>
+          <strong>Catalogue source</strong> — With <code>js/tw-supabase-config.js</code> and a non-empty
+          <code>wardrobe_items</code> fetch, that table is the catalogue. Otherwise the app uses
+          <code>data/wardrobe.js</code> (<code>WARDROBE_ITEMS</code>).
+        </li>
+        <li>
+          <strong>Your wardrobe in the browser</strong> — Extra rows and any edits not yet in the cloud live under
+          <code>localStorage</code> keys such as <code>timeless-wardrobe-custom-items-v1</code>,
+          <code>timeless-wardrobe-archive-overrides-v1</code>, and <code>timeless-wardrobe-archive-hidden-v1</code>, plus
+          optional <code>data/custom-items.json</code> when you use <code>npm run dev</code>.
+        </li>
+        <li>
+          <strong>Supabase sync (same bar for every piece)</strong> — With cloud configured, new pieces and edits are
+          written to <code>wardrobe_items</code> (catalogue pieces you changed are mirrored there like any other row).
+          Hidden archive ids and any legacy per-id override blobs still round-trip through
+          <code>wardrobe_app_state</code> row <code>id = default</code> when needed.
+        </li>
+        <li>
+          <strong>Saved outfits</strong> — Supabase tables <code>outfits</code> + <code>outfit_items</code> when the
+          wardrobe is cloud-backed and outfit fetch succeeds; otherwise <code>localStorage</code> key
+          <code>timeless-wardrobe-outfits-v1</code>.
+        </li>
+      </ul>
+      <p class="data-load-note__backup">
+        <button type="button" class="btn btn--small btn--ghost" id="data-note-text-to-localstorage">
+          Save all text to localStorage
+        </button>
+        <button type="button" class="btn btn--small btn--ghost" id="data-note-download-text-json">
+          Download text JSON
+        </button>
+        <button type="button" class="btn btn--small btn--ghost" id="data-note-backup-json">
+          Download browser backup JSON
+        </button>
+        <span class="data-load-note__backup-hint">
+          — <strong>Text JSON</strong> = every piece’s text fields for review (no images). Project export:
+          <code>npm run db:export-wardrobe</code> → <code>data/local/wardrobe-text.json</code>, then
+          <code>npm run db:apply-local-text</code> after edits. Backup JSON also includes overrides, outfits, and prefs.
+        </span>
+      </p>
+    </section>
+
+    <footer class="site-footer">
+      <p>Timeless Wardrobe</p>
+    </footer>
+
+    <dialog id="add-item-dialog" class="add-item-dialog tw-admin-only" hidden aria-labelledby="add-item-heading" aria-modal="true">
+      <div class="add-item-dialog__inner">
+        <div class="add-item-dialog__toolbar">
+          <button type="button" class="btn btn--ghost" id="add-item-close" aria-label="Close add piece dialog">
+            Close
+          </button>
+        </div>
+        <section class="add-item-panel add-item-panel--dialog" id="add-item-panel" aria-labelledby="add-item-heading">
+          <div class="add-item-panel__head">
+            <h2 id="add-item-heading" class="add-item-panel__title">Add a piece</h2>
+            <p class="add-item-panel__hint">
+              Required: <strong>brand</strong>, <strong>name</strong>, <strong>section</strong>, and <strong>record type</strong>. Photos are optional: in one batch, the <strong>first</strong> file becomes the cover and any further files are saved to the gallery (you can change them when editing). Optional fields and extra photos
+              help later when you search or edit. Run <code>npm run dev</code> and open the app from that server so new pieces are written straight to <code>data/custom-items.json</code> in the project (and still cached in the browser). Plain static hosting only keeps a browser copy unless you use cloud sync or export JSON.
+            </p>
+          </div>
+          <form id="add-item-form" class="add-item-form">
+            <div class="add-item-form__grid">
+              <label class="field">
+                <span class="field__label">Brand</span>
+                <input id="add-item-brand" name="brand" type="text" maxlength="120" required autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Name</span>
+                <input id="add-item-name" name="name" type="text" maxlength="200" required autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Section</span>
+                <select id="add-item-category" name="browseSlot" required></select>
+              </label>
+              <label class="field">
+                <span class="field__label">Record type</span>
+                <select id="add-item-record-type" name="recordCategory" required></select>
+              </label>
+              <label class="field">
+                <span class="field__label">Season (optional)</span>
+                <select id="add-item-season" name="season">
+                  <option value="All-season" selected>All seasons</option>
+                  <option value="A/W">A/W</option>
+                  <option value="S/S">S/S</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label">Colour (optional)</span>
+                <input id="add-item-colour" name="colour" type="text" maxlength="80" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Colour code (optional)</span>
+                <input
+                  id="add-item-colour-code"
+                  name="colourCode"
+                  type="text"
+                  maxlength="80"
+                  autocomplete="off"
+                  placeholder="#hex, SKU…"
+                />
+              </label>
+              <label class="field">
+                <span class="field__label">Broad colour (optional)</span>
+                <select id="add-item-basic-colour" name="basicColour" aria-label="Broad colour for archive filters">
+                  <option value="__omit__">None (not filtered by colour)</option>
+                  <option value="" selected>Auto (from name / code / hex)</option>
+                  <option value="blue">Blue</option>
+                  <option value="brown">Brown</option>
+                  <option value="red">Red</option>
+                  <option value="white">White</option>
+                  <option value="black">Black</option>
+                  <option value="beige">Beige</option>
+                  <option value="gold">Gold</option>
+                  <option value="silver">Silver</option>
+                  <option value="green">Green</option>
+                  <option value="grey">Grey</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label">Material (optional)</span>
+                <input id="add-item-fabric" name="fabric" type="text" maxlength="80" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Weight / specs (optional)</span>
+                <input id="add-item-weight" name="weight" type="text" maxlength="80" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Size (optional)</span>
+                <input id="add-item-size" name="size" type="text" maxlength="120" autocomplete="off" />
+              </label>
+              <label class="field field--span2">
+                <span class="field__label">Purchase date (optional)</span>
+                <span class="add-item-purchase-fields">
+                  <input id="add-item-purchase-date" name="purchaseDate" type="date" />
+                  <input
+                    id="add-item-purchase-date-note"
+                    name="purchaseDateNote"
+                    type="text"
+                    maxlength="80"
+                    placeholder="Optional note (e.g. approximate, gift)"
+                    autocomplete="off"
+                  />
+                </span>
+              </label>
+              <label class="field">
+                <span class="field__label">Price (optional)</span>
+                <span class="add-item-price-row">
+                  <input
+                    id="add-item-price"
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    placeholder="e.g. 199 or 199.5"
+                    autocomplete="off"
+                  />
+                  <select id="add-item-price-currency" name="priceCurrency" aria-label="Price currency">
+                    <option value="TWD">TWD</option>
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="CNY">CNY</option>
+                  </select>
+                </span>
+              </label>
+              <label class="field field--file field--span2">
+                <span class="field__label">Photos (optional, multi-select)</span>
+                <input id="add-item-photos" name="photos" type="file" accept="image/*" multiple />
+                <p class="measured-dims-hint">
+                  The first image becomes the cover; any additional images are stored in the gallery (up to 12 gallery images).
+                </p>
+              </label>
+            </div>
+            <div class="add-item-form__preview-wrap">
+              <img id="add-item-preview" class="add-item-form__preview" alt="" width="200" height="250" hidden />
+            </div>
+            <label class="field field--block">
+              <span class="field__label">Notes (optional)</span>
+              <textarea id="add-item-notes" name="notes" class="textarea-autosize" rows="2" maxlength="2000"></textarea>
+            </label>
+            <label class="field field--block">
+              <span class="field__label">Measurements (optional)</span>
+              <input type="hidden" id="add-item-measured-dimensions" name="measuredDimensions" value="" />
+              <div id="add-item-measured-dims-block" class="add-item-measured-dims-host"></div>
+              <p class="measured-dims-hint">
+                Defaults: Shoulder, Chest, Waist, Sleeve, Back Length — pick <strong>cm</strong> or <strong>mm</strong> for all values in this piece.
+              </p>
+            </label>
+            <p id="add-item-form-msg" class="add-item-form__msg" role="status" aria-live="polite"></p>
+            <div class="add-item-form__actions">
+              <button type="submit" class="btn" id="add-item-submit">Add to wardrobe</button>
+              <button type="reset" class="btn btn--ghost" id="add-item-reset">Reset form</button>
+              <span class="tw-admin-only add-item-form__dev-actions">
+                <button type="button" class="btn btn--ghost" id="add-item-export-custom-json">
+                  Export custom JSON…
+                </button>
+                <button type="button" class="btn btn--ghost" id="add-item-sync-custom-to-project">
+                  Save browser customs to project file…
+                </button>
+              </span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog id="outfit-variant-dialog" class="add-item-dialog" aria-labelledby="outfit-variant-heading" aria-modal="true">
+      <div class="add-item-dialog__inner">
+        <div class="add-item-dialog__toolbar">
+          <h2 id="outfit-variant-heading" class="add-item-panel__title">Choose a colour</h2>
+          <button type="button" class="btn btn--ghost" id="outfit-variant-cancel" aria-label="Close">
+            Close
+          </button>
+        </div>
+        <div class="add-item-panel add-item-panel--dialog">
+          <p id="outfit-variant-title" class="add-item-panel__hint"></p>
+          <label class="field">
+            <span class="field__label">Colour for this board</span>
+            <select id="outfit-variant-select" class="outfit-variant-select"></select>
+          </label>
+          <div class="add-item-form__actions">
+            <button type="button" class="btn" id="outfit-variant-confirm">Add to Styling Board</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="data/wardrobe.js"></script>
+    <script src="js/tw-supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

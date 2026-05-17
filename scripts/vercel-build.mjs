@@ -34,21 +34,27 @@ function buildHomeHeroManifestSource() {
 
 const rootFiles = [
   "index.html",
+  "collection.html",
   "archive.html",
   "item.html",
   "app.js",
   "styles.css",
-  "icon.svg",
   "favicon.png",
+  "icon.svg",
+  "logo.svg",
+  "monogram.png",
   "loading-logo.png",
-  "logo.png",
-  "cover.png",
 ];
 
-const rootDirs = ["js", "data", "images", "public"];
+const rootDirs = ["js", "data", "images"];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
+
+const publicDir = path.join(root, "public");
+if (fs.existsSync(publicDir)) {
+  fs.cpSync(publicDir, dist, { recursive: true });
+}
 
 for (const name of rootFiles) {
   const src = path.join(root, name);

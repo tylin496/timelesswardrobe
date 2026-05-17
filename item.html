@@ -2,13 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Wardrobe piece detail — edit notes, measurements, photos, and archive metadata in Timeless Wardrobe." />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f6" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141312" />
     <title>Timeless Wardrobe</title>
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <script src="js/tw-page-theme-boot.js"></script>
     <link rel="stylesheet" href="styles.css" />
     <script src="js/tw-admin-boot.js"></script>
@@ -27,10 +28,10 @@
     <a class="skip-link" href="#item-detail-root">Skip to piece</a>
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
 
-    <div class="site-utility-bar" role="note" aria-label="Archive ethos">
+    <div class="site-utility-bar" role="note" aria-label="Brand masthead">
       <div class="site-utility-bar__inner">
-        <span class="site-utility-bar__left">Archive Pieces Only</span>
-        <span class="site-utility-bar__center">English Heritage × Mediterranean Leisure</span>
+        <span class="site-utility-bar__left">CVM IVDICIO ET CONSTANTIA</span>
+        <span class="site-utility-bar__center">Only What Endures</span>
         <span class="site-utility-bar__right">Since 2020</span>
       </div>
     </div>
@@ -40,7 +41,7 @@
         <div class="site-header__flyout">
         <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
             <h1 class="site-title site-brand">
-              <a href="/" id="site-header-home" class="site-title__primary">
+              <a href="/collection" id="site-header-home" class="site-title__primary">
                 <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
                 <span class="site-title__text-stack site-brand-wordmark">
                   <span class="site-title__wordmark-line">Timeless</span>
@@ -54,10 +55,10 @@
                 class="site-header__primary-nav main-nav"
                 aria-label="Main categories"
               >
-                <a href="/archive.html" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
-                <a href="/archive.html" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
-                <a href="/archive.html" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
-                <a href="/archive.html" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
+                <a href="/collection/clothing" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
+                <a href="/collection/accessories" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
+                <a href="/collection/watches" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
+                <a href="/collection/fragrance" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
               </nav>
             </div>
             <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
@@ -275,6 +276,14 @@
         aria-labelledby="styling-board-heading"
       >
         <header class="styling-board-drawer__header">
+          <div class="styling-board-drawer__status" id="styling-board-drawer-status" hidden>
+            <span class="styling-board-drawer__status-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="styling-board-drawer__status-text" id="styling-board-drawer-status-text">Piece added to board</p>
+          </div>
           <h2 id="styling-board-heading" class="styling-board-drawer__title">Styling Board</h2>
           <button
             type="button"
@@ -282,15 +291,23 @@
             id="styling-board-drawer-close"
             aria-label="Close Styling Board"
           >
-            Close
+            <span aria-hidden="true">×</span>
           </button>
         </header>
-        <div class="styling-board-drawer__body">
+        <section
+          id="styling-board-drawer-added"
+          class="styling-board-drawer__added"
+          hidden
+          aria-labelledby="styling-board-drawer-status-text"
+        >
+          <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+        </section>
+        <div class="styling-board-drawer__scroll">
           <p class="styling-board-drawer__lede" id="outfit-hint">
-            Add clothing, shoes, watches, and accessories from the archive. Drag pieces to reorder, then save as a named outfit.
+            Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
           </p>
           <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
-            <h3 id="styling-board-current-heading" class="styling-board__section-title">Current board</h3>
+            <h3 id="styling-board-current-heading" class="styling-board__section-title">On your board</h3>
             <div
               id="outfit-strip"
               class="styling-board__pieces outfit-strip"
@@ -298,7 +315,7 @@
               aria-label="Pieces on styling board"
             ></div>
             <p id="outfit-empty" class="styling-board__empty" hidden>
-              Save pieces here to build outfits from the archive.
+              Save pieces here to build outfits from the collection.
             </p>
             <div class="styling-board__save outfit-actions">
               <label class="field field--inline">
@@ -321,10 +338,7 @@
                   placeholder="Occasion, weather, or styling notes"
                 ></textarea>
               </label>
-              <div class="styling-board__save-actions">
-                <button type="button" class="btn" id="outfit-save">Save outfit</button>
-                <button type="button" class="btn btn--ghost" id="outfit-clear">Clear board</button>
-              </div>
+              <button type="button" class="btn btn--ghost styling-board__clear-link" id="outfit-clear">Clear board</button>
             </div>
           </section>
           <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
@@ -335,8 +349,16 @@
             </p>
           </section>
         </div>
-        <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
+        <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
+            Save outfit
+          </button>
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue browsing
+          </button>
+        </footer>
       </div>
+      <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
     </div>
     <dialog id="outfit-variant-dialog" class="add-item-dialog" aria-labelledby="outfit-variant-heading" aria-modal="true">
       <div class="add-item-dialog__inner">

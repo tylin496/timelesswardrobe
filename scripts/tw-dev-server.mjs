@@ -148,18 +148,9 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     await serveHomeHeroManifest(res);
     return;
   }
-  const faviconRoutes = {
-    "/favicon.ico": "icon.svg",
-    "/favicon.png": "favicon.png",
-    "/icon.svg": "icon.svg",
-  };
-  if (pathname in faviconRoutes) {
-    const absFile = path.join(root, faviconRoutes[pathname]);
+  if (pathname === "/favicon.ico" || pathname === "/favicon.png") {
+    const absFile = path.join(root, "favicon.png");
     if (await serveFaviconAsset(req, res, absFile)) return;
-    if (pathname === "/favicon.png") {
-      const svgFallback = path.join(root, "icon.svg");
-      if (await serveFaviconAsset(req, res, svgFallback)) return;
-    }
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found");
     return;
@@ -169,8 +160,30 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     res.end();
     return;
   }
+  const COLLECTION_DIVISION_SLUGS = new Set(["clothing", "accessories", "watches", "fragrance"]);
   let rel = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
-  if (rel === "archive") rel = "archive.html";
+  if (pathname === "/item.html" || pathname === "/collection/item.html") {
+    rel = "item.html";
+  } else if (pathname === "/collection" || pathname === "/collection.html") {
+    rel = "collection.html";
+  } else if (pathname === "/archive" || pathname === "/archive.html") {
+    rel = "collection.html";
+  } else if (pathname.startsWith("/collection/")) {
+    const rest = pathname.slice("/collection/".length);
+    const segment = rest.split("/")[0].toLowerCase();
+    if (segment === "item.html" || segment === "item") {
+      rel = "item.html";
+    } else if (COLLECTION_DIVISION_SLUGS.has(segment)) {
+      rel = "collection.html";
+    } else if (rest && !rest.includes("..")) {
+      /* `/collection/styles.css` etc. when HTML lacks `<base href="/">` */
+      rel = rest;
+    }
+  } else if (rel === "archive") {
+    rel = "archive.html";
+  } else if (rel === "collection") {
+    rel = "collection.html";
+  }
   rel = path.normalize(rel).replace(/^(\.\.(\/|\\|$))+/, "");
   let filePath = path.join(root, rel);
   if (!isPathInsideRoot(filePath)) {
@@ -182,9 +195,21 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
   try {
     st = await fs.stat(filePath);
   } catch {
-    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Not found");
-    return;
+    const publicFile = path.join(root, "public", rel);
+    if (isPathInsideRoot(publicFile)) {
+      try {
+        st = await fs.stat(publicFile);
+        filePath = publicFile;
+      } catch {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Not found");
+        return;
+      }
+    } else {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
   }
   if (st.isDirectory()) {
     filePath = path.join(filePath, "index.html");

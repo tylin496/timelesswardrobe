@@ -3,8 +3,26 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive, nosnippet"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    { "source": "/archive.html", "destination": "/collection", "permanent": false },
+    { "source": "/archive", "destination": "/collection", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/archive", "destination": "/archive.html" },
-    { "source": "/favicon.ico", "destination": "/icon.svg" }
+    { "source": "/collection/item.html", "destination": "/item.html" },
+    { "source": "/collection/item", "destination": "/item.html" },
+    { "source": "/collection", "destination": "/collection.html" },
+    { "source": "/collection/:division", "destination": "/collection.html" },
+    { "source": "/favicon.ico", "destination": "/favicon.png" }
   ]
 }
