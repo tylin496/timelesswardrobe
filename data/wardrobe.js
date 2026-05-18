@@ -1345,7 +1345,7 @@ const WARDROBE_ITEMS = [
     "colourCode": "#5F5F62",
     "size": "XL",
     "purchaseDate": "2023-11-20",
-    "image": "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/uniqlo-tuck-trousers/1778707777462-variant-grey-cover.png",
+    "image": "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/custom-11c5213e-a24b-4840-8fcf-8bafccdbde06/variants/grey/cover.png",
     "notes": "Fabric details\nBody: 62% Polyester - Recycled Fiber, 29% Viscose, 5% Polyester, 4% Elastane/ Pocket Lining: 65% Polyester, 35% Cotton\nWashing instructions\nMachine wash up to 40 degrees, gentle cycle, Dry Clean, Not suitable for tumble-drying.",
     "colourVariants": [
       {

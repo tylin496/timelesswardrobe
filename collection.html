@@ -95,7 +95,12 @@
               aria-label="Open search"
               title="Search"
             >
-              <span class="site-header__search-icon" aria-hidden="true"></span>
+              <span class="site-header__search-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>
+                  <line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>
+                </svg>
+              </span>
             </button>
             <button
               type="button"
@@ -107,9 +112,15 @@
               title="Outfits"
             >
               <span class="site-header__styling-board-icon" aria-hidden="true">
-                <svg class="styling-board-glyph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <svg class="styling-board-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <g class="styling-board-glyph__fills" aria-hidden="true">
+                    <rect class="styling-board-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />
+                    <rect class="styling-board-glyph__cell" x="1.6" y="7.2" width="7.15" height="6.45" />
+                    <rect class="styling-board-glyph__cell" x="9.05" y="2.35" width="5.25" height="7.92" />
+                    <rect class="styling-board-glyph__cell" x="9.05" y="10.52" width="5.25" height="3.13" />
+                  </g>
                   <path
-                    class="styling-board-glyph__grid"
+                    class="styling-board-glyph__grid site-header__tool-glyph"
                     pathLength="100"
                     d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"
                   />
@@ -128,8 +139,12 @@
               title="Open categories"
             >
               <span class="site-header__menu-icon" aria-hidden="true">
-                <span class="site-header__menu-line site-header__menu-line--top"></span>
-                <span class="site-header__menu-line site-header__menu-line--bottom"></span>
+                <svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <g class="site-header__menu-glyph-bars">
+                    <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.2" y1="5.65" x2="13.8" y2="5.65"/>
+                    <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.2" y1="10.35" x2="13.8" y2="10.35"/>
+                  </g>
+                </svg>
               </span>
             </button>
           </div>
@@ -326,10 +341,58 @@
               <div class="collection-heading" id="collection-heading" aria-label="Collection">
                 <div class="collection-heading__context" id="collection-heading-context"></div>
                 <div class="collection-heading__title-row">
-                  <h2 class="collection-heading__title items-toolbar__page-title" id="items-toolbar-page-title"></h2>
-                  <div class="items-toolbar__collection-summary items-toolbar__collection-summary--under-title" aria-live="polite">
-                    <p class="items-toolbar__count-line" id="filter-count"></p>
-                    <p class="items-toolbar__spend-line" id="filter-spend-total" hidden></p>
+                  <div class="collection-heading__title-cluster">
+                    <h2 class="collection-heading__title items-toolbar__page-title" id="items-toolbar-page-title"></h2>
+                    <div class="items-toolbar__collection-summary items-toolbar__collection-summary--under-title" aria-live="polite">
+                      <p class="items-toolbar__count-line" id="filter-count"></p>
+                      <p class="items-toolbar__spend-line" id="filter-spend-total" hidden></p>
+                    </div>
+                  </div>
+                  <div
+                    class="collection-heading__view-slot items-toolbar__view-toggle items-toolbar__view-toggle--title"
+                    id="collection-view-toggle"
+                    role="group"
+                    aria-label="Grid view"
+                  >
+                    <button
+                      type="button"
+                      class="items-toolbar__view-toggle-btn"
+                      data-collection-view="default"
+                      aria-pressed="true"
+                      aria-label="Standard grid"
+                      title="Standard grid"
+                    >
+                      <span class="items-toolbar__view-toggle-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25">
+                          <rect x="1.5" y="1.5" width="5" height="5" rx="0.5" />
+                          <rect x="9.5" y="1.5" width="5" height="5" rx="0.5" />
+                          <rect x="1.5" y="9.5" width="5" height="5" rx="0.5" />
+                          <rect x="9.5" y="9.5" width="5" height="5" rx="0.5" />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      class="items-toolbar__view-toggle-btn"
+                      data-collection-view="compact"
+                      aria-pressed="false"
+                      aria-label="Quick find"
+                      title="Quick find — image and name only"
+                    >
+                      <span class="items-toolbar__view-toggle-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25">
+                          <rect x="1" y="1" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="5.375" y="1" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="9.75" y="1" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="1" y="5.375" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="5.375" y="5.375" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="9.75" y="5.375" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="1" y="9.75" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="5.375" y="9.75" width="3.25" height="3.25" rx="0.35" />
+                          <rect x="9.75" y="9.75" width="3.25" height="3.25" rx="0.35" />
+                        </svg>
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -399,9 +462,10 @@
                   type="button"
                   class="items-toolbar__filter-sort-clear"
                   id="items-toolbar-filter-mobile-clear"
+                  aria-label="Clear all filters"
                   hidden
                 >
-                  Clear
+                  Clear All
                 </button>
               </div>
             </div>
@@ -488,9 +552,6 @@
           >
             <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
           </section>
-          <p class="styling-board-drawer__lede" id="outfit-hint">
-            Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
-          </p>
           <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
             <h3 id="styling-board-current-heading" class="styling-board__section-title">On your board</h3>
             <div
@@ -502,7 +563,15 @@
             <p id="outfit-empty" class="styling-board__empty" hidden>
               Save pieces here to build outfits from the collection.
             </p>
-            <button type="button" class="btn btn--ghost styling-board__clear-link" id="outfit-clear">Clear board</button>
+            <button
+              type="button"
+              class="btn btn--ghost styling-board__clear-link"
+              id="outfit-clear"
+              hidden
+              aria-label="Clear all pieces from the board"
+            >
+              Clear All
+            </button>
             <div
               id="styling-board-save-form"
               class="styling-board__save outfit-actions"

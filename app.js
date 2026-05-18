@@ -9,10 +9,31 @@
   const STYLING_BOARD_DRAFT_VERSION = 1;
 
   /** Header / mobile nav — editorial moodboard grid (single-stroke layout, 15×15). */
-  const STYLING_BOARD_GLYPH_SVG =
-    '<svg class="styling-board-glyph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-    '<path class="styling-board-glyph__grid" pathLength="100" d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"/>' +
+  const HEADER_SEARCH_GLYPH_SVG =
+    '<svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+    '<circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>' +
+    '<line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>' +
     "</svg>";
+  const HEADER_MENU_GLYPH_SVG =
+    '<svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+    '<g class="site-header__menu-glyph-bars">' +
+    '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.2" y1="5.65" x2="13.8" y2="5.65"/>' +
+    '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.2" y1="10.35" x2="13.8" y2="10.35"/>' +
+    "</g></svg>";
+  const STYLING_BOARD_GLYPH_SVG =
+    '<svg class="styling-board-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+    '<g class="styling-board-glyph__fills" aria-hidden="true">' +
+    '<rect class="styling-board-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />' +
+    '<rect class="styling-board-glyph__cell" x="1.6" y="7.2" width="7.15" height="6.45" />' +
+    '<rect class="styling-board-glyph__cell" x="9.05" y="2.35" width="5.25" height="7.92" />' +
+    '<rect class="styling-board-glyph__cell" x="9.05" y="10.52" width="5.25" height="3.13" />' +
+    "</g>" +
+    '<path class="styling-board-glyph__grid site-header__tool-glyph" pathLength="100" d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"/>' +
+    "</svg>";
+  const HEADER_SEARCH_ICON_HTML =
+    '<span class="site-header__search-icon" aria-hidden="true">' + HEADER_SEARCH_GLYPH_SVG + "</span>";
+  const HEADER_MENU_ICON_HTML =
+    '<span class="site-header__menu-icon" aria-hidden="true">' + HEADER_MENU_GLYPH_SVG + "</span>";
 
   /** Split collection rows merged into one id — remap saved outfit lines. */
   const LEGACY_OUTFIT_ITEM_TO_SLOT = new Map([
@@ -1896,6 +1917,9 @@
   const COLLECTION_SCROLL_TTL_MS = 20 * 60 * 1000;
 
   const COLLECTION_SORT_MODE_KEY = "timeless-wardrobe-collection-sort-v1";
+  const COLLECTION_VIEW_MODE_KEY = "timeless-wardrobe-collection-view-v1";
+  const COLLECTION_VIEW_MODES = ["default", "compact"];
+  const COLLECTION_DEFAULT_VIEW_MODE = "default";
   /** User hid the “browser-only storage” banner; clearing this key shows it again. */
   const LOCAL_DATA_RISK_BANNER_DISMISSED_KEY = "timeless-wardrobe-dismiss-local-risk-v1";
   const PRICE_CURRENCY_CODES = ["TWD", "USD", "JPY", "CNY"];
@@ -1944,6 +1968,79 @@
       /* */
     }
     return ok;
+  }
+
+  function loadPersistedCollectionViewMode() {
+    try {
+      const v = String(localStorage.getItem(COLLECTION_VIEW_MODE_KEY) || "").trim();
+      if (COLLECTION_VIEW_MODES.includes(v)) return v;
+    } catch {
+      /* */
+    }
+    return persistCollectionViewMode(COLLECTION_DEFAULT_VIEW_MODE);
+  }
+
+  function normalizeCollectionViewMode(mode) {
+    const v = String(mode ?? "").trim();
+    return COLLECTION_VIEW_MODES.includes(v) ? v : COLLECTION_DEFAULT_VIEW_MODE;
+  }
+
+  function persistCollectionViewMode(v) {
+    const ok = COLLECTION_VIEW_MODES.includes(v) ? v : COLLECTION_DEFAULT_VIEW_MODE;
+    try {
+      localStorage.setItem(COLLECTION_VIEW_MODE_KEY, ok);
+    } catch {
+      /* */
+    }
+    return ok;
+  }
+
+  function syncCollectionViewToggleUi() {
+    const group = document.getElementById("collection-view-toggle");
+    if (!group) return;
+    collectionViewMode = normalizeCollectionViewMode(collectionViewMode);
+    const compact = collectionViewMode === "compact";
+    group.querySelectorAll("[data-collection-view]").forEach((btn) => {
+      const v = String(btn.getAttribute("data-collection-view") ?? "").trim();
+      const on = v === collectionViewMode;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.body.classList.toggle("collection-view--compact", compact);
+    if (els.grid) els.grid.classList.toggle("grid--compact", compact);
+  }
+
+  /** Quick-find: park `.card__body` on the image so caption CSS cannot be overridden by PLP theme rules. */
+  function syncCollectionQuickFindCardDom() {
+    const grid = els.grid || document.getElementById("grid");
+    if (!grid) return;
+    const compact = collectionViewMode === "compact";
+    grid.querySelectorAll(":scope > .card[data-item-id]").forEach((article) => {
+      if (!(article instanceof HTMLElement)) return;
+      const media = article.querySelector(":scope > .card__media");
+      let body = article.querySelector(":scope > .card__body");
+      if (!(media instanceof HTMLElement)) return;
+      if (!(body instanceof HTMLElement)) {
+        body = media.querySelector(":scope > .card__body");
+      }
+      if (!(body instanceof HTMLElement)) return;
+
+      article.classList.toggle("card--quick-find", compact);
+
+      if (compact) {
+        if (body.parentElement !== media) media.appendChild(body);
+        return;
+      }
+      if (body.parentElement === media) {
+        media.insertAdjacentElement("afterend", body);
+      }
+    });
+  }
+
+  function applyCollectionViewMode() {
+    collectionViewMode = normalizeCollectionViewMode(collectionViewMode);
+    syncCollectionViewToggleUi();
+    syncCollectionQuickFindCardDom();
   }
 
   function syncCollectionSortChipUi() {
@@ -2268,33 +2365,16 @@
     const autoBase = "Auto (from colour label / hex)";
     const autoOpt = /** @type {HTMLOptionElement | null} */ (basicSel.querySelector('option[value=""]'));
     if (autoOpt) autoOpt.textContent = autoBase;
-
-    let hint = basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint");
-    if (!(hint instanceof HTMLElement)) {
-      hint = document.createElement("p");
-      hint.className = "item-edit-basic-colour-auto-hint";
-      hint.setAttribute("aria-live", "polite");
-      basicSel.insertAdjacentElement("afterend", hint);
-    }
+    basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint")?.remove();
 
     const raw = String(basicSel.value ?? "").trim();
     const isAuto = raw === "";
     const isOmit = raw.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT;
-    if (!isAuto || isOmit) {
-      hint.hidden = true;
-      hint.textContent = "";
-      return;
-    }
+    if (!isAuto || isOmit) return;
 
     const key = inferSinglePrimaryBasicColourFamilyFromFields(fields);
     const label = key ? basicColourLabelEn(key) : "";
-    if (autoOpt) {
-      autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
-    }
-    hint.hidden = false;
-    hint.textContent = label
-      ? `${label} · detected automatically`
-      : "No broad colour detected yet — add a primary colour name or #hex code.";
+    if (autoOpt) autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
   }
 
   /**
@@ -2320,32 +2400,15 @@
     const autoBase = "Auto (from secondary colour label / hex)";
     const autoOpt = /** @type {HTMLOptionElement | null} */ (basicSel.querySelector('option[value=""]'));
     if (autoOpt) autoOpt.textContent = autoBase;
-
-    let hint = basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint");
-    if (!(hint instanceof HTMLElement)) {
-      hint = document.createElement("p");
-      hint.className = "item-edit-basic-colour-auto-hint";
-      hint.setAttribute("aria-live", "polite");
-      basicSel.insertAdjacentElement("afterend", hint);
-    }
+    basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint")?.remove();
 
     const raw = String(basicSel.value ?? "").trim();
     const isAuto = raw === "";
-    if (!isAuto) {
-      hint.hidden = true;
-      hint.textContent = "";
-      return;
-    }
+    if (!isAuto) return;
 
     const key = inferSecondaryBasicColourFamilyFromFields(fields);
     const label = key ? basicColourLabelEn(key) : "";
-    if (autoOpt) {
-      autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
-    }
-    hint.hidden = false;
-    hint.textContent = label
-      ? `${label} · detected automatically`
-      : "No broad colour detected yet — add a secondary colour name or #hex code.";
+    if (autoOpt) autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
   }
 
   /**
@@ -2489,6 +2552,7 @@
   }
 
   let collectionSortMode = loadPersistedCollectionSortMode();
+  let collectionViewMode = loadPersistedCollectionViewMode();
   /** COLLECTION list prices are converted to TWD for totals, sort, and card display. */
   const collectionDisplayCurrency = "TWD";
   /** @type {Set<string>} */
@@ -2876,106 +2940,6 @@
     body.appendChild(sec);
   }
 
-  function wireItemDetailNotesCollapsedAccordion(sec, opts = {}) {
-    const textEl = sec.querySelector(".item-detail__notes-text");
-    const toggle = sec.querySelector(".item-detail__notes-toggle");
-    if (!(textEl instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) return;
-
-    const startExpanded = Boolean(opts.startExpanded);
-    toggle.hidden = false;
-    if (startExpanded) {
-      sec.classList.add("item-detail__notes-section--expanded");
-      sec.classList.remove("item-detail__notes-section--collapsed");
-      textEl.hidden = false;
-      toggle.textContent = "Hide notes";
-      toggle.setAttribute("aria-expanded", "true");
-    } else {
-      sec.classList.add("item-detail__notes-section--collapsed");
-      sec.classList.remove("item-detail__notes-section--expanded");
-      textEl.hidden = true;
-      toggle.textContent = "Show notes";
-      toggle.setAttribute("aria-expanded", "false");
-    }
-
-    const flip = () => {
-      const collapsed = sec.classList.contains("item-detail__notes-section--collapsed");
-      const nextExpanded = collapsed;
-      sec.classList.toggle("item-detail__notes-section--collapsed", !nextExpanded);
-      sec.classList.toggle("item-detail__notes-section--expanded", nextExpanded);
-      textEl.hidden = !nextExpanded;
-      toggle.textContent = nextExpanded ? "Hide notes" : "Show notes";
-      toggle.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
-    };
-
-    toggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      flip();
-    });
-  }
-
-  function collapseItemDetailNotesSection(sec) {
-    if (!(sec instanceof HTMLElement)) return;
-    const textEl = sec.querySelector(".item-detail__notes-text");
-    const toggle = sec.querySelector(".item-detail__notes-toggle");
-    if (!itemNotesDisplayText(textEl instanceof HTMLElement ? textEl.textContent : "")) {
-      sec.remove();
-      return;
-    }
-    sec.classList.add("item-detail__notes-section--collapsed");
-    sec.classList.remove("item-detail__notes-section--expanded");
-    if (textEl instanceof HTMLElement) textEl.hidden = true;
-    if (toggle instanceof HTMLButtonElement) {
-      toggle.textContent = "Show notes";
-      toggle.setAttribute("aria-expanded", "false");
-    }
-  }
-
-  /** @param {HTMLElement} root */
-  function itemDetailGalleryBottomY(root) {
-    const gallery =
-      root.querySelector(".item-detail__gallery") || root.querySelector(".item-detail__media.item-detail__gallery-stage");
-    if (!(gallery instanceof HTMLElement)) return null;
-    return gallery.getBoundingClientRect().bottom;
-  }
-
-  /** @param {HTMLElement} root @param {HTMLElement} notesSec */
-  function itemDetailNotesBottomExceedsGallery(root, notesSec) {
-    const galleryBottom = itemDetailGalleryBottomY(root);
-    if (galleryBottom == null) return false;
-    return notesSec.getBoundingClientRect().bottom > galleryBottom + 4;
-  }
-
-  /** PDP: collapse long notes when expanded text runs past the gallery bottom. */
-  function installItemDetailNotesPdpGallerySync(root) {
-    const notesSec = root.querySelector(".item-detail__notes-section--accordion");
-    if (!(notesSec instanceof HTMLElement)) return;
-    const textEl = notesSec.querySelector(".item-detail__notes-text");
-    if (!hasItemNotesForDisplay(textEl instanceof HTMLElement ? textEl.textContent : "")) {
-      notesSec.remove();
-      return;
-    }
-    const gallery =
-      root.querySelector(".item-detail__gallery") || root.querySelector(".item-detail__media.item-detail__gallery-stage");
-    if (!(gallery instanceof HTMLElement)) return;
-
-    const sync = () => {
-      if (notesSec.classList.contains("item-detail__notes-section--collapsed")) return;
-      if (itemDetailNotesBottomExceedsGallery(root, notesSec)) {
-        collapseItemDetailNotesSection(notesSec);
-      }
-    };
-
-    requestAnimationFrame(() => requestAnimationFrame(sync));
-    if (typeof ResizeObserver !== "undefined") {
-      const ro = new ResizeObserver(() => sync());
-      ro.observe(gallery);
-      const body = root.querySelector(".item-detail__body--product");
-      if (body instanceof HTMLElement) ro.observe(body);
-    } else {
-      globalThis.addEventListener("resize", sync, { passive: true });
-    }
-  }
-
   function wireItemDetailNotesReadMore(sec) {
     const textEl = sec.querySelector(".item-detail__notes-text");
     const toggle = sec.querySelector(".item-detail__notes-toggle");
@@ -3023,47 +2987,26 @@
     return Boolean(itemNotesDisplayText(raw));
   }
 
-  /** Item notes — PDP: accordion (open by default unless taller than gallery); modal: clamp + read more. */
+  /** Item notes — PDP: always visible; modal/dialog: clamp + read more. */
   function mountItemDetailNotesSection(host, notesText, opts = {}) {
     const text = itemNotesDisplayText(notesText);
     if (!text) return null;
     if (!(host instanceof HTMLElement)) return null;
 
     const pdpAccordion = Boolean(opts.pdpAccordion);
-    const startCollapsed = Boolean(opts.startCollapsed);
     const sec = document.createElement("section");
     sec.className = "item-detail__notes-section";
-    if (startCollapsed || pdpAccordion) sec.classList.add("item-detail__notes-section--accordion");
-
-    const notesId = `item-detail-notes-${String(detailItemId ?? "item").replace(/[^\w-]/g, "")}`;
-
-    if (startCollapsed || pdpAccordion) {
-      const head = document.createElement("div");
-      head.className = "item-detail__notes-head";
-
+    if (pdpAccordion) {
+      sec.classList.add("item-detail__notes-section--accordion", "item-detail__notes-section--expanded");
       const h = document.createElement("h3");
       h.className = "item-detail__notes-h";
       h.textContent = "Notes";
-
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "item-detail__notes-toggle";
-      toggle.textContent = "Show notes";
-      toggle.setAttribute("aria-expanded", "false");
-
       const textEl = document.createElement("div");
       textEl.className = "item-detail__notes-text";
-      textEl.id = notesId;
       textEl.textContent = text;
-      if (startCollapsed) textEl.hidden = true;
-      toggle.setAttribute("aria-controls", notesId);
-
-      head.appendChild(h);
-      head.appendChild(toggle);
-      sec.appendChild(head);
+      sec.appendChild(h);
       sec.appendChild(textEl);
       host.appendChild(sec);
-      wireItemDetailNotesCollapsedAccordion(sec, { startExpanded: pdpAccordion && !startCollapsed });
       return sec;
     }
 
@@ -7591,7 +7534,6 @@
     if (!itemDetailIsPageRoot(root)) return;
     globalThis.scrollTo({ top: 0, left: 0, behavior: "auto" });
     if (!edit) {
-      installItemDetailNotesPdpGallerySync(root);
       return;
     }
     queueMicrotask(() => {
@@ -8752,12 +8694,15 @@
 
     if (clearBtn) {
       clearBtn.hidden = !(enabled && n > 0);
-      if (!clearBtn.hidden && typeof onClearAll === "function") {
-        clearBtn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onClearAll();
-        };
+      if (!clearBtn.hidden) {
+        clearBtn.setAttribute("aria-label", "Clear all filters");
+        if (typeof onClearAll === "function") {
+          clearBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClearAll();
+          };
+        }
       }
     }
   }
@@ -9812,6 +9757,14 @@
     return /^(?:\/)?images\//i.test(s);
   }
 
+  /** True when a bucket URL lives under this item's storage folder (skips stale paths after re-id / merge). */
+  function primaryCoverUrlBelongsToItem(item, url) {
+    const id = String(item?.id ?? "").trim();
+    const path = storagePathFromWardrobeImageUrl(url);
+    if (!id || !path) return true;
+    return path === id || path.startsWith(`${id}/`);
+  }
+
   /**
    * Ordered URLs to try for the cover: primary plus gallery / variant images (https, data, or blob only).
    */
@@ -9826,45 +9779,25 @@
       out.push(x);
     }
 
-    if (!primary) {
-      for (const u of itemGalleryList(item)) {
-        if (isDisplayableCloudImageUrl(u)) add(u);
-      }
-      const vars = getItemColourVariants(item);
-      if (vars) {
-        for (const v of vars) {
-          const u = String(v?.image ?? "").trim();
-          if (isDisplayableCloudImageUrl(u)) add(u);
-        }
-      }
-      return out.map((u) => withWardrobeImageCacheBust(u, item));
-    }
-
-    if (!isDisplayableCloudImageUrl(primary)) {
-      for (const u of itemGalleryList(item)) {
-        if (isDisplayableCloudImageUrl(u)) add(u);
-      }
-      const vars = getItemColourVariants(item);
-      if (vars) {
-        for (const v of vars) {
-          const u = String(v?.image ?? "").trim();
-          if (isDisplayableCloudImageUrl(u)) add(u);
-        }
-      }
-      return out.map((u) => withWardrobeImageCacheBust(u, item));
-    }
-
-    add(primary);
-    for (const u of itemGalleryList(item)) {
-      if (isDisplayableCloudImageUrl(u)) add(u);
-    }
+    const galleryUrls = itemGalleryList(item).filter((u) => isDisplayableCloudImageUrl(u));
+    /** @type {string[]} */
+    const variantUrls = [];
     const vars = getItemColourVariants(item);
     if (vars) {
       for (const v of vars) {
         const u = String(v?.image ?? "").trim();
-        if (isDisplayableCloudImageUrl(u)) add(u);
+        if (isDisplayableCloudImageUrl(u)) variantUrls.push(u);
       }
     }
+
+    const primaryDisplayable = Boolean(primary) && isDisplayableCloudImageUrl(primary);
+    const primaryOwned = primaryDisplayable && primaryCoverUrlBelongsToItem(item, primary);
+
+    if (primaryOwned) add(primary);
+    for (const u of galleryUrls) add(u);
+    for (const u of variantUrls) add(u);
+    if (primaryDisplayable && !primaryOwned) add(primary);
+
     return out.map((u) => withWardrobeImageCacheBust(u, item));
   }
 
@@ -9906,9 +9839,8 @@
       return coverResolutionCache.get(cacheKey);
     }
 
-    const src = String(item?.image ?? "").trim();
-    if (!isDisplayableCloudImageUrl(src)) return "";
-    return withWardrobeImageCacheBust(src, item);
+    const candidates = buildCoverCandidates(item);
+    return candidates[0] ?? "";
   }
 
   const COLLECTION_GRID_CARD_RENDER = Object.freeze({
@@ -10711,8 +10643,6 @@
     if (hero) hero.innerHTML = "";
     const heading = document.getElementById("styling-board-heading");
     if (heading) heading.hidden = false;
-    const hint = document.getElementById("outfit-hint");
-    if (hint) hint.hidden = false;
   }
 
   function revealStylingBoardAddedPiece(slot) {
@@ -10725,14 +10655,12 @@
     const addedSection = document.getElementById("styling-board-drawer-added");
     const hero = document.getElementById("styling-board-added-hero");
     const heading = document.getElementById("styling-board-heading");
-    const hint = document.getElementById("outfit-hint");
     if (!root || !hero) return;
 
     root.classList.add("styling-board-drawer--added");
     status?.removeAttribute("hidden");
     addedSection?.removeAttribute("hidden");
     if (heading) heading.hidden = true;
-    if (hint) hint.hidden = true;
 
     const proj = itemProjectionForOutfitSlot(item, slot);
     const variant = getItemColourVariants(item)?.find((v) => v.key === slot.colourKey);
@@ -10828,6 +10756,8 @@
       : "Save the current strip as a new named outfit.";
     const clearAll = els.stylingBoardClearAll || document.getElementById("styling-board-clear-all");
     if (clearAll) clearAll.hidden = n === 0;
+    const clearBoard = els.outfitClear || document.getElementById("outfit-clear");
+    if (clearBoard) clearBoard.hidden = n === 0;
   }
 
   function reorderOutfit(fromIndex, toIndex) {
@@ -13425,7 +13355,8 @@
   function mountCollectionCardBoardInHoverChrome(media, boardAddBtn, { hasColourTray = false } = {}) {
     if (!boardAddBtn) return;
     boardAddBtn.classList.add("card__board-add--collection-hover");
-    if (hasColourTray) {
+    const mountInColourTray = hasColourTray && !isFiltersNarrowViewport();
+    if (mountInColourTray) {
       const trayInner = media.querySelector(".card__colour-tray__inner");
       if (trayInner) {
         trayInner.appendChild(boardAddBtn);
@@ -13443,7 +13374,28 @@
 
   function stylingBoardCtaLabel(blocked) {
     if (blocked) return "ON BOARD";
-    return isCollectionCardCoarsePointer() ? "+" : "+ STYLE";
+    return isFiltersNarrowViewport() ? "+" : "+ STYLE";
+  }
+
+  function syncCollectionBoardAddButtonLabels() {
+    if (!els.grid) return;
+    els.grid.querySelectorAll(":scope > .card[data-item-id]").forEach((article) => {
+      if (!(article instanceof HTMLElement)) return;
+      const item = itemById.get(article.dataset.itemId ?? "");
+      if (!item) return;
+      const quick = article.querySelector(".card__board-add, .card__quick-outfit");
+      if (!(quick instanceof HTMLButtonElement)) return;
+      const variants = getItemColourVariants(item);
+      const allVariantKeys = variants?.map((v) => v.key) ?? [];
+      const takenKeys = new Set(
+        currentOutfitSlots.filter((s) => s.itemId === item.id && s.colourKey).map((s) => String(s.colourKey))
+      );
+      const everyVariantTaken =
+        Boolean(variants?.length) && allVariantKeys.length > 0 && allVariantKeys.every((k) => takenKeys.has(k));
+      const singleTaken = !variants?.length && outfitSlotKeySet().has(outfitSlotKey({ itemId: item.id }));
+      const blocked = everyVariantTaken || singleTaken;
+      quick.textContent = stylingBoardCtaLabel(blocked);
+    });
   }
 
   function itemDetailBoardCtaLabel(blocked) {
@@ -13622,7 +13574,7 @@
       if (ev.target.closest(".card__gallery-thumb")) return;
       if (ev.target.closest(".card__gallery-nav")) return;
       if (ev.target.closest(".card__season-chip")) return;
-      /* Collection PLP mobile: “+” in the colour tray — first tap reveals add-to-board, second opens piece. */
+      /* Collection PLP mobile: first tap on card reveals “+”, second opens piece. */
       if (
         isCollectionCardCoarsePointer() &&
         !isCollectionGridCardContext() &&
@@ -13676,7 +13628,7 @@
     body.appendChild(brand);
     body.appendChild(metaLine);
 
-    const hasColourTray = Boolean(gridSwatchVariants?.length);
+    const hasColourTray = Boolean(gridSwatchVariants?.length) && !isFiltersNarrowViewport();
     if (hasColourTray) {
       mountVariantSwatchStrip(media, item, {
         variants: gridSwatchVariants,
@@ -13975,11 +13927,16 @@
       nav.appendChild(btn);
     }
 
-    appendCrumb("HOME", { onClick: navigateToSiteHome });
-    appendSep();
+    /* Collection hub — HOME only; deeper browse/search starts at COLLECTION. */
+    if (atRoot && !searchActive) {
+      appendCrumb("HOME", { onClick: navigateToSiteHome });
+      host.appendChild(nav);
+      return;
+    }
+
     appendCrumb("COLLECTION", {
       onClick: navigateCollectionCollectionRoot,
-      isCurrent: atRoot && !searchActive,
+      isCurrent: false,
     });
 
     if (searchActive) {
@@ -14045,8 +14002,10 @@
     elTitle.removeAttribute("aria-hidden");
     elTitle.textContent = title;
     elTitle.classList.remove("items-toolbar__page-title--placeholder");
+    const atRoot = collectionHeadingAtCollectionRoot();
     const season = normalizeSeasonNavToken(seasonNavFilter);
-    const trailParts = ["HOME", "COLLECTION"];
+    const trailParts =
+      atRoot && !searchActive ? ["HOME"] : ["COLLECTION"];
     if (searchActive) trailParts.push("SEARCH");
     else if (season) trailParts.push(collectionHeadingSeasonLabel());
     root.setAttribute("aria-label", `${trailParts.join(" / ")} · ${title}`);
@@ -14130,6 +14089,7 @@
     const outfitKey = buildCollectionGridOutfitKey();
 
     if (structuralKey === lastGridStructuralKey && outfitKey === lastGridOutfitKey) {
+      applyCollectionViewMode();
       syncFilterSearchFieldDomPlacement();
       syncCollectionSearchResultsPlpUi();
       syncToolbarActiveFilterChips();
@@ -14184,6 +14144,7 @@
     if (els.emptyReset) els.emptyReset.hidden = !narrowingFiltersActive();
     if (els.emptyWrap) els.emptyWrap.hidden = n > 0;
     els.grid.hidden = n === 0;
+    applyCollectionViewMode();
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
     syncToolbarActiveFilterChips();
@@ -14599,7 +14560,6 @@
       meta.textContent = `${n} piece${n === 1 ? "" : "s"}${dateStr ? ` · ${dateStr}` : ""}${
         notes ? ` · ${notes.length > 48 ? `${notes.slice(0, 45)}…` : notes}` : ""
       }`;
-      body.appendChild(title);
       body.appendChild(meta);
 
       const flatlay = document.createElement("div");
@@ -14643,6 +14603,7 @@
       act.appendChild(delBtn);
 
       body.appendChild(act);
+      card.appendChild(title);
       card.appendChild(flatlay);
       card.appendChild(body);
       li.appendChild(card);
@@ -16644,7 +16605,7 @@
     }
 
     if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true, startCollapsed: false });
+      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true });
     }
 
     if (isItemPageView) {
@@ -17592,6 +17553,27 @@
   }
 
   function wireCollectionBrowseToolControls() {
+    const viewToggle = document.getElementById("collection-view-toggle");
+    if (viewToggle && viewToggle.dataset.twViewToggleWired !== "1") {
+      viewToggle.dataset.twViewToggleWired = "1";
+      viewToggle.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-collection-view]");
+        if (!btn || !viewToggle.contains(btn)) return;
+        const v = String(btn.getAttribute("data-collection-view") ?? "").trim();
+        if (!COLLECTION_VIEW_MODES.includes(v)) return;
+        collectionViewMode = persistCollectionViewMode(v);
+        applyCollectionViewMode();
+      });
+    }
+    applyCollectionViewMode();
+    if (!globalThis.__twCollectionViewResizeWired) {
+      globalThis.__twCollectionViewResizeWired = true;
+      globalThis.addEventListener("resize", () => {
+        if (!document.getElementById("grid")) return;
+        syncCollectionQuickFindCardDom();
+      });
+    }
+
     const filterDrawer = document.getElementById("collection-filter-drawer");
     if (filterDrawer && filterDrawer.dataset.twSortChipWired !== "1") {
       filterDrawer.dataset.twSortChipWired = "1";
@@ -17726,6 +17708,36 @@
     if (util) bottom = Math.max(bottom, Math.ceil(util.getBoundingClientRect().bottom));
     if (brandNav) bottom = Math.max(bottom, Math.ceil(brandNav.getBoundingClientRect().bottom));
     return bottom;
+  }
+
+  /** Desktop mega menu: align left rail + preview split to header wordmark edges. */
+  function syncHeaderMegaMenuNavInset() {
+    try {
+      if (!globalThis.matchMedia?.(HEADER_DESKTOP_MQ)?.matches) {
+        document.documentElement.style.removeProperty("--header-mega-nav-inset-left");
+        document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
+        return;
+      }
+      const brandNav = document.querySelector(".site-header__brand-nav");
+      if (!brandNav) return;
+      const navRect = brandNav.getBoundingClientRect();
+      const left = Math.max(0, Math.round(navRect.left));
+      document.documentElement.style.setProperty("--header-mega-nav-inset-left", `${left}px`);
+      const wordmark = document.querySelector(".site-brand-wordmark");
+      if (wordmark instanceof HTMLElement) {
+        const railWidth = Math.max(192, Math.round(wordmark.getBoundingClientRect().right - navRect.left));
+        document.documentElement.style.setProperty("--header-mega-menu-rail-width", `${railWidth}px`);
+      } else {
+        document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
+      }
+    } catch {
+      try {
+        document.documentElement.style.removeProperty("--header-mega-nav-inset-left");
+        document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   /** Desktop flyouts: dim full page below header chrome; flyouts sit above dim (z-index). */
@@ -17981,6 +17993,11 @@
       mobileShell.hidden = true;
       mobileShell.setAttribute("aria-hidden", "true");
     }
+    const mobileNavDim = document.getElementById("site-mobile-nav-dim");
+    if (mobileNavDim) {
+      mobileNavDim.hidden = true;
+      mobileNavDim.setAttribute("aria-hidden", "true");
+    }
     document.getElementById("site-header-menu-btn")?.setAttribute("aria-expanded", "false");
     document.getElementById("site-header-menu-btn")?.setAttribute("aria-label", "Open categories menu");
 
@@ -18206,12 +18223,35 @@
     const stylingBoardIconHtml =
       '<span class="site-header__styling-board-icon" aria-hidden="true">' + STYLING_BOARD_GLYPH_SVG + "</span>";
 
+    function ensureMobileNavHeaderBack() {
+      const brandNav = document.querySelector(".site-header__brand-nav");
+      if (!brandNav) return null;
+      let back = document.getElementById("site-mobile-nav-back");
+      if (back && !brandNav.contains(back)) {
+        back.remove();
+        back = null;
+      }
+      if (!back) {
+        back = document.createElement("button");
+        back.type = "button";
+        back.id = "site-mobile-nav-back";
+        back.className = "site-header__mobile-nav-back site-mobile-shell__submenu-back";
+        back.hidden = true;
+        back.setAttribute("aria-label", "Back to main menu");
+        back.innerHTML =
+          '<span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>' +
+          '<span class="site-mobile-shell__submenu-title" id="site-mobile-nav-drill-title"></span>';
+        brandNav.insertBefore(back, brandNav.firstChild);
+      }
+      return back;
+    }
+
     function mountMobileNavigationShell() {
+      ensureMobileNavHeaderBack();
       let shell = document.getElementById("site-mobile-shell");
       if (shell) {
         const hasRlLayout =
-          shell.querySelector(".site-mobile-shell__bar--submenu") &&
-          shell.querySelector(".site-mobile-shell__submenu-back .site-mobile-shell__submenu-title") &&
+          document.getElementById("site-mobile-nav-back")?.closest(".site-header__brand-nav") &&
           shell.querySelector(".site-mobile-nav__season-link");
         if (hasRlLayout) return shell;
         shell.remove();
@@ -18247,7 +18287,7 @@
       shellSearchBtn.className =
         "site-mobile-shell__tool site-mobile-shell__tool--search site-header__search-btn";
       shellSearchBtn.setAttribute("aria-label", "Search");
-      shellSearchBtn.innerHTML = '<span class="site-header__search-icon" aria-hidden="true"></span>';
+      shellSearchBtn.innerHTML = HEADER_SEARCH_ICON_HTML;
 
       const shellStylingBtn = document.createElement("button");
       shellStylingBtn.type = "button";
@@ -18273,20 +18313,7 @@
       tools.append(shellSearchBtn, shellStylingBtn, shellCloseBtn);
       mainBar.append(logo, tools);
 
-      const submenuBar = document.createElement("header");
-      submenuBar.className = "site-mobile-shell__bar site-mobile-shell__bar--submenu";
-      submenuBar.setAttribute("aria-hidden", "true");
-      submenuBar.innerHTML = `
-        <button type="button" class="site-mobile-shell__submenu-back" id="site-mobile-nav-back" aria-label="Back to main menu">
-          <span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>
-          <span class="site-mobile-shell__submenu-title" id="site-mobile-nav-drill-title"></span>
-        </button>
-        <button type="button" class="site-mobile-shell__submenu-close" id="site-mobile-nav-drill-close" aria-label="Close menu">
-          <span class="site-mobile-shell__close-icon" aria-hidden="true"></span>
-        </button>
-      `;
-
-      chrome.append(mainBar, submenuBar);
+      chrome.append(mainBar);
 
       const body = document.createElement("div");
       body.className = "site-mobile-shell__body";
@@ -18341,6 +18368,7 @@
       nav.append(rootLevel, drillLevel);
       body.appendChild(nav);
       shell.append(chrome, body);
+      ensureMobileNavDim();
       document.body.appendChild(shell);
       return shell;
     }
@@ -18462,6 +18490,7 @@
     };
 
     const syncHeaderSubmenuBackdropInset = () => {
+      syncHeaderMegaMenuNavInset();
       if (isHeaderCompactLayout()) return;
       const chromeBottom = measureHeaderChromeBottom();
       if (chromeBottom > 0) {
@@ -18668,6 +18697,40 @@
 
     function syncMobileShellTop() {
       syncBrandSignatureBarHeight();
+      try {
+        const chromeBottom = measureHeaderChromeBottom();
+        if (chromeBottom > 0) {
+          document.documentElement.style.setProperty("--site-mobile-shell-top", `${chromeBottom}px`);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function ensureMobileNavDim() {
+      let dim = document.getElementById("site-mobile-nav-dim");
+      if (!dim) {
+        dim = document.createElement("button");
+        dim.type = "button";
+        dim.id = "site-mobile-nav-dim";
+        dim.className = "site-mobile-nav-dim";
+        dim.setAttribute("aria-label", "Close menu");
+        dim.hidden = true;
+        dim.addEventListener("click", () => closeMobileCategoryPanel());
+        document.body.appendChild(dim);
+      }
+      return dim;
+    }
+
+    function setMobileNavDimVisible(visible) {
+      const dim = ensureMobileNavDim();
+      if (visible) {
+        dim.hidden = false;
+        dim.removeAttribute("aria-hidden");
+      } else {
+        dim.hidden = true;
+        dim.setAttribute("aria-hidden", "true");
+      }
     }
 
     const MOBILE_NAV_MOTION_MS = 320;
@@ -18677,12 +18740,13 @@
       const nav = document.getElementById("site-mobile-nav");
       const root = document.getElementById("site-mobile-nav-root");
       const drill = document.getElementById("site-mobile-nav-drill");
-      const submenuBar = shell?.querySelector(".site-mobile-shell__bar--submenu");
+      const back = document.getElementById("site-mobile-nav-back");
       if (!nav || !root || !drill) return;
       nav.classList.remove("site-mobile-nav--drill-open");
       drill.classList.remove("is-active");
       shell?.classList.remove("site-mobile-shell--submenu");
-      submenuBar?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("collection-ui--mobile-nav-drill");
+      if (back instanceof HTMLElement) back.hidden = true;
       root.removeAttribute("aria-hidden");
       drill.setAttribute("aria-hidden", "true");
       if (focusMain) {
@@ -18698,7 +18762,7 @@
       const drill = document.getElementById("site-mobile-nav-drill");
       const title = document.getElementById("site-mobile-nav-drill-title");
       const list = document.getElementById("site-mobile-nav-drill-list");
-      const submenuBar = shell?.querySelector(".site-mobile-shell__bar--submenu");
+      const back = ensureMobileNavHeaderBack();
       if (!nav || !root || !drill || !title || !list) return;
       const pool = poolItemsForDrillSubcategories({ respectCategory: false });
       const entries = mobileNavSubcategoryEntriesForSlot(slot, pool);
@@ -18722,14 +18786,14 @@
         list.appendChild(li);
       }
       drill.classList.remove("is-active");
-      shell?.classList.add("site-mobile-shell--submenu");
-      submenuBar?.setAttribute("aria-hidden", "false");
+      document.body.classList.add("collection-ui--mobile-nav-drill");
+      if (back instanceof HTMLElement) back.hidden = false;
       root.setAttribute("aria-hidden", "true");
       drill.setAttribute("aria-hidden", "false");
       requestAnimationFrame(() => {
         nav.classList.add("site-mobile-nav--drill-open");
         drill.classList.add("is-active");
-        document.getElementById("site-mobile-nav-back")?.focus();
+        back?.focus();
       });
     }
 
@@ -18795,6 +18859,7 @@
         headerMenuBtn?.setAttribute("aria-expanded", "false");
         headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
         document.body.classList.remove("collection-ui--mobile-nav-open");
+        setMobileNavDimVisible(false);
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
       };
@@ -18806,6 +18871,7 @@
 
       mobileShell.classList.remove("is-open");
       document.body.classList.remove("collection-ui--mobile-nav-open");
+      setMobileNavDimVisible(false);
       headerMenuBtn?.setAttribute("aria-expanded", "false");
       headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
 
@@ -18831,6 +18897,7 @@
       mobileShell.classList.add("is-open");
       mobileShell.setAttribute("aria-hidden", "false");
       document.body.classList.add("collection-ui--mobile-nav-open");
+      setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");
       headerMenuBtn?.setAttribute("aria-label", "Close categories menu");
       requestAnimationFrame(() => {
@@ -19023,6 +19090,7 @@
       requestAnimationFrame(() => {
         if (document.body.classList.contains("collection-ui--header-submenu-open")) {
           syncHeaderSubmenuBackdropInset();
+          syncHeaderMegaMenuNavInset();
         }
       });
     };
@@ -19283,9 +19351,6 @@
     document.getElementById("site-mobile-nav-back")?.addEventListener("click", () => {
       resetMobileNavDrill({ focusMain: true });
     });
-    document.getElementById("site-mobile-nav-drill-close")?.addEventListener("click", () => {
-      closeMobileCategoryPanel();
-    });
     document.getElementById("site-mobile-nav")?.addEventListener("click", (e) => {
       const seasonBtn = /** @type {HTMLElement | null} */ (
         e.target.closest("[data-mobile-nav-season]")
@@ -19389,9 +19454,12 @@
       ensureBodyScrollUnlockedWhenNoOverlay();
     }
 
+    syncHeaderMegaMenuNavInset();
+
     globalThis.addEventListener(
       "resize",
       () => {
+        syncHeaderMegaMenuNavInset();
         if (
           document.body.classList.contains("collection-ui--header-submenu-open") ||
           document.body.classList.contains("collection-ui--header-submenu-closing")
@@ -19644,6 +19712,7 @@
       globalThis.matchMedia?.("(max-width: 900px)")?.addEventListener?.("change", () => {
         syncFiltersMenuForViewport();
         renderCategoryDrill();
+        syncCollectionBoardAddButtonLabels();
       });
     }
 
