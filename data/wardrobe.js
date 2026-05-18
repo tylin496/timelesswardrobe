@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — frozen catalogue seed (offline fallback + dev).
  *
- * Frozen from Supabase wardrobe_items on 2026-05-16T20:44:39.750Z.
+ * Frozen from Supabase wardrobe_items on brand title-case migration 2026-05-17T22:48:26.004Z.
  * Regenerate: npm run db:freeze-catalogue
  *
  * Collection thesis is described in the site header. Each row uses `category` (and optional
@@ -17,7 +17,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "acme-cultum-navy-double-breasted-super-120s-blazer",
     "category": "Jackets",
-    "brand": "ACME CULTUM",
+    "brand": "Acme Cultum",
     "name": "Navy Double-Breasted  Blazer",
     "season": "A/W",
     "colour": "Navy",
@@ -39,7 +39,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "alden-563-tassel-loafer-color-8-cordovan",
     "category": "Footwear",
-    "brand": "ALDEN",
+    "brand": "Alden",
     "name": "Tassel Loafer",
     "season": "All-season",
     "colour": "Color 8",
@@ -62,7 +62,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "barbour-sage-beaufort-waxed-jacket",
     "category": "Outerwear",
-    "brand": "BARBOUR",
+    "brand": "Barbour",
     "name": "Sage Beaufort Waxed Jacket",
     "season": "A/W",
     "colour": "Sage",
@@ -84,7 +84,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "jewellery-curb-bracelet",
     "category": "Jewellery",
-    "brand": "bespoke",
+    "brand": "Bespoke",
     "name": "Curb Bracelet",
     "season": "All-season",
     "colour": "18ct yellow gold, 5.2 mm",
@@ -105,7 +105,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "jewellery-rolo-chain",
     "category": "Jewellery",
-    "brand": "bespoke",
+    "brand": "Bespoke",
     "name": "Rolo Chain",
     "season": "All-season",
     "colour": "18ct yellow gold, 2.5 mm",
@@ -125,14 +125,14 @@ const WARDROBE_ITEMS = [
   {
     "id": "jewellery-ruby-gypsy-ring",
     "category": "Jewellery",
-    "brand": "bespoke",
+    "brand": "Bespoke",
     "name": "Ruby Gypsy Ring",
     "season": "All-season",
     "colour": "18ct yellow gold with Diamonds, 6.8 mm face, 3 mm shank",
     "fabric": "18K",
     "size": "HK 22",
     "image": "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/jewellery-ruby-gypsy-ring/1778698277222-cover-edit.png",
-    "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)   Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\nDate: 4 October 2024\n\nEngraving\nInscription: Ad Meliora . 2024\n￼\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
+    "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)     Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\nDate: 4 October 2024\n\nEngraving\nInscription: Ad Meliora . 2024\n￼\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
     "metadata": {
       "price": 22600,
       "priceCurrency": "TWD"
@@ -142,7 +142,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "jewellery-signet-ring",
     "category": "Jewellery",
-    "brand": "bespoke",
+    "brand": "Bespoke",
     "name": "Signet Ring",
     "season": "All-season",
     "colour": "18ct yellow gold, 12 × 14 mm",
@@ -152,7 +152,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/jewellery-signet-ring/main/gallery/01.jpg"
     ],
-    "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)   Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
+    "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)     Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
     "metadata": {
       "price": 20000,
       "priceCurrency": "TWD"
@@ -162,7 +162,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "brooks-brothers-golden-fleece-navy-twill-blazer",
     "category": "Jackets",
-    "brand": "BROOKS BROTHERS",
+    "brand": "Brooks Brothers",
     "name": "Golden Fleece Navy Blazer",
     "season": "A/W",
     "colour": "Navy",
@@ -184,7 +184,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "brooks-brothers-light-brown-houndstooth-tweed-jacket",
     "category": "Jackets",
-    "brand": "BROOKS BROTHERS",
+    "brand": "Brooks Brothers",
     "name": "Houndstooth Tweed Jacket",
     "season": "A/W",
     "colourCode": "#A28060",
@@ -205,7 +205,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "burberrys-beige-single-breasted-balmacaan-coat",
     "category": "Outerwear",
-    "brand": "BURBERRYS",
+    "brand": "Burberrys",
     "name": "Balmacaan Coat",
     "season": "A/W",
     "weight": "Single-Breasted",
@@ -221,7 +221,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "cartier-tank-solo-large",
     "category": "Dress watch",
-    "brand": "CARTIER",
+    "brand": "Cartier",
     "name": "Tank Solo",
     "season": "All-season",
     "weight": "W5200004",
@@ -243,7 +243,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "common-projects-achilles-low-white",
     "category": "Footwear",
-    "brand": "COMMON PROJECTS",
+    "brand": "Common Projects",
     "name": "Achilles Low",
     "season": "All-season",
     "colour": "White",
@@ -263,7 +263,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "crockett-jones-chukka-snuff-suede",
     "category": "Footwear",
-    "brand": "CROCKETT & JONES",
+    "brand": "Crockett & Jones",
     "name": "Chukka",
     "season": "All-season",
     "colour": "Snuff",
@@ -285,7 +285,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "crockett-jones-pembroke-tan",
     "category": "Footwear",
-    "brand": "CROCKETT & JONES",
+    "brand": "Crockett & Jones",
     "name": "Pembroke",
     "season": "All-season",
     "colour": "Tan",
@@ -307,7 +307,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "custom-69db120c-9ec2-4f76-a08c-744a42777fb3",
     "category": "Eyewear",
-    "brand": "CUTLER AND GROSS",
+    "brand": "Cutler And Gross",
     "name": "Kingsman 0847 Sunglasses",
     "season": "All-season",
     "colour": "Black, Brown Lenses",
@@ -327,7 +327,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "future-wedding-bands",
     "category": "Jewellery",
-    "brand": "future piece",
+    "brand": "Future Piece",
     "name": "Wedding Bands",
     "season": "All-season",
     "fabric": "Pt950 1.8 mm (bride) / 18ct YG 2 mm size 13 (groom)",
@@ -359,7 +359,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "gu-wine-cable-knit-polo",
     "category": "Shirts",
-    "brand": "GU",
+    "brand": "Gu",
     "name": "Cable-Knit Polo",
     "season": "S/S",
     "colour": "Wine (White Striped Trim)",
@@ -379,7 +379,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "gu-olive-brown-wide-straight-trousers",
     "category": "Bottoms",
-    "brand": "GU",
+    "brand": "Gu",
     "name": "Wide-Straight Trousers",
     "season": "All-season",
     "colour": "Mole Brown",
@@ -465,7 +465,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "jpress-grey-herringbone-tweed-jacket",
     "category": "Jackets",
-    "brand": "J. PRESS",
+    "brand": "J. Press",
     "name": "Herringbone Tweed Jacket",
     "season": "A/W",
     "colour": "Grey",
@@ -486,7 +486,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "custom-c60ef29b-7596-4b2c-aac2-6d1dcedbd74c",
     "category": "Eyewear",
-    "brand": "KlassiC.",
+    "brand": "Klassic.",
     "name": "Smoke Olive Acetate Optical (copy)",
     "season": "All-season",
     "colour": "Clear",
@@ -507,7 +507,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "llbean-camel-corduroy-trousers",
     "category": "Bottoms",
-    "brand": "L.L.BEAN",
+    "brand": "L.L.Bean",
     "name": "Corduroy Trousers",
     "season": "A/W",
     "colour": "Dark Khaki",
@@ -529,7 +529,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "mfk-grand-soir",
     "category": "Evening",
-    "brand": "MAISON FRANCIS KURKDJIAN",
+    "brand": "Maison Francis Kurkdjian",
     "name": "Grand Soir",
     "season": "All-season",
     "colour": "Labdanum, benzoin, vanilla, amber",
@@ -549,7 +549,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "muji-oatmeal-beige-heavy-aran-wool-cable-knit-jumper",
     "category": "Mid Layer",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Aran Cable-Knit Jumper",
     "season": "A/W",
     "colour": "Oatmeal beige",
@@ -570,7 +570,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "muji-slate-blue-lightweight-fine-knit-tee",
     "category": "Shirts",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Fine Knit T-Shirt",
     "season": "S/S",
     "colour": "Slate Blue",
@@ -599,7 +599,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "muji-dark-navy-wool-high-gauge-v-neck-cardigan",
     "category": "Mid Layer",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "High-Gauge V-Neck",
     "season": "A/W",
     "colour": "Navy",
@@ -621,7 +621,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "muji-cream-wide-leg-jeans",
     "category": "Bottoms",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Wide-Leg Jeans",
     "season": "All-season",
     "colour": "Natural Ecru",
@@ -642,7 +642,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "nicolai-new-york",
     "category": "Day",
-    "brand": "NICOLAÏ",
+    "brand": "Nicolaï",
     "name": "New York",
     "season": "All-season",
     "colour": "Bergamot, black pepper, oak moss.",
@@ -662,7 +662,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "paraboot-ferret-lisse-cafe",
     "category": "Footwear",
-    "brand": "PARABOOT",
+    "brand": "Paraboot",
     "name": "Ferret",
     "season": "S/S",
     "colour": "Lisse Café",
@@ -684,7 +684,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "prl-beige-basket-weave-linen-jacket",
     "category": "Jackets",
-    "brand": "POLO RALPH LAUREN",
+    "brand": "Polo Ralph Lauren",
     "name": "Basket-Weave Linen Jacket",
     "season": "S/S",
     "fabric": "Linen",
@@ -717,7 +717,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "prl-wine-polo-bear-wool-cashmere-jumper",
     "category": "Mid Layer",
-    "brand": "POLO RALPH LAUREN",
+    "brand": "Polo Ralph Lauren",
     "name": "Polo Bear Jumper",
     "season": "A/W",
     "colour": "Wine",
@@ -740,7 +740,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "prl-washed-wine-cream-rugby-shirt",
     "category": "Mid Layer",
-    "brand": "POLO RALPH LAUREN",
+    "brand": "Polo Ralph Lauren",
     "name": "Washed Rugby Shirt",
     "season": "A/W",
     "colour": "Wine / Cream",
@@ -786,7 +786,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "the-engineer-brown-mixed-fair-isle-wool-vest",
     "category": "Mid Layer",
-    "brand": "THE ENGINEER",
+    "brand": "The Engineer",
     "name": "Fair Isle Vest",
     "season": "A/W",
     "colour": "Brown Mixed",
@@ -806,7 +806,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "the-engineer-black-cotton-long-sleeve-polo",
     "category": "Shirts",
-    "brand": "THE ENGINEER",
+    "brand": "The Engineer",
     "name": "Knit Long-Sleeve Polo",
     "season": "A/W",
     "colour": "Black",
@@ -826,7 +826,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "the-engineer-ecru-linen-safari-jacket",
     "category": "Outerwear",
-    "brand": "THE ENGINEER",
+    "brand": "The Engineer",
     "name": "Linen Safari Jacket",
     "season": "S/S",
     "colour": "Ecru",
@@ -844,7 +844,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "tissot-prx-quartz-35mm-gold-pvd",
     "category": "Everyday",
-    "brand": "TISSOT",
+    "brand": "Tissot",
     "name": "PRX Quartz",
     "season": "All-season",
     "colour": "Gold PVD",
@@ -867,7 +867,7 @@ const WARDROBE_ITEMS = [
     "id": "custom-207c8109-cc63-4c01-987e-af5b0201df46",
     "category": "Bags",
     "brand": "Tsuchiya Kaban",
-    "name": "Cordovan L Zip Wallet Regular price",
+    "name": "Cordovan L Zip Wallet",
     "season": "All-season",
     "colour": "Brown",
     "colourCode": "#7c371b",
@@ -889,7 +889,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "tudor-black-bay-58",
     "category": "Dive watch",
-    "brand": "TUDOR",
+    "brand": "Tudor",
     "name": "Black Bay 58",
     "season": "All-season",
     "weight": "M79030N",
@@ -911,7 +911,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "uniqlo-jwa-straight-jeans",
     "category": "Bottoms",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "JWA Straight Jeans",
     "season": "All-season",
     "colour": "Light Wash Blue",
@@ -932,7 +932,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "uniqlo-beige-kataaze-knit-mock-neck",
     "category": "Shirts",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "Kataaze Knit Mock Neck",
     "season": "A/W",
     "colour": "Beige",
@@ -952,7 +952,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "uniqlo-light-blue-linen-camp-collar-shirt",
     "category": "Shirts",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "Linen Camp Collar Shirt",
     "season": "S/S",
     "colour": "Dusty Ice Blue",
@@ -974,7 +974,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "uniqlo-ocbd-shirt",
     "category": "Shirts",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "OCBD Shirt",
     "season": "All-season",
     "colour": "Blue",
@@ -1080,7 +1080,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "zara-dark-grey-open-knit-polo",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Cutwork Knit Polo Shirt",
     "season": "S/S",
     "colour": "Charcoal",
@@ -1102,7 +1102,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "zara-cream-linen-loop-collar-shirt",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Linen Loop-Collar Shirt",
     "season": "S/S",
     "colour": "Oyster-white",
@@ -1123,7 +1123,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "zara-ecru-purl-knit-t-shirt",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Purl-Knit T-Shirt",
     "season": "S/S",
     "colour": "Off-White",
@@ -1143,7 +1143,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "zara-dusty-ice-blue-ribbed-knit-polo",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Rib Knit Polo Shirt",
     "season": "S/S",
     "colour": "Dusty Ice Blue",
@@ -1190,7 +1190,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Jackets",
-    "brand": "CULTUM",
+    "brand": "Cultum",
     "name": "Glen Check Tweed Jacket",
     "season": "A/W",
     "colour": "Brown",
@@ -1214,7 +1214,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Outerwear",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Boa Fleece Vest",
     "season": "A/W",
     "colour": "Ecru (Olive Trim)",
@@ -1237,7 +1237,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Shirts",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Rib Knit Roll-Neck Neck Jumper",
     "season": "A/W",
     "colour": "Black",
@@ -1261,7 +1261,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Outerwear",
-    "brand": "Private White VC",
+    "brand": "Private White Vc",
     "name": "Ventile Harrington",
     "season": "A/W",
     "colour": "Midnight Navy",
@@ -1288,7 +1288,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Outerwear",
-    "brand": "SPIER & MACKAY",
+    "brand": "Spier & Mackay",
     "name": "Camel Hair Polo Coat",
     "season": "A/W",
     "colour": "Golden Camel",
@@ -1313,7 +1313,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Mid Layer",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "Cricket Cable-Knit Jumper Vest",
     "season": "A/W",
     "colour": "Ecru (Navy / Yellow Trim, Cotton-Acrylic)",
@@ -1338,7 +1338,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Bottoms",
-    "brand": "UNIQLO",
+    "brand": "Uniqlo",
     "name": "Pleated Trousers",
     "season": "All-season",
     "colour": "Grey",
@@ -1509,7 +1509,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Accessories",
     "section": "Accessories",
     "category": "Bags",
-    "brand": "UNIQLO : C",
+    "brand": "Uniqlo : C",
     "name": "Helmet Bag",
     "season": "All-season",
     "colour": "Grey Green",
@@ -1536,7 +1536,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Jewellery",
     "section": "Future Pieces",
     "category": "Jewellery",
-    "brand": "future piece",
+    "brand": "Future Piece",
     "name": "Sapphire Three-Stone Ring",
     "season": "All-season",
     "colour": "Blue",
@@ -1575,7 +1575,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
     "category": "Shirts",
-    "brand": "MUJI",
+    "brand": "Muji",
     "name": "Washed Breton-Stripe Boat-Neck 3/4 Sleeve T-Shirt",
     "season": "A/W",
     "colour": "Off-White / Navy",
@@ -1595,40 +1595,11 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "custom-7bdd5e7c-546b-4360-b725-1741c8c274f4",
-    "pillar": "Clothing",
-    "section": "S/S – Mediterranean Resort",
-    "category": "Shirts",
-    "brand": "zara",
-    "name": "Structured Knit Polo Shirt",
-    "season": "S/S",
-    "colour": "Grey green",
-    "size": "XL",
-    "measuredDimensions": "Measurements: Chest 59.5 Front length 71.5 Sleeve length 24 Back width 51.5 Arm width 19.5 cm cm",
-    "purchaseDate": "2026-05-14",
-    "image": "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/custom-7bdd5e7c-546b-4360-b725-1741c8c274f4/main/cover.png",
-    "gallery": [
-      "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/custom-7bdd5e7c-546b-4360-b725-1741c8c274f4/main/gallery/01.jpg"
-    ],
-    "notes": "STRUCTURED KNIT POLO SHIRT\nNT$ 1,490\nRef 3332/410\nRegular fit knitted polo shirt in spun cotton yarn. Lapel collar with front opening and short sleeve. Ribbed trims.",
-    "metadata": {
-      "price": 1490,
-      "priceCurrency": "TWD",
-      "measurementRows": [
-        {
-          "label": "Measurements",
-          "value": "Chest 59.5 Front length 71.5 Sleeve length 24 Back width 51.5 Arm width 19.5 cm"
-        }
-      ]
-    }
-  },
-
-  {
     "id": "zara-navy-baker-neck-knitted-t-shirt",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Baker Neck Knitted T-Shirt",
     "season": "S/S",
     "colour": "Navy",
@@ -1650,7 +1621,7 @@ const WARDROBE_ITEMS = [
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
     "category": "Shirts",
-    "brand": "ZARA",
+    "brand": "Zara",
     "name": "Rib Knit Polo Shirt",
     "season": "S/S",
     "colour": "Dark Chocolate",
@@ -1669,6 +1640,35 @@ const WARDROBE_ITEMS = [
         {
           "label": "Measurements",
           "value": "Chest 59.5 cm · Front length 71.5 cm · Sleeve length 24 cm · Back width 51.5 cm · Arm width 19.5 cm ·  ·  ·"
+        }
+      ]
+    }
+  },
+
+  {
+    "id": "custom-7bdd5e7c-546b-4360-b725-1741c8c274f4",
+    "pillar": "Clothing",
+    "section": "S/S – Mediterranean Resort",
+    "category": "Shirts",
+    "brand": "Zara",
+    "name": "Structured Knit Polo Shirt",
+    "season": "S/S",
+    "colour": "Grey green",
+    "size": "XL",
+    "measuredDimensions": "Measurements: Chest 59.5 Front length 71.5 Sleeve length 24 Back width 51.5 Arm width 19.5 cm cm",
+    "purchaseDate": "2026-05-14",
+    "image": "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/custom-7bdd5e7c-546b-4360-b725-1741c8c274f4/main/cover.png",
+    "gallery": [
+      "https://yyzrzmbsxphlhoqzikjn.supabase.co/storage/v1/object/public/wardrobe-images/custom-7bdd5e7c-546b-4360-b725-1741c8c274f4/main/gallery/01.jpg"
+    ],
+    "notes": "STRUCTURED KNIT POLO SHIRT\nNT$ 1,490\nRef 3332/410\nRegular fit knitted polo shirt in spun cotton yarn. Lapel collar with front opening and short sleeve. Ribbed trims.",
+    "metadata": {
+      "price": 1490,
+      "priceCurrency": "TWD",
+      "measurementRows": [
+        {
+          "label": "Measurements",
+          "value": "Chest 59.5 Front length 71.5 Sleeve length 24 Back width 51.5 Arm width 19.5 cm"
         }
       ]
     }

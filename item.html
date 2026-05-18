@@ -29,11 +29,16 @@
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
 
     <div class="site-utility-bar" role="note" aria-label="Brand masthead">
-      <div class="site-utility-bar__inner">
-        <span class="site-utility-bar__left">CVM IVDICIO ET CONSTANTIA</span>
+      <a
+        class="site-utility-bar__inner"
+        id="site-utility-bar-home"
+        href="/"
+        aria-label="Editorial home"
+      >
+        <span class="site-utility-bar__left">IVDICIO ET CONSTANTIA</span>
         <span class="site-utility-bar__center">Only What Endures</span>
         <span class="site-utility-bar__right">Since 2020</span>
-      </div>
+      </a>
     </div>
     <div class="site-header-shell">
     <header class="site-header site-header--solid">
@@ -147,6 +152,10 @@
                 class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
                 aria-label="Category preview"
               >
+                <header class="mega-menu-preview__head">
+                  <p class="mega-menu-preview__label" id="site-header-submenu-preview-label">Items preview</p>
+                  <hr class="mega-menu-preview__rule" aria-hidden="true" />
+                </header>
                 <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
               </section>
             </div>
@@ -294,15 +303,15 @@
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <section
-          id="styling-board-drawer-added"
-          class="styling-board-drawer__added"
-          hidden
-          aria-labelledby="styling-board-drawer-status-text"
-        >
-          <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
-        </section>
         <div class="styling-board-drawer__scroll">
+          <section
+            id="styling-board-drawer-added"
+            class="styling-board-drawer__added"
+            hidden
+            aria-labelledby="styling-board-drawer-status-text"
+          >
+            <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+          </section>
           <p class="styling-board-drawer__lede" id="outfit-hint">
             Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
           </p>
@@ -350,11 +359,14 @@
           </section>
         </div>
         <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue browsing
+          </button>
           <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
             Save outfit
           </button>
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
-            Continue browsing
+          <button type="button" class="styling-board-drawer__clear-all" id="styling-board-clear-all" hidden>
+            Clear all
           </button>
         </footer>
       </div>

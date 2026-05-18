@@ -20,8 +20,58 @@
     return String(item.colourCode ?? item.colorCode ?? item.colour_code ?? item.color_code ?? "").trim();
   }
 
+  function itemSecondaryColour(item) {
+    const meta =
+      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    return String(
+      item?.secondaryColour ??
+        item?.secondaryColor ??
+        meta?.secondaryColour ??
+        meta?.secondaryColor ??
+        item?.secondary_colour ??
+        ""
+    ).trim();
+  }
+
+  function itemSecondaryColourCode(item) {
+    const meta =
+      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    return String(
+      item?.secondaryColourCode ??
+        item?.secondaryColorCode ??
+        meta?.secondaryColourCode ??
+        meta?.secondaryColorCode ??
+        item?.secondary_colour_code ??
+        ""
+    ).trim();
+  }
+
+  function itemSecondaryBasicColour(item) {
+    if (!item || typeof item !== "object") return "";
+    const meta =
+      item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    return normalizeStoredBasicColourKey(item.secondaryBasicColour ?? meta?.secondaryBasicColour);
+  }
+
+  /** @param {string} raw */
+  function parseBasicColourSelectValue(raw) {
+    const s = String(raw ?? "").trim();
+    if (s.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT) return BASIC_COLOUR_CLASSIFICATION_OMIT;
+    return normalizeStoredBasicColourKey(s);
+  }
+
+  /** Display line for PDP / picker — primary only, or `Primary / Secondary`. */
+  function formatColourDisplayLine(primary, secondary) {
+    const p = String(primary ?? "").trim();
+    const s = String(secondary ?? "").trim();
+    if (!p) return s;
+    if (!s || p.toLowerCase() === s.toLowerCase()) return p;
+    return `${p} / ${s}`;
+  }
+
   /** Broad colour families — collection colour chips + optional per-item / per-variant override. */
   const BASIC_COLOUR_FAMILY_KEYS = ["blue", "brown", "red", "white", "black", "beige", "gold", "silver", "green", "grey"];
+  const GOLD_BASIC_COLOUR_HEX = "#cbb47b";
 
   /**
    * Stored in `item.basicColour` or `metadata.basicColour`: piece opts out of broad-colour buckets —
@@ -55,7 +105,7 @@
 
   /**
    * Optional `colourVariants` on a wardrobe row (legacy JSON may use `colorVariants`).
-   * @returns {{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage: string, gallery: string[], notes: string, basicColour?: string }[] | null}
+   * @returns {{ key: string, label: string, colour: string, colourCode: string, secondaryColour?: string, secondaryColourCode?: string, image: string, previewImage: string, gallery: string[], notes: string, basicColour?: string }[] | null}
    */
   function getItemColourVariants(item) {
     let raw = null;
@@ -83,24 +133,72 @@
       const image = String(v.image ?? "").trim();
       if (!key || !image) continue;
       const bc = normalizeStoredBasicColourKey(v.basicColour ?? v.colourFamily);
-      /** @type {{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage: string, gallery: string[], notes: string, basicColour?: string }} */
+      const secondaryColour = String(v.secondaryColour ?? v.secondaryColor ?? "").trim();
+      const label = String(v.label ?? v.colour ?? v.color ?? key).trim() || key;
+      const colour = String(v.colour ?? v.color ?? "").trim();
+      const colourCode = String(v.colourCode ?? v.colorCode ?? v.colour_code ?? v.color_code ?? "").trim();
+      const secondaryColourCode = String(
+        v.secondaryColourCode ?? v.secondaryColorCode ?? v.secondary_colour_code ?? ""
+      ).trim();
+      /** @type {{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage: string, gallery: string[], notes: string, basicColour?: string, secondaryColour?: string, secondaryColourCode?: string }} */
       const row = {
         key,
-        label: String(v.label ?? v.colour ?? v.color ?? key).trim() || key,
-        colour: String(v.colour ?? v.color ?? "").trim(),
-        colourCode: String(v.colourCode ?? v.colorCode ?? v.colour_code ?? v.color_code ?? "").trim(),
+        label,
+        colour,
+        colourCode,
         image,
         previewImage: String(v.previewImage ?? v.swatchImage ?? "").trim(),
         gallery: Array.isArray(v.gallery) ? v.gallery.map((x) => String(x ?? "").trim()).filter(Boolean) : [],
         notes: v.notes != null ? String(v.notes) : "",
       };
       if (bc) row.basicColour = bc;
+      if (secondaryColour) row.secondaryColour = secondaryColour;
+      if (secondaryColourCode) row.secondaryColourCode = secondaryColourCode;
+      const secBc = normalizeStoredBasicColourKey(v.secondaryBasicColour);
+      if (secBc) row.secondaryBasicColour = secBc;
       out.push(row);
     }
     return out.length ? out : null;
   }
 
-  /** First `#rgb` / `#rrggbb` in colour code, colour name, or label for grid swatches. */
+  /** Implicit tray swatch for rows with no `colourVariants` (single colour on the piece). */
+  const COLLECTION_PRIMARY_SWATCH_KEY = "__primary";
+
+  /**
+   * Collection grid tray: real variants, or one synthetic swatch from piece-level colour fields.
+   * @returns {NonNullable<ReturnType<typeof getItemColourVariants>> | null}
+   */
+  function getCollectionGridSwatchVariants(item) {
+    const variants = getItemColourVariants(item);
+    if (variants?.length) return variants;
+    const image = String(item?.image ?? "").trim();
+    if (!image) return null;
+    const colour = String(item?.colour ?? item?.color ?? "").trim();
+    const colourCode = itemColourCode(item);
+    const meta = item?.metadata && typeof item.metadata === "object" ? item.metadata : null;
+    const bc = normalizeStoredBasicColourKey(item.basicColour ?? meta?.basicColour);
+    /** @type {NonNullable<ReturnType<typeof getItemColourVariants>>[number]} */
+    const row = {
+      key: COLLECTION_PRIMARY_SWATCH_KEY,
+      label: colour || colourCode || (bc ? basicColourLabelEn(bc) : "") || "Colour",
+      colour,
+      colourCode,
+      image,
+      previewImage: "",
+      gallery: [],
+      notes: "",
+    };
+    if (bc) row.basicColour = bc;
+    const secName = itemSecondaryColour(item);
+    const secCode = itemSecondaryColourCode(item);
+    if (secName) row.secondaryColour = secName;
+    if (secCode) row.secondaryColourCode = secCode;
+    const secBc = itemSecondaryBasicColour(item);
+    if (secBc) row.secondaryBasicColour = secBc;
+    return [row];
+  }
+
+  /** First `#rgb` / `#rrggbb` or bare `rgb` / `rrggbb` in colour code, colour name, or label for grid swatches. */
   function extractSwatchHexFromVariant(v) {
     const pools = [
       String(v?.colourCode ?? v?.colorCode ?? v?.colour_code ?? v?.color_code ?? "").trim(),
@@ -108,69 +206,970 @@
       String(v?.label ?? "").trim(),
     ];
     for (const p of pools) {
-      const m = p.match(/#([0-9a-fA-F]{6})\b|#([0-9a-fA-F]{3})\b/);
-      if (!m) continue;
-      const raw = m[0];
-      let h = raw.slice(1);
-      if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-      return `#${h.toLowerCase()}`;
+      if (!p) continue;
+      const whole = parseHex6Colour(p);
+      if (whole) return whole;
+      const withHash = p.match(/#([0-9a-fA-F]{6})\b|#([0-9a-fA-F]{3})\b/);
+      if (withHash) {
+        const parsed = parseHex6Colour(withHash[0]);
+        if (parsed) return parsed;
+      }
+      const bare6 = p.match(/\b([0-9a-fA-F]{6})\b/);
+      if (bare6) {
+        const parsed = parseHex6Colour(bare6[1]);
+        if (parsed) return parsed;
+      }
+      const bare3 = p.match(/\b([0-9a-fA-F]{3})\b/);
+      if (bare3) {
+        const parsed = parseHex6Colour(bare3[1]);
+        if (parsed) return parsed;
+      }
     }
     return "";
   }
 
   /** Small swatch beside item-edit colour code inputs (parses `#rgb` / `#rrggbb` from code, name, or label). */
-  function syncItemEditColourCodePreviewEl(previewEl, sources) {
+  function syncItemEditColourCodePreviewEl(previewEl, sources, secondarySources = null) {
     if (!(previewEl instanceof HTMLElement)) return;
-    const hex = extractSwatchHexFromVariant({
+    const primary = {
       colourCode: String(sources?.colourCode ?? "").trim(),
       colour: String(sources?.colour ?? "").trim(),
       label: String(sources?.label ?? "").trim(),
-    });
-    previewEl.classList.toggle("item-edit-colour-code-preview--filled", Boolean(hex));
-    previewEl.classList.toggle("item-edit-colour-code-preview--empty", !hex);
-    if (hex) {
-      previewEl.style.backgroundColor = hex;
-      if (hexFillLuminance(hex) < 0.28) {
-        previewEl.style.boxShadow =
-          "inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.22)";
-      } else {
-        previewEl.style.boxShadow = "inset 0 0 0 1px rgba(0, 0, 0, 0.18)";
-      }
-      previewEl.setAttribute("title", hex);
+      basicColour: sources?.basicColour,
+    };
+    const primaryHex = resolveSwatchHexFromFields(primary);
+    const sec =
+      secondarySources && typeof secondarySources === "object"
+        ? {
+            colour: String(secondarySources.colour ?? secondarySources.color ?? "").trim(),
+            colourCode: String(secondarySources.colourCode ?? secondarySources.colorCode ?? "").trim(),
+          }
+        : null;
+    const secondaryHex = sec ? resolveSwatchHexFromFields(sec) : "";
+    const dual = Boolean(sec && hasSecondaryColourFields(sec) && (primaryHex || secondaryHex));
+    previewEl.classList.toggle("item-edit-colour-code-preview--filled", Boolean(primaryHex || secondaryHex));
+    previewEl.classList.toggle("item-edit-colour-code-preview--empty", !(primaryHex || secondaryHex));
+    if (dual) {
+      applyDualSwatchHexFill(
+        previewEl,
+        primaryHex || LUXURY_SWATCH_HEX.grey,
+        secondaryHex || LUXURY_SWATCH_HEX.grey
+      );
+      previewEl.setAttribute("title", `${primaryHex || "—"} / ${secondaryHex || "—"}`);
+      return;
+    }
+    resetSwatchVisual(previewEl);
+    if (primaryHex) {
+      previewEl.style.backgroundColor = primaryHex;
+      previewEl.style.boxShadow = swatchInsetShadowForHex(primaryHex);
+      previewEl.setAttribute("title", primaryHex);
     } else {
-      previewEl.style.backgroundColor = "";
-      previewEl.style.boxShadow = "";
       previewEl.removeAttribute("title");
     }
   }
 
   function createItemEditColourCodePreview() {
-    const preview = document.createElement("span");
+    const preview = document.createElement("button");
+    preview.type = "button";
     preview.className = "item-edit-colour-code-preview item-edit-colour-code-preview--empty";
-    preview.setAttribute("aria-hidden", "true");
+    preview.setAttribute("aria-label", "Choose colour");
+    preview.title = "Choose colour";
     return preview;
   }
 
+  /** @returns {string | null} Normalized `#rrggbb` — accepts optional leading `#`. */
+  function parseHex6Colour(raw) {
+    let s = String(raw ?? "").trim();
+    if (!s) return null;
+    if (s.startsWith("#")) s = s.slice(1);
+    if (/^[0-9a-f]{3}$/i.test(s)) {
+      s = s
+        .toLowerCase()
+        .split("")
+        .map((c) => c + c)
+        .join("");
+    } else if (/^[0-9a-f]{6}$/i.test(s)) {
+      s = s.toLowerCase();
+    } else {
+      return null;
+    }
+    return `#${s}`;
+  }
+
+  /** @param {string} hex `#rrggbb` */
+  function hexToHsv(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+    const max = Math.max(rn, gn, bn);
+    const min = Math.min(rn, gn, bn);
+    const d = max - min;
+    let h = 0;
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+    if (d > 0) {
+      if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+      else if (max === gn) h = ((bn - rn) / d + 2) / 6;
+      else h = ((rn - gn) / d + 4) / 6;
+    }
+    return { h: h * 360, s, v };
+  }
+
+  /** @returns {string} `#rrggbb` */
+  function hsvToHex(h, s, v) {
+    const hn = (((Number(h) % 360) + 360) % 360) / 360;
+    const sn = Math.max(0, Math.min(1, Number(s)));
+    const vn = Math.max(0, Math.min(1, Number(v)));
+    const i = Math.floor(hn * 6);
+    const f = hn * 6 - i;
+    const p = vn * (1 - sn);
+    const q = vn * (1 - f * sn);
+    const t = vn * (1 - (1 - f) * sn);
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    switch (i % 6) {
+      case 0:
+        r = vn;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = vn;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = vn;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = vn;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = vn;
+        break;
+      default:
+        r = vn;
+        g = p;
+        b = q;
+        break;
+    }
+    const clamp = (x) => Math.max(0, Math.min(255, Math.round(x * 255)));
+    const to2 = (x) => clamp(x).toString(16).padStart(2, "0");
+    return `#${to2(r)}${to2(g)}${to2(b)}`;
+  }
+
+  const ITEM_EDIT_COLOUR_NAME_DEFAULT_PH = "Primary colour name";
+
+  function rememberItemEditDefaultPlaceholder(input, fallback) {
+    if (!(input instanceof HTMLInputElement)) return;
+    if (!input.dataset.defaultPlaceholder) {
+      input.dataset.defaultPlaceholder = String(input.placeholder ?? "").trim() || fallback;
+    }
+  }
+
+  function markItemEditColourFieldUserEdited(input) {
+    if (!(input instanceof HTMLInputElement)) return;
+    input.dataset.userEdited = "1";
+    delete input.dataset.inferred;
+  }
+
+  /** Saved value only — never placeholder or legacy inferred ghost text. */
+  function itemEditColourNameSaveValue(input) {
+    if (!(input instanceof HTMLInputElement)) return "";
+    if (input.dataset.inferred === "1") return "";
+    return String(input.value ?? "").trim();
+  }
+
+  function itemEditColourCodeSaveValue(input) {
+    if (!(input instanceof HTMLInputElement)) return "";
+    return String(input.value ?? "").trim();
+  }
+
   /**
-   * @param {{ input: HTMLInputElement, preview: HTMLElement, colourInput?: HTMLInputElement | null, labelInput?: HTMLInputElement | null }} opts
+   * Secondary colour fields for UI / save — includes `.value` and inferred placeholder text from hex.
+   * @param {HTMLInputElement | null | undefined} nameIn
+   * @param {HTMLInputElement | null | undefined} codeIn
+   */
+  function readItemEditSecondaryColourFieldValues(nameIn, codeIn) {
+    const nameRaw = nameIn instanceof HTMLInputElement ? String(nameIn.value ?? "").trim() : "";
+    const codeRaw = codeIn instanceof HTMLInputElement ? String(codeIn.value ?? "").trim() : "";
+    const nameSaved = itemEditColourNameSaveValue(nameIn);
+    const codeSaved = itemEditColourCodeSaveValue(codeIn);
+    let secondaryColour = nameSaved || nameRaw;
+    const secondaryColourCode = codeSaved || codeRaw;
+    if (!secondaryColour && nameIn instanceof HTMLInputElement && nameIn.dataset.inferred === "1") {
+      const ph = String(nameIn.placeholder ?? "").trim();
+      const defaultPh = String(nameIn.dataset.defaultPlaceholder ?? ITEM_EDIT_COLOUR_NAME_DEFAULT_PH).trim();
+      if (ph && ph !== ITEM_EDIT_COLOUR_NAME_DEFAULT_PH && ph !== defaultPh) {
+        secondaryColour = ph;
+      }
+    }
+    return { secondaryColour, secondaryColourCode };
+  }
+
+  /** @param {{ panel?: HTMLElement | null }} [mount] */
+  function itemEditSecondaryColourPanelOpen(mount) {
+    const panel = mount?.panel;
+    return panel instanceof HTMLElement && !panel.hidden;
+  }
+
+  /** @param {{ secNameInput?: HTMLInputElement | null, secCodeInput?: HTMLInputElement | null, panel?: HTMLElement | null }} [mount] */
+  function shouldShowItemEditSecondaryBasicColour(mount) {
+    if (itemEditSecondaryColourPanelOpen(mount)) return true;
+    return hasSecondaryColourFields(
+      readItemEditSecondaryColourFieldValues(mount?.secNameInput, mount?.secCodeInput)
+    );
+  }
+
+  /** Old sessions stored inferred names in `.value`; move to grey placeholder (only when flagged inferred). */
+  function migrateGhostInferredColourNameToPlaceholder(colourInput, codeInput, defaultPh) {
+    if (!(colourInput instanceof HTMLInputElement) || !(codeInput instanceof HTMLInputElement)) return;
+    if (colourInput.dataset.userEdited === "1") return;
+    if (colourInput.dataset.inferred !== "1") {
+      if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
+      return;
+    }
+    const hex = extractSwatchHexFromVariant({ colourCode: codeInput.value });
+    const suggested = hex ? colourNameFromHex(hex) : "";
+    colourInput.value = "";
+    delete colourInput.dataset.inferred;
+    rememberItemEditDefaultPlaceholder(colourInput, defaultPh);
+    colourInput.placeholder = suggested || defaultPh;
+  }
+
+  /**
+   * @param {{ input: HTMLInputElement, preview: HTMLElement, colourInput?: HTMLInputElement | null, labelInput?: HTMLInputElement | null, getSecondarySources?: () => { colour?: string, colourCode?: string } | null, syncDualOnPrimaryPreview?: boolean, colourNamePlaceholder?: string }} opts
+   * @returns {() => void}
    */
   function wireItemEditColourCodePreview(opts) {
     const input = opts?.input;
     const preview = opts?.preview;
-    if (!(input instanceof HTMLInputElement) || !(preview instanceof HTMLElement)) return;
+    if (!(input instanceof HTMLInputElement) || !(preview instanceof HTMLElement)) return () => {};
     const colourInput = opts?.colourInput instanceof HTMLInputElement ? opts.colourInput : null;
     const labelInput = opts?.labelInput instanceof HTMLInputElement ? opts.labelInput : null;
-    const run = () => {
-      syncItemEditColourCodePreviewEl(preview, {
-        colourCode: input.value,
-        colour: colourInput?.value ?? "",
-        label: labelInput?.value ?? "",
-      });
+    const getSecondarySources =
+      typeof opts?.getSecondarySources === "function" ? opts.getSecondarySources : null;
+    const syncDualOnPrimary = opts?.syncDualOnPrimaryPreview !== false;
+    const colourNameDefaultPh =
+      String(opts?.colourNamePlaceholder ?? "").trim() || ITEM_EDIT_COLOUR_NAME_DEFAULT_PH;
+
+    if (colourInput) {
+      rememberItemEditDefaultPlaceholder(colourInput, colourNameDefaultPh);
+      migrateGhostInferredColourNameToPlaceholder(colourInput, input, colourNameDefaultPh);
+      if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
+    }
+    if (input.value.trim()) markItemEditColourFieldUserEdited(input);
+
+    const syncPreview = () => {
+      const secondary =
+        syncDualOnPrimary && getSecondarySources ? getSecondarySources() : null;
+      syncItemEditColourCodePreviewEl(
+        preview,
+        {
+          colourCode: input.value,
+          colour: "",
+          label: "",
+        },
+        secondary
+      );
     };
-    input.addEventListener("input", run);
-    colourInput?.addEventListener("input", run);
-    labelInput?.addEventListener("input", run);
-    run();
+
+    /** Suggest English name from #hex in the code field only — placeholder, never `.value`. */
+    const syncInferredColourNamePlaceholder = () => {
+      if (!colourInput) return;
+      rememberItemEditDefaultPlaceholder(colourInput, colourNameDefaultPh);
+      const defaultPh = colourInput.dataset.defaultPlaceholder || colourNameDefaultPh;
+      if (colourInput.dataset.userEdited === "1") {
+        delete colourInput.dataset.inferred;
+        return;
+      }
+      if (colourInput.value.trim()) {
+        delete colourInput.dataset.inferred;
+        return;
+      }
+      const hex = extractSwatchHexFromVariant({ colourCode: input.value });
+      if (!hex) {
+        colourInput.placeholder = defaultPh;
+        delete colourInput.dataset.inferred;
+        return;
+      }
+      const suggested = colourNameFromHex(hex);
+      if (suggested) {
+        colourInput.placeholder = suggested;
+        colourInput.dataset.inferred = "1";
+      } else {
+        colourInput.placeholder = defaultPh;
+        delete colourInput.dataset.inferred;
+      }
+    };
+
+    const clearLegacyInferredColourValue = () => {
+      if (!colourInput || colourInput.dataset.userEdited === "1") return;
+      if (colourInput.dataset.inferred === "1" && colourInput.value.trim()) {
+        colourInput.value = "";
+      }
+      delete colourInput.dataset.inferred;
+    };
+
+    input.addEventListener("focus", () => markItemEditColourFieldUserEdited(input));
+    input.addEventListener("input", () => {
+      clearLegacyInferredColourValue();
+      syncInferredColourNamePlaceholder();
+      syncPreview();
+    });
+    colourInput?.addEventListener("focus", () => markItemEditColourFieldUserEdited(colourInput));
+    colourInput?.addEventListener("input", () => {
+      if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
+      syncInferredColourNamePlaceholder();
+      syncPreview();
+    });
+    labelInput?.addEventListener("input", syncPreview);
+    syncInferredColourNamePlaceholder();
+    syncPreview();
+    mountColourPickerOnPreview(preview, input, colourInput);
+    return syncPreview;
+  }
+
+  /** @type {HTMLDialogElement | null} */
+  let itemColourPickerDialogEl = null;
+
+  function ensureItemColourPickerDialog() {
+    if (itemColourPickerDialogEl) return itemColourPickerDialogEl;
+
+    const dlg = document.createElement("dialog");
+    dlg.id = "item-colour-picker-dialog";
+    dlg.className = "item-colour-picker-dialog add-item-dialog";
+    dlg.setAttribute("aria-labelledby", "item-colour-picker-heading");
+
+    const inner = document.createElement("div");
+    inner.className = "item-colour-picker__inner";
+
+    const title = document.createElement("h2");
+    title.id = "item-colour-picker-heading";
+    title.className = "item-colour-picker__title";
+    title.textContent = "Choose colour";
+
+    const sv = document.createElement("div");
+    sv.className = "item-colour-picker__sv";
+    sv.setAttribute("role", "slider");
+    sv.setAttribute("aria-label", "Saturation and brightness");
+    sv.tabIndex = 0;
+
+    const svCursor = document.createElement("div");
+    svCursor.className = "item-colour-picker__sv-cursor";
+    svCursor.setAttribute("aria-hidden", "true");
+    sv.appendChild(svCursor);
+
+    const hueLab = document.createElement("label");
+    hueLab.className = "item-colour-picker__hue";
+    const hueSpan = document.createElement("span");
+    hueSpan.textContent = "Hue";
+    const hueInput = document.createElement("input");
+    hueInput.type = "range";
+    hueInput.className = "item-colour-picker__hue-input";
+    hueInput.min = "0";
+    hueInput.max = "360";
+    hueInput.step = "1";
+    hueInput.value = "0";
+    hueLab.append(hueSpan, hueInput);
+
+    const hexLab = document.createElement("label");
+    hexLab.className = "item-colour-picker__hex";
+    const hexSpan = document.createElement("span");
+    hexSpan.textContent = "Hex";
+    const hexField = document.createElement("input");
+    hexField.type = "text";
+    hexField.className = "item-colour-picker__hex-input";
+    hexField.inputMode = "text";
+    hexField.autocomplete = "off";
+    hexField.spellcheck = false;
+    hexField.maxLength = 7;
+    hexField.placeholder = "#rrggbb";
+    hexLab.append(hexSpan, hexField);
+
+    const sample = document.createElement("div");
+    sample.className = "item-colour-picker__sample";
+    sample.setAttribute("aria-hidden", "true");
+
+    const actions = document.createElement("div");
+    actions.className = "item-colour-picker__actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn btn--ghost";
+    cancelBtn.textContent = "Cancel";
+
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.className = "btn";
+    applyBtn.textContent = "Apply";
+
+    actions.append(cancelBtn, applyBtn);
+    inner.append(title, sv, hueLab, hexLab, sample, actions);
+    dlg.appendChild(inner);
+    document.body.appendChild(dlg);
+
+    dlg.__twColourPicker = { sv, svCursor, hueInput, hexField, sample, cancelBtn, applyBtn };
+    itemColourPickerDialogEl = dlg;
+    return dlg;
+  }
+
+  /**
+   * @param {{ codeInput: HTMLInputElement, colourInput?: HTMLInputElement | null, anchor?: HTMLElement }} opts
+   */
+  function openItemColourPicker(opts) {
+    const codeInput = opts?.codeInput;
+    if (!(codeInput instanceof HTMLInputElement)) return;
+
+    const dlg = ensureItemColourPickerDialog();
+    const ui = dlg.__twColourPicker;
+    if (!ui) return;
+
+    const snapshot = codeInput.value;
+    let h = 0;
+    let s = 0;
+    let v = 0.5;
+    const parsed =
+      parseHex6Colour(extractSwatchHexFromVariant({ colourCode: codeInput.value })) ||
+      parseHex6Colour("#808080");
+    if (parsed) {
+      const hsv = hexToHsv(parsed);
+      h = hsv.h;
+      s = hsv.s;
+      v = hsv.v;
+    }
+
+    let pendingHex = parsed || "#808080";
+    let draggingSv = false;
+
+    const paintUi = () => {
+      pendingHex = hsvToHex(h, s, v);
+      const hueDeg = String(Math.round(h));
+      ui.sv.style.setProperty("--picker-h", hueDeg);
+      ui.hueInput.style.setProperty("--picker-h", hueDeg);
+      ui.svCursor.style.left = `${s * 100}%`;
+      ui.svCursor.style.top = `${(1 - v) * 100}%`;
+      ui.hueInput.value = String(Math.round(h));
+      ui.hexField.value = pendingHex;
+      ui.sample.style.backgroundColor = pendingHex;
+      if (hexFillLuminance(pendingHex) < 0.28) {
+        ui.sample.style.boxShadow =
+          "inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.22)";
+      } else {
+        ui.sample.style.boxShadow = "inset 0 0 0 1px rgba(0, 0, 0, 0.18)";
+      }
+    };
+
+    const svFromClient = (clientX, clientY) => {
+      const rect = ui.sv.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      v = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+      paintUi();
+    };
+
+    const onSvPointerDown = (e) => {
+      if (e.button !== 0) return;
+      draggingSv = true;
+      ui.sv.setPointerCapture(e.pointerId);
+      svFromClient(e.clientX, e.clientY);
+      e.preventDefault();
+    };
+
+    const onSvPointerMove = (e) => {
+      if (!draggingSv) return;
+      svFromClient(e.clientX, e.clientY);
+    };
+
+    const onSvPointerUp = (e) => {
+      if (!draggingSv) return;
+      draggingSv = false;
+      try {
+        ui.sv.releasePointerCapture(e.pointerId);
+      } catch {
+        /* already released */
+      }
+    };
+
+    const onHueInput = () => {
+      h = Number(ui.hueInput.value);
+      paintUi();
+    };
+
+    const onHexInput = () => {
+      const next = parseHex6Colour(ui.hexField.value);
+      if (!next) return;
+      const hsv = hexToHsv(next);
+      h = hsv.h;
+      s = hsv.s;
+      v = hsv.v;
+      paintUi();
+    };
+
+    const onHexCommit = () => {
+      const next = parseHex6Colour(ui.hexField.value);
+      if (!next) {
+        ui.hexField.value = pendingHex;
+        return;
+      }
+      const hsv = hexToHsv(next);
+      h = hsv.h;
+      s = hsv.s;
+      v = hsv.v;
+      paintUi();
+    };
+
+    const commit = () => {
+      codeInput.value = pendingHex;
+      codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      codeInput.focus();
+    };
+
+    const restore = () => {
+      codeInput.value = snapshot;
+      codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+
+    const cleanup = () => {
+      ui.sv.removeEventListener("pointerdown", onSvPointerDown);
+      ui.sv.removeEventListener("pointermove", onSvPointerMove);
+      ui.sv.removeEventListener("pointerup", onSvPointerUp);
+      ui.sv.removeEventListener("pointercancel", onSvPointerUp);
+      ui.hueInput.removeEventListener("input", onHueInput);
+      ui.hexField.removeEventListener("change", onHexCommit);
+      ui.hexField.removeEventListener("blur", onHexCommit);
+      ui.hexField.removeEventListener("input", onHexInput);
+      ui.cancelBtn.removeEventListener("click", onCancel);
+      ui.applyBtn.removeEventListener("click", onApply);
+      dlg.removeEventListener("cancel", onDialogCancel);
+      dlg.removeEventListener("close", onDialogClose);
+    };
+
+    let applied = false;
+    const onApply = () => {
+      applied = true;
+      commit();
+      dlg.close();
+    };
+    const onCancel = () => {
+      dlg.close();
+    };
+    const onDialogCancel = (e) => {
+      e.preventDefault();
+      dlg.close();
+    };
+    const onDialogClose = () => {
+      if (!applied) restore();
+      cleanup();
+    };
+
+    ui.sv.addEventListener("pointerdown", onSvPointerDown);
+    ui.sv.addEventListener("pointermove", onSvPointerMove);
+    ui.sv.addEventListener("pointerup", onSvPointerUp);
+    ui.sv.addEventListener("pointercancel", onSvPointerUp);
+    ui.hueInput.addEventListener("input", onHueInput);
+    ui.hexField.addEventListener("change", onHexCommit);
+    ui.hexField.addEventListener("blur", onHexCommit);
+    ui.hexField.addEventListener("input", onHexInput);
+    ui.cancelBtn.addEventListener("click", onCancel);
+    ui.applyBtn.addEventListener("click", onApply);
+    dlg.addEventListener("cancel", onDialogCancel);
+    dlg.addEventListener("close", onDialogClose);
+
+    paintUi();
+    try {
+      dlg.showModal();
+    } catch {
+      dlg.show();
+    }
+    ui.sv.focus();
+  }
+
+  /**
+   * @param {HTMLElement} preview
+   * @param {HTMLInputElement} codeInput
+   * @param {HTMLInputElement | null} [colourInput]
+   */
+  function mountColourPickerOnPreview(preview, codeInput, colourInput = null) {
+    if (!(preview instanceof HTMLElement) || preview.dataset.colourPicker === "1") return;
+    preview.dataset.colourPicker = "1";
+    preview.addEventListener("click", () => {
+      openItemColourPicker({
+        codeInput,
+        colourInput: colourInput instanceof HTMLInputElement ? colourInput : null,
+        anchor: preview,
+      });
+    });
+  }
+
+  /** Eyedropper on colour-code row (Chrome / Edge); hidden when API unavailable. */
+  function mountEyedropperBtn(codeRow, codeInput) {
+    if (!("EyeDropper" in window)) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "item-edit-eyedropper-btn";
+    btn.setAttribute("aria-label", "Pick colour from screen");
+    btn.title = "Pick colour from screen";
+    btn.innerHTML =
+      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">' +
+      '<path d="M13.5 1.5a1.8 1.8 0 0 0-2.55 0L9.5 3l-.7-.7a1 1 0 0 0-1.42 1.42l.35.35-5.3 5.3A2 2 0 0 0 2 10.8V13h2.2a2 2 0 0 0 1.42-.59l5.3-5.3.35.35a1 1 0 0 0 1.42-1.42l-.7-.7 1.5-1.5a1.8 1.8 0 0 0 0-2.54z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>' +
+      '<circle cx="3.5" cy="11.5" r="1" fill="currentColor"/>' +
+      "</svg>";
+    btn.addEventListener("click", async () => {
+      try {
+        const dropper = new window.EyeDropper();
+        const result = await dropper.open();
+        if (result?.sRGBHex) {
+          codeInput.value = result.sRGBHex;
+          codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+          codeInput.focus();
+        }
+      } catch {
+        /* cancelled */
+      }
+    });
+    codeRow.appendChild(btn);
+  }
+
+  const TW_ITEM_EDIT_ICON = {
+    plus:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>' +
+      "</svg>",
+    trash:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M10 11v6M14 11v6M6 7l1 12a1 1 0 0 0 1 .94h8a1 1 0 0 0 1-.94L18 7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>",
+    upload:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 16V6M8 10l4-4 4 4M5 20h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>",
+    save:
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>' +
+      '<path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>",
+    close:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>' +
+      "</svg>",
+    copy:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<rect x="8" y="8" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.75"/>' +
+      '<path d="M6 16H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h9.5A1.5 1.5 0 0 1 16 5v1" stroke="currentColor" stroke-width="1.75"/>' +
+      "</svg>",
+    aiBrief:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 2.5l1.1 3.4 3.4 1.1-3.4 1.1L12 11.5l-1.1-3.4-3.4-1.1 3.4-1.1L12 2.5z" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round"/>' +
+      '<path d="M5.5 17.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2zM18 14.5l.55 1.6 1.6.55-1.6.55L18 18.7l-.55-1.6-1.6-.55 1.6-.55L18 14.5z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/>' +
+      "</svg>",
+    secondaryColour:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<circle cx="15" cy="15" r="5.25" stroke="currentColor" stroke-width="1.85"/>' +
+      '<circle cx="9" cy="9" r="5.25" stroke="currentColor" stroke-width="1.85"/>' +
+      '<path d="M9 6.25v5.5M6.25 9h5.5" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>' +
+      "</svg>",
+    single:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<rect x="6" y="6" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.75"/>' +
+      "</svg>",
+    crop:
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M6 3H3v3M18 21h3v-3M21 18v3h-3M3 6V3h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '<rect x="7" y="7" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.75"/>' +
+      "</svg>",
+  };
+
+  /**
+   * @param {string} classNames
+   * @param {string} iconHtml
+   * @param {string} ariaLabel
+   * @param {{ title?: string, submit?: boolean }} [opts]
+   */
+  function createItemEditIconButton(classNames, iconHtml, ariaLabel, opts = {}) {
+    const btn = document.createElement("button");
+    btn.type = opts.submit ? "submit" : "button";
+    btn.className = ["item-edit-icon-btn", classNames].filter(Boolean).join(" ");
+    btn.innerHTML = iconHtml;
+    btn.setAttribute("aria-label", ariaLabel);
+    btn.title = opts.title ?? ariaLabel;
+    return btn;
+  }
+
+  /**
+   * @param {string} classNames
+   * @param {string} label
+   * @param {{ title?: string, ariaLabel?: string, submit?: boolean }} [opts]
+   */
+  function createItemEditTextButton(classNames, label, opts = {}) {
+    const btn = document.createElement("button");
+    btn.type = opts.submit ? "submit" : "button";
+    btn.className = ["item-edit-text-btn", "btn", "btn--small", "btn--ghost", classNames]
+      .filter(Boolean)
+      .join(" ");
+    btn.textContent = label;
+    const aria = opts.ariaLabel ?? label;
+    btn.setAttribute("aria-label", aria);
+    btn.title = opts.title ?? aria;
+    return btn;
+  }
+
+  /** @type {HTMLDialogElement | null} */
+  let twConfirmDialogEl = null;
+
+  /**
+   * @param {{ title?: string, message?: string, confirmLabel?: string, cancelLabel?: string }} opts
+   * @returns {Promise<boolean>}
+   */
+  function openTwConfirmDialog(opts = {}) {
+    if (!twConfirmDialogEl) {
+      const dlg = document.createElement("dialog");
+      dlg.id = "tw-confirm-dialog";
+      dlg.className = "tw-confirm-dialog add-item-dialog";
+      dlg.setAttribute("aria-labelledby", "tw-confirm-dialog-title");
+      dlg.setAttribute("aria-describedby", "tw-confirm-dialog-message");
+
+      const inner = document.createElement("div");
+      inner.className = "add-item-dialog__inner tw-confirm-dialog__inner";
+
+      const title = document.createElement("h2");
+      title.id = "tw-confirm-dialog-title";
+      title.className = "tw-confirm-dialog__title";
+
+      const message = document.createElement("p");
+      message.id = "tw-confirm-dialog-message";
+      message.className = "tw-confirm-dialog__message";
+
+      const actions = document.createElement("div");
+      actions.className = "tw-confirm-dialog__actions";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.className = "btn btn--ghost";
+      cancelBtn.id = "tw-confirm-dialog-cancel";
+
+      const confirmBtn = document.createElement("button");
+      confirmBtn.type = "button";
+      confirmBtn.className = "btn";
+      confirmBtn.id = "tw-confirm-dialog-confirm";
+
+      actions.append(cancelBtn, confirmBtn);
+      inner.append(title, message, actions);
+      dlg.append(inner);
+      document.body.append(dlg);
+      twConfirmDialogEl = dlg;
+    }
+
+    const dlg = twConfirmDialogEl;
+    const titleEl = dlg.querySelector("#tw-confirm-dialog-title");
+    const messageEl = dlg.querySelector("#tw-confirm-dialog-message");
+    const cancelBtn = /** @type {HTMLButtonElement} */ (dlg.querySelector("#tw-confirm-dialog-cancel"));
+    const confirmBtn = /** @type {HTMLButtonElement} */ (dlg.querySelector("#tw-confirm-dialog-confirm"));
+
+    if (titleEl) titleEl.textContent = String(opts.title ?? "Confirm");
+    if (messageEl) messageEl.textContent = String(opts.message ?? "");
+    cancelBtn.textContent = String(opts.cancelLabel ?? "Cancel");
+    confirmBtn.textContent = String(opts.confirmLabel ?? "OK");
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        dlg.removeEventListener("close", onClose);
+        cancelBtn.removeEventListener("click", onCancel);
+        confirmBtn.removeEventListener("click", onConfirm);
+        dlg.removeEventListener("cancel", onDialogCancel);
+        resolve(ok);
+      };
+      const onClose = () => finish(dlg.returnValue === "confirm");
+      const onCancel = () => dlg.close("cancel");
+      const onConfirm = () => dlg.close("confirm");
+      const onDialogCancel = (e) => {
+        e.preventDefault();
+        dlg.close("cancel");
+      };
+
+      dlg.addEventListener("close", onClose);
+      cancelBtn.addEventListener("click", onCancel);
+      confirmBtn.addEventListener("click", onConfirm);
+      dlg.addEventListener("cancel", onDialogCancel);
+
+      try {
+        dlg.showModal();
+      } catch {
+        dlg.show();
+      }
+      confirmBtn.focus();
+    });
+  }
+
+  /**
+   * Secondary colour inputs inside an expanded panel (display only — filters use primary colour).
+   * @param {HTMLElement} panel
+   * @param {{ secondaryColour?: string, secondaryColor?: string, secondaryColourCode?: string, secondaryColorCode?: string }} [data]
+   * @param {{ nameId?: string, codeId?: string, secondaryLabel?: string, secondaryCodeLabel?: string }} [opts]
+   */
+  function appendItemEditSecondaryColourFields(panel, data = {}, opts = {}) {
+    const removeBtn = opts.removeBtn instanceof HTMLButtonElement ? opts.removeBtn : null;
+    const secName = String(data.secondaryColour ?? data.secondaryColor ?? "").trim();
+    const secCode = String(
+      data.secondaryColourCode ?? data.secondaryColorCode ?? data.secondary_colour_code ?? ""
+    ).trim();
+
+    const secNameLab = document.createElement("label");
+    secNameLab.className = "field";
+    const snSpan = document.createElement("span");
+    snSpan.className = "field__label";
+    snSpan.textContent = opts.secondaryLabel || "Secondary colour (optional)";
+    const secNameInput = document.createElement("input");
+    secNameInput.type = "text";
+    secNameInput.className = "item-edit-secondary-colour";
+    if (opts.nameId) secNameInput.id = opts.nameId;
+    secNameInput.maxLength = 80;
+    secNameInput.autocomplete = "off";
+    secNameInput.value = secName;
+    secNameLab.append(snSpan, secNameInput);
+
+    const secCodeLab = document.createElement("label");
+    secCodeLab.className = "field";
+    const scSpan = document.createElement("span");
+    scSpan.className = "field__label";
+    scSpan.textContent = opts.secondaryCodeLabel || "Secondary colour code (optional)";
+    const secCodeInput = document.createElement("input");
+    secCodeInput.type = "text";
+    secCodeInput.className = "item-edit-secondary-colour-code";
+    if (opts.codeId) secCodeInput.id = opts.codeId;
+    secCodeInput.maxLength = 80;
+    secCodeInput.autocomplete = "off";
+    secCodeInput.placeholder = "#hex, SKU…";
+    secCodeInput.value = secCode;
+    const secCodeRow = document.createElement("div");
+    secCodeRow.className = "item-edit-colour-code-row";
+    const secPreview = createItemEditColourCodePreview();
+    secCodeRow.append(secPreview, secCodeInput);
+    secCodeLab.append(scSpan, secCodeRow);
+    wireItemEditColourCodePreview({
+      input: secCodeInput,
+      preview: secPreview,
+      colourInput: secNameInput,
+      syncDualOnPrimaryPreview: false,
+      colourNamePlaceholder: "Secondary colour (optional)",
+    });
+    mountEyedropperBtn(secCodeRow, secCodeInput);
+    if (removeBtn) secCodeRow.appendChild(removeBtn);
+
+    panel.append(secNameLab, secCodeLab);
+    return { secNameInput, secCodeInput };
+  }
+
+  function resetItemEditSecondaryColourBlock(block) {
+    if (!(block instanceof HTMLElement)) return;
+    const panel = block.querySelector(".item-edit-secondary-colour-panel");
+    const addBtn =
+      block.querySelector(".item-edit-secondary-colour-add") ||
+      (block.parentElement instanceof HTMLElement
+        ? block.parentElement.querySelector(".item-edit-secondary-colour-add")
+        : null);
+    const nameIn = block.querySelector(".item-edit-secondary-colour");
+    const codeIn = block.querySelector(".item-edit-secondary-colour-code");
+    if (nameIn instanceof HTMLInputElement) nameIn.value = "";
+    if (codeIn instanceof HTMLInputElement) codeIn.value = "";
+    const secPreview = block.querySelector(".item-edit-secondary-colour-panel .item-edit-colour-code-preview");
+    if (secPreview instanceof HTMLElement) {
+      syncItemEditColourCodePreviewEl(secPreview, {}, null);
+    }
+    if (panel instanceof HTMLElement) panel.hidden = true;
+    if (addBtn instanceof HTMLElement) addBtn.hidden = false;
+    syncItemEditSecondaryColourBlockShell(block);
+  }
+
+  /** When add lives in the primary code row, hide the empty shell until the panel opens. */
+  function syncItemEditSecondaryColourBlockShell(block) {
+    if (!(block instanceof HTMLElement)) return;
+    const panel = block.querySelector(".item-edit-secondary-colour-panel");
+    if (!(panel instanceof HTMLElement)) return;
+    if (block.dataset.externalAddBtn !== "1") {
+      block.hidden = false;
+      return;
+    }
+    block.hidden = panel.hidden;
+  }
+
+  /**
+   * Collapsed secondary colour — “Add secondary colour” reveals inputs.
+   * @param {HTMLElement} parent
+   * @param {{ secondaryColour?: string, secondaryColor?: string, secondaryColourCode?: string, secondaryColorCode?: string }} [data]
+   * @param {{ nameId?: string, codeId?: string, variant?: boolean, addLabel?: string, addBtnParent?: HTMLElement, onRemoved?: () => void, onShown?: () => void }} [opts]
+   */
+  function mountItemEditSecondaryColourBlock(parent, data = {}, opts = {}) {
+    const secName = String(data.secondaryColour ?? data.secondaryColor ?? "").trim();
+    const secCode = String(
+      data.secondaryColourCode ?? data.secondaryColorCode ?? data.secondary_colour_code ?? ""
+    ).trim();
+    const hasExisting = Boolean(secName || secCode);
+
+    const block = document.createElement("div");
+    block.className =
+      "item-edit-secondary-colour-block" + (opts.variant ? " item-edit-secondary-colour-block--variant" : "");
+
+    const addLabel = opts.addLabel || "Add secondary colour";
+    const addBtn = createItemEditIconButton(
+      "item-edit-secondary-colour-add",
+      TW_ITEM_EDIT_ICON.secondaryColour,
+      addLabel
+    );
+    addBtn.hidden = hasExisting;
+
+    const panel = document.createElement("div");
+    panel.className = "item-edit-secondary-colour-panel";
+    panel.hidden = !hasExisting;
+
+    const removeBtn = createItemEditIconButton(
+      "item-edit-secondary-colour-remove item-edit-icon-btn--danger",
+      TW_ITEM_EDIT_ICON.trash,
+      "Remove secondary colour"
+    );
+
+    const fields = appendItemEditSecondaryColourFields(
+      panel,
+      { secondaryColour: secName, secondaryColourCode: secCode },
+      { ...opts, removeBtn }
+    );
+
+    addBtn.addEventListener("click", () => {
+      panel.hidden = false;
+      addBtn.hidden = true;
+      syncItemEditSecondaryColourBlockShell(block);
+      fields.secNameInput.focus();
+      if (typeof opts.onShown === "function") opts.onShown();
+    });
+
+    removeBtn.addEventListener("click", () => {
+      resetItemEditSecondaryColourBlock(block);
+      if (typeof opts.onRemoved === "function") opts.onRemoved();
+      block.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const addBtnParent = opts.addBtnParent instanceof HTMLElement ? opts.addBtnParent : null;
+    if (addBtnParent) block.dataset.externalAddBtn = "1";
+    if (addBtnParent) addBtnParent.appendChild(addBtn);
+    else block.appendChild(addBtn);
+    block.appendChild(panel);
+    parent.append(block);
+    syncItemEditSecondaryColourBlockShell(block);
+    return { block, panel, addBtn, removeBtn, ...fields };
   }
 
   /** Relative luminance 0–1 for `#rrggbb` (sRGB). */
@@ -185,23 +1184,94 @@
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
 
+  function resetSwatchVisual(el) {
+    if (!(el instanceof HTMLElement)) return;
+    el.style.backgroundColor = "";
+    el.style.backgroundImage = "";
+    el.classList.remove("card__swatch--dual-fill", "item-edit-colour-code-preview--dual");
+  }
+
+  function swatchInsetShadowForHex(hex) {
+    if (hexFillLuminance(hex) < 0.28) {
+      return "inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.22)";
+    }
+    return "inset 0 0 0 1px rgba(0, 0, 0, 0.2)";
+  }
+
   /** Apply a solid hex fill to a circular swatch (collection tray / picker). */
   function applySwatchHexFill(el, fillHex) {
     const hex = String(fillHex ?? "").trim();
     if (!hex || !(el instanceof HTMLElement)) return false;
+    resetSwatchVisual(el);
     el.style.backgroundColor = hex;
-    if (hexFillLuminance(hex) < 0.28) {
-      el.style.boxShadow =
-        "inset 0 0 0 1px rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.22)";
-    } else {
-      el.style.boxShadow = "inset 0 0 0 1px rgba(0, 0, 0, 0.2)";
-    }
+    el.style.boxShadow = swatchInsetShadowForHex(hex);
     return true;
+  }
+
+  /** Split swatch — primary left / top, secondary right / bottom (when a secondary colour is set). */
+  function applyDualSwatchHexFill(el, primaryHex, secondaryHex) {
+    const a = parseHex6Colour(primaryHex) || "#808080";
+    const b = parseHex6Colour(secondaryHex) || "#808080";
+    if (!(el instanceof HTMLElement)) return false;
+    resetSwatchVisual(el);
+    el.style.backgroundImage = `linear-gradient(135deg, ${a} 0%, ${a} 50%, ${b} 50%, ${b} 100%)`;
+    el.classList.add("card__swatch--dual-fill", "item-edit-colour-code-preview--dual");
+    const lum = Math.min(hexFillLuminance(a), hexFillLuminance(b));
+    el.style.boxShadow = swatchInsetShadowForHex(lum < 0.28 ? "#101010" : "#f0f0f0");
+    return true;
+  }
+
+  function hasSecondaryColourFields(fields) {
+    if (!fields || typeof fields !== "object") return false;
+    const name = String(
+      fields.colour ??
+        fields.color ??
+        fields.secondaryColour ??
+        fields.secondaryColor ??
+        ""
+    ).trim();
+    const code = String(
+      fields.colourCode ??
+        fields.colorCode ??
+        fields.secondaryColourCode ??
+        fields.secondaryColorCode ??
+        ""
+    ).trim();
+    return Boolean(name || code);
+  }
+
+  function resolveSwatchHexFromFields(fields) {
+    if (!fields || typeof fields !== "object") return "";
+    return extractSwatchHexFromVariant(fields) || luxurySwatchHexFromVariant(fields) || "";
+  }
+
+  function variantSecondarySwatchHex(v) {
+    if (!v || typeof v !== "object") return "";
+    return resolveSwatchHexFromFields({
+      colour: v.secondaryColour ?? v.secondaryColor,
+      colourCode: v.secondaryColourCode ?? v.secondaryColorCode,
+    });
+  }
+
+  /** Apply solid or 50/50 dual fill from variant / item colour fields. */
+  function applyVariantSwatchFill(el, v) {
+    if (!(el instanceof HTMLElement) || !v || typeof v !== "object") return false;
+    const pri = resolveSwatchHexFromFields(v);
+    const secFields = {
+      colour: v.secondaryColour ?? v.secondaryColor,
+      colourCode: v.secondaryColourCode ?? v.secondaryColorCode,
+    };
+    const sec = resolveSwatchHexFromFields(secFields);
+    if (hasSecondaryColourFields(secFields) && (pri || sec)) {
+      applyDualSwatchHexFill(el, pri || LUXURY_SWATCH_HEX.grey, sec || LUXURY_SWATCH_HEX.grey);
+      return true;
+    }
+    return applySwatchHexFill(el, pri);
   }
 
   /** Hex for collection colour circles — code/name first, then broad-colour mapping. */
   function variantSwatchFillHex(v) {
-    return extractSwatchHexFromVariant(v) || luxurySwatchHexFromVariant(v) || "";
+    return resolveSwatchHexFromFields(v);
   }
 
   /** Refined swatch fills for collection grid tray (editorial, not literal product hues). */
@@ -214,7 +1284,7 @@
     grey: "#8c9093",
     green: "#4d5a45",
     red: "#6b2d3b",
-    gold: "#a68b4b",
+    gold: GOLD_BASIC_COLOUR_HEX,
     silver: "#9ea2a8",
   };
 
@@ -274,7 +1344,7 @@
     { name: "Pink", hex: "#c97a8a" },
     { name: "Olive", hex: "#4d5a45" },
     { name: "Green", hex: "#4f7b56" },
-    { name: "Gold", hex: "#a68b4b" },
+    { name: "Gold", hex: GOLD_BASIC_COLOUR_HEX },
   ];
 
   function hexRgbDistance(hexA, hexB) {
@@ -292,10 +1362,8 @@
 
   /** Best-effort fashion colour name from `#rrggbb` (for swatches with no label text). */
   function colourNameFromHex(hexRaw) {
-    let hex = String(hexRaw ?? "").trim().toLowerCase();
-    const short = /^#([0-9a-f]{3})$/i.exec(hex);
-    if (short) hex = `#${short[1].split("").map((c) => c + c).join("")}`;
-    if (!/^#[0-9a-f]{6}$/.test(hex)) return "";
+    const hex = parseHex6Colour(hexRaw);
+    if (!hex) return "";
     let best = "";
     let bestDist = Infinity;
     for (const row of FASHION_COLOUR_FROM_HEX) {
@@ -314,7 +1382,15 @@
   function variantDisplayColourName(v) {
     if (!v || typeof v !== "object") return "Colour";
     const col = String(v.colour ?? v.color ?? "").trim();
-    if (col) return col;
+    const sec = String(v.secondaryColour ?? v.secondaryColor ?? "").trim();
+    if (col || sec) {
+      const primaryLine = col || (() => {
+        const label = String(v.label ?? "").trim();
+        return label && !/^colour\s*\d+$/i.test(label) ? label : "";
+      })();
+      const line = formatColourDisplayLine(primaryLine, sec);
+      if (line) return line;
+    }
     const label = String(v.label ?? "").trim();
     if (label && !/^colour\s*\d+$/i.test(label)) return label;
     const hex = extractSwatchHexFromVariant(v) || luxurySwatchHexFromVariant(v);
@@ -330,10 +1406,12 @@
     if (!v || typeof v !== "object") return "";
     const label = String(v.label ?? "").trim();
     const col = String(v.colour ?? v.color ?? "").trim();
+    const sec = String(v.secondaryColour ?? v.secondaryColor ?? "").trim();
     const hex = extractSwatchHexFromVariant(v);
     const parts = [];
     if (label) parts.push(label);
     if (col && col.toLowerCase() !== label.toLowerCase()) parts.push(col);
+    if (sec) parts.push(sec);
     if (hex) {
       const hexShort = hex.toLowerCase();
       const already = parts.some((p) => p.toLowerCase().includes(hexShort));
@@ -351,12 +1429,14 @@
    * @param {{ outfitPick?: boolean, heroImg?: HTMLImageElement | null, heroHost?: HTMLElement | null, addToOutfitOnPick?: boolean, showHeroGallery?: boolean, gridCaption?: "compact", gridColourTray?: boolean, heroInitialColourKey?: string }} [opts]
    * `heroInitialColourKey` — when set (e.g. collection colour filter), marks that variant active and matches hero if it already shows that cover.
    * `gridCaption: "compact"` — collection grid only: short caption for multi-colour rows (swatches carry the rest).
-   * `gridColourTray` — collection grid only: translucent bottom tray on the card image (requires 2+ variants).
+   * `gridColourTray` — collection grid only: bottom-left colour circles on the card image (1+ variants).
+   * `variants` — optional override (e.g. synthetic single-colour swatch from `getCollectionGridSwatchVariants`).
    * `itemDetailPicker` — item PDP: “Colour: Navy” label + large swatches in the copy column.
    */
   function mountVariantSwatchStrip(mountEl, item, opts = {}) {
-    const variants = getItemColourVariants(item);
+    const variants = opts.variants ?? getItemColourVariants(item);
     if (!variants?.length) return;
+    const realVariants = getItemColourVariants(item);
     const gridColourTray = Boolean(opts.gridColourTray);
     if (gridColourTray && variants.length < 1) return;
     const itemDetailPicker = Boolean(opts.itemDetailPicker);
@@ -408,7 +1488,6 @@
     function applyVariantHero(colourKey) {
       if (!heroImg || !heroHost) return;
       const projected = itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: String(colourKey) });
-      heroHost.querySelector(".card__gallery-strip")?.remove();
       const heroRender =
         heroHost.classList.contains("item-detail__media") ? ITEM_DETAIL_GALLERY_RENDER : COLLECTION_GRID_CARD_RENDER;
       wireCoverImageWithFallbacks(heroImg, projected, {
@@ -419,15 +1498,21 @@
         coverRenderResize: heroRender.resize,
         onResolved(url) {
           heroImg.dataset.coverSrc = url;
-          const ti = heroHost.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
-          if (ti) ti.src = url;
+          const galleryRoot = heroHost.closest(".item-detail__gallery");
+          if (galleryRoot) {
+            const ti = galleryRoot.querySelector(".item-detail__gallery-thumb.is-active img");
+            if (ti) ti.src = url;
+          } else {
+            const ti = heroHost.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
+            if (ti) ti.src = url;
+          }
           if (heroHost.closest("#grid")) {
             heroHost.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
           }
         },
       });
-      if (showHeroGallery && itemGalleryList(projected).length) {
-        mountHeroGalleryStrip(heroHost, heroImg, projected);
+      if (showHeroGallery) {
+        remountItemDetailHeroGallery(heroHost, heroImg, projected);
       }
       heroImg.alt = imageAltForItem(projected);
       sw.querySelectorAll(".card__swatch").forEach((node) => {
@@ -468,16 +1553,27 @@
       const fillHex = variantSwatchFillHex(v);
       const vu = String(variantSwatchImageUrl(v) ?? "").trim();
       const showPreview = vu && isDisplayableCloudImageUrl(vu);
+      const secFields = {
+        colour: v.secondaryColour ?? v.secondaryColor,
+        colourCode: v.secondaryColourCode ?? v.secondaryColorCode,
+      };
+      const dualSwatch = hasSecondaryColourFields(secFields) && (fillHex || resolveSwatchHexFromFields(secFields));
 
       if (gridColourTray) {
         el.classList.add("card__swatch--colour-fill");
-        applySwatchHexFill(el, fillHex);
-      } else if (showPreview) {
+        if (dualSwatch) {
+          applyVariantSwatchFill(el, v);
+        } else {
+          applySwatchHexFill(el, fillHex || LUXURY_SWATCH_HEX.grey);
+        }
+      } else if (showPreview && !dualSwatch) {
         const si = document.createElement("img");
         si.src = withWardrobeImageCacheBust(vu, item);
         si.alt = "";
         si.setAttribute("aria-hidden", "true");
         el.appendChild(si);
+      } else if (dualSwatch && applyVariantSwatchFill(el, v)) {
+        el.classList.add("card__swatch--colour-fill");
       } else if (applySwatchHexFill(el, fillHex)) {
         el.classList.add("card__swatch--colour-fill");
       } else {
@@ -496,7 +1592,11 @@
           e.stopPropagation();
           if (heroImg) applyVariantHero(v.key);
           if (outfitPick && (addToOutfitOnPick || !heroImg)) {
-            pushOutfitSlot({ itemId: String(item.id), colourKey: String(v.key) });
+            const slot = { itemId: String(item.id) };
+            if (realVariants?.some((rv) => String(rv.key) === String(v.key))) {
+              slot.colourKey = String(v.key);
+            }
+            pushOutfitSlot(slot);
           }
         });
       }
@@ -790,9 +1890,10 @@
   /** User hid the “browser-only storage” banner; clearing this key shows it again. */
   const LOCAL_DATA_RISK_BANNER_DISMISSED_KEY = "timeless-wardrobe-dismiss-local-risk-v1";
   const PRICE_CURRENCY_CODES = ["TWD", "USD", "JPY", "CNY"];
-  const COLLECTION_SORT_MODES = ["price-asc", "price-desc", "date-desc", "date-asc"];
-  const COLLECTION_DEFAULT_SORT_MODE = "date-desc";
+  const COLLECTION_SORT_MODES = ["default", "price-asc", "price-desc", "date-desc", "date-asc"];
+  const COLLECTION_DEFAULT_SORT_MODE = "default";
   const COLLECTION_SORT_LABELS = {
+    default: "Default",
     "date-desc": "Newest",
     "date-asc": "Oldest",
     "price-asc": "Price low–high",
@@ -857,9 +1958,53 @@
         btn.setAttribute("aria-pressed", on ? "true" : "false");
       });
     }
-    const heading = document.getElementById("collection-drawer-sort-heading");
-    if (heading) {
-      heading.textContent = `Sort by · ${collectionSortLabel()}`;
+  }
+
+  function syncCollectionColourFilterCountBadge() {
+    const badge = document.getElementById("collection-colour-filter-count");
+    if (!badge) return;
+    const n = basicColourFilters.size;
+    if (n > 0) {
+      badge.textContent = String(n);
+      badge.hidden = false;
+      badge.removeAttribute("aria-hidden");
+    } else {
+      badge.textContent = "";
+      badge.hidden = true;
+      badge.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function expandCollectionFilterDrawerSection(sectionSelector) {
+    const section = document.querySelector(sectionSelector);
+    if (!section?.classList.contains("afd-collapsible")) return;
+    section.classList.remove("is-collapsed");
+    const btn = section.querySelector(".afd-section-toggle");
+    if (btn) btn.setAttribute("aria-expanded", "true");
+  }
+
+  function collapseAllCollectionFilterDrawerSections() {
+    document.querySelectorAll("#collection-filter-drawer .afd-collapsible").forEach((section) => {
+      section.classList.add("is-collapsed");
+      const btn = section.querySelector(".afd-section-toggle");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function syncCollectionFilterDrawerAccordionState() {
+    collapseAllCollectionFilterDrawerSections();
+    expandCollectionFilterDrawerSection(".collection-filter-drawer__block--sort");
+    if (seasonNavFilter) {
+      expandCollectionFilterDrawerSection(".collection-filter-drawer__block--season");
+    }
+    if (categoryNavFilter || subcategoryFilters.size > 0) {
+      expandCollectionFilterDrawerSection(".collection-filter-drawer__block--categories");
+    }
+    if (basicColourFilters.size > 0) {
+      expandCollectionFilterDrawerSection(".collection-filter-drawer__block--colour");
+    }
+    if (selectedBrandFilters.size > 0) {
+      expandCollectionFilterDrawerSection(".collection-filter-drawer__block--brands");
     }
   }
 
@@ -869,6 +2014,31 @@
     if (!doneBtn) return;
     const c = Number.isFinite(Number(n)) ? Number(n) : applyFilters(items).length;
     doneBtn.textContent = c > 0 ? `Done (${c})` : "Done";
+  }
+
+  function syncCollectionFilterDrawerCountUi() {
+    const countEl = document.getElementById("collection-filter-count-label");
+    const sep = document.getElementById("collection-filter-count-sep");
+    const clearBtn = document.getElementById("collection-filter-clear-all");
+    if (!countEl || !clearBtn) return;
+    const n =
+      (seasonNavFilter ? 1 : 0) +
+      (categoryNavFilter ? 1 : 0) +
+      basicColourFilters.size +
+      selectedBrandFilters.size +
+      subcategoryFilters.size;
+    const hasFilters = n > 0;
+    countEl.hidden = !hasFilters;
+    if (sep) sep.hidden = !hasFilters;
+    clearBtn.hidden = !hasFilters;
+    if (hasFilters) countEl.textContent = n + (n === 1 ? " Filter" : " Filters");
+  }
+
+  /** Drawer Clear All — full collection reset (filters, sort, section); panel stays open. */
+  function clearCollectionDrawerFilters() {
+    resetAllCollectionFilters({ closeDrawer: false });
+    syncCollectionFilterDrawerCountUi();
+    syncToolbarActiveFilterChips();
   }
 
   function loadPersistedBasicColourFilter() {
@@ -918,6 +2088,7 @@
       /* */
     }
     basicColourFilters = next;
+    invalidateCollectionSortedCache();
     return basicColourFilters;
   }
 
@@ -940,6 +2111,11 @@
     if (next.has(k)) next.delete(k);
     else next.add(k);
     return persistBasicColourFilters(next);
+  }
+
+  /** Active broad-colour filter for grid swatch hints; empty when none or multiple selected. */
+  function activeBasicColourFilterKey() {
+    return basicColourFilters.size === 1 ? [...basicColourFilters][0] : "";
   }
 
   function parseFilterListParam(raw) {
@@ -966,20 +2142,24 @@
   /**
    * @param {HTMLSelectElement | null} sel
    * @param {string} selectedKey
+   * @param {{ includeOmit?: boolean }} [opts]
    */
-  function fillBasicColourSelectOptions(sel, selectedKey) {
+  function fillBasicColourSelectOptions(sel, selectedKey, opts = {}) {
     if (!sel) return;
+    const includeOmit = opts.includeOmit !== false;
     const rawSel = String(selectedKey ?? "").trim();
-    const wantOmit = rawSel.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT;
+    const wantOmit = includeOmit && rawSel.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT;
     const want = normalizeStoredBasicColourKey(rawSel);
     sel.textContent = "";
-    const oOmit = document.createElement("option");
-    oOmit.value = BASIC_COLOUR_CLASSIFICATION_OMIT;
-    oOmit.textContent = "None (not filtered by colour)";
-    sel.appendChild(oOmit);
+    if (includeOmit) {
+      const oOmit = document.createElement("option");
+      oOmit.value = BASIC_COLOUR_CLASSIFICATION_OMIT;
+      oOmit.textContent = "None (not filtered by colour)";
+      sel.appendChild(oOmit);
+    }
     const o0 = document.createElement("option");
     o0.value = "";
-    o0.textContent = "Auto (from name / code / hex)";
+    o0.textContent = "Auto (from colour label / hex)";
     sel.appendChild(o0);
     for (const k of BASIC_COLOUR_FAMILY_KEYS) {
       const o = document.createElement("option");
@@ -988,8 +2168,228 @@
       if (!wantOmit && k === want) o.selected = true;
       sel.appendChild(o);
     }
-    if (wantOmit) oOmit.selected = true;
-    else if (!want) o0.selected = true;
+    if (wantOmit) {
+      const oOmit = /** @type {HTMLOptionElement | null} */ (
+        sel.querySelector(`option[value="${BASIC_COLOUR_CLASSIFICATION_OMIT}"]`)
+      );
+      if (oOmit) oOmit.selected = true;
+    } else if (!want) o0.selected = true;
+  }
+
+  /** @type {WeakMap<HTMLSelectElement, () => { colour?: string, colourCode?: string, label?: string }>} */
+  const basicColourAutoFieldSources = new WeakMap();
+  /** @type {WeakMap<HTMLSelectElement, () => { secondaryColour?: string, secondaryColourCode?: string }>} */
+  const secondaryBasicColourAutoFieldSources = new WeakMap();
+
+  /**
+   * Colour label for Auto broad-colour — primary colour name, else variant label.
+   * @param {{ colour?: string, color?: string, label?: string }} [fields]
+   */
+  function primaryColourLabelTextForAuto(fields) {
+    if (!fields || typeof fields !== "object") return "";
+    return String(fields.colour ?? fields.color ?? fields.label ?? "").trim();
+  }
+
+  /**
+   * Auto broad-colour reads the colour label: one word (e.g. navy → blue); two+ words use the second
+   * (e.g. grey green → green). Comma/slash lists use the second segment.
+   * @param {string} raw
+   */
+  function colourLabelSegmentForAutoBroadColour(raw) {
+    const s = String(raw ?? "").trim();
+    if (!s) return "";
+    const chunks = colourTextChunks(s);
+    if (chunks.length >= 2) return chunks[1];
+    const words = s.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return words[1];
+    return words[0] ?? s;
+  }
+
+  /** @param {string} raw */
+  function basicColourFamilyFromColourLabel(raw) {
+    const segment = colourLabelSegmentForAutoBroadColour(raw);
+    if (!segment) return "";
+    for (const f of basicFamiliesFromColourSegment(segment)) return f;
+    return "";
+  }
+
+  /** Hex-only fallback when the colour label does not resolve. */
+  function basicColourFamilyFromColourCodeField(raw) {
+    for (const hx of extractHexDigitsFromColourText(raw)) {
+      const f = hexRgbToBasicFamily(hx);
+      if (f) return f;
+    }
+    return "";
+  }
+
+  /**
+   * One broad-colour family for Auto — colour label first, then #hex in colour code only.
+   * @param {{ colour?: string, colourCode?: string, label?: string }} [fields]
+   * @returns {string}
+   */
+  function inferSinglePrimaryBasicColourFamilyFromFields(fields) {
+    if (!fields || typeof fields !== "object") return "";
+    const fromLabel = basicColourFamilyFromColourLabel(primaryColourLabelTextForAuto(fields));
+    if (fromLabel) return fromLabel;
+    return basicColourFamilyFromColourCodeField(fields.colourCode ?? fields.colorCode);
+  }
+
+  /**
+   * Secondary colour name / code → broad-colour family (collection filter only).
+   * @param {{ secondaryColour?: string, secondaryColor?: string, secondaryColourCode?: string, secondaryColorCode?: string }} [fields]
+   * @returns {string}
+   */
+  function inferSecondaryBasicColourFamilyFromFields(fields) {
+    if (!fields || typeof fields !== "object" || !hasSecondaryColourFields(fields)) return "";
+    const pick = normalizeStoredBasicColourKey(fields.secondaryBasicColour);
+    if (pick) return pick;
+    return inferSinglePrimaryBasicColourFamilyFromFields({
+      colour: fields.secondaryColour ?? fields.secondaryColor,
+      colourCode: fields.secondaryColourCode ?? fields.secondaryColorCode,
+    });
+  }
+
+  /**
+   * When broad colour is Auto, show which bucket will be used and mark as automatic.
+   * @param {HTMLSelectElement} basicSel
+   * @param {{ colour?: string, colourCode?: string, label?: string }} [fields]
+   */
+  function syncItemEditBasicColourAutoDisplay(basicSel, fields) {
+    if (!(basicSel instanceof HTMLSelectElement)) return;
+    const autoBase = "Auto (from colour label / hex)";
+    const autoOpt = /** @type {HTMLOptionElement | null} */ (basicSel.querySelector('option[value=""]'));
+    if (autoOpt) autoOpt.textContent = autoBase;
+
+    let hint = basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint");
+    if (!(hint instanceof HTMLElement)) {
+      hint = document.createElement("p");
+      hint.className = "item-edit-basic-colour-auto-hint";
+      hint.setAttribute("aria-live", "polite");
+      basicSel.insertAdjacentElement("afterend", hint);
+    }
+
+    const raw = String(basicSel.value ?? "").trim();
+    const isAuto = raw === "";
+    const isOmit = raw.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT;
+    if (!isAuto || isOmit) {
+      hint.hidden = true;
+      hint.textContent = "";
+      return;
+    }
+
+    const key = inferSinglePrimaryBasicColourFamilyFromFields(fields);
+    const label = key ? basicColourLabelEn(key) : "";
+    if (autoOpt) {
+      autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
+    }
+    hint.hidden = false;
+    hint.textContent = label
+      ? `${label} · detected automatically`
+      : "No broad colour detected yet — add a primary colour name or #hex code.";
+  }
+
+  /**
+   * @param {HTMLSelectElement} basicSel
+   * @param {() => { colour?: string, colourCode?: string, label?: string }} getFields
+   * @returns {() => void}
+   */
+  function wireItemEditBasicColourAutoDisplay(basicSel, getFields) {
+    basicColourAutoFieldSources.set(basicSel, getFields);
+    const sync = () => syncItemEditBasicColourAutoDisplay(basicSel, getFields());
+    basicSel.addEventListener("change", sync);
+    sync();
+    return sync;
+  }
+
+  /**
+   * Auto hint for secondary broad colour (when a secondary colour name / code is set).
+   * @param {HTMLSelectElement} basicSel
+   * @param {{ secondaryColour?: string, secondaryColourCode?: string }} fields
+   */
+  function syncItemEditSecondaryBasicColourAutoDisplay(basicSel, fields) {
+    if (!(basicSel instanceof HTMLSelectElement)) return;
+    const autoBase = "Auto (from secondary colour label / hex)";
+    const autoOpt = /** @type {HTMLOptionElement | null} */ (basicSel.querySelector('option[value=""]'));
+    if (autoOpt) autoOpt.textContent = autoBase;
+
+    let hint = basicSel.parentElement?.querySelector(".item-edit-basic-colour-auto-hint");
+    if (!(hint instanceof HTMLElement)) {
+      hint = document.createElement("p");
+      hint.className = "item-edit-basic-colour-auto-hint";
+      hint.setAttribute("aria-live", "polite");
+      basicSel.insertAdjacentElement("afterend", hint);
+    }
+
+    const raw = String(basicSel.value ?? "").trim();
+    const isAuto = raw === "";
+    if (!isAuto) {
+      hint.hidden = true;
+      hint.textContent = "";
+      return;
+    }
+
+    const key = inferSecondaryBasicColourFamilyFromFields(fields);
+    const label = key ? basicColourLabelEn(key) : "";
+    if (autoOpt) {
+      autoOpt.textContent = label ? `Auto — ${label}` : autoBase;
+    }
+    hint.hidden = false;
+    hint.textContent = label
+      ? `${label} · detected automatically`
+      : "No broad colour detected yet — add a secondary colour name or #hex code.";
+  }
+
+  /**
+   * @param {HTMLSelectElement} basicSel
+   * @param {() => { secondaryColour?: string, secondaryColourCode?: string }} getFields
+   * @returns {() => void}
+   */
+  function wireItemEditSecondaryBasicColourAutoDisplay(basicSel, getFields) {
+    secondaryBasicColourAutoFieldSources.set(basicSel, getFields);
+    const sync = () => syncItemEditSecondaryBasicColourAutoDisplay(basicSel, getFields());
+    basicSel.addEventListener("change", sync);
+    sync();
+    return sync;
+  }
+
+  /**
+   * @param {string} initialPick
+   * @param {{ id?: string, className?: string, label?: string, hidden?: boolean, getFields?: () => { secondaryColour?: string, secondaryColourCode?: string } }} [opts]
+   */
+  function createItemEditSecondaryBasicColourField(initialPick, opts = {}) {
+    const wrap = document.createElement("label");
+    wrap.className = "field item-edit-secondary-basic-colour-field";
+    if (opts.hidden) wrap.hidden = true;
+    const span = document.createElement("span");
+    span.className = "field__label";
+    span.textContent = opts.label || "Broad colour — secondary (optional)";
+    const sel = document.createElement("select");
+    sel.className = opts.className || "item-edit-secondary-basic-colour";
+    if (opts.id) sel.id = opts.id;
+    fillBasicColourSelectOptions(sel, initialPick, { includeOmit: false });
+    wrap.append(span, sel);
+    const sync =
+      typeof opts.getFields === "function"
+        ? wireItemEditSecondaryBasicColourAutoDisplay(sel, opts.getFields)
+        : null;
+    return { wrap, sel, sync };
+  }
+
+  /**
+   * @param {HTMLSelectElement | null} basicSel
+   * @param {string} selectedKey
+   * @param {{ includeOmit?: boolean }} [opts]
+   */
+  function refillBasicColourSelectOptions(basicSel, selectedKey, opts = {}) {
+    fillBasicColourSelectOptions(basicSel, selectedKey, opts);
+    const getFields = basicSel ? basicColourAutoFieldSources.get(basicSel) : undefined;
+    if (basicSel && typeof getFields === "function") {
+      syncItemEditBasicColourAutoDisplay(basicSel, getFields());
+    }
+    const getSecFields = basicSel ? secondaryBasicColourAutoFieldSources.get(basicSel) : undefined;
+    if (basicSel && typeof getSecFields === "function") {
+      syncItemEditSecondaryBasicColourAutoDisplay(basicSel, getSecFields());
+    }
   }
 
   const BASIC_COLOUR_SWATCH_HEX = {
@@ -999,7 +2399,7 @@
     white: "#f4f4f1",
     black: "#1b1b1b",
     beige: "#d1bfa3",
-    gold: "#c9a227",
+    gold: GOLD_BASIC_COLOUR_HEX,
     silver: "#b8babf",
     green: "#4f7b56",
     grey: "#8d8e95",
@@ -1027,6 +2427,56 @@
     const n = Number(s);
     if (!Number.isFinite(n) || n < 0) return null;
     return n;
+  }
+
+  /** Parse price field text (supports `23,000` thousand groups and decimal comma/dot). */
+  function parsePriceFormValue(raw) {
+    const t = String(raw ?? "").trim().replace(/\s/g, "");
+    if (!t) return null;
+    if (/^\d{1,3}(,\d{3})*(\.\d+)?$/.test(t)) {
+      const n = Number(t.replace(/,/g, ""));
+      if (Number.isFinite(n) && n >= 0) return n;
+      return null;
+    }
+    return parsePriceAmountFlexible(t);
+  }
+
+  /** Display price in inputs with thousands separators (no currency symbol). */
+  function formatPriceAmountForInput(amount) {
+    const n =
+      typeof amount === "number" && Number.isFinite(amount)
+        ? amount
+        : parsePriceFormValue(amount) ?? parsePriceAmountFlexible(amount);
+    if (n == null) return "";
+    const s = String(n);
+    if (!s.includes(".")) return Math.round(n).toLocaleString("en-US");
+    const [intPart, frac] = s.split(".");
+    return `${Number(intPart).toLocaleString("en-US")}.${frac}`;
+  }
+
+  /** Text price input: strip commas while focused, format with commas on blur. */
+  function wirePriceAmountInput(input) {
+    if (!(input instanceof HTMLInputElement)) return;
+    input.type = "text";
+    input.removeAttribute("min");
+    input.removeAttribute("step");
+    input.inputMode = "decimal";
+
+    const applyFormatted = () => {
+      const raw = input.value.trim();
+      if (!raw) return;
+      const n = parsePriceFormValue(raw);
+      if (n == null) return;
+      input.value = formatPriceAmountForInput(n);
+    };
+
+    input.addEventListener("focus", () => {
+      const n = parsePriceFormValue(input.value);
+      if (n == null) return;
+      input.value = Number.isInteger(n) ? String(Math.round(n)) : String(n);
+    });
+    input.addEventListener("blur", applyFormatted);
+    input.addEventListener("change", applyFormatted);
   }
 
   let collectionSortMode = loadPersistedCollectionSortMode();
@@ -1061,8 +2511,8 @@
     return out;
   }
 
-  /** Default measurement row labels for new pieces (editable). */
-  const DEFAULT_MEASUREMENT_LABELS = ["Shoulder", "Chest", "Waist", "Sleeve", "Back Length"];
+  /** Default label placeholders for empty measurement editors (not saved until value entered). */
+  const DEFAULT_MEASUREMENT_LABEL_PLACEHOLDERS = ["Shoulder", "Chest", "Sleeve", "Length"];
 
   function parseMeasurementUnitInput(raw) {
     return String(raw ?? "").trim().toLowerCase() === "mm" ? "mm" : "cm";
@@ -1168,11 +2618,31 @@
    * @param {{ label: string, value: string }[]} rows
    * @param {{ defaultsForEmpty?: boolean }} opts
    */
+  function defaultMeasurementPlaceholderRows() {
+    return DEFAULT_MEASUREMENT_LABEL_PLACEHOLDERS.map((labelPlaceholder) => ({
+      label: "",
+      value: "",
+      labelPlaceholder,
+    }));
+  }
+
   function resolveInitialMeasurementRowsForEditor(rows, opts = {}) {
-    const cleaned = cleanMeasurementRows(Array.isArray(rows) ? rows : []);
+    const cleaned = cleanMeasurementRows(Array.isArray(rows) ? rows : []).filter((r) =>
+      String(r.value ?? "").trim()
+    );
     if (cleaned.length) return cleaned;
-    if (opts.defaultsForEmpty) return DEFAULT_MEASUREMENT_LABELS.map((label) => ({ label, value: "" }));
+    if (opts.defaultsForEmpty) return defaultMeasurementPlaceholderRows();
     return [{ label: "", value: "" }];
+  }
+
+  /**
+   * @param {object | null | undefined} item
+   * @returns {{ label: string, value: string, labelPlaceholder?: string }[]}
+   */
+  function getMeasurementRowsForEditor(item) {
+    const existing = getMeasurementRows(item).filter((r) => String(r.value ?? "").trim());
+    if (existing.length) return existing;
+    return defaultMeasurementPlaceholderRows();
   }
 
   /**
@@ -1239,7 +2709,29 @@
 
     unitSel?.addEventListener("change", syncValuePlaceholders);
 
-    function appendRow(label = "", value = "") {
+    const addBtn = createItemEditIconButton(
+      "item-edit-icon-btn--compact measured-dims-row__add",
+      TW_ITEM_EDIT_ICON.plus,
+      "Add measurement row"
+    );
+    addBtn.addEventListener("click", () => {
+      appendRow("", "");
+      syncValuePlaceholders();
+      const rows = dyn.querySelectorAll(".measured-dims-row");
+      const last = rows[rows.length - 1];
+      last?.querySelector(".measured-dims-row__label")?.focus();
+    });
+
+    function syncAddBtnPlacement() {
+      addBtn.remove();
+      const rows = dyn.querySelectorAll(".measured-dims-row");
+      const last = rows[rows.length - 1];
+      if (!last) return;
+      const actions = last.querySelector(".measured-dims-row__actions");
+      actions?.appendChild(addBtn);
+    }
+
+    function appendRow(label = "", value = "", labelPlaceholder = "") {
       const row = document.createElement("div");
       row.className = "measured-dims-row";
       row.dataset.twMeasRow = "1";
@@ -1247,9 +2739,18 @@
       labIn.type = "text";
       labIn.className = "measured-dims-row__label";
       labIn.maxLength = 80;
-      labIn.placeholder = "Label";
+      const labelPh = String(labelPlaceholder ?? "").trim();
+      labIn.placeholder = labelPh || "Label";
       labIn.autocomplete = "off";
       labIn.value = label;
+      labIn.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const rows = [...dyn.querySelectorAll(".measured-dims-row")];
+        const nextLabel = rows[rows.indexOf(row) + 1]?.querySelector(".measured-dims-row__label");
+        if (nextLabel instanceof HTMLInputElement) nextLabel.focus();
+        else valIn.focus();
+      });
       const valIn = document.createElement("input");
       valIn.type = "text";
       valIn.className = "measured-dims-row__value";
@@ -1257,44 +2758,42 @@
       valIn.placeholder = unitSel ? parseMeasurementUnitInput(unitSel.value) : "cm";
       valIn.autocomplete = "off";
       valIn.value = value;
-      const rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "btn btn--small btn--ghost measured-dims-row__remove";
-      rm.setAttribute("aria-label", "Remove this row");
-      rm.textContent = "Remove";
+      const rm = createItemEditIconButton(
+        "item-edit-icon-btn--compact measured-dims-row__remove",
+        TW_ITEM_EDIT_ICON.trash,
+        "Remove this row"
+      );
       rm.addEventListener("click", () => {
         row.remove();
         if (!dyn.querySelector(".measured-dims-row")) appendRow("", "");
+        else syncAddBtnPlacement();
       });
-      row.appendChild(labIn);
-      row.appendChild(valIn);
-      row.appendChild(rm);
+      const actions = document.createElement("div");
+      actions.className = "measured-dims-row__actions";
+      actions.appendChild(rm);
+      row.append(labIn, valIn, actions);
       dyn.appendChild(row);
+      syncAddBtnPlacement();
     }
 
-    for (const r of rowsToShow) appendRow(String(r.label ?? "").trim(), String(r.value ?? "").trim());
+    for (const r of rowsToShow) {
+      appendRow(
+        String(r.label ?? "").trim(),
+        String(r.value ?? "").trim(),
+        String(/** @type {{ labelPlaceholder?: string }} */ (r).labelPlaceholder ?? "").trim()
+      );
+    }
 
-    const toolbar = document.createElement("div");
-    toolbar.className = "measured-dims-toolbar";
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "btn btn--small btn--ghost";
-    addBtn.textContent = "Add row";
-    addBtn.addEventListener("click", () => {
-      appendRow("", "");
-      syncValuePlaceholders();
-    });
-    toolbar.appendChild(addBtn);
     block.appendChild(dyn);
-    block.appendChild(toolbar);
     container.appendChild(block);
     syncValuePlaceholders();
+    syncAddBtnPlacement();
   }
 
   function resetAddItemMeasurementBlock() {
     const el = document.getElementById("add-item-measured-dims-block");
     if (!el) return;
-    mountMeasurementRowsEditor(el, resolveInitialMeasurementRowsForEditor([], { defaultsForEmpty: false }), {
+    mountMeasurementRowsEditor(el, resolveInitialMeasurementRowsForEditor([], { defaultsForEmpty: true }), {
       unitSelectId: "add-item-measurement-unit",
       initialUnit: "cm",
     });
@@ -1368,6 +2867,97 @@
     body.appendChild(sec);
   }
 
+  function wireItemDetailNotesCollapsedAccordion(sec, opts = {}) {
+    const textEl = sec.querySelector(".item-detail__notes-text");
+    const toggle = sec.querySelector(".item-detail__notes-toggle");
+    if (!(textEl instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) return;
+
+    const startExpanded = Boolean(opts.startExpanded);
+    toggle.hidden = false;
+    if (startExpanded) {
+      sec.classList.add("item-detail__notes-section--expanded");
+      sec.classList.remove("item-detail__notes-section--collapsed");
+      textEl.hidden = false;
+      toggle.textContent = "Hide notes";
+      toggle.setAttribute("aria-expanded", "true");
+    } else {
+      sec.classList.add("item-detail__notes-section--collapsed");
+      sec.classList.remove("item-detail__notes-section--expanded");
+      textEl.hidden = true;
+      toggle.textContent = "Show notes";
+      toggle.setAttribute("aria-expanded", "false");
+    }
+
+    const flip = () => {
+      const collapsed = sec.classList.contains("item-detail__notes-section--collapsed");
+      const nextExpanded = collapsed;
+      sec.classList.toggle("item-detail__notes-section--collapsed", !nextExpanded);
+      sec.classList.toggle("item-detail__notes-section--expanded", nextExpanded);
+      textEl.hidden = !nextExpanded;
+      toggle.textContent = nextExpanded ? "Hide notes" : "Show notes";
+      toggle.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
+    };
+
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      flip();
+    });
+  }
+
+  function collapseItemDetailNotesSection(sec) {
+    if (!(sec instanceof HTMLElement)) return;
+    const textEl = sec.querySelector(".item-detail__notes-text");
+    const toggle = sec.querySelector(".item-detail__notes-toggle");
+    sec.classList.add("item-detail__notes-section--collapsed");
+    sec.classList.remove("item-detail__notes-section--expanded");
+    if (textEl instanceof HTMLElement) textEl.hidden = true;
+    if (toggle instanceof HTMLButtonElement) {
+      toggle.textContent = "Show notes";
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  /** @param {HTMLElement} root */
+  function itemDetailGalleryBottomY(root) {
+    const gallery =
+      root.querySelector(".item-detail__gallery") || root.querySelector(".item-detail__media.item-detail__gallery-stage");
+    if (!(gallery instanceof HTMLElement)) return null;
+    return gallery.getBoundingClientRect().bottom;
+  }
+
+  /** @param {HTMLElement} root @param {HTMLElement} notesSec */
+  function itemDetailNotesBottomExceedsGallery(root, notesSec) {
+    const galleryBottom = itemDetailGalleryBottomY(root);
+    if (galleryBottom == null) return false;
+    return notesSec.getBoundingClientRect().bottom > galleryBottom + 4;
+  }
+
+  /** PDP: collapse long notes when expanded text runs past the gallery bottom. */
+  function installItemDetailNotesPdpGallerySync(root) {
+    const notesSec = root.querySelector(".item-detail__notes-section--accordion");
+    if (!(notesSec instanceof HTMLElement)) return;
+    const gallery =
+      root.querySelector(".item-detail__gallery") || root.querySelector(".item-detail__media.item-detail__gallery-stage");
+    if (!(gallery instanceof HTMLElement)) return;
+
+    const sync = () => {
+      if (notesSec.classList.contains("item-detail__notes-section--collapsed")) return;
+      if (itemDetailNotesBottomExceedsGallery(root, notesSec)) {
+        collapseItemDetailNotesSection(notesSec);
+      }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(sync));
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(() => sync());
+      ro.observe(gallery);
+      const body = root.querySelector(".item-detail__body--product");
+      if (body instanceof HTMLElement) ro.observe(body);
+    } else {
+      globalThis.addEventListener("resize", sync, { passive: true });
+    }
+  }
+
   function wireItemDetailNotesReadMore(sec) {
     const textEl = sec.querySelector(".item-detail__notes-text");
     const toggle = sec.querySelector(".item-detail__notes-toggle");
@@ -1404,13 +2994,49 @@
     });
   }
 
-  /** PDP notes — clamp to a few lines with soft fade + “Read more” (Ralph Lauren–style). */
-  function mountItemDetailNotesSection(body, notesText) {
+  /** Item notes — PDP: accordion (open by default unless taller than gallery); modal: clamp + read more. */
+  function mountItemDetailNotesSection(host, notesText, opts = {}) {
     const text = String(notesText ?? "").trim();
-    if (!text || text === "--" || text === "—") return;
+    if (!text || text === "--" || text === "—") return null;
+    if (!(host instanceof HTMLElement)) return null;
 
+    const pdpAccordion = Boolean(opts.pdpAccordion);
+    const startCollapsed = Boolean(opts.startCollapsed);
     const sec = document.createElement("section");
     sec.className = "item-detail__notes-section";
+    if (startCollapsed || pdpAccordion) sec.classList.add("item-detail__notes-section--accordion");
+
+    const notesId = `item-detail-notes-${String(detailItemId ?? "item").replace(/[^\w-]/g, "")}`;
+
+    if (startCollapsed || pdpAccordion) {
+      const head = document.createElement("div");
+      head.className = "item-detail__notes-head";
+
+      const h = document.createElement("h3");
+      h.className = "item-detail__notes-h";
+      h.textContent = "Notes";
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "item-detail__notes-toggle";
+      toggle.textContent = "Show notes";
+      toggle.setAttribute("aria-expanded", "false");
+
+      const textEl = document.createElement("div");
+      textEl.className = "item-detail__notes-text";
+      textEl.id = notesId;
+      textEl.textContent = text;
+      if (startCollapsed) textEl.hidden = true;
+      toggle.setAttribute("aria-controls", notesId);
+
+      head.appendChild(h);
+      head.appendChild(toggle);
+      sec.appendChild(head);
+      sec.appendChild(textEl);
+      host.appendChild(sec);
+      wireItemDetailNotesCollapsedAccordion(sec, { startExpanded: pdpAccordion && !startCollapsed });
+      return sec;
+    }
 
     const h = document.createElement("h3");
     h.className = "item-detail__notes-h";
@@ -1430,8 +3056,9 @@
     sec.appendChild(h);
     sec.appendChild(textEl);
     sec.appendChild(toggle);
-    body.appendChild(sec);
+    host.appendChild(sec);
     wireItemDetailNotesReadMore(sec);
+    return sec;
   }
 
   /**
@@ -1815,84 +3442,211 @@
     return s;
   }
 
-  function buildItemPlainTextSnapshot(item) {
+  /** Machine-oriented wardrobe brief for LLM outfit pairing (not human copy). */
+  function buildItemAiStylingBrief(item) {
     if (!item) return "";
+    const slot = itemSlot(item);
+    const recordCat = recordCategoryForDrill(item, slot);
     const lines = [];
-    lines.push("Timeless Wardrobe — wardrobe piece (plain text export)");
-    lines.push("=".repeat(48));
-    lines.push(`ID: ${item.id ?? ""}`);
-    lines.push(`Brand: ${String(item.brand ?? "").trim()}`);
-    lines.push(`Name: ${String(item.name ?? "").trim()}`);
-    lines.push(`Name (display line): ${displayNameWithoutLeadingColour(item)}`);
-    lines.push(`Browse category: ${categoryDisplayLabel(itemSlot(item))}`);
-    lines.push(`Record category: ${recordCategoryForDrill(item, itemSlot(item))}`);
-    lines.push(`Season: ${seasonUiLabel(item.season)}`);
-    lines.push(`Colour: ${String(item.colour ?? "").trim()}`);
-    lines.push(`Material: ${String(item.fabric ?? "").trim()}`);
-    lines.push(`Weight / specs: ${String(item.weight ?? "").trim()}`);
-    lines.push(`Size: ${String(item.size ?? "").trim()}`);
-    {
-      const rows = getMeasurementRows(item).filter((r) => String(r.value ?? "").trim());
-      if (rows.length) {
-        const u = getMeasurementUnit(item);
-        lines.push(`Measurements (${u}):`);
-        for (const r of rows) {
-          const L = String(r.label ?? "").trim();
-          const V = String(r.value ?? "").trim();
-          if (L || V) lines.push(`  ${L || "—"}: ${V ? `${V} ${u}` : "—"}`);
-        }
-      } else {
-        lines.push(`Measured dimensions: ${String(item.measuredDimensions ?? "").trim() || "(none)"}`);
+    const push = (key, val) => {
+      const v = val == null ? "" : String(val).trim();
+      if (!v) return;
+      lines.push(`${key}: ${v}`);
+    };
+    const pushSection = (title) => {
+      lines.push("");
+      lines.push(`[${title}]`);
+    };
+
+    lines.push("format: timeless_wardrobe_ai_brief_v1");
+    lines.push("purpose: outfit_pairing_and_styling");
+    lines.push("task: suggest compatible pieces; respect season, weight, colour, and measurements");
+
+    pushSection("identity");
+    push("id", item.id);
+    push("brand", item.brand);
+    push("name", item.name);
+    push("display_title", displayNameWithoutLeadingColour(item));
+    push("browse_division", categoryDisplayLabel(slot));
+    push("record_category", recordCat);
+    push("stored_category_raw", item.category);
+
+    const seasonRaw = String(item.season ?? "").trim();
+    const seasonCode = normalizeSeason(item.season) || "ALL";
+    pushSection("season_climate");
+    push("season_stored", seasonRaw || DEFAULT_STORED_SEASON);
+    push("season_code", seasonCode);
+    push("season_label", seasonUiLabel(item.season));
+    push("climate_pairing_hint", inferItemClimatePairingHint(item));
+
+    const primaryColour = String(item.colour ?? item.color ?? "").trim();
+    const secondaryColour = itemSecondaryColour(item);
+    const primaryHex = itemColourCode(item);
+    const secondaryHex = itemSecondaryColourCode(item);
+    const colourFamilies = inferItemBasicColourFamilies(item);
+    const familyLabels = [...colourFamilies].map((k) => basicColourLabelEn(k)).filter(Boolean);
+
+    pushSection("colour");
+    push("primary_name", primaryColour);
+    push("secondary_name", secondaryColour);
+    push("display_line", formatColourDisplayLine(primaryColour, secondaryColour));
+    push("hex_primary", primaryHex);
+    push("hex_secondary", secondaryHex);
+    push(
+      "basic_colour_families",
+      itemOmitsBasicColourClassification(item) ? "omit_classification" : familyLabels.join(", ")
+    );
+    push("basic_colour_omit", itemOmitsBasicColourClassification(item) ? "true" : "false");
+
+    const variants = getItemColourVariants(item);
+    if (variants?.length) {
+      lines.push("colour_variants:");
+      for (const v of variants) {
+        const vfams = colourFamiliesForVariantFields(v);
+        const vFamLabels = [...vfams].map((k) => basicColourLabelEn(k)).filter(Boolean);
+        const vHex = extractSwatchHexFromVariant(v) || String(v.colourCode ?? "").trim();
+        lines.push(`  - key: ${v.key}`);
+        push("    label", v.label);
+        push("    colour_name", v.colour);
+        push("    hex", vHex);
+        push("    secondary_name", v.secondaryColour);
+        push("    secondary_hex", v.secondaryColourCode);
+        push("    basic_families", vFamLabels.join(", "));
+        push("    notes", v.notes);
+        push("    gallery_count", v.gallery?.length ? String(v.gallery.length) : "");
       }
     }
-    {
-      const pd = String(item.purchaseDate ?? "").trim();
-      lines.push(`Purchase date: ${pd ? formatPurchaseDateForDisplay(pd) : "(none)"}`);
+
+    const fabric = String(item.fabric ?? "").trim();
+    const weight = String(item.weight ?? "").trim();
+    pushSection("construction");
+    push("fabric", fabric);
+    push("weight_spec", weight);
+    push("spec_line", specParts(item).join(" | "));
+    push("thermal_layering_hint", inferItemThermalLayeringHint(item));
+
+    pushSection("fit");
+    push("size_label", item.size);
+    const measRows = getMeasurementRows(item).filter((r) => String(r.value ?? "").trim());
+    const measUnit = getMeasurementUnit(item);
+    push("measurements_unit", measUnit);
+    if (measRows.length) {
+      lines.push("measurements:");
+      for (const r of measRows) {
+        const L = String(r.label ?? "").trim() || "dimension";
+        const V = String(r.value ?? "").trim();
+        const key = L.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "value";
+        lines.push(`  ${key}_${measUnit}: ${V}`);
+      }
+    } else {
+      const legacy = String(item.measuredDimensions ?? item.measured_dimensions ?? "").trim();
+      if (legacy) push("measurements_legacy_text", legacy);
     }
+
+    pushSection("commerce");
     {
       const p = item?.price;
       if (Number.isFinite(Number(p))) {
         const cur = String(item?.priceCurrency ?? "TWD").toUpperCase();
         const n = collectionPriceColourVariantCount(item);
-        const total = Number(p) * n;
-        lines.push(
-          n > 1
-            ? `Price: ${formatMoneyInCurrency(total, cur)} (${n} × ${formatMoneyInCurrency(Number(p), cur)} per colour)`
-            : `Price: ${formatMoneyInCurrency(Number(p), cur)}`
-        );
-      } else {
-        lines.push("Price: (none)");
+        push("price_currency", cur);
+        push("price_per_variant_amount", String(Number(p)));
+        push("colour_variant_count_for_price", String(n));
+        push("price_total_all_variants", String(Number(p) * n));
+        push("price_display", formattedCollectionPriceLine(item));
       }
     }
-    lines.push(`Outfit-eligible: ${itemEligibleForOutfit(item) ? "yes" : "no"}`);
-    lines.push("");
-    lines.push(`Cover image: ${summarizeUrlForPlaintext(item.image)}`);
+    {
+      const pd = String(item.purchaseDate ?? "").trim();
+      if (pd) push("purchase_date", formatPurchaseDateForDisplay(pd));
+    }
+
+    pushSection("styling");
+    push("outfit_builder_eligible", itemEligibleForOutfit(item) ? "true" : "false");
+    const notes = String(item.notes ?? "").trim();
+    if (notes) {
+      lines.push("user_notes: |");
+      for (const line of notes.split(/\r?\n/)) lines.push(`  ${line}`);
+    }
+
+    pushSection("media");
+    push("cover_image", summarizeUrlForPlaintext(item.image));
     const gals = itemGalleryList(item);
-    lines.push(`Gallery images (${gals.length}):`);
-    if (!gals.length) lines.push("  (none)");
-    else gals.forEach((u, i) => lines.push(`  ${i + 1}. ${summarizeUrlForPlaintext(u)}`));
-    lines.push("");
-    lines.push("Notes:");
-    lines.push(String(item.notes ?? "").trim() || "(none)");
+    push("gallery_count", String(gals.length));
+    if (gals.length) {
+      lines.push("gallery_images:");
+      gals.forEach((u, i) => lines.push(`  - ${i + 1}: ${summarizeUrlForPlaintext(u)}`));
+    }
+
     if (item.metadata != null && item.metadata !== "") {
-      lines.push("");
-      lines.push("Metadata (raw):");
+      pushSection("metadata_raw");
       try {
-        lines.push(typeof item.metadata === "string" ? item.metadata : JSON.stringify(item.metadata));
+        const raw =
+          typeof item.metadata === "string" ? item.metadata : JSON.stringify(item.metadata, null, 0);
+        lines.push(raw);
       } catch {
         lines.push(String(item.metadata));
       }
     }
+
     lines.push("");
-    lines.push("-- end --");
+    lines.push("---");
     return lines.join("\n");
   }
 
-  async function copyItemPlainTextForAi(item) {
-    const text = buildItemPlainTextSnapshot(item);
+  function inferItemClimatePairingHint(item) {
+    const code = normalizeSeason(item?.season);
+    if (code === "SS") return "spring_summer_bias; pair with light layers";
+    if (code === "AW") return "autumn_winter_bias; pair with warm layers";
+    return "all_season_or_unspecified; use fabric and weight_spec";
+  }
+
+  function inferItemThermalLayeringHint(item) {
+    const blob = [item?.fabric, item?.weight, item?.season, item?.name, item?.notes, item?.colour]
+      .map((x) => String(x ?? "").toLowerCase())
+      .join(" ");
+    const hints = new Set();
+    if (/\b(heavy|thick|chunky|padded|down|fleece|wool|cashmere|fur|thermal|insulated|winter|coat|parka|puffer)\b/.test(blob))
+      hints.add("heavy_insulating");
+    if (/\b(light|lightweight|thin|sheer|mesh|linen|summer|breathable|airy|tank|tee)\b/.test(blob))
+      hints.add("light_breathable");
+    if (/\b(mid|medium|denim|flannel|jersey|sweatshirt|hoodie)\b/.test(blob)) hints.add("midweight");
+    const code = normalizeSeason(item?.season);
+    if (code === "SS") hints.add("warm_weather_ok");
+    if (code === "AW") hints.add("cool_weather_ok");
+    if (code === "ALL" || !code) hints.add("multi_season");
+    return hints.size ? [...hints].join("; ") : "unspecified_infer_from_fabric_and_weight";
+  }
+
+  const ITEM_DETAIL_COPY_AI_SUCCESS_MS = 1650;
+  let itemDetailCopyAiSuccessTimer = 0;
+
+  function playItemDetailCopyAiSuccess(btn) {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    if (itemDetailCopyAiSuccessTimer) {
+      clearTimeout(itemDetailCopyAiSuccessTimer);
+      itemDetailCopyAiSuccessTimer = 0;
+    }
+    btn.classList.remove("item-detail__copy-ai-btn--copied");
+    void btn.offsetWidth;
+    btn.classList.add("item-detail__copy-ai-btn--copied");
+    const ms = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 900 : ITEM_DETAIL_COPY_AI_SUCCESS_MS;
+    itemDetailCopyAiSuccessTimer = window.setTimeout(() => {
+      btn.classList.remove("item-detail__copy-ai-btn--copied");
+      itemDetailCopyAiSuccessTimer = 0;
+    }, ms);
+  }
+
+  async function copyItemPlainTextForAi(item, opts = {}) {
+    const text = buildItemAiStylingBrief(item);
+    const btn = opts.button instanceof HTMLButtonElement ? opts.button : null;
+    const onCopied = () => {
+      if (btn) playItemDetailCopyAiSuccess(btn);
+      showToast("Copied AI styling brief.");
+    };
     try {
       await navigator.clipboard.writeText(text);
-      showToast("Copied plain text to clipboard.");
+      onCopied();
     } catch (err) {
       console.warn(err);
       try {
@@ -1905,7 +3659,7 @@
         ta.select();
         document.execCommand("copy");
         ta.remove();
-        showToast("Copied plain text to clipboard.");
+        onCopied();
       } catch {
         showToast("Could not copy automatically.");
       }
@@ -2275,6 +4029,22 @@
       __source: "supabase",
     };
     if (colourVariants) out.colourVariants = colourVariants;
+    const secName = itemSecondaryColour(out);
+    const secCode = itemSecondaryColourCode(out);
+    if (secName) out.secondaryColour = secName;
+    else {
+      delete out.secondaryColour;
+      delete out.secondaryColor;
+    }
+    if (secCode) out.secondaryColourCode = secCode;
+    else {
+      delete out.secondaryColourCode;
+      delete out.secondaryColorCode;
+      delete out.secondary_colour_code;
+    }
+    const secBasic = itemSecondaryBasicColour(out);
+    if (secBasic) out.secondaryBasicColour = secBasic;
+    else delete out.secondaryBasicColour;
     const ts =
       String(row.updated_at ?? row.updatedAt ?? "").trim() || String(row.created_at ?? row.createdAt ?? "").trim();
     if (ts) out.updatedAt = ts;
@@ -2312,6 +4082,20 @@
     delete x.colorCode;
     delete x.color_code;
     delete x.colour_code;
+    const secName = itemSecondaryColour(/** @type {any} */ (x));
+    if (secName) x.secondaryColour = secName;
+    else {
+      delete x.secondaryColour;
+      delete x.secondaryColor;
+      delete x.secondary_colour;
+    }
+    const secCode = itemSecondaryColourCode(/** @type {any} */ (x));
+    if (secCode) x.secondaryColourCode = secCode;
+    else {
+      delete x.secondaryColourCode;
+      delete x.secondaryColorCode;
+      delete x.secondary_colour_code;
+    }
     if (!Array.isArray(x.colourVariants) || !x.colourVariants.length) {
       if (Array.isArray(x.colorVariants) && x.colorVariants.length) x.colourVariants = x.colorVariants;
     }
@@ -2445,6 +4229,16 @@
     } else {
       delete meta.measurementUnit;
     }
+    const secColourText = itemSecondaryColour(item);
+    const secCodeText = itemSecondaryColourCode(item);
+    if (secColourText) meta.secondaryColour = secColourText;
+    else delete meta.secondaryColour;
+    if (secCodeText) meta.secondaryColourCode = secCodeText;
+    else delete meta.secondaryColourCode;
+    const secBasicText = itemSecondaryBasicColour(item);
+    if (secBasicText) meta.secondaryBasicColour = secBasicText;
+    else delete meta.secondaryBasicColour;
+
     const metadataOut = sanitizeWardrobeMetadataForPostgres(meta);
     const colourText = String(item.colour ?? item.color ?? "").trim();
     const codeText = itemColourCode(item);
@@ -2724,6 +4518,46 @@
     }
   }
 
+  /** Original Storage object URL (no imgproxy width/height) — for crop / download source. */
+  function wardrobeImageFullResolutionUrl(url, item) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return "";
+    const path = storagePathFromWardrobeImageUrl(raw);
+    if (!path) return withWardrobeImageCacheBust(raw.split("?")[0], item);
+    try {
+      const u = new URL(raw);
+      const bucket = WARDROBE_IMAGE_BUCKET;
+      const encodedPath = path
+        .split("/")
+        .map((seg) => encodeURIComponent(seg))
+        .join("/");
+      u.pathname = `/storage/v1/object/public/${bucket}/${encodedPath}`;
+      u.search = "";
+      u.hash = "";
+      return withWardrobeImageCacheBust(u.href, item);
+    } catch {
+      return withWardrobeImageCacheBust(raw.split("?")[0], item);
+    }
+  }
+
+  /**
+   * @param {File | null | undefined} file
+   * @param {string} [urlHint]
+   */
+  function imageSourceLooksAlphaCapable(file, urlHint = "") {
+    if (file instanceof File) {
+      const mime = String(file.type ?? "").toLowerCase();
+      const name = String(file.name ?? "").toLowerCase();
+      if (mime === "image/png" || mime === "image/webp" || mime === "image/gif") return true;
+      if (name.endsWith(".png") || name.endsWith(".webp") || name.endsWith(".gif")) return true;
+    }
+    const u = String(urlHint || file?.name || "").trim();
+    if (!u) return false;
+    if (isLikelySeasonalCutoutImageUrl(u)) return true;
+    if (/\.(png|webp|gif)($|\?|#)/i.test(u)) return true;
+    return false;
+  }
+
   /**
    * Request a resized wardrobe image via Supabase Storage image rendering (no-op for non-bucket URLs).
    * Uses imgproxy-style `zoom` when provided (>1) for a tighter centre crop before fitting `width`×`height`.
@@ -2784,6 +4618,20 @@
     return true;
   }
 
+  function wardrobeImageUrlStillReferencedByOtherItems(url, excludeItemId) {
+    const pathKey = String(url ?? "").trim().split("?")[0];
+    if (!pathKey) return false;
+    const skipId = String(excludeItemId ?? "").trim();
+    for (const row of items) {
+      if (!row || typeof row !== "object") continue;
+      if (skipId && String(row.id ?? "") === skipId) continue;
+      for (const u of collectSupabaseWardrobeImageUrls(row)) {
+        if (String(u).trim().split("?")[0] === pathKey) return true;
+      }
+    }
+    return false;
+  }
+
   async function deleteWardrobeItemImagesFromCloud(item) {
     if (!item || !isSupabaseReady()) return;
     const urls = [];
@@ -2806,9 +4654,104 @@
         for (const u of v.gallery || []) add(u);
       }
     }
-    const cloudUrls = urls.filter(storagePathFromWardrobeImageUrl);
+    const excludeId = String(item.id ?? "").trim();
+    const cloudUrls = urls
+      .filter(storagePathFromWardrobeImageUrl)
+      .filter((u) => !wardrobeImageUrlStillReferencedByOtherItems(u, excludeId));
     if (!cloudUrls.length) return;
     await Promise.allSettled(cloudUrls.map(deleteWardrobeImageUrlFromCloud));
+  }
+
+  /**
+   * Copy a bucket image into `{destItemId}/…` so duplicates do not share Storage paths with the source row.
+   * @param {string} srcUrl
+   * @param {string} destItemId
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   * @param {object} [srcItem]
+   */
+  async function cloneWardrobeImageUrlForNewItem(srcUrl, destItemId, slot, srcItem) {
+    const url = String(srcUrl ?? "").trim();
+    if (!url) return "";
+    if (!storagePathFromWardrobeImageUrl(url)) return url;
+    const file = await imageSourceToFileForCrop(url, srcItem, "photo.jpg");
+    return uploadWardrobeImageFileToCloud(file, destItemId, slot);
+  }
+
+  /**
+   * Re-upload Supabase images under the duplicate row id (keeps external URLs as-is).
+   * @param {object} dup
+   * @param {object} src
+   */
+  async function materializeDuplicateItemCloudImages(dup, src) {
+    const destId = String(dup?.id ?? "").trim();
+    if (!destId || !isSupabaseReady()) return dup;
+
+    let galleryIndex = 0;
+
+    async function cloneUrl(url, slot) {
+      const u = String(url ?? "").trim();
+      if (!u) return "";
+      if (!storagePathFromWardrobeImageUrl(u)) return u;
+      return cloneWardrobeImageUrlForNewItem(u, destId, slot, src);
+    }
+
+    const main = String(dup.image ?? "").trim();
+    if (main) dup.image = await cloneUrl(main, { type: "main_cover" });
+
+    if (Array.isArray(dup.gallery) && dup.gallery.length) {
+      const nextGallery = [];
+      for (const raw of dup.gallery) {
+        const u = String(raw ?? "").trim();
+        if (!u) continue;
+        galleryIndex += 1;
+        nextGallery.push(await cloneUrl(u, { type: "main_gallery", index: galleryIndex }));
+      }
+      if (nextGallery.length) dup.gallery = dedupeGalleryUrls(String(dup.image ?? ""), nextGallery, 12);
+      else delete dup.gallery;
+    }
+
+    const vars = Array.isArray(dup.colourVariants) ? dup.colourVariants : null;
+    if (vars?.length) {
+      for (const v of vars) {
+        const vk = String(v.key ?? "").trim() || "variant";
+        if (v.image) v.image = await cloneUrl(v.image, { type: "variant_cover", key: vk });
+        const prev = String(v.previewImage ?? "").trim();
+        if (prev) v.previewImage = await cloneUrl(prev, { type: "variant_preview", key: vk });
+        if (Array.isArray(v.gallery) && v.gallery.length) {
+          const vg = [];
+          for (const raw of v.gallery) {
+            const u = String(raw ?? "").trim();
+            if (!u) continue;
+            galleryIndex += 1;
+            vg.push(await cloneUrl(u, { type: "main_gallery", index: galleryIndex }));
+          }
+          v.gallery = vg;
+        }
+      }
+      dup.colourVariants = vars;
+    }
+
+    return dup;
+  }
+
+  function navigateAwayFromDeletedItemPage(deletedId) {
+    const sid = String(deletedId ?? "").trim();
+    if (!sid || document.getElementById("grid")) return;
+    if (String(detailItemId ?? "") !== sid) return;
+    detailItemId = null;
+    try {
+      if (globalThis.history.length > 1) {
+        globalThis.history.back();
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      globalThis.location.assign(COLLECTION_HOME_URL);
+    } catch {
+      globalThis.location.href = COLLECTION_HOME_URL;
+    }
   }
 
   /** Public URLs in our `wardrobe-images` bucket referenced by a row (cover, gallery, colour variants). */
@@ -3108,6 +5051,9 @@
           label: v.label,
           colour: v.colour,
           colourCode: v.colourCode,
+          secondaryColour: v.secondaryColour,
+          secondaryColourCode: v.secondaryColourCode,
+          secondaryBasicColour: v.secondaryBasicColour,
           notes: v.notes,
           basicColour: v.basicColour,
         }))
@@ -3125,6 +5071,8 @@
       season: String(item.season ?? "").trim(),
       colour: String(item.colour ?? "").trim(),
       colourCode: itemColourCode(item),
+      secondaryColour: itemSecondaryColour(item),
+      secondaryColourCode: itemSecondaryColourCode(item),
       fabric: String(item.fabric ?? "").trim(),
       weight: String(item.weight ?? "").trim(),
       size: String(item.size ?? "").trim(),
@@ -3259,9 +5207,6 @@
       }
       refreshVisibility();
     });
-    document.getElementById("data-note-backup-json")?.addEventListener("click", () => {
-      downloadBrowserWardrobeBackupJson();
-    });
   }
 
   /** @type {boolean} */
@@ -3271,12 +5216,6 @@
     if (!isTwAdminMode()) return;
     if (wardrobeTextLocalExportWired) return;
     wardrobeTextLocalExportWired = true;
-    document.getElementById("data-note-text-to-localstorage")?.addEventListener("click", () => {
-      persistAllWardrobeTextToLocalStorage();
-    });
-    document.getElementById("data-note-download-text-json")?.addEventListener("click", () => {
-      downloadWardrobeTextLocalJson();
-    });
     document.getElementById("local-data-text-to-localstorage")?.addEventListener("click", () => {
       persistAllWardrobeTextToLocalStorage();
     });
@@ -3341,10 +5280,6 @@
     if (season === "SS") return "SS";
     if (season === "AW") return "AW";
     return "";
-  }
-
-  function isCollectionLocation() {
-    return isCollectionLocation();
   }
 
   function readSeasonNavFromUrl() {
@@ -3427,15 +5362,84 @@
     applySeasonNavFromLocalStorage();
   }
 
+  /** When true, `wardrobe_app_state` still uses pre-rename `archive_*` columns (migration not applied). */
+  let wardrobeAppStateUsesLegacyColumns = false;
+
+  function wardrobeAppStateColumnMissingError(err) {
+    const msg = String(err?.message ?? err ?? "");
+    return /does not exist/i.test(msg) && /column/i.test(msg);
+  }
+
+  /** @param {Record<string, unknown> | null | undefined} data */
+  function parseWardrobeAppStateRow(data) {
+    if (!data || typeof data !== "object") return { overrides: {}, hidden: [] };
+    const overrides =
+      data.collection_overrides &&
+      typeof data.collection_overrides === "object" &&
+      !Array.isArray(data.collection_overrides)
+        ? { .../** @type {Record<string, object>} */ (data.collection_overrides) }
+        : data.archive_overrides &&
+            typeof data.archive_overrides === "object" &&
+            !Array.isArray(data.archive_overrides)
+          ? { .../** @type {Record<string, object>} */ (data.archive_overrides) }
+          : {};
+    const hiddenRaw = Array.isArray(data.collection_hidden_ids)
+      ? data.collection_hidden_ids
+      : Array.isArray(data.archive_hidden_ids)
+        ? data.archive_hidden_ids
+        : [];
+    return { overrides, hidden: hiddenRaw.map((x) => String(x)) };
+  }
+
+  async function fetchWardrobeAppStateFromCloud() {
+    const modernSelect = "collection_overrides, collection_hidden_ids";
+    const legacySelect = "archive_overrides, archive_hidden_ids";
+    let res = await supabaseClient
+      .from("wardrobe_app_state")
+      .select(modernSelect)
+      .eq("id", "default")
+      .maybeSingle();
+    if (res.error && wardrobeAppStateColumnMissingError(res.error)) {
+      wardrobeAppStateUsesLegacyColumns = true;
+      res = await supabaseClient
+        .from("wardrobe_app_state")
+        .select(legacySelect)
+        .eq("id", "default")
+        .maybeSingle();
+    } else if (!res.error) {
+      wardrobeAppStateUsesLegacyColumns = false;
+    }
+    return res;
+  }
+
   async function flushWardrobeAppStateToSupabase() {
     if (!isSupabaseReady()) return;
-    const row = {
-      id: "default",
-      collection_overrides: collectionOverridesState,
-      collection_hidden_ids: [...collectionHiddenState],
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
+    const updated_at = new Date().toISOString();
+    const hidden = [...collectionHiddenState];
+    const overrides = collectionOverridesState;
+
+    const buildRow = (legacy) =>
+      legacy
+        ? {
+            id: "default",
+            archive_overrides: overrides,
+            archive_hidden_ids: hidden,
+            updated_at,
+          }
+        : {
+            id: "default",
+            collection_overrides: overrides,
+            collection_hidden_ids: hidden,
+            updated_at,
+          };
+
+    let row = buildRow(wardrobeAppStateUsesLegacyColumns);
+    let { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
+    if (error && wardrobeAppStateColumnMissingError(error)) {
+      wardrobeAppStateUsesLegacyColumns = !wardrobeAppStateUsesLegacyColumns;
+      row = buildRow(wardrobeAppStateUsesLegacyColumns);
+      ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
+    }
     if (error) throw error;
   }
 
@@ -3448,11 +5452,7 @@
     const lsOv = readCollectionOverridesFromLocalStorageRaw();
     const lsH = readCollectionHiddenIdsFromLocalStorageRaw();
 
-    const { data, error } = await supabaseClient
-      .from("wardrobe_app_state")
-      .select("collection_overrides, collection_hidden_ids")
-      .eq("id", "default")
-      .maybeSingle();
+    const { data, error } = await fetchWardrobeAppStateFromCloud();
 
     if (error) {
       console.warn("wardrobe_app_state:", error);
@@ -3473,11 +5473,9 @@
       return;
     }
 
-    let overrides =
-      data.collection_overrides && typeof data.collection_overrides === "object" && !Array.isArray(data.collection_overrides)
-        ? { ...data.collection_overrides }
-        : {};
-    let hidden = Array.isArray(data.collection_hidden_ids) ? data.collection_hidden_ids.map((x) => String(x)) : [];
+    const parsed = parseWardrobeAppStateRow(/** @type {Record<string, unknown>} */ (data));
+    let overrides = parsed.overrides;
+    let hidden = parsed.hidden;
     let migrated = false;
 
     if (!Object.keys(overrides).length && Object.keys(lsOv).length) {
@@ -3863,9 +5861,13 @@
 
   /** Homepage hero pool — images + MP4/WebM (sessionStorage picks first slide). */
   const FALLBACK_HOME_HERO_IMAGES = [
+    "images/heroes/0209_country_selector_bg.jpg",
+    "images/heroes/Designer Mens Clothing Luxury Menswear Ralph Lauren UK.mp4",
     "images/heroes/hero-country-classics.png",
     "images/heroes/hero-editorial-01.png",
     "images/heroes/hero-editorial-02.png",
+    "images/heroes/hero.png",
+    "images/heroes/image 08.09.39.png",
   ];
   const HOME_HERO_IMAGES =
     Array.isArray(globalThis.TW_HOME_HERO_IMAGES) && globalThis.TW_HOME_HERO_IMAGES.length
@@ -5684,6 +7686,7 @@
     outfitNotes: document.getElementById("outfit-notes"),
     outfitSave: document.getElementById("outfit-save"),
     outfitClear: document.getElementById("outfit-clear"),
+    stylingBoardClearAll: document.getElementById("styling-board-clear-all"),
     outfitToast: document.getElementById("outfit-toast"),
     savedList: document.getElementById("saved-outfits-list"),
     savedEmpty: document.getElementById("saved-outfits-empty"),
@@ -5810,7 +7813,10 @@
   function afterItemDetailPageRender(root, edit) {
     if (!itemDetailIsPageRoot(root)) return;
     globalThis.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    if (!edit) return;
+    if (!edit) {
+      installItemDetailNotesPdpGallerySync(root);
+      return;
+    }
     queueMicrotask(() => {
       document.getElementById("item-edit-brand")?.focus();
     });
@@ -5833,13 +7839,12 @@
 
   function extractHexDigitsFromColourText(s) {
     const out = [];
-    const re = /#([0-9a-f]{3})\b|#([0-9a-f]{6})\b/gi;
+    const re = /#([0-9a-f]{3})\b|#([0-9a-f]{6})\b|\b([0-9a-f]{6})\b|\b([0-9a-f]{3})\b/gi;
     let m;
     const str = String(s ?? "");
     while ((m = re.exec(str))) {
-      let h = (m[1] || m[2] || "").toLowerCase();
-      if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-      if (/^[0-9a-f]{6}$/.test(h)) out.push(h);
+      const parsed = parseHex6Colour(m[1] || m[2] || m[3] || m[4] || "");
+      if (parsed) out.push(parsed.slice(1));
     }
     return out;
   }
@@ -5883,7 +7888,10 @@
     if (!raw) return fams;
     for (const hx of extractHexDigitsFromColourText(raw)) {
       const f = hexRgbToBasicFamily(hx);
-      if (f) fams.add(f);
+      if (f) {
+        fams.add(f);
+        return fams;
+      }
     }
     const t = raw.toLowerCase();
     const textOnly = t.replace(/#[0-9a-f]{3,6}\b/gi, " ");
@@ -5927,45 +7935,70 @@
       item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
     const top = normalizeStoredBasicColourKey(item.basicColour ?? meta?.basicColour);
     if (top) s.add(top);
+    const secTop = itemSecondaryBasicColour(item);
+    if (secTop) s.add(secTop);
     const vars = getItemColourVariants(item);
     if (vars) {
       for (const v of vars) {
         const vb = normalizeStoredBasicColourKey(v.basicColour);
         if (vb) s.add(vb);
+        const secVb = normalizeStoredBasicColourKey(v.secondaryBasicColour);
+        if (secVb) s.add(secVb);
       }
     }
     return s;
   }
 
-  /** @param {Set<string>} fams */
-  function addRawChunksToBasicColourFamilySet(raw, fams) {
+  /** @param {string} raw */
+  function colourTextChunks(raw) {
     const s = String(raw ?? "").trim();
-    if (!s) return;
+    if (!s) return [];
     const chunks = s
       .split(/[,/&·+]|\/+|\s+-\s+|\s+and\s+|\s+·\s+|[／、]/i)
       .map((x) => String(x ?? "").trim())
       .filter(Boolean);
-    const parts = chunks.length ? chunks : [s];
-    for (const p of parts) {
-      for (const f of basicFamiliesFromColourSegment(p)) fams.add(f);
+    return chunks.length ? chunks : [s];
+  }
+
+  /** First broad-colour family in one colour string (one chunk at a time). */
+  function firstBasicColourFamilyFromRawText(raw) {
+    for (const p of colourTextChunks(raw)) {
+      for (const f of basicFamiliesFromColourSegment(p)) return f;
     }
+    return "";
+  }
+
+  /** @param {Set<string>} fams */
+  function addRawChunksToBasicColourFamilySet(raw, fams) {
+    const fam = firstBasicColourFamilyFromRawText(raw);
+    if (fam) fams.add(fam);
   }
 
   /** Inferred families from colour / fabric / codes only (no stored `basicColour`). */
   /** @returns {Set<string>} */
   function inferItemBasicColourFamiliesFromContent(item) {
     const fams = new Set();
-    addRawChunksToBasicColourFamilySet(item?.colour, fams);
-    addRawChunksToBasicColourFamilySet(item?.fabric, fams);
-    addRawChunksToBasicColourFamilySet(itemColourCode(item), fams);
     const vars = getItemColourVariants(item);
-    if (vars) {
+    if (vars?.length) {
       for (const v of vars) {
-        addRawChunksToBasicColourFamilySet(v.label, fams);
-        addRawChunksToBasicColourFamilySet(v.colour || v.color, fams);
-        addRawChunksToBasicColourFamilySet(v.colourCode || v.colorCode, fams);
+        for (const fam of colourFamiliesForVariantFields(v)) fams.add(fam);
       }
+      return fams;
     }
+    const top = inferSinglePrimaryBasicColourFamilyFromFields({
+      colourCode: itemColourCode(item),
+      colour: item?.colour ?? item?.color,
+    });
+    if (top) fams.add(top);
+    const sec = inferSecondaryBasicColourFamilyFromFields({
+      secondaryColour: itemSecondaryColour(item),
+      secondaryColourCode: itemSecondaryColourCode(item),
+      secondaryBasicColour: itemSecondaryBasicColour(item),
+    });
+    if (sec) fams.add(sec);
+    if (fams.size > 0) return fams;
+    const fromFabric = firstBasicColourFamilyFromRawText(item?.fabric);
+    if (fromFabric) fams.add(fromFabric);
     return fams;
   }
 
@@ -5977,27 +8010,46 @@
   function inferItemBasicColourFamilies(item) {
     if (itemOmitsBasicColourClassification(item)) return new Set();
     const explicit = explicitItemBasicColourFamilies(item);
-    if (explicit.size > 0) return new Set(explicit);
+    if (explicit.size > 0) {
+      const fams = new Set(explicit);
+      const vars = getItemColourVariants(item);
+      if (vars?.length) {
+        for (const v of vars) {
+          const sec = inferSecondaryBasicColourFamilyFromFields(v);
+          if (sec) fams.add(sec);
+        }
+      } else {
+        const sec = inferSecondaryBasicColourFamilyFromFields({
+          secondaryColour: itemSecondaryColour(item),
+          secondaryColourCode: itemSecondaryColourCode(item),
+          secondaryBasicColour: itemSecondaryBasicColour(item),
+        });
+        if (sec) fams.add(sec);
+      }
+      return fams;
+    }
     return inferItemBasicColourFamiliesFromContent(item);
   }
 
   /**
-   * Broad-colour families for one colour variant (stored `basicColour` or text inferred from that row only).
+   * Broad-colour families for one colour row — primary plus secondary when set (collection filter).
    * @returns {Set<string>}
    */
   function colourFamiliesForVariantFields(v) {
     const fams = new Set();
     if (!v || typeof v !== "object") return fams;
     const vb = normalizeStoredBasicColourKey(v.basicColour);
-    if (vb) {
-      fams.add(vb);
-      return fams;
+    if (vb) fams.add(vb);
+    else {
+      const inferred = inferSinglePrimaryBasicColourFamilyFromFields({
+        colourCode: v.colourCode || v.colorCode,
+        colour: v.colour || v.color,
+        label: v.label,
+      });
+      if (inferred) fams.add(inferred);
     }
-    addRawChunksToBasicColourFamilySet(v.label, fams);
-    addRawChunksToBasicColourFamilySet(v.colour, fams);
-    addRawChunksToBasicColourFamilySet(v.color, fams);
-    addRawChunksToBasicColourFamilySet(v.colourCode, fams);
-    addRawChunksToBasicColourFamilySet(v.colorCode, fams);
+    const sec = inferSecondaryBasicColourFamilyFromFields(v);
+    if (sec) fams.add(sec);
     return fams;
   }
 
@@ -6014,6 +8066,10 @@
 
   function itemMatchesBasicColourFilter(item, bucket) {
     if (!bucket) return true;
+    const vars = getItemColourVariants(item);
+    if (vars?.length) {
+      return vars.some((v) => colourFamiliesForVariantFields(v).has(bucket));
+    }
     const fams = inferItemBasicColourFamilies(item);
     if (fams.size === 0) return false;
     return fams.has(bucket);
@@ -6379,6 +8435,23 @@
     return Boolean(String(collectionSubmittedSearchNorm ?? "").trim());
   }
 
+  /** Ralph Lauren–style search PLP: bar + result heading stay on page after submit. */
+  function isCollectionSearchResultsPlpActive() {
+    if (!isCollectionSearchResultsMode()) return false;
+    if (isHeaderSearchWrapOpen()) return false;
+    return document.body.classList.contains("collection-ui--search-results-plp");
+  }
+
+  /** @returns {object[]} */
+  function listCollectionSearchResultItems() {
+    const q = String(collectionSubmittedSearchNorm ?? "").trim();
+    if (!q) return [];
+    let hits = items.filter((it) => itemMatchesSearch(it, q));
+    const catKey = String(collectionSearchWithinRecordCategory ?? "").trim();
+    if (catKey) hits = hits.filter((it) => itemMatchesCollectionSearchWithinRecordCategory(it, catKey));
+    return hits;
+  }
+
   function normalizeSearchResultFilterKey(label) {
     return String(label ?? "").trim().toLowerCase();
   }
@@ -6560,7 +8633,7 @@
     invalidateCollectionSortedCache();
     collectionSubmittedSearchNorm = norm;
     collectionSubmittedSearchRaw = raw;
-    document.body.classList.remove("collection-ui--search-results-plp");
+    document.body.classList.add("collection-ui--search-results-plp");
     renderCategoryDrill();
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
@@ -6606,18 +8679,14 @@
     }
   }
 
-  /** COLLECTION PLP: piece count stays under the page title (utility row = chips + Filter & Sort only). */
+  /** COLLECTION PLP: count/spend meta sits on its own line under the serif title (not beside it). */
   function syncCollectionCountLinePlacement() {
-    const summary = document.querySelector(".items-toolbar__collection-summary--under-title");
     const heading = document.getElementById("collection-heading");
-    if (!summary || !heading || !document.body.classList.contains("collection-page")) return;
-    if (summary.parentElement !== heading) {
-      const title = document.getElementById("items-toolbar-page-title");
-      if (title && title.parentElement === heading) {
-        title.insertAdjacentElement("afterend", summary);
-      } else {
-        heading.appendChild(summary);
-      }
+    const titleRow = document.querySelector(".collection-heading__title-row");
+    const summary = document.querySelector(".items-toolbar__collection-summary--under-title");
+    if (!heading || !titleRow || !summary || !document.body.classList.contains("collection-page")) return;
+    if (summary.previousElementSibling !== titleRow) {
+      titleRow.insertAdjacentElement("afterend", summary);
     }
   }
 
@@ -6625,9 +8694,34 @@
     const wrap = document.getElementById("collection-search-results-plp");
     const heading = document.getElementById("collection-search-results-heading");
     const pills = document.getElementById("collection-search-results-pills");
-    if (wrap) wrap.hidden = true;
-    if (heading) heading.replaceChildren();
-    if (pills) pills.replaceChildren();
+    const plpActive = isCollectionSearchResultsPlpActive();
+
+    if (wrap) wrap.hidden = !plpActive;
+
+    if (!plpActive) {
+      if (heading) heading.replaceChildren();
+      if (pills) pills.replaceChildren();
+      syncToolbarActiveFilterChips();
+      syncCollectionCountLinePlacement();
+      return;
+    }
+
+    const rawQ =
+      collectionSubmittedSearchRaw ||
+      String(els.search?.value ?? "").trim() ||
+      String(collectionSubmittedSearchNorm ?? "").trim();
+    const n = listCollectionSearchResultItems().length;
+
+    if (heading) {
+      heading.replaceChildren();
+      heading.append(`${n} result${n === 1 ? "" : "s"} for `);
+      const qSpan = document.createElement("span");
+      qSpan.className = "collection-search-results-plp__heading-query";
+      qSpan.textContent = `“${rawQ}”`;
+      heading.append(qSpan);
+    }
+
+    syncCollectionSearchResultCategoryPills(pills);
     syncToolbarActiveFilterChips();
     syncCollectionCountLinePlacement();
   }
@@ -6712,11 +8806,13 @@
 
   function getFilters() {
     const allowColour = allowCollectionBasicColourFilter();
+    const basicColour = allowColour ? activeBasicColourFilterKey() : "";
     return {
       seasonNav: seasonNavFilter,
       category: categoryNavFilter,
       subcategories: [...subcategoryFilters],
       search: effectiveCollectionKeywordSearchNorm(),
+      basicColour,
       basicColours: allowColour ? [...basicColourFilters] : [],
     };
   }
@@ -6859,7 +8955,7 @@
     const searchHost = document.getElementById("collection-search-results-active-chips");
     if (!browseHost && !searchHost) return;
 
-    function renderChipRow(host, defs, { onClearAll } = {}) {
+    function renderChipRow(host, defs, { onClearAll, showClearAll } = {}) {
       if (!host) return;
       host.replaceChildren();
       for (const def of defs) {
@@ -6884,7 +8980,9 @@
         row.appendChild(rm);
         host.appendChild(row);
       }
-      if (defs.length > 1 && typeof onClearAll === "function") {
+      const shouldShowClearAll =
+        typeof showClearAll === "boolean" ? showClearAll : defs.length > 1;
+      if (shouldShowClearAll && typeof onClearAll === "function") {
         const clearAll = document.createElement("button");
         clearAll.type = "button";
         clearAll.className = "items-toolbar__active-chips-clear";
@@ -6971,26 +9069,6 @@
       });
     }
 
-    const subKeys = [...subcategoryFilters].sort((a, b) =>
-      (friendlyRecordCategory(a) || a).localeCompare(friendlyRecordCategory(b) || b, undefined, { sensitivity: "base" })
-    );
-    for (const sub of subKeys) {
-      const label = friendlyRecordCategory(sub) || sub;
-      browseDefs.push({
-        label,
-        removeLabel: `Remove ${label} filter`,
-        onRemove() {
-          withPreservedCollectionScroll(() => {
-            removeSubcategoryFilterKey(sub);
-            validateSubcategoryFilter();
-            renderCategoryDrill();
-            syncFiltersMenuForViewport();
-            renderGrid();
-          });
-        },
-      });
-    }
-
     const brandKeys = [...selectedBrandFilters].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
     for (const brand of brandKeys) {
       browseDefs.push({
@@ -7035,7 +9113,40 @@
       });
     }
 
-    const clearAllActiveFilters = () => resetAllCollectionFilters();
+    const clearBrowseNarrowingKeepDivision = () => {
+      withPreservedCollectionScroll(() => {
+        clearSubcategoryFilters();
+        clearBrandFilters();
+        clearCollectionKeywordColourNarrowing();
+        if (collectionSubmittedSearchNorm) {
+          exitCollectionSearchPlpRestoreBrowse({ skipRestore: true });
+        }
+        validateSubcategoryFilter();
+        renderCategoryDrill();
+        syncFiltersMenuForViewport();
+        syncCollectionBrandFilterChipUi();
+        syncBasicColourFilterChipUi();
+        renderGrid();
+        syncCollectionUrlFromBrowseState({ replace: true });
+        collapseFiltersMenuPanel();
+      });
+    };
+
+    const clearAllBrowseActiveFilters = () => {
+      withPreservedCollectionScroll(() => {
+        seasonNavFilter = null;
+        try {
+          persistSeasonNav();
+        } catch {
+          /* ignore */
+        }
+        replaceCollectionSeasonQuery(seasonNavFilter);
+        syncSeasonTabUI();
+        categoryNavFilter = "";
+        syncCategoryTabUI();
+        clearBrowseNarrowingKeepDivision();
+      });
+    };
 
     if (searchPlp) {
       if (browseHost) {
@@ -7043,7 +9154,10 @@
         browseHost.hidden = true;
       }
     } else {
-      renderChipRow(browseHost, browseDefs, { onClearAll: clearAllActiveFilters });
+      renderChipRow(browseHost, browseDefs, {
+        onClearAll: clearAllBrowseActiveFilters,
+        showClearAll: browseDefs.length > 1,
+      });
     }
     hideLegacyFilterCountRowChips();
   }
@@ -7187,7 +9301,8 @@
   }
 
   /** COLLECTION “reset view”: season All, all slots, no narrowing filters; sort returns to default. */
-  function resetAllCollectionFilters() {
+  function resetAllCollectionFilters(options = {}) {
+    const closeDrawer = options.closeDrawer !== false;
     seasonNavFilter = null;
     persistSeasonNav();
     replaceCollectionSeasonQuery(seasonNavFilter);
@@ -7195,7 +9310,7 @@
     collectionSortMode = persistCollectionSortMode(COLLECTION_DEFAULT_SORT_MODE);
     syncCollectionSortChipUi();
     document.body.classList.remove("collection-ui--nav-folded");
-    closeCollectionFilterDrawer();
+    if (closeDrawer) closeCollectionFilterDrawer();
     resetNarrowingFilters();
   }
 
@@ -7273,13 +9388,9 @@
     return { date: datePart, note: rest };
   }
 
-  /** Combine date picker + optional note back into one stored string. */
-  function joinPurchaseDateFromForm(date, note) {
-    const d = String(date ?? "").trim();
-    const n = String(note ?? "").trim();
-    if (d && n) return `${d} · ${n}`;
-    if (d) return d;
-    return n;
+  /** Store ISO date from the date picker (`YYYY-MM-DD`). */
+  function joinPurchaseDateFromForm(date) {
+    return String(date ?? "").trim();
   }
 
   function poolItemsForDrillSubcategories(opts = {}) {
@@ -7599,13 +9710,14 @@
     return strip;
   }
 
-  function renderCollectionSlotTypeStrip() {
+  function renderCollectionSlotTypeStrip({ omitAllTypes = false } = {}) {
     const drill = document.getElementById("category-drill");
     const strip = ensureCollectionSlotTypeStrip();
     if (!drill || !strip) return;
 
     const cat = String(categoryNavFilter ?? "").trim();
     strip.replaceChildren();
+    strip.setAttribute("aria-label", omitAllTypes ? "Browse by category" : "Collection type");
 
     function appendSlot(value, label) {
       const b = document.createElement("button");
@@ -7621,26 +9733,14 @@
       strip.appendChild(b);
     }
 
-    appendSlot("", COLLECTION_ALL_TYPES_LABEL);
+    if (!omitAllTypes) appendSlot("", COLLECTION_ALL_TYPES_LABEL);
     for (const slot of SLOT_OPTIONS) {
       appendSlot(slot, categoryDisplayLabel(slot));
     }
 
     drill.hidden = false;
     drill.removeAttribute("aria-hidden");
-  }
-
-  let lastCategoryDrillStructureKey = "";
-
-  function categoryDrillStructureKey(slot, typeEntries) {
-    return [slot, subcategoryFiltersKey(), ...typeEntries.map((e) => `${e.raw}\t${e.label}`)].join("\0");
-  }
-
-  function syncCategoryDrillActiveStates(grid) {
-    grid.querySelectorAll(".category-drill__choice[data-subcategory]").forEach((btn) => {
-      const raw = String(btn.dataset.subcategory ?? "");
-      btn.classList.toggle("is-active", subcategoryEntryIsActive(raw));
-    });
+    document.body.classList.add("collection-ui--division-chips");
   }
 
   function renderCategoryDrill() {
@@ -7652,6 +9752,8 @@
     validateSubcategoryFilter();
 
     if (isCollectionSearchResultsMode()) {
+      document.body.classList.remove("collection-ui--division-chips");
+      document.getElementById("collection-slot-type-strip")?.remove();
       blurActiveElementIfInsideCategoryDrill();
       drill.hidden = true;
       grid.hidden = true;
@@ -7660,86 +9762,19 @@
     }
 
     if (!COLLECTION_RECORD_TYPE_SUBNAV_ENABLED) {
-      blurActiveElementIfInsideCategoryDrill();
-      drill.hidden = true;
-      grid.hidden = true;
-      grid.innerHTML = "";
-      return;
-    }
-
-    const slot = String(categoryNavFilter ?? "").trim();
-
-    /** All Types landing: no duplicate slot/type pills — use header + mega menu. */
-    if (!slot) {
-      blurActiveElementIfInsideCategoryDrill();
-      drill.hidden = true;
-      drill.setAttribute("aria-hidden", "true");
-      grid.innerHTML = "";
-      grid.hidden = true;
-      lastCategoryDrillStructureKey = "";
+      document.body.classList.remove("collection-ui--division-chips");
       document.getElementById("collection-slot-type-strip")?.remove();
-      return;
-    }
-
-    document.getElementById("collection-slot-type-strip")?.remove();
-    drill.hidden = false;
-    drill.removeAttribute("aria-hidden");
-
-    const seasonalPool = poolItemsForDrillSubcategories();
-    if (!seasonalPool.length) {
-      clearSubcategoryFilters();
-      grid.innerHTML = "";
-      grid.hidden = true;
+      blurActiveElementIfInsideCategoryDrill();
       drill.hidden = true;
-      drill.setAttribute("aria-hidden", "true");
-      return;
-    }
-
-    const typeEntries = megaMenuSubcategoryEntriesForSlot(slot, seasonalPool);
-    const specificTypes = typeEntries.filter((e) => String(e.raw ?? "").trim());
-
-    /** No sub-type strip when there is nothing beyond “All” (slot-only browse is enough). */
-    if (!specificTypes.length) {
-      clearSubcategoryFilters();
-      grid.innerHTML = "";
       grid.hidden = true;
-      drill.hidden = true;
-      drill.setAttribute("aria-hidden", "true");
-      lastCategoryDrillStructureKey = "";
+      grid.innerHTML = "";
       return;
     }
 
-    const structureKey = categoryDrillStructureKey(slot, typeEntries);
-    if (structureKey === lastCategoryDrillStructureKey && grid.childElementCount > 0) {
-      syncCategoryDrillActiveStates(grid);
-      drill.hidden = false;
-      drill.removeAttribute("aria-hidden");
-      grid.hidden = false;
-      return;
-    }
-    lastCategoryDrillStructureKey = structureKey;
-
+    /** Division pills (Clothing, Accessories, …) in toolbar; record types stay in mega menu + filter drawer. */
+    renderCollectionSlotTypeStrip({ omitAllTypes: true });
     grid.innerHTML = "";
-    grid.hidden = false;
-
-    function appendChoice(rawValue, label) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "category-drill__choice";
-      if (subcategoryEntryIsActive(rawValue)) b.classList.add("is-active");
-      b.dataset.subcategory = String(rawValue ?? "");
-      b.textContent = label;
-      grid.appendChild(b);
-    }
-
-    for (const { raw, label } of typeEntries) {
-      appendChoice(raw, label);
-    }
-
-    if (grid.childElementCount <= 0) {
-      clearSubcategoryFilters();
-      grid.hidden = true;
-    }
+    grid.hidden = true;
   }
 
   /** Season, slot, drill, basic colour, and brand — no live keyword typing (keywords are commit-only). */
@@ -7843,11 +9878,26 @@
   function colourLabelForItem(item) {
     const variants = getItemColourVariants(item);
     if (variants?.length) return "";
-    return String(item?.colour ?? "").trim();
+    return colourDisplayLineForItemFields(item);
+  }
+
+  /** PDP / cards — `Gold / Brown` when a secondary colour is set. */
+  function colourDisplayLineForItemFields(item) {
+    if (!item || typeof item !== "object") return "";
+    const primary = String(item.colour ?? item.color ?? "").trim();
+    const secondary = itemSecondaryColour(item);
+    return formatColourDisplayLine(primary, secondary);
+  }
+
+  /** Strip common Shopify / scrape price labels accidentally stored in `name`. */
+  function stripScrapedPriceLabelsFromDisplayName(name) {
+    return String(name ?? "")
+      .replace(/\s+(Regular price|Sale price|Compare at price|Unit price)\s*$/i, "")
+      .trim();
   }
 
   function displayNameWithoutLeadingColour(item) {
-    const name = String(item?.name ?? "").trim();
+    const name = stripScrapedPriceLabelsFromDisplayName(String(item?.name ?? "").trim());
     const col = String(item?.colour ?? "").trim();
     if (!name || !col) return name;
     const re = new RegExp("^" + escapeRegExp(col) + "\\s+", "i");
@@ -8225,6 +10275,196 @@
     /** @type {any} */ (img).__twCoverWireAbort = () => {
       cleanup();
     };
+  }
+
+  /** Ordered PDP / hero frames: cover first, then gallery extras (deduped). */
+  function itemDetailGalleryFrames(item) {
+    const cover = buildCoverCandidates(item)[0] ?? "";
+    const extras = itemGalleryList(item).filter(isDisplayableCloudImageUrl);
+    /** @type {{ url: string, label: string }[]} */
+    const frames = [];
+    const seen = new Set();
+    if (cover) {
+      frames.push({ url: cover, label: "Cover" });
+      seen.add(cover);
+    }
+    extras.forEach((url) => {
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      frames.push({ url, label: `Photo ${frames.length + 1}` });
+    });
+    return frames;
+  }
+
+  /** Frames for edit-page preview from photo-manager entries. */
+  function photoEditGalleryFrames(entries) {
+    /** @type {{ url: string, label: string }[]} */
+    const frames = [];
+    if (!Array.isArray(entries)) return frames;
+    entries.forEach((e, i) => {
+      let url = "";
+      if (e?.kind === "url" && e.url) url = String(e.url).trim();
+      else if (e?.kind === "file" && e.previewUrl) url = String(e.previewUrl).trim();
+      if (!url) return;
+      frames.push({ url, label: i === 0 ? "Cover" : `Photo ${i + 1}` });
+    });
+    return frames;
+  }
+
+  /**
+   * Item PDP / edit preview: vertical thumbs (left) + hero stage with prev / next.
+   * @param {{ frames?: { url: string, label: string }[], initialIndex?: number }} [opts]
+   */
+  function mountItemDetailPageGallery(galleryEl, thumbsEl, stageEl, heroImgEl, item, opts = {}) {
+    if (!galleryEl || !thumbsEl || !stageEl || !heroImgEl) return;
+    if (galleryEl.__twThumbRailObs?.disconnect) {
+      galleryEl.__twThumbRailObs.disconnect();
+      galleryEl.__twThumbRailObs = null;
+    }
+    if (galleryEl.__twThumbRailOnLoad) {
+      heroImgEl.removeEventListener("load", galleryEl.__twThumbRailOnLoad);
+      galleryEl.__twThumbRailOnLoad = null;
+    }
+    thumbsEl.replaceChildren();
+    stageEl.querySelectorAll(".item-detail__gallery-nav").forEach((n) => n.remove());
+
+    const frames = Array.isArray(opts.frames) ? opts.frames : itemDetailGalleryFrames(item);
+    const multi = frames.length > 1;
+    thumbsEl.hidden = !multi;
+    stageEl.classList.toggle("item-detail__gallery-stage--multi", multi);
+
+    const syncGalleryThumbRailHeight = () => {
+      if (thumbsEl.hidden) {
+        galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
+        thumbsEl.style.removeProperty("max-height");
+        return;
+      }
+      const h = Math.round(stageEl.getBoundingClientRect().height);
+      if (h > 0) {
+        galleryEl.style.setProperty("--item-detail-gallery-stage-h", `${h}px`);
+        thumbsEl.style.maxHeight = `${h}px`;
+      }
+    };
+
+    if (!frames.length) {
+      heroImgEl.removeAttribute("src");
+      delete heroImgEl.dataset.coverSrc;
+      galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
+      thumbsEl.style.removeProperty("max-height");
+      return;
+    }
+
+    const frameSpec = ITEM_DETAIL_GALLERY_RENDER;
+    const heroFrameSrc = (url) => {
+      const s = String(url ?? "").trim();
+      if (!s) return "";
+      if (s.startsWith("blob:") || s.startsWith("data:")) return s;
+      return wardrobeImageForFrame(s, item, frameSpec) || withWardrobeImageCacheBust(s, item);
+    };
+
+    let currentIndex = 0;
+
+    const syncActiveThumb = () => {
+      /** @type {HTMLElement | null} */
+      let activeBtn = null;
+      thumbsEl.querySelectorAll(".item-detail__gallery-thumb").forEach((btn, idx) => {
+        const on = idx === currentIndex;
+        btn.classList.toggle("is-active", on);
+        if (on) activeBtn = /** @type {HTMLElement} */ (btn);
+      });
+      if (activeBtn && thumbsEl.scrollHeight > thumbsEl.clientHeight + 2) {
+        activeBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    };
+
+    const showFrame = (index) => {
+      currentIndex = ((index % frames.length) + frames.length) % frames.length;
+      const url = heroFrameSrc(frames[currentIndex].url);
+      if (url) {
+        heroImgEl.src = url;
+        if (currentIndex === 0) heroImgEl.dataset.coverSrc = url;
+      }
+      heroImgEl.alt =
+        currentIndex === 0
+          ? imageAltForItem(item)
+          : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${currentIndex + 1})`;
+      syncActiveThumb();
+      stageEl.dataset.galleryIndex = String(currentIndex);
+    };
+
+    frames.forEach((fr, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "item-detail__gallery-thumb";
+      btn.title = fr.label;
+      const ti = document.createElement("img");
+      ti.src = heroFrameSrc(fr.url);
+      ti.alt = "";
+      ti.draggable = false;
+      btn.appendChild(ti);
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showFrame(i);
+      });
+      thumbsEl.appendChild(btn);
+    });
+
+    if (multi) {
+      const makeNav = (dir) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `item-detail__gallery-nav item-detail__gallery-nav--${dir}`;
+        btn.setAttribute("aria-label", dir === "prev" ? "Previous photo" : "Next photo");
+        const glyph = document.createElement("span");
+        glyph.className = "item-detail__gallery-nav__glyph";
+        glyph.setAttribute("aria-hidden", "true");
+        btn.appendChild(glyph);
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFrame(currentIndex + (dir === "prev" ? -1 : 1));
+        });
+        return btn;
+      };
+      stageEl.appendChild(makeNav("prev"));
+      stageEl.appendChild(makeNav("next"));
+    }
+
+    const start =
+      typeof opts.initialIndex === "number" && Number.isFinite(opts.initialIndex)
+        ? opts.initialIndex
+        : 0;
+    showFrame(start);
+
+    if (multi) {
+      if (typeof ResizeObserver !== "undefined") {
+        const obs = new ResizeObserver(() => syncGalleryThumbRailHeight());
+        obs.observe(stageEl);
+        galleryEl.__twThumbRailObs = obs;
+      }
+      galleryEl.__twThumbRailOnLoad = syncGalleryThumbRailHeight;
+      heroImgEl.addEventListener("load", galleryEl.__twThumbRailOnLoad);
+      requestAnimationFrame(() => {
+        syncGalleryThumbRailHeight();
+        requestAnimationFrame(syncGalleryThumbRailHeight);
+      });
+    } else {
+      galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
+      thumbsEl.style.removeProperty("max-height");
+    }
+  }
+
+  function remountItemDetailHeroGallery(heroHost, heroImg, item) {
+    const galleryRoot = heroHost?.closest?.(".item-detail__gallery");
+    if (galleryRoot && heroHost.classList.contains("item-detail__gallery-stage")) {
+      const thumbs = galleryRoot.querySelector(".item-detail__gallery-thumbs");
+      if (thumbs) mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item);
+      return;
+    }
+    heroHost.querySelector(".card__gallery-strip")?.remove();
+    if (itemDetailGalleryFrames(item).length) {
+      mountHeroGalleryStrip(heroHost, heroImg, item);
+    }
   }
 
   /** Thumbnail strip to swap the hero `img` (grid card or detail dialog). */
@@ -8636,6 +10876,7 @@
     if (els.outfitNotes) els.outfitNotes.value = "";
     editingSavedOutfitId = null;
     clearStylingBoardDraft();
+    clearStylingBoardAddedReveal();
     syncOutfitSaveButtonLabel();
     onOutfitChange();
     showToast("Styling board cleared.");
@@ -8737,6 +10978,8 @@
     btn.title = editingSavedOutfitId
       ? "Save changes to the outfit you opened with Edit."
       : "Save the current strip as a new named outfit.";
+    const clearAll = els.stylingBoardClearAll || document.getElementById("styling-board-clear-all");
+    if (clearAll) clearAll.hidden = n === 0;
   }
 
   function reorderOutfit(fromIndex, toIndex) {
@@ -8929,6 +11172,751 @@
 
   /** Main edit: 1 cover + up to 12 gallery slots. */
   const ITEM_EDIT_PHOTO_MAX = 13;
+  const ITEM_PHOTO_CROP_ASPECT = 3 / 4;
+  const ITEM_PHOTO_CROP_EXPORT_WIDTH = 1200;
+  const ITEM_PHOTO_CROP_EXPORT_HEIGHT = 1600;
+
+  /** @type {HTMLDialogElement | null} */
+  let itemPhotoCropDialogEl = null;
+
+  function ensureItemPhotoCropDialog() {
+    if (itemPhotoCropDialogEl) return itemPhotoCropDialogEl;
+
+    const dlg = document.createElement("dialog");
+    dlg.id = "item-photo-crop-dialog";
+    dlg.className = "item-photo-crop-dialog add-item-dialog";
+    dlg.setAttribute("aria-labelledby", "item-photo-crop-heading");
+
+    const inner = document.createElement("div");
+    inner.className = "item-photo-crop__inner";
+
+    const title = document.createElement("h2");
+    title.id = "item-photo-crop-heading";
+    title.className = "item-photo-crop__title";
+    title.textContent = "Crop photo";
+
+    const meta = document.createElement("p");
+    meta.className = "item-photo-crop__meta";
+    meta.textContent = "Drag to reposition · pinch or slider to zoom";
+
+    const viewport = document.createElement("div");
+    viewport.className = "item-photo-crop__viewport";
+
+    const img = document.createElement("img");
+    img.className = "item-photo-crop__img";
+    img.alt = "";
+    img.draggable = false;
+
+    const frame = document.createElement("div");
+    frame.className = "item-photo-crop__frame";
+    frame.setAttribute("aria-hidden", "true");
+
+    const grid = document.createElement("div");
+    grid.className = "item-photo-crop__grid";
+    grid.setAttribute("aria-hidden", "true");
+    frame.appendChild(grid);
+
+    viewport.appendChild(img);
+    viewport.appendChild(frame);
+
+    const zoomRow = document.createElement("label");
+    zoomRow.className = "item-photo-crop__zoom";
+    const zoomLabel = document.createElement("span");
+    zoomLabel.textContent = "Zoom";
+    const zoomInput = document.createElement("input");
+    zoomInput.type = "range";
+    zoomInput.min = "1";
+    zoomInput.max = "3";
+    zoomInput.step = "0.01";
+    zoomInput.value = "1";
+    zoomInput.className = "item-photo-crop__zoom-input";
+    zoomRow.appendChild(zoomLabel);
+    zoomRow.appendChild(zoomInput);
+
+    const actions = document.createElement("div");
+    actions.className = "item-photo-crop__actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn btn--ghost";
+    cancelBtn.textContent = "Cancel";
+
+    const useBtn = document.createElement("button");
+    useBtn.type = "button";
+    useBtn.className = "btn";
+    useBtn.textContent = "Use photo";
+
+    actions.appendChild(cancelBtn);
+    actions.appendChild(useBtn);
+
+    inner.appendChild(title);
+    inner.appendChild(meta);
+    inner.appendChild(viewport);
+    inner.appendChild(zoomRow);
+    inner.appendChild(actions);
+    dlg.appendChild(inner);
+    document.body.appendChild(dlg);
+
+    dlg.__twCrop = { title, meta, viewport, img, frame, zoomInput, cancelBtn, useBtn };
+    itemPhotoCropDialogEl = dlg;
+    return dlg;
+  }
+
+  /**
+   * Load an existing wardrobe URL (or File) as a File for the crop dialog.
+   * @param {File | string} source
+   * @param {object} [item] For cache-busted cloud URLs
+   * @param {string} [fallbackName]
+   * @returns {Promise<File>}
+   */
+  async function imageSourceToFileForCrop(source, item, fallbackName = "photo.jpg") {
+    if (source instanceof File) return source;
+    let url = String(source ?? "").trim();
+    if (!url) throw new Error("No image to crop");
+    if (item && typeof item === "object" && !url.startsWith("data:") && !url.startsWith("blob:")) {
+      url = withWardrobeImageCacheBust(url, item) || url;
+    }
+
+    if (url.startsWith("data:image/")) {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const type = blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+      const ext = type === "image/png" ? ".png" : ".jpg";
+      const base = String(fallbackName).replace(/\.[^.]+$/i, "") || "photo";
+      return new File([blob], `${base}${ext}`, { type });
+    }
+
+    try {
+      const res = await fetch(url, { mode: "cors", credentials: "same-origin" });
+      if (res.ok) {
+        const blob = await res.blob();
+        if (String(blob.type || "").toLowerCase().startsWith("image/")) {
+          const ext = blob.type === "image/png" ? ".png" : ".jpg";
+          const base = String(fallbackName).replace(/\.[^.]+$/i, "") || "photo";
+          return new File([blob], `${base}${ext}`, { type: blob.type });
+        }
+      }
+    } catch {
+      /* canvas fallback */
+    }
+
+    const preferPng = imageSourceLooksAlphaCapable(null, url);
+
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) {
+          reject(new Error("Could not read image dimensions"));
+          return;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("canvas"));
+          return;
+        }
+        if (preferPng) ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0);
+        const mime = preferPng ? "image/png" : "image/jpeg";
+        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const base = String(fallbackName).replace(/\.[^.]+$/i, "") || "photo";
+        const ext = mime === "image/png" ? ".png" : ".jpg";
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("Could not prepare image for crop"));
+              return;
+            }
+            resolve(new File([blob], `${base}${ext}`, { type: mime }));
+          },
+          mime,
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error("Could not load image for crop"));
+      img.src = url;
+    });
+  }
+
+  const CROP_COVER_OVERSCAN = 1.006;
+  const CROP_ASPECT_TOLERANCE = 0.012;
+
+  function imageAspectRatioMatchesCrop(width, height, tolerance = CROP_ASPECT_TOLERANCE) {
+    if (!width || !height) return false;
+    const ratio = width / height;
+    const target = ITEM_PHOTO_CROP_ASPECT;
+    return Math.abs(ratio - target) / target <= tolerance;
+  }
+
+  /**
+   * Export a 3×4 (or already-matching) image straight to the wardrobe frame — no UI crop.
+   * @param {File} file
+   * @returns {Promise<File>}
+   */
+  async function exportItemPhotoToCropFrame(file) {
+    const preferPng = imageSourceLooksAlphaCapable(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = ITEM_PHOTO_CROP_EXPORT_WIDTH;
+    canvas.height = ITEM_PHOTO_CROP_EXPORT_HEIGHT;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas");
+    if (preferPng) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    else {
+      ctx.fillStyle = "#f6f4ef";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    let source = /** @type {CanvasImageSource} */ (null);
+    /** @type {ImageBitmap | null} */
+    let bitmap = null;
+    if (typeof createImageBitmap === "function") {
+      bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      source = bitmap;
+    } else {
+      const prepared = await prepareOrientedCropImageSource(file);
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = () => res(undefined);
+        img.onerror = () => rej(new Error("Could not load image"));
+        img.src = prepared.url;
+      });
+      source = img;
+      try {
+        URL.revokeObjectURL(prepared.url);
+      } catch {
+        /* ignore */
+      }
+    }
+    try {
+      const sw = bitmap ? bitmap.width : /** @type {HTMLImageElement} */ (source).naturalWidth;
+      const sh = bitmap ? bitmap.height : /** @type {HTMLImageElement} */ (source).naturalHeight;
+      ctx.drawImage(source, 0, 0, sw, sh, 0, 0, canvas.width, canvas.height);
+    } finally {
+      bitmap?.close();
+    }
+    const mime = preferPng ? "image/png" : "image/jpeg";
+    const quality = mime === "image/jpeg" ? 0.92 : undefined;
+    const blob = await new Promise((res, rej) => {
+      canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
+    });
+    const base = String(file.name || "photo").replace(/\.[^.]+$/i, "") || "photo";
+    const ext = mime === "image/png" ? ".png" : ".jpg";
+    return new File([blob], `${base}${ext}`, { type: mime, lastModified: Date.now() });
+  }
+
+  /**
+   * @param {File} file
+   * @returns {Promise<{ width: number, height: number }>}
+   */
+  async function readOrientedImageDimensions(file) {
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+        const dims = { width: bmp.width, height: bmp.height };
+        bmp.close();
+        return dims;
+      } catch {
+        /* fall through */
+      }
+    }
+    const prepared = await prepareOrientedCropImageSource(file);
+    try {
+      if (prepared.width && prepared.height) {
+        return { width: prepared.width, height: prepared.height };
+      }
+      const img = new Image();
+      await new Promise((res, rej) => {
+        img.onload = () => res(undefined);
+        img.onerror = () => rej(new Error("Could not read image dimensions"));
+        img.src = prepared.url;
+      });
+      return { width: img.naturalWidth, height: img.naturalHeight };
+    } finally {
+      try {
+        URL.revokeObjectURL(prepared.url);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  /**
+   * Decode file with EXIF orientation applied so crop math matches what you see.
+   * @param {File} file
+   * @returns {Promise<{ url: string, width: number, height: number }>}
+   */
+  async function prepareOrientedCropImageSource(file) {
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+        const w = bmp.width;
+        const h = bmp.height;
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          bmp.close();
+          throw new Error("canvas");
+        }
+        ctx.drawImage(bmp, 0, 0);
+        bmp.close();
+        const preferPng = String(file.type || "").toLowerCase() === "image/png";
+        const mime = preferPng ? "image/png" : "image/jpeg";
+        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const blob = await new Promise((res, rej) => {
+          canvas.toBlob((b) => (b ? res(b) : rej(new Error("blob"))), mime, quality);
+        });
+        return { url: URL.createObjectURL(blob), width: w, height: h };
+      } catch {
+        /* fall back to raw file URL */
+      }
+    }
+    const url = URL.createObjectURL(file);
+    const dims = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => resolve({ width: 0, height: 0 });
+      img.src = url;
+    });
+    return { url, width: dims.width, height: dims.height };
+  }
+
+  /**
+   * Crop an image file to the wardrobe 3×4 frame.
+   * @param {File} file
+   * @param {{ label?: string, autoExportIfAligned?: boolean, forceCropUi?: boolean }} [opts]
+   * @returns {Promise<File | null>} `null` when cancelled.
+   */
+  function openItemPhotoCropDialog(file, opts = {}) {
+    return new Promise((resolve) => {
+      if (!(file instanceof File) || !String(file.type || "").toLowerCase().startsWith("image/")) {
+        resolve(file instanceof File ? file : null);
+        return;
+      }
+
+      void (async () => {
+      try {
+      const autoExportIfAligned = opts.forceCropUi !== true && opts.autoExportIfAligned !== false;
+      if (autoExportIfAligned) {
+        try {
+          const dims = await readOrientedImageDimensions(file);
+          if (
+            imageAspectRatioMatchesCrop(dims.width, dims.height) &&
+            !imageSourceLooksAlphaCapable(file)
+          ) {
+            resolve(await exportItemPhotoToCropFrame(file));
+            return;
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+
+      const dlg = ensureItemPhotoCropDialog();
+      const ui = dlg.__twCrop;
+      if (!ui) {
+        resolve(file);
+        return;
+      }
+
+      const { title, meta, viewport, img: cropImg, frame, zoomInput, cancelBtn, useBtn } = ui;
+
+      /** @type {{ left: number, top: number, width: number, height: number, right: number, bottom: number }} */
+      let frameRect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
+      let naturalW = 0;
+      let naturalH = 0;
+      let baseScale = 1;
+      let zoomFactor = 1;
+      let panX = 0;
+      let panY = 0;
+      let settled = false;
+      /** @type {string} */
+      let objectUrl = "";
+
+      /** @type {ResizeObserver | null} */
+      let resizeObserver = null;
+      /** @type {((ev: PointerEvent) => void) | null} */
+      let onPointerMove = null;
+      /** @type {((ev: PointerEvent) => void) | null} */
+      let onPointerUp = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragPanX = 0;
+      let dragPanY = 0;
+      let aspectMatched = false;
+      /** PNG / cutout — free pan & zoom inside frame (no cover lock). */
+      let cutoutFreeCrop = imageSourceLooksAlphaCapable(file);
+
+      function endDrag() {
+        if (onPointerMove) {
+          window.removeEventListener("pointermove", onPointerMove);
+          onPointerMove = null;
+        }
+        if (onPointerUp) {
+          window.removeEventListener("pointerup", onPointerUp);
+          window.removeEventListener("pointercancel", onPointerUp);
+          onPointerUp = null;
+        }
+        viewport.classList.remove("is-dragging");
+      }
+
+      const finish = (result) => {
+        if (settled) return;
+        settled = true;
+        resizeObserver?.disconnect();
+        resizeObserver = null;
+        endDrag();
+        if (objectUrl) {
+          try {
+            URL.revokeObjectURL(objectUrl);
+          } catch {
+            /* ignore */
+          }
+        }
+        objectUrl = "";
+        cropImg.onload = null;
+        cropImg.onerror = null;
+        cropImg.removeAttribute("src");
+        try {
+          dlg.close();
+        } catch {
+          /* ignore */
+        }
+        resolve(result);
+      };
+
+      const scale = () => baseScale * zoomFactor;
+
+      const layoutCropFrame = () => {
+        const vpW = viewport.clientWidth;
+        const vpH = viewport.clientHeight;
+        if (vpW < 8 || vpH < 8) return;
+        const maxW = vpW * 0.92;
+        const maxH = vpH * 0.9;
+        let fw = maxW;
+        let fh = fw / ITEM_PHOTO_CROP_ASPECT;
+        if (fh > maxH) {
+          fh = maxH;
+          fw = fh * ITEM_PHOTO_CROP_ASPECT;
+        }
+        frame.style.width = `${Math.round(fw)}px`;
+        frame.style.height = `${Math.round(fh)}px`;
+      };
+
+      const measureFrame = () => {
+        layoutCropFrame();
+        const vp = viewport.getBoundingClientRect();
+        const fr = frame.getBoundingClientRect();
+        frameRect = {
+          left: fr.left - vp.left,
+          top: fr.top - vp.top,
+          width: fr.width,
+          height: fr.height,
+          right: fr.right - vp.left,
+          bottom: fr.bottom - vp.top,
+        };
+      };
+
+      const coverScaleMin = () => {
+        if (!naturalW || !naturalH || frameRect.width <= 0 || frameRect.height <= 0) return 1;
+        return Math.max(frameRect.width / naturalW, frameRect.height / naturalH);
+      };
+
+      const minAllowedScale = () => coverScaleMin() * CROP_COVER_OVERSCAN;
+
+      const containScaleFit = () => {
+        if (!naturalW || !naturalH || frameRect.width <= 0 || frameRect.height <= 0) return 1;
+        return Math.min(frameRect.width / naturalW, frameRect.height / naturalH);
+      };
+
+      const enforceCoverScale = () => {
+        if (cutoutFreeCrop) {
+          const floor = 0.12;
+          if (scale() < floor) baseScale = floor / zoomFactor;
+          return;
+        }
+        const minScale = minAllowedScale();
+        if (scale() < minScale) {
+          baseScale = minScale / zoomFactor;
+        }
+      };
+
+      const clampPan = () => {
+        enforceCoverScale();
+        if (cutoutFreeCrop) return;
+        const s = scale();
+        const dw = naturalW * s;
+        const dh = naturalH * s;
+        const minX = frameRect.right - dw;
+        const maxX = frameRect.left;
+        const minY = frameRect.bottom - dh;
+        const maxY = frameRect.top;
+        panX = Math.min(maxX, Math.max(minX, panX));
+        panY = Math.min(maxY, Math.max(minY, panY));
+      };
+
+      const applyTransform = () => {
+        const s = scale();
+        cropImg.style.width = `${naturalW * s}px`;
+        cropImg.style.height = `${naturalH * s}px`;
+        cropImg.style.left = `${panX}px`;
+        cropImg.style.top = `${panY}px`;
+      };
+
+      const fitImageCover = () => {
+        if (!naturalW || !naturalH) return;
+        enforceCoverScale();
+        const s = scale();
+        const dw = naturalW * s;
+        const dh = naturalH * s;
+        panX = frameRect.left + (frameRect.width - dw) / 2;
+        panY = frameRect.top + (frameRect.height - dh) / 2;
+        clampPan();
+        applyTransform();
+      };
+
+      /**
+       * @param {{ resetScale?: boolean, resetZoom?: boolean, recenter?: boolean }} [fitOpts]
+       */
+      const fitImageInFrame = (fitOpts = {}) => {
+        if (!naturalW || !naturalH) return;
+        if (cutoutFreeCrop && fitOpts.resetScale !== false) {
+          baseScale = containScaleFit();
+          if (fitOpts.resetZoom) {
+            zoomFactor = 1;
+            zoomInput.value = "1";
+          }
+        }
+        if (fitOpts.recenter !== false) {
+          const s = scale();
+          const dw = naturalW * s;
+          const dh = naturalH * s;
+          panX = frameRect.left + (frameRect.width - dw) / 2;
+          panY = frameRect.top + (frameRect.height - dh) / 2;
+        }
+        clampPan();
+        applyTransform();
+      };
+
+      const resetView = () => {
+        if (!naturalW || !naturalH) return;
+        cutoutFreeCrop = imageSourceLooksAlphaCapable(file);
+        aspectMatched = imageAspectRatioMatchesCrop(naturalW, naturalH);
+        zoomFactor = 1;
+        zoomInput.value = "1";
+        zoomInput.disabled = false;
+        if (cutoutFreeCrop) {
+          zoomInput.min = "0.35";
+          zoomInput.max = "3";
+          baseScale = containScaleFit();
+          meta.textContent = opts.label
+            ? `${opts.label} · 3×4 frame · cutout — drag freely, zoom to size`
+            : "3×4 frame · cutout — drag freely · zoom to size";
+        } else {
+          zoomInput.min = "1";
+          zoomInput.max = aspectMatched ? "2" : "3";
+          baseScale = coverScaleMin() * CROP_COVER_OVERSCAN;
+          meta.textContent = aspectMatched
+            ? opts.label
+              ? `${opts.label} · 3×4 frame · edges filled · drag or zoom`
+              : "3×4 frame · edges filled · drag to reposition · slider to zoom"
+            : opts.label
+              ? `${opts.label} · 3×4 frame · drag to reposition, slider to zoom`
+              : "3×4 frame · drag to reposition · slider to zoom";
+        }
+        if (cutoutFreeCrop) fitImageInFrame({ resetScale: true, resetZoom: true, recenter: true });
+        else fitImageCover();
+      };
+
+      const exportCroppedFile = async () => {
+        measureFrame();
+        const s = scale();
+        const sx = (frameRect.left - panX) / s;
+        const sy = (frameRect.top - panY) / s;
+        const sw = frameRect.width / s;
+        const sh = frameRect.height / s;
+        const canvas = document.createElement("canvas");
+        canvas.width = ITEM_PHOTO_CROP_EXPORT_WIDTH;
+        canvas.height = ITEM_PHOTO_CROP_EXPORT_HEIGHT;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("canvas");
+        const preferPng = imageSourceLooksAlphaCapable(file);
+        if (preferPng) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        else {
+          ctx.fillStyle = "#f6f4ef";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        let source = /** @type {CanvasImageSource} */ (cropImg);
+        /** @type {ImageBitmap | null} */
+        let bitmap = null;
+        if (typeof createImageBitmap === "function") {
+          try {
+            bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+            source = bitmap;
+          } catch {
+            /* use crop preview img */
+          }
+        }
+        try {
+          ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+        } finally {
+          bitmap?.close();
+        }
+        const mime = preferPng ? "image/png" : "image/jpeg";
+        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const blob = await new Promise((res, rej) => {
+          canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
+        });
+        const base = String(file.name || "photo").replace(/\.[^.]+$/i, "") || "photo";
+        const ext = mime === "image/png" ? ".png" : ".jpg";
+        return new File([blob], `${base}${ext}`, { type: mime, lastModified: Date.now() });
+      };
+
+      const onZoom = () => {
+        const prev = scale();
+        const cx = frameRect.left + frameRect.width / 2;
+        const cy = frameRect.top + frameRect.height / 2;
+        const srcX = (cx - panX) / prev;
+        const srcY = (cy - panY) / prev;
+        const zMin = cutoutFreeCrop ? 0.35 : 1;
+        zoomFactor = Math.max(zMin, Number.parseFloat(zoomInput.value) || 1);
+        enforceCoverScale();
+        const next = scale();
+        panX = cx - srcX * next;
+        panY = cy - srcY * next;
+        clampPan();
+        applyTransform();
+      };
+
+      const onWheel = (ev) => {
+        ev.preventDefault();
+        const delta = ev.deltaY > 0 ? -0.06 : 0.06;
+        const zMin = cutoutFreeCrop ? 0.35 : 1;
+        zoomFactor = Math.min(3, Math.max(zMin, zoomFactor + delta));
+        zoomInput.value = String(Number(zoomFactor.toFixed(2)));
+        onZoom();
+      };
+
+      const onPointerDown = (ev) => {
+        if (ev.button !== 0) return;
+        ev.preventDefault();
+        viewport.setPointerCapture(ev.pointerId);
+        viewport.classList.add("is-dragging");
+        dragStartX = ev.clientX;
+        dragStartY = ev.clientY;
+        dragPanX = panX;
+        dragPanY = panY;
+        onPointerMove = (moveEv) => {
+          panX = dragPanX + (moveEv.clientX - dragStartX);
+          panY = dragPanY + (moveEv.clientY - dragStartY);
+          clampPan();
+          applyTransform();
+        };
+        onPointerUp = () => {
+          clampPan();
+          applyTransform();
+          endDrag();
+          try {
+            viewport.releasePointerCapture(ev.pointerId);
+          } catch {
+            /* ignore */
+          }
+        };
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+        window.addEventListener("pointercancel", onPointerUp);
+      };
+
+      const onDialogCancel = (ev) => {
+        ev.preventDefault();
+        finish(null);
+      };
+
+      cancelBtn.onclick = () => finish(null);
+      useBtn.onclick = () => {
+        void (async () => {
+          useBtn.disabled = true;
+          cancelBtn.disabled = true;
+          try {
+            measureFrame();
+            clampPan();
+            applyTransform();
+            const cropped = await exportCroppedFile();
+            finish(cropped);
+          } catch (err) {
+            console.warn(err);
+            useBtn.disabled = false;
+            cancelBtn.disabled = false;
+          }
+        })();
+      };
+      zoomInput.oninput = onZoom;
+      viewport.onwheel = onWheel;
+      viewport.onpointerdown = onPointerDown;
+      dlg.oncancel = onDialogCancel;
+
+      title.textContent = "Crop photo";
+      useBtn.disabled = false;
+      cancelBtn.disabled = false;
+
+      cropImg.onload = () => {
+        if (!naturalW) naturalW = cropImg.naturalWidth;
+        if (!naturalH) naturalH = cropImg.naturalHeight;
+        if (!naturalW || !naturalH) {
+          finish(file);
+          return;
+        }
+        requestAnimationFrame(() => {
+          measureFrame();
+          requestAnimationFrame(() => {
+            measureFrame();
+            resetView();
+          });
+        });
+      };
+      cropImg.onerror = () => finish(file);
+
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => {
+          if (!naturalW || !naturalH) return;
+          measureFrame();
+          if (cutoutFreeCrop) fitImageInFrame({ resetScale: false, recenter: false });
+          else fitImageCover();
+        });
+        resizeObserver.observe(viewport);
+      }
+
+      const prepared = await prepareOrientedCropImageSource(file);
+      objectUrl = prepared.url;
+      naturalW = prepared.width;
+      naturalH = prepared.height;
+      if (!naturalW || !naturalH) {
+        const dims = await readOrientedImageDimensions(file);
+        naturalW = dims.width;
+        naturalH = dims.height;
+      }
+
+      cropImg.removeAttribute("style");
+      cropImg.src = "";
+      cropImg.src = objectUrl;
+
+      try {
+        dlg.showModal();
+      } catch {
+        finish(file);
+      }
+      } catch (err) {
+        console.warn(err);
+        finish(file);
+      }
+      })();
+    });
+  }
 
   function revokeItemEditPhotoManager(host) {
     if (!(host instanceof HTMLElement)) return;
@@ -8950,41 +11938,31 @@
   }
 
   /**
-   * Sync the edit-page “Current cover” column with the first tile in the photo manager.
+   * Sync edit-page left preview (PDP-style gallery) with the photo manager strip.
    * @param {HTMLElement | null} previewCol
    * @param {HTMLElement | null} photosHost
    * @param {object} item
    */
-  function syncItemEditCoverPreview(previewCol, photosHost, item) {
-    const previewImg = previewCol?.querySelector(".card__media-img");
-    if (!(previewImg instanceof HTMLImageElement)) return;
+  function syncItemEditPreviewGallery(previewCol, photosHost, item) {
+    const galleryWrap = previewCol?.querySelector(".item-detail__gallery");
+    const thumbs = galleryWrap?.querySelector(".item-detail__gallery-thumbs");
+    const stage = galleryWrap?.querySelector(".item-detail__gallery-stage");
+    const heroImg = galleryWrap?.querySelector(".card__media-img");
+    if (
+      !(galleryWrap instanceof HTMLElement) ||
+      !(thumbs instanceof HTMLElement) ||
+      !(stage instanceof HTMLElement) ||
+      !(heroImg instanceof HTMLImageElement)
+    ) {
+      return;
+    }
+    const prevIndex = Number.parseInt(String(stage.dataset.galleryIndex ?? "0"), 10);
     const entries = Array.isArray(photosHost?.__twPhotoEntries) ? photosHost.__twPhotoEntries : [];
-    if (!entries.length) {
-      previewImg.removeAttribute("src");
-      return;
-    }
-    const first = entries[0];
-    let src = "";
-    if (first?.kind === "url" && first.url) {
-      src = withWardrobeImageCacheBust(String(first.url), item);
-    } else if (first?.kind === "file" && first.previewUrl) {
-      src = String(first.previewUrl);
-    }
-    if (!src) return;
+    const frames = photoEditGalleryFrames(entries);
+    const initialIndex =
+      Number.isFinite(prevIndex) && prevIndex >= 0 && prevIndex < frames.length ? prevIndex : 0;
     clearCoverResolutionCacheForItem(String(item?.id ?? ""));
-    if (first?.kind === "url") {
-      wireCoverImageWithFallbacks(previewImg, item, {
-        host: previewCol?.querySelector(".item-detail__media") ?? undefined,
-        missingClass: "card__media--missing",
-        preferredUrl: src,
-        coverRenderWidth: ITEM_DETAIL_GALLERY_RENDER.width,
-        coverRenderHeight: ITEM_DETAIL_GALLERY_RENDER.height,
-        coverRenderQuality: ITEM_DETAIL_GALLERY_RENDER.quality,
-        coverRenderResize: ITEM_DETAIL_GALLERY_RENDER.resize,
-      });
-      return;
-    }
-    previewImg.src = src;
+    mountItemDetailPageGallery(galleryWrap, thumbs, stage, heroImg, item, { frames, initialIndex });
   }
 
   /**
@@ -9026,16 +12004,29 @@
     fileInput.hidden = true;
     fileInput.className = "item-edit-photo-manager__file-input";
 
+    const uploadLabel = opts.uploadLabel || "Upload photos";
     const uploadBtn = document.createElement("button");
     uploadBtn.type = "button";
-    uploadBtn.className = "btn btn--small btn--ghost item-edit-photo-manager__upload";
-    uploadBtn.textContent = opts.uploadLabel || "Upload photos";
+    uploadBtn.className = "item-edit-photo-tile item-edit-photo-tile--add item-edit-photo-manager__upload";
+    uploadBtn.setAttribute("aria-label", uploadLabel);
+    uploadBtn.title = uploadLabel;
+    uploadBtn.innerHTML = `<span class="item-edit-photo-tile__add-icon" aria-hidden="true">${TW_ITEM_EDIT_ICON.upload}</span><span class="item-edit-photo-tile__add-label">Add</span>`;
 
     const hint = document.createElement("p");
     hint.className = "item-edit-photo-manager__hint";
-    hint.textContent =
-      opts.hint ||
-      "The first photo is the cover; the rest go in the gallery. Drag tiles to reorder.";
+    hint.hidden = true;
+    hint.setAttribute("aria-live", "polite");
+
+    const setPhotoHint = (message) => {
+      const t = String(message ?? "").trim();
+      if (!t) {
+        hint.hidden = true;
+        hint.textContent = "";
+        return;
+      }
+      hint.hidden = false;
+      hint.textContent = t;
+    };
 
     const list = document.createElement("div");
     list.className = "item-edit-photo-manager__list";
@@ -9049,13 +12040,15 @@
       host.__twPhotoEntries = entries;
     }
 
+    function appendUploadSlot() {
+      uploadBtn.disabled = false;
+      uploadBtn.hidden = false;
+      list.appendChild(uploadBtn);
+    }
+
     function renderList() {
       syncEntries();
       list.replaceChildren();
-      if (!entries.length) {
-        list.hidden = true;
-        return;
-      }
       list.hidden = false;
       entries.forEach((entry, index) => {
         const tile = document.createElement("div");
@@ -9064,6 +12057,9 @@
         tile.draggable = true;
         tile.dataset.index = String(index);
         tile.setAttribute("role", "listitem");
+
+        const media = document.createElement("div");
+        media.className = "item-edit-photo-tile__media";
 
         const badge = document.createElement("span");
         badge.className = "item-edit-photo-tile__badge";
@@ -9080,7 +12076,7 @@
             coverRenderWidth: 220,
             coverRenderHeight: 293,
             coverRenderQuality: 82,
-            coverRenderResize: "contain",
+            coverRenderResize: "cover",
           });
         } else {
           img.src = entry.previewUrl;
@@ -9091,10 +12087,92 @@
         grip.setAttribute("aria-hidden", "true");
         grip.title = "Drag to reorder";
 
+        const actions = document.createElement("div");
+        actions.className = "item-edit-photo-tile__actions";
+
+        const cropBtn = document.createElement("button");
+        cropBtn.type = "button";
+        cropBtn.className = "item-edit-photo-tile__action item-edit-photo-tile__crop";
+        cropBtn.setAttribute("aria-label", "Crop photo");
+        cropBtn.title = "Crop";
+        cropBtn.innerHTML = TW_ITEM_EDIT_ICON.crop;
+        cropBtn.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          void (async () => {
+            cropBtn.disabled = true;
+            try {
+              const cropLabel = index === 0 ? "Cover" : `Photo ${index + 1}`;
+              let sourceFile = null;
+              let sourceUrl = "";
+              if (entry.kind === "file") {
+                sourceFile = filesById.get(String(entry.id ?? "")) ?? null;
+              } else if (entry.kind === "url") {
+                sourceUrl = wardrobeImageFullResolutionUrl(String(entry.url || "").trim(), bustItem);
+              }
+              if (!sourceFile && !sourceUrl) return;
+              const alphaHint = imageSourceLooksAlphaCapable(sourceFile, sourceUrl);
+              const fallbackName =
+                index === 0
+                  ? alphaHint
+                    ? "cover.png"
+                    : "cover.jpg"
+                  : alphaHint
+                    ? `photo-${index + 1}.png`
+                    : `photo-${index + 1}.jpg`;
+
+              const fileForCrop = sourceFile
+                ? sourceFile
+                : await imageSourceToFileForCrop(sourceUrl, bustItem, fallbackName);
+
+              const cropped = await openItemPhotoCropDialog(fileForCrop, {
+                label: cropLabel,
+                autoExportIfAligned: false,
+              });
+              if (!cropped) return;
+
+              if (entry.kind === "file" && entry.previewUrl) {
+                try {
+                  URL.revokeObjectURL(entry.previewUrl);
+                } catch {
+                  /* ignore */
+                }
+              }
+
+              const id =
+                entry.kind === "file" && entry.id
+                  ? String(entry.id)
+                  : typeof crypto !== "undefined" && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+              filesById.set(id, cropped);
+              entry.kind = "file";
+              entry.id = id;
+              delete entry.url;
+              entry.previewUrl = URL.createObjectURL(cropped);
+              renderList();
+              opts.onDirty?.();
+            } catch (err) {
+              console.warn(err);
+              if (typeof showToast === "function") {
+                showToast(
+                  err instanceof Error && err.message
+                    ? err.message
+                    : "Could not load this image for cropping."
+                );
+              }
+            } finally {
+              cropBtn.disabled = false;
+            }
+          })();
+        });
+
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
-        removeBtn.className = "btn btn--small btn--ghost item-edit-photo-tile__remove";
-        removeBtn.textContent = "Remove";
+        removeBtn.className = "item-edit-photo-tile__action item-edit-photo-tile__remove";
+        removeBtn.setAttribute("aria-label", "Remove photo");
+        removeBtn.title = "Remove";
+        removeBtn.innerHTML = TW_ITEM_EDIT_ICON.trash;
         removeBtn.addEventListener("click", (ev) => {
           ev.stopPropagation();
           const e = entries[index];
@@ -9111,12 +12189,18 @@
           opts.onDirty?.();
         });
 
-        tile.appendChild(badge);
-        tile.appendChild(img);
-        tile.appendChild(grip);
-        tile.appendChild(removeBtn);
+        actions.append(cropBtn, removeBtn);
+        media.append(badge, img, grip, actions);
+        tile.appendChild(media);
+
+        cropBtn.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+        removeBtn.addEventListener("pointerdown", (ev) => ev.stopPropagation());
 
         tile.addEventListener("dragstart", (ev) => {
+          if (ev.target instanceof Element && ev.target.closest(".item-edit-photo-tile__action")) {
+            ev.preventDefault();
+            return;
+          }
           dragFrom = index;
           tile.classList.add("is-dragging");
           if (ev.dataTransfer) {
@@ -9161,39 +12245,83 @@
 
         list.appendChild(tile);
       });
+      if (entries.length < maxPhotos) appendUploadSlot();
     }
 
     uploadBtn.addEventListener("click", () => fileInput.click());
+
+    async function appendCroppedFile(file, label) {
+      const cropped = await openItemPhotoCropDialog(file, { label });
+      if (!cropped) return false;
+      const id =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const previewUrl = URL.createObjectURL(cropped);
+      filesById.set(id, cropped);
+      entries.push({ kind: "file", id, file: cropped, previewUrl });
+      return true;
+    }
+
     fileInput.addEventListener("change", () => {
       const picked = fileInput.files ? Array.from(fileInput.files) : [];
       fileInput.value = "";
-      let dropped = 0;
-      for (const file of picked) {
-        if (entries.length >= maxPhotos) {
-          dropped += 1;
-          continue;
+      if (!picked.length) return;
+
+      void (async () => {
+        uploadBtn.disabled = true;
+        let dropped = 0;
+        let cancelled = 0;
+        const imageFiles = picked.filter((f) => String(f.type || "").toLowerCase().startsWith("image/"));
+        const otherFiles = picked.filter((f) => !String(f.type || "").toLowerCase().startsWith("image/"));
+        const totalImages = imageFiles.length;
+
+        for (let i = 0; i < imageFiles.length; i++) {
+          if (entries.length >= maxPhotos) {
+            dropped += imageFiles.length - i;
+            break;
+          }
+          const file = imageFiles[i];
+          const slot = entries.length + 1;
+          const label =
+            totalImages > 1
+              ? `Photo ${i + 1} of ${totalImages}`
+              : slot === 1
+                ? "Cover"
+                : `Photo ${slot}`;
+          const added = await appendCroppedFile(file, label);
+          if (!added) cancelled += 1;
         }
-        const id =
-          typeof crypto !== "undefined" && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-        const previewUrl = URL.createObjectURL(file);
-        filesById.set(id, file);
-        entries.push({ kind: "file", id, file, previewUrl });
-      }
-      if (dropped > 0) {
-        hint.textContent = `Only the first ${maxPhotos} photos are kept (${dropped} skipped).`;
-      } else if (opts.hint) {
-        hint.textContent = opts.hint;
-      } else {
-        hint.textContent =
-          "The first photo is the cover; the rest go in the gallery. Drag tiles to reorder.";
-      }
-      renderList();
-      opts.onDirty?.();
+
+        for (const file of otherFiles) {
+          if (entries.length >= maxPhotos) {
+            dropped += 1;
+            continue;
+          }
+          const id =
+            typeof crypto !== "undefined" && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+          const previewUrl = URL.createObjectURL(file);
+          filesById.set(id, file);
+          entries.push({ kind: "file", id, file, previewUrl });
+        }
+
+        if (dropped > 0) {
+          setPhotoHint(`Only the first ${maxPhotos} photos are kept (${dropped} skipped).`);
+        } else if (cancelled > 0 && !entries.length) {
+          setPhotoHint("Upload cancelled — no photos added.");
+        } else if (opts.hint) {
+          setPhotoHint(opts.hint);
+        } else {
+          setPhotoHint("");
+        }
+        renderList();
+        opts.onDirty?.();
+        uploadBtn.disabled = false;
+      })();
     });
 
-    host.appendChild(uploadBtn);
     host.appendChild(fileInput);
     host.appendChild(hint);
     host.appendChild(list);
@@ -9756,10 +12884,7 @@
     }
 
     showToast("Piece removed.");
-
-    if (!document.getElementById("grid") && String(detailItemId) === sid) {
-      globalThis.location.href = SITE_HOME_URL;
-    }
+    navigateAwayFromDeletedItemPage(sid);
   }
 
   async function handleAddItemSubmit(ev) {
@@ -9771,8 +12896,12 @@
     const recordPick = document.getElementById("add-item-record-type")?.value?.trim() || "";
     const season = normalizeStoredItemSeason(document.getElementById("add-item-season")?.value?.trim() || "");
     const category = resolveCategoryForBrowseSlot(browseSlot, recordPick, season, {});
-    const colourVal = document.getElementById("add-item-colour")?.value?.trim() || "";
-    const colourCodeInput = document.getElementById("add-item-colour-code")?.value?.trim() || "";
+    const colourVal = itemEditColourNameSaveValue(document.getElementById("add-item-colour"));
+    const colourCodeInput = itemEditColourCodeSaveValue(document.getElementById("add-item-colour-code"));
+    const secondaryColourVal = itemEditColourNameSaveValue(document.getElementById("add-item-secondary-colour"));
+    const secondaryColourCodeInput = itemEditColourCodeSaveValue(
+      document.getElementById("add-item-secondary-colour-code")
+    );
     const fabric = document.getElementById("add-item-fabric")?.value?.trim() || "";
     const weight = document.getElementById("add-item-weight")?.value?.trim() || "";
     const size = document.getElementById("add-item-size")?.value?.trim() || "";
@@ -9780,13 +12909,12 @@
     const measureUnit = parseMeasurementUnitInput(document.getElementById("add-item-measurement-unit")?.value);
     const measuredDimensions = mRows.length ? measurementRowsToSummaryString(mRows, measureUnit) : "";
     const purchaseDate = joinPurchaseDateFromForm(
-      document.getElementById("add-item-purchase-date")?.value?.trim() || "",
-      document.getElementById("add-item-purchase-date-note")?.value?.trim() || ""
+      document.getElementById("add-item-purchase-date")?.value?.trim() || ""
     );
     const priceRaw = document.getElementById("add-item-price")?.value?.trim() || "";
     const priceCur =
       String(document.getElementById("add-item-price-currency")?.value ?? "TWD").trim().toUpperCase() || "TWD";
-    let priceVal = parsePriceAmountFlexible(priceRaw);
+    let priceVal = parsePriceFormValue(priceRaw);
     if (!Number.isFinite(priceVal) || priceVal < 0) priceVal = null;
     const notes = document.getElementById("add-item-notes")?.value?.trim() || "";
     const photosInput = document.getElementById("add-item-photos");
@@ -9844,6 +12972,7 @@
 
     const colourTrim = String(colourVal ?? "").trim();
     const colourCodeTrim = String(colourCodeInput ?? "").trim();
+    const secondaryColourCodeTrim = String(secondaryColourCodeInput ?? "").trim();
     const rawBasicPick = String(document.getElementById("add-item-basic-colour")?.value ?? "").trim();
     const newItem = {
       id: newId,
@@ -9864,11 +12993,24 @@
       pillar: "",
     };
     if (colourCodeTrim) newItem.colourCode = colourCodeTrim;
-    if (rawBasicPick.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT) {
+    if (secondaryColourVal) newItem.secondaryColour = secondaryColourVal;
+    if (secondaryColourCodeTrim) newItem.secondaryColourCode = secondaryColourCodeTrim;
+    const basicPick = parseBasicColourSelectValue(rawBasicPick);
+    if (basicPick === BASIC_COLOUR_CLASSIFICATION_OMIT) {
       newItem.basicColour = BASIC_COLOUR_CLASSIFICATION_OMIT;
-    } else {
-      const basicPick = normalizeStoredBasicColourKey(rawBasicPick);
-      if (basicPick) newItem.basicColour = basicPick;
+    } else if (basicPick) {
+      newItem.basicColour = basicPick;
+    }
+    const rawSecBasicPick = String(document.getElementById("add-item-secondary-basic-colour")?.value ?? "").trim();
+    const secBasicPick = parseBasicColourSelectValue(rawSecBasicPick);
+    if (
+      hasSecondaryColourFields({
+        secondaryColour: secondaryColourVal,
+        secondaryColourCode: secondaryColourCodeTrim,
+      }) &&
+      secBasicPick
+    ) {
+      newItem.secondaryBasicColour = secBasicPick;
     }
     if (priceVal != null) {
       newItem.price = priceVal;
@@ -9952,6 +13094,10 @@
 
     const cc = itemColourCode(src);
     if (cc) dup.colourCode = cc;
+    const secC = itemSecondaryColour(src);
+    const secCode = itemSecondaryColourCode(src);
+    if (secC) dup.secondaryColour = secC;
+    if (secCode) dup.secondaryColourCode = secCode;
     const rawBcTop = String(
       src?.basicColour ??
         (src?.metadata && typeof src.metadata === "object" && !Array.isArray(src.metadata)
@@ -9986,6 +13132,8 @@
         const g = dedupeGalleryUrls(vim, Array.isArray(v.gallery) ? v.gallery : [], 12);
         const col = String(v.colour ?? v.color ?? "").trim();
         const bv = normalizeStoredBasicColourKey(v.basicColour);
+        const secCol = String(v.secondaryColour ?? v.secondaryColor ?? "").trim();
+        const secCode = String(v.secondaryColourCode ?? v.secondaryColorCode ?? "").trim();
         return {
           key: String(v.key ?? "").trim(),
           label: String(v.label ?? "").trim(),
@@ -9996,6 +13144,8 @@
           notes: String(v.notes ?? "").trim(),
           gallery: g,
           ...(bv ? { basicColour: bv } : {}),
+          ...(secCol ? { secondaryColour: secCol } : {}),
+          ...(secCode ? { secondaryColourCode: secCode } : {}),
         };
       });
     }
@@ -10030,6 +13180,8 @@
     const preview = document.getElementById("add-item-preview");
     if (!form || !cat || !recordSel) return;
     addItemFormWired = true;
+    const addItemPriceIn = document.getElementById("add-item-price");
+    if (addItemPriceIn instanceof HTMLInputElement) wirePriceAmountInput(addItemPriceIn);
     cat.innerHTML = "";
     for (const c of SLOT_OPTIONS) {
       const o = document.createElement("option");
@@ -10070,14 +13222,114 @@
     });
 
     form.addEventListener("submit", (e) => void handleAddItemSubmit(e));
+
+    /** @type {{ wrap: HTMLElement, sel: HTMLSelectElement, sync: (() => void) | null } | null} */
+    let addItemSecBasicMount = null;
+    /** @type {ReturnType<typeof mountItemEditSecondaryColourBlock> | null} */
+    let addSecColourMount = null;
+    const syncAddSecondaryBasicVisibility = () => {
+      if (!addItemSecBasicMount) return;
+      const hasSec = shouldShowItemEditSecondaryBasicColour(addSecColourMount);
+      addItemSecBasicMount.wrap.hidden = !hasSec;
+      if (hasSec) addItemSecBasicMount.sync?.();
+    };
+
+    const addItemColourCode = document.getElementById("add-item-colour-code");
+    const addItemColourName = document.getElementById("add-item-colour");
+    if (addItemColourCode instanceof HTMLInputElement) {
+      const addItemCodeLab = addItemColourCode.closest("label.field");
+      if (addItemCodeLab && !addItemCodeLab.querySelector(".item-edit-colour-code-row")) {
+        const addItemCodeRow = document.createElement("div");
+        addItemCodeRow.className = "item-edit-colour-code-row";
+        const addItemCodePreview = createItemEditColourCodePreview();
+        addItemCodeLab.removeChild(addItemColourCode);
+        addItemCodeRow.append(addItemCodePreview, addItemColourCode);
+        addItemCodeLab.appendChild(addItemCodeRow);
+        const syncAddPrimaryPreview = wireItemEditColourCodePreview({
+          input: addItemColourCode,
+          preview: addItemCodePreview,
+          colourInput: addItemColourName instanceof HTMLInputElement ? addItemColourName : null,
+          getSecondarySources: () => ({
+            colour: document.getElementById("add-item-secondary-colour")?.value ?? "",
+            colourCode: document.getElementById("add-item-secondary-colour-code")?.value ?? "",
+          }),
+        });
+        mountEyedropperBtn(addItemCodeRow, addItemColourCode);
+
+        const addItemSecondaryMountEl = document.getElementById("add-item-secondary-colour-mount");
+        if (addItemSecondaryMountEl && addItemSecondaryMountEl.dataset.mounted !== "1") {
+          addItemSecondaryMountEl.dataset.mounted = "1";
+          addSecColourMount = mountItemEditSecondaryColourBlock(addItemSecondaryMountEl, {}, {
+            nameId: "add-item-secondary-colour",
+            codeId: "add-item-secondary-colour-code",
+            onRemoved: () => {
+              syncAddPrimaryPreview();
+              syncAddSecondaryBasicVisibility();
+            },
+            onShown: syncAddSecondaryBasicVisibility,
+          });
+          addSecColourMount.secNameInput?.addEventListener("input", () => {
+            syncAddPrimaryPreview();
+            syncAddSecondaryBasicVisibility();
+          });
+          addSecColourMount.secCodeInput?.addEventListener("input", () => {
+            syncAddPrimaryPreview();
+            syncAddSecondaryBasicVisibility();
+          });
+          addItemSecondaryMountEl.addEventListener("change", syncAddSecondaryBasicVisibility);
+        }
+      }
+    }
+
+    const addItemBasicSel = document.getElementById("add-item-basic-colour");
+    if (addItemBasicSel instanceof HTMLSelectElement) {
+      const addBasicLab = addItemBasicSel.closest("label.field");
+      const addBasicLabel = addBasicLab?.querySelector(".field__label");
+      if (addBasicLabel) addBasicLabel.textContent = "Broad colour — primary (optional)";
+      if (addBasicLab?.parentElement && !addBasicLab.parentElement.querySelector(".item-edit-basic-colour-pair")) {
+        const addBasicPair = document.createElement("div");
+        addBasicPair.className = "item-edit-basic-colour-pair field--span2";
+        addBasicLab.parentElement.insertBefore(addBasicPair, addBasicLab);
+        addBasicPair.appendChild(addBasicLab);
+        addItemSecBasicMount = createItemEditSecondaryBasicColourField("", {
+          id: "add-item-secondary-basic-colour",
+          hidden: true,
+          getFields: () =>
+            readItemEditSecondaryColourFieldValues(
+              addSecColourMount?.secNameInput,
+              addSecColourMount?.secCodeInput
+            ),
+        });
+        addBasicPair.appendChild(addItemSecBasicMount.wrap);
+        syncAddSecondaryBasicVisibility();
+      }
+      const syncAddItemBasicAuto = wireItemEditBasicColourAutoDisplay(addItemBasicSel, () => ({
+        colour: itemEditColourNameSaveValue(addItemColourName),
+        colourCode: itemEditColourCodeSaveValue(addItemColourCode),
+      }));
+      addItemColourName?.addEventListener("input", syncAddItemBasicAuto);
+      addItemColourCode?.addEventListener("input", syncAddItemBasicAuto);
+    }
+
     form.addEventListener("reset", () => {
       requestAnimationFrame(() => {
-        if (!preview) return;
-        preview.hidden = true;
-        preview.removeAttribute("src");
+        if (preview) {
+          preview.hidden = true;
+          preview.removeAttribute("src");
+        }
         showAddItemFormMsg("", false);
         syncAddItemRecordTypes();
         resetAddItemMeasurementBlock();
+        const secBlock = document
+          .getElementById("add-item-secondary-colour-mount")
+          ?.querySelector(".item-edit-secondary-colour-block");
+        resetItemEditSecondaryColourBlock(/** @type {HTMLElement} */ (secBlock));
+        const addBasic = document.getElementById("add-item-basic-colour");
+        if (addBasic instanceof HTMLSelectElement) {
+          const getFields = basicColourAutoFieldSources.get(addBasic);
+          if (typeof getFields === "function") syncItemEditBasicColourAutoDisplay(addBasic, getFields());
+        }
+        syncAddSecondaryBasicVisibility();
       });
     });
 
@@ -10152,17 +13404,25 @@
   function mountCollectionCardGalleryNav(media, img, resolveItem) {
     if (!isCollectionGridCardContext()) return;
 
-    const prev = document.createElement("button");
-    prev.type = "button";
-    prev.className = "card__gallery-nav card__gallery-nav--prev";
-    prev.setAttribute("aria-label", "Previous photo");
-    prev.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true">‹</span>';
+    const coarsePointer = isCollectionCardCoarsePointer();
+    /** @type {HTMLButtonElement | null} */
+    let prev = null;
+    /** @type {HTMLButtonElement | null} */
+    let next = null;
 
-    const next = document.createElement("button");
-    next.type = "button";
-    next.className = "card__gallery-nav card__gallery-nav--next";
-    next.setAttribute("aria-label", "Next photo");
-    next.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true">›</span>';
+    if (!coarsePointer) {
+      prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "card__gallery-nav card__gallery-nav--prev";
+      prev.setAttribute("aria-label", "Previous photo");
+      prev.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true"></span>';
+
+      next = document.createElement("button");
+      next.type = "button";
+      next.className = "card__gallery-nav card__gallery-nav--next";
+      next.setAttribute("aria-label", "Next photo");
+      next.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true"></span>';
+    }
 
     function frameList() {
       return collectionCardGalleryFrames(resolveItem());
@@ -10171,9 +13431,10 @@
     function syncNav() {
       const frames = frameList();
       const on = frames.length > 1;
-      prev.hidden = !on;
-      next.hidden = !on;
+      if (prev) prev.hidden = !on;
+      if (next) next.hidden = !on;
       media.classList.toggle("card__media--gallery-nav", on);
+      media.classList.toggle("card__media--gallery-swipe", on && coarsePointer);
       if (!on) {
         media.dataset.galleryFrameIndex = "0";
         return;
@@ -10192,7 +13453,6 @@
     function step(delta) {
       const frames = frameList();
       if (frames.length < 2) return;
-      const max = frames.length - 1;
       let idx = Number(media.dataset.galleryFrameIndex ?? 0);
       if (!Number.isFinite(idx)) idx = 0;
       idx = ((idx + delta) % frames.length + frames.length) % frames.length;
@@ -10200,24 +13460,73 @@
       img.src = frames[idx];
     }
 
-    prev.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      step(-1);
-    });
-    next.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      step(1);
-    });
+    if (prev && next) {
+      prev.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        step(-1);
+      });
+      next.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        step(1);
+      });
+      media.appendChild(prev);
+      media.appendChild(next);
+    }
+
+    if (coarsePointer) {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let suppressMediaClick = false;
+
+      media.addEventListener(
+        "touchstart",
+        (e) => {
+          const t = e.touches?.[0];
+          if (!t) return;
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          suppressMediaClick = false;
+        },
+        { passive: true }
+      );
+
+      media.addEventListener(
+        "touchend",
+        (e) => {
+          const frames = frameList();
+          if (frames.length < 2) return;
+          const t = e.changedTouches?.[0];
+          if (!t) return;
+          const dx = t.clientX - touchStartX;
+          const dy = t.clientY - touchStartY;
+          if (Math.abs(dx) < 48) return;
+          if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
+          suppressMediaClick = true;
+          step(dx < 0 ? 1 : -1);
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+
+      media.addEventListener(
+        "click",
+        (e) => {
+          if (!suppressMediaClick) return;
+          suppressMediaClick = false;
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        true
+      );
+    }
 
     media.addEventListener("tw-collection-cover-change", () => {
       media.dataset.galleryFrameIndex = "0";
       syncNav();
     });
 
-    media.appendChild(prev);
-    media.appendChild(next);
     media.dataset.galleryFrameIndex = "0";
     syncNav();
   }
@@ -10280,7 +13589,7 @@
   }
 
   function stylingBoardCtaLabel(blocked) {
-    return blocked ? "on board" : "+style";
+    return blocked ? "ON BOARD" : "+ STYLE";
   }
 
   function itemDetailBoardCtaLabel(blocked) {
@@ -10362,6 +13671,7 @@
 
   function createCard(item, cardOpts = {}) {
     const variants = getItemColourVariants(item);
+    const gridSwatchVariants = getCollectionGridSwatchVariants(item);
     const inOutfit = outfitIdSet().has(item.id);
     const allVariantKeys =
       variants?.map((v) => v.key) ??
@@ -10376,7 +13686,7 @@
     const slotLab = itemSlot(item);
     const recKey = recordCategoryForDrill(item, slotLab);
 
-    const colourBucket = getFilters().basicColour;
+    const colourBucket = activeBasicColourFilterKey();
     const variantKeyForHero =
       variants?.length && colourBucket ? firstVariantKeyMatchingBasicColourBucket(item, colourBucket) : "";
     const cardCoverItem =
@@ -10392,7 +13702,7 @@
 
     const media = document.createElement("div");
     media.className = "card__media card__media--opens-detail";
-    if (variants?.length) media.classList.add("card__media--variant-colours");
+    if (gridSwatchVariants?.length) media.classList.add("card__media--variant-colours");
 
     const img = document.createElement("img");
     img.className = "card__media-img";
@@ -10458,7 +13768,13 @@
       if (ev.target.closest(".card__gallery-thumb")) return;
       if (ev.target.closest(".card__gallery-nav")) return;
       if (ev.target.closest(".card__season-chip")) return;
-      if (isCollectionCardCoarsePointer() && boardAddBtn && !boardAddBtn.disabled) {
+      /* Collection PLP mobile: + STYLE is always visible in the colour tray — one tap opens the piece. */
+      if (
+        isCollectionCardCoarsePointer() &&
+        !isCollectionGridCardContext() &&
+        boardAddBtn &&
+        !boardAddBtn.disabled
+      ) {
         if (!article.classList.contains("card--styling-reveal")) {
           dismissCollectionCardStylingReveal(article);
           article.classList.add("card--styling-reveal");
@@ -10490,8 +13806,15 @@
 
     const metaLine = document.createElement("p");
     metaLine.className = "card__meta-line";
-    const colourLabel = colourLabelForItem(item);
-    metaLine.textContent = [colourLabel, item.size ? `Size ${String(item.size).trim()}` : ""]
+    let colourLabel = colourLabelForItem(item);
+    if (variantKeyForHero && variants?.length) {
+      const heroVar = variants.find((v) => String(v.key) === variantKeyForHero);
+      if (heroVar) colourLabel = variantDisplayColourName(heroVar);
+    }
+    const purchaseLabel = item.purchaseDate
+      ? formatPurchaseDateForDisplay(item.purchaseDate)
+      : "";
+    metaLine.textContent = [colourLabel, item.size ? String(item.size).trim() : "", purchaseLabel]
       .filter(Boolean)
       .join(" · ");
 
@@ -10499,9 +13822,10 @@
     body.appendChild(brand);
     body.appendChild(metaLine);
 
-    const hasColourTray = Boolean(variants?.length);
+    const hasColourTray = Boolean(gridSwatchVariants?.length);
     if (hasColourTray) {
       mountVariantSwatchStrip(media, item, {
+        variants: gridSwatchVariants,
         outfitPick: true,
         heroImg: img,
         heroHost: media,
@@ -10529,13 +13853,6 @@
       li.textContent = part;
       specs.appendChild(li);
     });
-    const showPurchaseOnCard = collectionSortMode === "date-desc";
-    if (showPurchaseOnCard && item.purchaseDate) {
-      const li = document.createElement("li");
-      li.textContent = formatPurchaseDateForDisplay(item.purchaseDate);
-      specs.appendChild(li);
-    }
-
     if (specs.children.length) body.appendChild(specs);
 
     {
@@ -10690,16 +14007,26 @@
   const COLLECTION_ALL_TYPES_LABEL = "All Types";
   const COLLECTION_HEADING_DEFAULT_TITLE = "Collection";
 
-  /** Season token for line 1 (`COLLECTION / … /`). */
-  function collectionHeadingSeasonLabel() {
-    if (seasonNavFilter === "SS") return "S / S";
-    if (seasonNavFilter === "AW") return "A / W";
+  /** Compact season label for breadcrumb + title (avoid “S / S” reading as three crumbs). */
+  function collectionHeadingSeasonShortLabel() {
+    if (seasonNavFilter === "SS") return "S/S";
+    if (seasonNavFilter === "AW") return "A/W";
     return "ALL SEASONS";
+  }
+
+  function collectionHeadingSeasonLabel() {
+    return collectionHeadingSeasonShortLabel();
   }
 
   function collectionHeadingAtCollectionRoot() {
     const cat = String(categoryNavFilter ?? "").trim();
     return !cat && subcategoryFilters.size === 0 && !seasonNavFilter && !narrowingFiltersActive();
+  }
+
+  /** Line 1 would only repeat “COLLECTION” while line 2 is already the hub title — show HOME / instead. */
+  function collectionHeadingBreadcrumbRedundant() {
+    const cat = String(categoryNavFilter ?? "").trim();
+    return !cat && !normalizeSeasonNavToken(seasonNavFilter);
   }
 
   /** COLLECTION root — all seasons, no division drill, no narrowing filters. */
@@ -10765,6 +14092,13 @@
 
   function renderCollectionHeadingBreadcrumb(host, { searchActive = false } = {}) {
     if (!host) return;
+
+    const atRoot = collectionHeadingAtCollectionRoot();
+    const cat = String(categoryNavFilter ?? "").trim();
+    const season = normalizeSeasonNavToken(seasonNavFilter);
+
+    host.hidden = false;
+    host.classList.remove("collection-heading__context--reserved");
     host.replaceChildren();
 
     const nav = document.createElement("nav");
@@ -10798,9 +14132,13 @@
       nav.appendChild(btn);
     }
 
-    const atRoot = collectionHeadingAtCollectionRoot();
-    const cat = String(categoryNavFilter ?? "").trim();
-    const season = normalizeSeasonNavToken(seasonNavFilter);
+    /* Hub root: “HOME /” trail; line 2 is “Collection”. */
+    if (!searchActive && collectionHeadingBreadcrumbRedundant()) {
+      appendCrumb("HOME", { onClick: navigateToSiteHome });
+      appendSep();
+      host.appendChild(nav);
+      return;
+    }
 
     appendCrumb("COLLECTION", {
       onClick: navigateCollectionCollectionRoot,
@@ -10810,21 +14148,29 @@
     if (searchActive) {
       appendSep();
       appendCrumb("SEARCH", { isCurrent: true });
-    } else if (season) {
+    } else if (season && cat) {
       appendSep();
-      appendCrumb(collectionHeadingSeasonLabel(), {
+      appendCrumb(collectionHeadingSeasonShortLabel(), {
         onClick: navigateCollectionAllSeasonsKeepDivision,
-        isCurrent: !cat,
+        isCurrent: false,
       });
+    } else if (season || cat) {
+      /* Season-only: title is “S/S Collection”; division-only: title is the slot — trail ends at COLLECTION / */
+      appendSep();
     }
 
     host.appendChild(nav);
   }
 
-  /** Line 2 — parent division only; subcategories stay in drill pills / filter chips. */
+  /** Line 2 — division name, or “S/S Collection” when filtered by season only. */
   function collectionHeadingTitleLine(parentCategory) {
     const cat = String(parentCategory ?? "").trim();
     if (cat) return categoryDisplayLabel(cat);
+    const season = normalizeSeasonNavToken(seasonNavFilter);
+    const seasonShort = collectionHeadingSeasonShortLabel();
+    if (season && seasonShort !== "ALL SEASONS") {
+      return `${seasonShort} ${COLLECTION_HEADING_DEFAULT_TITLE}`;
+    }
     return COLLECTION_HEADING_DEFAULT_TITLE;
   }
 
@@ -10858,16 +14204,18 @@
 
     const title = String(titleLine ?? "").trim() || COLLECTION_HEADING_DEFAULT_TITLE;
     renderCollectionHeadingBreadcrumb(elContext, { searchActive });
-    elContext.hidden = false;
     elTitle.hidden = false;
     elTitle.removeAttribute("aria-hidden");
     elTitle.textContent = title;
     elTitle.classList.remove("items-toolbar__page-title--placeholder");
     const season = normalizeSeasonNavToken(seasonNavFilter);
-    const trailParts = ["COLLECTION"];
-    if (searchActive) trailParts.push("SEARCH");
-    else if (season) trailParts.push(collectionHeadingSeasonLabel());
-    root.setAttribute("aria-label", `${trailParts.join(" / ")} · ${title}`);
+    const trailParts = [];
+    if (!(!searchActive && collectionHeadingBreadcrumbRedundant())) {
+      trailParts.push("COLLECTION");
+      if (searchActive) trailParts.push("SEARCH");
+      else if (season) trailParts.push(collectionHeadingSeasonLabel());
+    }
+    root.setAttribute("aria-label", trailParts.length ? `${trailParts.join(" / ")} · ${title}` : title);
   }
   /** Per-slot subcategory drill / mega menu: view entire parent category (empty `subcategoryFilter`). */
   const SUBCATEGORY_ALL_LABEL = "All";
@@ -10931,6 +14279,7 @@
     const filtered = sorted;
     els.grid.classList.toggle("grid--dense", sorted.length > GRID_DENSE_ANIMATION_THRESHOLD);
     syncCollectionFilterDrawerDoneLabel(filtered.length);
+    syncCollectionFilterDrawerCountUi();
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
     syncCollectionCountLinePlacement();
@@ -11162,11 +14511,23 @@
     }
   }
 
+  function syncStylingBoardDrawerLayout() {
+    syncBrandSignatureBarHeight();
+    try {
+      const chromeBottom = measureHeaderChromeBottom();
+      if (chromeBottom > 0) {
+        document.documentElement.style.setProperty("--site-header-chrome-bottom", `${chromeBottom}px`);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   function openStylingBoardDrawer(options = {}) {
     const root = document.getElementById("styling-board-drawer");
     if (!root) return;
     if (!options.fromAdd) clearStylingBoardAddedReveal();
-    syncBrandSignatureBarHeight();
+    syncStylingBoardDrawerLayout();
     stylingBoardDrawerOpen = true;
     if (root.hasAttribute("hidden")) {
       if (stylingBoardDrawerOpenRaf) {
@@ -11248,27 +14609,16 @@
   function renderOutfitStrip() {
     if (!els.outfitStrip) return;
     els.outfitStrip.innerHTML = "";
-    const stripSlots = currentOutfitSlots.filter(
-      (s) => !(stylingBoardAddedRevealKey && outfitSlotKey(s) === stylingBoardAddedRevealKey)
-    );
     const boardEmpty = currentOutfitSlots.length === 0;
-    const stripEmpty = stripSlots.length === 0;
     if (els.outfitEmpty) {
-      els.outfitEmpty.hidden = boardEmpty || (stripEmpty && Boolean(stylingBoardAddedRevealKey));
+      els.outfitEmpty.hidden = !boardEmpty;
     }
     if (boardEmpty) {
       syncOutfitBuilderPanel();
       return;
     }
-    if (stripEmpty) {
-      syncOutfitBuilderPanel();
-      return;
-    }
 
     currentOutfitSlots.forEach((pieceSlot, index) => {
-      if (stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey) {
-        return;
-      }
       const item = itemById.get(pieceSlot.itemId);
       if (!item) return;
       const proj = itemProjectionForOutfitSlot(item, pieceSlot);
@@ -11276,6 +14626,9 @@
 
       const slot = document.createElement("div");
       slot.className = "outfit-slot";
+      if (stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey) {
+        slot.classList.add("outfit-slot--just-added");
+      }
       slot.setAttribute("role", "listitem");
       slot.draggable = true;
       slot.dataset.dragIndex = String(index);
@@ -11486,13 +14839,17 @@
 
   /**
    * @param {HTMLElement} listEl
-   * @param {{ key?: string, label?: string, colour?: string, colourCode?: string, basicColour?: string, image?: string, previewImage?: string, gallery?: string[], notes?: string }} data
+   * @param {{ key?: string, label?: string, colour?: string, colourCode?: string, secondaryColour?: string, secondaryColourCode?: string, basicColour?: string, image?: string, previewImage?: string, gallery?: string[], notes?: string }} data
    */
   function appendVariantEditorRow(listEl, data) {
     const key = String(data.key ?? "").trim() || newEditorVariantKey();
     const label = String(data.label ?? "").trim();
     const colourVal = String(data.colour ?? data.color ?? "").trim();
     const colourCode = String(data.colourCode ?? data.colour_code ?? data.color_code ?? "").trim();
+    const secondaryColour = String(data.secondaryColour ?? data.secondaryColor ?? "").trim();
+    const secondaryColourCode = String(
+      data.secondaryColourCode ?? data.secondaryColorCode ?? data.secondary_colour_code ?? ""
+    ).trim();
     const image = String(data.image ?? "").trim();
     const previewImg = String(data.previewImage ?? "").trim();
     const notes = data.notes != null ? String(data.notes) : "";
@@ -11502,8 +14859,10 @@
     if (previewImg) fs.setAttribute("data-prev-preview", previewImg);
 
     const leg = document.createElement("legend");
-    leg.className = "item-edit-variant-legend";
-    leg.textContent = "Colour";
+    leg.className = "item-edit-variant-legend-wrap";
+    const legText = document.createElement("span");
+    legText.className = "item-edit-variant-legend";
+    legText.textContent = "Colour";
 
     const keyIn = document.createElement("input");
     keyIn.type = "hidden";
@@ -11521,7 +14880,7 @@
     colourIn.type = "text";
     colourIn.className = "item-edit-variant-colour";
     colourIn.maxLength = 80;
-    colourIn.placeholder = "Colour name";
+    colourIn.placeholder = "Primary colour name";
     colourIn.value = colourVal;
 
     const codeIn = document.createElement("input");
@@ -11535,17 +14894,75 @@
     codeRow.className = "item-edit-colour-code-row";
     const codePreview = createItemEditColourCodePreview();
     codeRow.append(codePreview, codeIn);
-    wireItemEditColourCodePreview({
+
+    const secondarySlot = document.createElement("div");
+    secondarySlot.className = "item-edit-variant-secondary-slot";
+    const syncPrimaryColourPreviewRef = { fn: () => {} };
+    const syncVariantSecondaryBasicVisibilityRef = { fn: () => {} };
+    mountEyedropperBtn(codeRow, codeIn);
+
+    const variantSecondaryMount = mountItemEditSecondaryColourBlock(
+      secondarySlot,
+      { secondaryColour, secondaryColourCode },
+      {
+        variant: true,
+        addBtnParent: codeRow,
+        onRemoved: () => {
+          syncPrimaryColourPreviewRef.fn();
+          syncVariantSecondaryBasicVisibilityRef.fn();
+        },
+        onShown: () => syncVariantSecondaryBasicVisibilityRef.fn(),
+      }
+    );
+
+    const syncPrimaryColourPreview = wireItemEditColourCodePreview({
       input: codeIn,
       preview: codePreview,
       colourInput: colourIn,
       labelInput: labelIn,
+      getSecondarySources: () => ({
+        colour: variantSecondaryMount.secNameInput?.value ?? "",
+        colourCode: variantSecondaryMount.secCodeInput?.value ?? "",
+      }),
     });
+    syncPrimaryColourPreviewRef.fn = syncPrimaryColourPreview;
+    variantSecondaryMount.secNameInput?.addEventListener("input", syncPrimaryColourPreview);
+    variantSecondaryMount.secCodeInput?.addEventListener("input", syncPrimaryColourPreview);
 
     const basicSel = document.createElement("select");
     basicSel.className = "item-edit-variant-basic-colour";
-    basicSel.setAttribute("aria-label", "Broad colour (collection filter)");
-    fillBasicColourSelectOptions(basicSel, String(data.basicColour ?? "").trim());
+    basicSel.setAttribute("aria-label", "Broad colour for collection filter (primary)");
+    refillBasicColourSelectOptions(basicSel, String(data.basicColour ?? "").trim());
+    const syncVariantBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
+      colour: itemEditColourNameSaveValue(colourIn),
+      colourCode: itemEditColourCodeSaveValue(codeIn),
+      label: String(labelIn.value ?? "").trim(),
+    }));
+    const variantSecBasicMount = createItemEditSecondaryBasicColourField(String(data.secondaryBasicColour ?? "").trim(), {
+      className: "item-edit-variant-secondary-basic-colour",
+      hidden: !(secondaryColour || secondaryColourCode),
+      getFields: () =>
+        readItemEditSecondaryColourFieldValues(
+          variantSecondaryMount.secNameInput,
+          variantSecondaryMount.secCodeInput
+        ),
+    });
+    const syncVariantSecondaryBasicVisibility = () => {
+      const hasSec = shouldShowItemEditSecondaryBasicColour(variantSecondaryMount);
+      variantSecBasicMount.wrap.hidden = !hasSec;
+      if (hasSec) variantSecBasicMount.sync?.();
+    };
+    variantSecondaryMount.secNameInput?.addEventListener("input", syncVariantSecondaryBasicVisibility);
+    variantSecondaryMount.secCodeInput?.addEventListener("input", syncVariantSecondaryBasicVisibility);
+    const variantSecBlock = secondarySlot.querySelector(".item-edit-secondary-colour-block");
+    if (variantSecBlock) {
+      variantSecBlock.addEventListener("change", syncVariantSecondaryBasicVisibility);
+    }
+    syncVariantSecondaryBasicVisibilityRef.fn = syncVariantSecondaryBasicVisibility;
+    syncVariantSecondaryBasicVisibility();
+    labelIn.addEventListener("input", syncVariantBasicAuto);
+    colourIn.addEventListener("input", syncVariantBasicAuto);
+    codeIn.addEventListener("input", syncVariantBasicAuto);
 
     const notesIn = document.createElement("input");
     notesIn.type = "text";
@@ -11581,10 +14998,14 @@
     previewLab.appendChild(previewSpan);
     previewLab.appendChild(previewIn);
 
-    const rmPrev = document.createElement("button");
-    rmPrev.type = "button";
-    rmPrev.className = "btn btn--small btn--ghost item-edit-variant-preview-remove";
-    rmPrev.textContent = "Remove colour preview";
+    const previewActions = document.createElement("div");
+    previewActions.className = "item-edit-variant-preview-actions";
+
+    const rmPrev = createItemEditIconButton(
+      "item-edit-variant-preview-remove",
+      TW_ITEM_EDIT_ICON.trash,
+      "Remove colour preview"
+    );
     rmPrev.hidden = !previewImg;
     rmPrev.addEventListener("click", () => {
       fs.dataset.previewRemoved = "1";
@@ -11595,10 +15016,11 @@
     });
 
 
-    const rm = document.createElement("button");
-    rm.type = "button";
-    rm.className = "btn btn--small btn--ghost item-edit-variant-remove";
-    rm.textContent = "Remove";
+    const rm = createItemEditIconButton(
+      "item-edit-variant-remove",
+      TW_ITEM_EDIT_ICON.trash,
+      "Remove colour variant"
+    );
     rm.hidden = true;
 
     rm.addEventListener("click", () => {
@@ -11606,17 +15028,21 @@
       syncVariantRemoveButtons(listEl);
     });
 
+    leg.append(legText, rm);
+    previewActions.append(rmPrev);
+
     fs.appendChild(leg);
     fs.appendChild(keyIn);
     fs.appendChild(labelIn);
     fs.appendChild(colourIn);
     fs.appendChild(codeRow);
+    fs.appendChild(secondarySlot);
     fs.appendChild(basicSel);
+    fs.appendChild(variantSecBasicMount.wrap);
     fs.appendChild(notesIn);
     fs.appendChild(photoHost);
     fs.appendChild(previewLab);
-    fs.appendChild(rmPrev);
-    fs.appendChild(rm);
+    fs.appendChild(previewActions);
     listEl.appendChild(fs);
     syncVariantRemoveButtons(listEl);
   }
@@ -11656,8 +15082,16 @@
     for (const row of rows) {
       const key = row.querySelector(".item-edit-variant-key")?.value?.trim() || "";
       const label = row.querySelector(".item-edit-variant-label")?.value?.trim() || "";
-      const colourTxt = row.querySelector(".item-edit-variant-colour")?.value?.trim() || "";
-      const colourCode = row.querySelector(".item-edit-variant-colour-code")?.value?.trim() || "";
+      const colourTxt = itemEditColourNameSaveValue(row.querySelector(".item-edit-variant-colour"));
+      const colourCode = itemEditColourCodeSaveValue(row.querySelector(".item-edit-variant-colour-code"));
+      const secNameIn = row.querySelector(".item-edit-secondary-colour");
+      const secCodeIn = row.querySelector(".item-edit-secondary-colour-code");
+      const { secondaryColour, secondaryColourCode } = readItemEditSecondaryColourFieldValues(
+        secNameIn instanceof HTMLInputElement ? secNameIn : null,
+        secCodeIn instanceof HTMLInputElement ? secCodeIn : null
+      );
+      const rawSecBasic = row.querySelector(".item-edit-variant-secondary-basic-colour")?.value?.trim() || "";
+      const basicSecPick = parseBasicColourSelectValue(rawSecBasic);
       const notes = row.querySelector(".item-edit-variant-notes")?.value?.trim() || "";
       const photoHost = row.querySelector(".item-edit-photo-manager");
       const { slots: photoSlots } = photoHost
@@ -11718,16 +15152,26 @@
         }
       }
 
+      const variantColour = colourTxt.trim() || outLabel;
+      const variantLabel = label.trim() || outLabel;
       const rowObj = {
         key,
-        label: label.trim() || outLabel,
-        colour: colourTxt.trim() || outLabel,
+        label: variantLabel,
+        colour: variantColour,
         colourCode: colourCode.trim(),
         image,
         gallery,
         notes,
       };
       if (previewImage) rowObj.previewImage = previewImage;
+      if (secondaryColour) rowObj.secondaryColour = secondaryColour;
+      if (secondaryColourCode.trim()) rowObj.secondaryColourCode = secondaryColourCode.trim();
+      if (
+        hasSecondaryColourFields({ secondaryColour, secondaryColourCode: secondaryColourCode.trim() }) &&
+        basicSecPick
+      ) {
+        rowObj.secondaryBasicColour = basicSecPick;
+      }
       const basicV = normalizeStoredBasicColourKey(
         /** @type {HTMLSelectElement | null} */ (row.querySelector(".item-edit-variant-basic-colour"))?.value ?? ""
       );
@@ -11801,20 +15245,20 @@
     const measureUnit = parseMeasurementUnitInput(form.querySelector("#item-edit-measurement-unit")?.value);
     const measuredDimensions = mRows.length ? measurementRowsToSummaryString(mRows, measureUnit) : "";
     const purchaseDate = joinPurchaseDateFromForm(
-      form.querySelector("#item-edit-purchase-date")?.value?.trim() || "",
-      form.querySelector("#item-edit-purchase-date-note")?.value?.trim() || ""
+      form.querySelector("#item-edit-purchase-date")?.value?.trim() || ""
     );
     const priceRaw = form.querySelector("#item-edit-price")?.value?.trim() || "";
     const priceCur = String(form.querySelector("#item-edit-price-currency")?.value ?? "TWD").trim().toUpperCase() || "TWD";
-    let priceVal = parsePriceAmountFlexible(priceRaw);
+    let priceVal = parsePriceFormValue(priceRaw);
     if (!Number.isFinite(priceVal) || priceVal < 0) priceVal = null;
     const notes = form.querySelector("#item-edit-notes")?.value?.trim() || "";
     const basicSel = /** @type {HTMLSelectElement | null} */ (form.querySelector("#item-edit-basic-colour"));
     const rawBasicSingle = String(basicSel?.value ?? "").trim();
-    const basicPickSingle =
-      rawBasicSingle.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
-        ? BASIC_COLOUR_CLASSIFICATION_OMIT
-        : normalizeStoredBasicColourKey(rawBasicSingle);
+    const basicPickSingle = parseBasicColourSelectValue(rawBasicSingle);
+    const basicSecSel = /** @type {HTMLSelectElement | null} */ (
+      form.querySelector("#item-edit-secondary-basic-colour")
+    );
+    const basicPickSecondary = parseBasicColourSelectValue(basicSecSel?.value ?? "");
 
     const variantsMode = itemEditVariantsActive(form);
     /** @type {{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage?: string, gallery: string[], notes: string }[] | null} */
@@ -11828,12 +15272,26 @@
     const primaryColour =
       variantsMode && colourVariantsBuilt?.length
         ? String(colourVariantsBuilt[0].colour ?? colourVariantsBuilt[0].label ?? "").trim()
-        : form.querySelector("#item-edit-colour")?.value?.trim() || "";
+        : itemEditColourNameSaveValue(form.querySelector("#item-edit-colour"));
 
     const colourCode =
       variantsMode && colourVariantsBuilt?.length
         ? String(colourVariantsBuilt[0].colourCode ?? "").trim()
-        : form.querySelector("#item-edit-colour-code")?.value?.trim() || "";
+        : itemEditColourCodeSaveValue(form.querySelector("#item-edit-colour-code"));
+
+    const secNameIn = /** @type {HTMLInputElement | null} */ (form.querySelector("#item-edit-secondary-colour"));
+    const secCodeIn = /** @type {HTMLInputElement | null} */ (form.querySelector("#item-edit-secondary-colour-code"));
+    const secRead = readItemEditSecondaryColourFieldValues(secNameIn, secCodeIn);
+
+    const secondaryColour =
+      variantsMode && colourVariantsBuilt?.length
+        ? String(colourVariantsBuilt[0].secondaryColour ?? "").trim()
+        : secRead.secondaryColour;
+
+    const secondaryColourCode =
+      variantsMode && colourVariantsBuilt?.length
+        ? String(colourVariantsBuilt[0].secondaryColourCode ?? "").trim()
+        : secRead.secondaryColourCode;
 
     if (!brand || !name || !browseSlot) {
       setMsg("Brand, name, and section are required.", true);
@@ -11876,6 +15334,8 @@
 
     const colourTrim = String(primaryColour ?? "").trim();
     const colourCodeTrim = String(colourCode ?? "").trim();
+    const secondaryColourTrim = String(secondaryColour ?? "").trim();
+    const secondaryColourCodeTrim = String(secondaryColourCode ?? "").trim();
     const updated = {
       ...prev,
       brand,
@@ -11901,6 +15361,32 @@
     else {
       delete updated.colourCode;
       delete updated.color_code;
+    }
+    if (secondaryColourTrim) updated.secondaryColour = secondaryColourTrim;
+    else {
+      delete updated.secondaryColour;
+      delete updated.secondaryColor;
+    }
+    if (secondaryColourCodeTrim) updated.secondaryColourCode = secondaryColourCodeTrim;
+    else {
+      delete updated.secondaryColourCode;
+      delete updated.secondaryColorCode;
+      delete updated.secondary_colour_code;
+    }
+    if (!variantsMode) {
+      if (
+        hasSecondaryColourFields({
+          secondaryColour: secondaryColourTrim,
+          secondaryColourCode: secondaryColourCodeTrim,
+        }) &&
+        basicPickSecondary
+      ) {
+        updated.secondaryBasicColour = basicPickSecondary;
+      } else {
+        delete updated.secondaryBasicColour;
+      }
+    } else {
+      delete updated.secondaryBasicColour;
     }
     if (priceVal != null) {
       updated.price = priceVal;
@@ -11947,6 +15433,25 @@
       prevMeta.basicColour = basicPickSingle;
     } else {
       delete prevMeta.basicColour;
+    }
+    if (secondaryColourTrim) prevMeta.secondaryColour = secondaryColourTrim;
+    else delete prevMeta.secondaryColour;
+    if (secondaryColourCodeTrim) prevMeta.secondaryColourCode = secondaryColourCodeTrim;
+    else delete prevMeta.secondaryColourCode;
+    if (!variantsMode) {
+      if (
+        hasSecondaryColourFields({
+          secondaryColour: secondaryColourTrim,
+          secondaryColourCode: secondaryColourCodeTrim,
+        }) &&
+        basicPickSecondary
+      ) {
+        prevMeta.secondaryBasicColour = basicPickSecondary;
+      } else {
+        delete prevMeta.secondaryBasicColour;
+      }
+    } else {
+      delete prevMeta.secondaryBasicColour;
     }
     if (Object.keys(prevMeta).length) updated.metadata = prevMeta;
     else delete updated.metadata;
@@ -12041,6 +15546,23 @@
       if (variantsMode && colourVariantsBuilt?.length) {
         patch.colourVariants = colourVariantsBuilt;
       }
+      if (secondaryColourTrim) patch.secondaryColour = secondaryColourTrim;
+      else patch.secondaryColour = "";
+      if (secondaryColourCodeTrim) patch.secondaryColourCode = secondaryColourCodeTrim;
+      else patch.secondaryColourCode = "";
+      if (!variantsMode) {
+        if (
+          hasSecondaryColourFields({
+            secondaryColour: secondaryColourTrim,
+            secondaryColourCode: secondaryColourCodeTrim,
+          }) &&
+          basicPickSecondary
+        ) {
+          patch.secondaryBasicColour = basicPickSecondary;
+        } else {
+          patch.secondaryBasicColour = "";
+        }
+      }
       {
         const baseMeta =
           prev.metadata && typeof prev.metadata === "object" && !Array.isArray(prev.metadata)
@@ -12066,6 +15588,25 @@
           baseMeta.basicColour = basicPickSingle;
         } else {
           delete baseMeta.basicColour;
+        }
+        if (secondaryColourTrim) baseMeta.secondaryColour = secondaryColourTrim;
+        else delete baseMeta.secondaryColour;
+        if (secondaryColourCodeTrim) baseMeta.secondaryColourCode = secondaryColourCodeTrim;
+        else delete baseMeta.secondaryColourCode;
+        if (!variantsMode) {
+          if (
+            hasSecondaryColourFields({
+              secondaryColour: secondaryColourTrim,
+              secondaryColourCode: secondaryColourCodeTrim,
+            }) &&
+            basicPickSecondary
+          ) {
+            baseMeta.secondaryBasicColour = basicPickSecondary;
+          } else {
+            delete baseMeta.secondaryBasicColour;
+          }
+        } else {
+          delete baseMeta.secondaryBasicColour;
         }
         if (Object.keys(baseMeta).length) patch.metadata = baseMeta;
         else if (prev.metadata && typeof prev.metadata === "object" && !Array.isArray(prev.metadata))
@@ -12158,15 +15699,21 @@
     }
   }
 
-  /** PDP-style trail: site → section → record type (matches collection tabs / drill). */
-  function buildItemDetailBreadcrumbNav(item) {
+  /**
+   * PDP-style trail: collection → section → record type (matches collection tabs / drill).
+   * @param {string} browseSlot Slot tab key (Clothing, Accessories, …).
+   * @param {string} recordKey Concrete record-type key for drill/filter.
+   */
+  function buildCollectionBrowseBreadcrumbNav(browseSlot, recordKey) {
     const nav = document.createElement("nav");
     nav.className = "item-detail__breadcrumb";
     nav.setAttribute("aria-label", "Breadcrumb");
 
-    const slotLabel = itemSlot(item);
+    const slotLabel = String(browseSlot ?? "").trim() || SLOT_CLOTHING;
     const sectionLabel = categoryDisplayLabel(slotLabel);
-    const rk = recordCategoryForDrill(item, slotLabel);
+    const rk =
+      String(recordKey ?? "").trim() ||
+      defaultRecordCategoryForSlot(SLOT_OPTIONS.includes(slotLabel) ? slotLabel : SLOT_CLOTHING);
     const typeLabel = friendlyRecordCategory(rk) || rk;
 
     function appendSep() {
@@ -12176,14 +15723,6 @@
       s.textContent = "/";
       nav.appendChild(s);
     }
-
-    const home = document.createElement("a");
-    home.className = "item-detail__breadcrumb-link";
-    home.href = SITE_HOME_URL;
-    home.textContent = "Home";
-    nav.appendChild(home);
-
-    appendSep();
 
     const collection = document.createElement("a");
     collection.className = "item-detail__breadcrumb-link";
@@ -12236,60 +15775,27 @@
     return nav;
   }
 
-  /** Chip quick-pick for record type; mirrors `<select id="item-edit-record-type">` (one chip per display label). */
-  function syncItemEditSubcategoryChipsFromSelect(recordTypeSel, stripRoot, chipsInner) {
-    if (!stripRoot || !chipsInner || !recordTypeSel) return;
-    chipsInner.replaceChildren();
-    const unique = [];
-    const seenLabels = new Set();
-    for (let i = 0; i < recordTypeSel.options.length; i++) {
-      const raw = String(recordTypeSel.options[i].value ?? "").trim();
-      if (!raw) continue;
-      const opt = recordTypeSel.options[i];
-      const label = String(opt.textContent ?? "").trim() || friendlyRecordCategory(raw) || raw;
-      const labelKey = label.toLowerCase();
-      if (seenLabels.has(labelKey)) continue;
-      seenLabels.add(labelKey);
-      unique.push(raw);
-    }
-    const recordTypeField = recordTypeSel.closest(".field");
-    if (unique.length <= 1) {
-      stripRoot.hidden = true;
-      recordTypeSel.classList.remove("item-edit-record-type--chips-visible");
-      if (recordTypeField instanceof HTMLElement) recordTypeField.hidden = false;
-      return;
-    }
-    stripRoot.hidden = false;
-    recordTypeSel.classList.add("item-edit-record-type--chips-visible");
-    if (recordTypeField instanceof HTMLElement) recordTypeField.hidden = true;
-    const current = String(recordTypeSel.value ?? "").trim();
-    for (const raw of unique) {
-      const opt = [...recordTypeSel.options].find((o) => String(o.value ?? "").trim() === raw);
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "item-edit-subtype-chip";
-      if (raw === current) b.classList.add("is-active");
-      b.textContent = opt ? String(opt.textContent ?? "").trim() : friendlyRecordCategory(raw) || raw;
-      b.title = raw;
-      b.addEventListener("click", () => {
-        recordTypeSel.value = raw;
-        recordTypeSel.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-      chipsInner.appendChild(b);
-    }
+  /** @param {object} item Wardrobe row */
+  function buildItemDetailBreadcrumbNav(item) {
+    const slotLabel = itemSlot(item);
+    return buildCollectionBrowseBreadcrumbNav(slotLabel, recordCategoryForDrill(item, slotLabel));
   }
 
-  function createItemEditSection(headingText) {
+  function createItemEditSection(headingText, options = {}) {
     const section = document.createElement("section");
     section.className = "item-edit-section";
     const heading = document.createElement("h3");
     heading.className = "item-edit-section__heading";
-    heading.textContent = headingText;
+    if (options.pathHeading) {
+      heading.classList.add("item-edit-section__heading--path");
+    } else {
+      heading.textContent = headingText;
+    }
     section.appendChild(heading);
     const grid = document.createElement("div");
     grid.className = "item-detail__form-grid item-edit-section__grid";
     section.appendChild(grid);
-    return { section, grid };
+    return { section, grid, heading };
   }
 
   function appendItemEditField(grid, labelText, child) {
@@ -12303,16 +15809,127 @@
     grid.appendChild(lab);
   }
 
+  /**
+   * Two selects on one row (full grid width, split 50/50).
+   * @param {HTMLElement} grid
+   * @param {string} leftLabel
+   * @param {HTMLElement} leftChild
+   * @param {string} rightLabel
+   * @param {HTMLElement} rightChild
+   */
+  function appendItemEditSelectRow(grid, leftLabel, leftChild, rightLabel, rightChild) {
+    const row = document.createElement("div");
+    row.className = "item-edit-select-row field--span2";
+
+    const leftLab = document.createElement("label");
+    leftLab.className = "field item-edit-select-row__cell";
+    const leftSpan = document.createElement("span");
+    leftSpan.className = "field__label";
+    leftSpan.textContent = leftLabel;
+    leftLab.append(leftSpan, leftChild);
+
+    const rightLab = document.createElement("label");
+    rightLab.className = "field item-edit-select-row__cell";
+    const rightSpan = document.createElement("span");
+    rightSpan.className = "field__label";
+    rightSpan.textContent = rightLabel;
+    rightLab.append(rightSpan, rightChild);
+
+    row.append(leftLab, rightLab);
+    grid.appendChild(row);
+  }
+
+  function itemDetailEditIconMarkup() {
+    return (
+      '<svg class="item-detail__edit-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>' +
+      "</svg>"
+    );
+  }
+
+  function itemDetailCopyAiSparkIconMarkup() {
+    return TW_ITEM_EDIT_ICON.aiBrief.replace(
+      'aria-hidden="true"',
+      'class="item-detail__copy-ai-icon item-detail__copy-ai-icon--spark" aria-hidden="true"'
+    );
+  }
+
+  function itemDetailCopyAiCheckIconMarkup() {
+    return (
+      '<svg class="item-detail__copy-ai-icon item-detail__copy-ai-icon--check" xmlns="http://www.w3.org/2000/svg" ' +
+      'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true">' +
+      '<path class="item-detail__copy-ai-check-path" d="M6.5 12.5 10 16.5 17.5 7.5"/>' +
+      "</svg>"
+    );
+  }
+
+  function itemDetailCopyAiButtonInnerMarkup() {
+    return (
+      '<span class="item-detail__copy-ai-icon-stack" aria-hidden="true">' +
+      itemDetailCopyAiSparkIconMarkup() +
+      itemDetailCopyAiCheckIconMarkup() +
+      "</span>"
+    );
+  }
+
+  function createItemDetailCopyAiButton() {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "item-detail__copy-ai-btn";
+    btn.id = "item-detail-copy-ai";
+    btn.setAttribute("aria-label", "Copy for AI styling");
+    btn.title = "Copy structured item brief for AI outfit planning";
+    btn.innerHTML = itemDetailCopyAiButtonInnerMarkup();
+    return btn;
+  }
+
+  function createItemDetailEditButton() {
+    const ed = document.createElement("button");
+    ed.type = "button";
+    ed.className = "item-detail__edit-btn tw-admin-only";
+    ed.id = "item-detail-edit";
+    ed.setAttribute("aria-label", "Edit piece");
+    ed.title = "Edit piece";
+    ed.innerHTML = itemDetailEditIconMarkup();
+    if (!isSupabaseReady()) {
+      ed.disabled = true;
+      ed.title = CLOUD_WRITE_REQUIRED_MESSAGE;
+    }
+    return ed;
+  }
+
   function renderItemDetailContent(root, item, opts = {}) {
     const edit = Boolean(opts.edit) && isTwAdminMode();
+    const isPageEdit = edit && root.classList.contains("item-detail__root--page");
+    const isItemPageView = !edit && root.classList.contains("item-detail__root--page");
+    const usePdpGalleryLayout = isItemPageView || isPageEdit;
     detailItemId = item.id;
     root.innerHTML = "";
     const itemForMedia = ensureItemMediaCacheBust({ ...item });
 
     const media = document.createElement("div");
     media.className = "card__media item-detail__media";
+    if (usePdpGalleryLayout) media.classList.add("item-detail__gallery-stage");
     const detailVariants = getItemColourVariants(itemForMedia);
     if (detailVariants?.length) media.classList.add("card__media--variant-colours");
+
+    /** @type {HTMLElement | null} */
+    let galleryWrap = null;
+    /** @type {HTMLElement | null} */
+    let galleryThumbs = null;
+    if (usePdpGalleryLayout) {
+      galleryWrap = document.createElement("div");
+      galleryWrap.className = "item-detail__gallery";
+      galleryThumbs = document.createElement("div");
+      galleryThumbs.className = "item-detail__gallery-thumbs";
+      galleryThumbs.setAttribute("role", "tablist");
+      galleryThumbs.setAttribute("aria-label", "Product photos");
+      galleryWrap.appendChild(galleryThumbs);
+      galleryWrap.appendChild(media);
+    }
+
     const img = document.createElement("img");
     img.className = "card__media-img";
     img.alt = imageAltForItem(itemForMedia);
@@ -12325,24 +15942,28 @@
       coverRenderQuality: ITEM_DETAIL_GALLERY_RENDER.quality,
       coverRenderResize: ITEM_DETAIL_GALLERY_RENDER.resize,
       onResolved(url) {
-        const ti = media.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
-        if (ti) ti.src = url;
+        if (galleryWrap) {
+          const ti = galleryWrap.querySelector(".item-detail__gallery-thumb.is-active img");
+          if (ti) ti.src = url;
+        } else {
+          const ti = media.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
+          if (ti) ti.src = url;
+        }
       },
     });
     media.appendChild(img);
-    if (!detailVariants?.length) {
+    if (isItemPageView) {
+      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia);
+    } else if (!isPageEdit && !detailVariants?.length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
-    } else if (itemGalleryList(itemForMedia).length) {
+    } else if (!isPageEdit && itemGalleryList(itemForMedia).length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
     }
 
-    if (root.classList.contains("item-detail__root--page")) {
+    if (isItemPageView) {
       wireInlineItemHeroZoom(media, img);
     }
 
-    const isItemPageView = !edit && root.classList.contains("item-detail__root--page");
-
-    const isPageEdit = edit && root.classList.contains("item-detail__root--page");
     if (isPageEdit) root.classList.add("item-detail__root--edit");
 
     /** @type {HTMLElement | null} */
@@ -12352,20 +15973,16 @@
       const previewCol = document.createElement("div");
       previewCol.className = "item-edit-preview";
       editPreviewCol = previewCol;
-      previewCol.appendChild(media);
-      const previewCaption = document.createElement("p");
-      previewCaption.className = "item-edit-preview__caption";
-      previewCaption.textContent = "Current cover";
-      previewCol.appendChild(previewCaption);
+      if (galleryWrap) previewCol.appendChild(galleryWrap);
+      else previewCol.appendChild(media);
       root.appendChild(previewCol);
     } else {
-      root.appendChild(media);
+      root.appendChild(isItemPageView && galleryWrap ? galleryWrap : media);
     }
 
     if (edit) {
       const wrap = document.createElement("div");
       wrap.className = "item-detail__body item-detail__body--edit";
-      wrap.appendChild(buildItemDetailBreadcrumbNav(item));
 
       const statusEl = document.createElement("p");
       statusEl.id = "item-detail-edit-status";
@@ -12375,11 +15992,19 @@
       statusEl.setAttribute("aria-live", "polite");
       wrap.appendChild(statusEl);
 
-      const h2 = document.createElement("h2");
-      h2.id = "item-detail-heading";
-      h2.className = "item-detail__title item-detail__title--edit";
-      h2.textContent = "Edit piece";
-      wrap.appendChild(h2);
+      if (isPageEdit) {
+        const srTitle = document.createElement("h2");
+        srTitle.id = "item-detail-heading";
+        srTitle.className = "item-detail__heading--sr";
+        srTitle.textContent = displayNameWithoutLeadingColour(item);
+        wrap.appendChild(srTitle);
+      } else {
+        const h2 = document.createElement("h2");
+        h2.id = "item-detail-heading";
+        h2.className = "item-detail__title item-detail__title--edit";
+        h2.textContent = "Edit piece";
+        wrap.appendChild(h2);
+      }
 
       const form = document.createElement("form");
       form.id = "item-detail-edit-form";
@@ -12389,7 +16014,7 @@
       const formScroll = document.createElement("div");
       formScroll.className = "item-edit-form-scroll";
 
-      const identitySec = createItemEditSection("Identity");
+      const identitySec = createItemEditSection("", { pathHeading: true });
       const identityGrid = identitySec.grid;
       const initialVariants = getItemColourVariants(item);
       const isCustomPiece = String(item.id ?? "").startsWith("custom-");
@@ -12434,9 +16059,9 @@
           coverUrl: String(itemForMedia.image ?? "").trim(),
           galleryUrls: itemGalleryList(itemForMedia),
           uploadLabel: "Upload photos",
-          onDirty: () => syncItemEditCoverPreview(editPreviewCol, photosHost, itemForMedia),
+          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
         });
-        syncItemEditCoverPreview(editPreviewCol, photosHost, itemForMedia);
+        syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
       }
       photosFieldWrap.appendChild(photosLabel);
       photosFieldWrap.appendChild(photosHost);
@@ -12455,43 +16080,27 @@
         if (c === slotPick) o.selected = true;
         catSel.appendChild(o);
       }
-      addField("Section", catSel);
-
       const recordTypeSel = document.createElement("select");
       recordTypeSel.id = "item-edit-record-type";
       recordTypeSel.className = "item-edit-record-type-select";
       recordTypeSel.title =
         'Same labels as the collection "type" strip — controls filtering and default browse order.';
       const currentRecKey = recordCategoryForDrill(item, slotPick);
-      addField("Record type", recordTypeSel);
       fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
+      appendItemEditSelectRow(identityGrid, "Section", catSel, "Type", recordTypeSel);
 
-      const subtypeStrip = document.createElement("div");
-      subtypeStrip.className = "field field--span2 item-edit-subtype-strip";
-      subtypeStrip.hidden = true;
-      const stLabel = document.createElement("span");
-      stLabel.className = "field__label";
-      stLabel.textContent = "Type";
-      const subtypeInner = document.createElement("div");
-      subtypeInner.className = "category-drill__grid item-edit-subtype-chips";
-      subtypeInner.setAttribute("role", "group");
-      subtypeInner.setAttribute("aria-label", "Record type quick pick");
-      subtypeStrip.appendChild(stLabel);
-      subtypeStrip.appendChild(subtypeInner);
-      identityGrid.appendChild(subtypeStrip);
-
-      function refreshSubtypeChips() {
-        syncItemEditSubcategoryChipsFromSelect(recordTypeSel, subtypeStrip, subtypeInner);
+      function refreshIdentityBrowsePath() {
+        identitySec.heading.replaceChildren(
+          buildCollectionBrowseBreadcrumbNav(catSel.value, recordTypeSel.value)
+        );
       }
 
       catSel.addEventListener("change", () => {
         fillItemEditRecordTypeSelect(recordTypeSel, catSel.value, recordTypeSel.value);
-        refreshSubtypeChips();
+        refreshIdentityBrowsePath();
       });
-      recordTypeSel.addEventListener("change", () => {
-        refreshSubtypeChips();
-      });
-      refreshSubtypeChips();
+      recordTypeSel.addEventListener("change", refreshIdentityBrowsePath);
+      refreshIdentityBrowsePath();
 
       /** @type {HTMLElement | null} */
       let colourSingleField = null;
@@ -12511,7 +16120,7 @@
       colourNameLab.className = "field";
       const cspan = document.createElement("span");
       cspan.className = "field__label";
-      cspan.textContent = "Colour (optional)";
+      cspan.textContent = "Primary colour (optional)";
       colourNameLab.appendChild(cspan);
       colourNameLab.appendChild(colourNameInput);
 
@@ -12527,18 +16136,23 @@
       colourCodeLab.className = "field";
       const ccspan = document.createElement("span");
       ccspan.className = "field__label";
-      ccspan.textContent = "Colour code (optional)";
+      ccspan.textContent = "Primary colour code (optional)";
       const colourCodeRow = document.createElement("div");
       colourCodeRow.className = "item-edit-colour-code-row";
       const colourCodePreview = createItemEditColourCodePreview();
       colourCodeRow.append(colourCodePreview, colourCodeInput);
       colourCodeLab.appendChild(ccspan);
       colourCodeLab.appendChild(colourCodeRow);
-      wireItemEditColourCodePreview({
+      const syncPrimaryColourPreview = wireItemEditColourCodePreview({
         input: colourCodeInput,
         preview: colourCodePreview,
         colourInput: colourNameInput,
+        getSecondarySources: () => ({
+          colour: itemEditColourNameSaveValue(form.querySelector("#item-edit-secondary-colour")),
+          colourCode: itemEditColourCodeSaveValue(form.querySelector("#item-edit-secondary-colour-code")),
+        }),
       });
+      mountEyedropperBtn(colourCodeRow, colourCodeInput);
 
       const itemMetaForBasic =
         item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
@@ -12551,30 +16165,95 @@
       const basicSel = document.createElement("select");
       basicSel.id = "item-edit-basic-colour";
       basicSel.className = "item-edit-basic-colour";
-      fillBasicColourSelectOptions(basicSel, initialBasic);
+      refillBasicColourSelectOptions(basicSel, initialBasic);
       const basicLab = document.createElement("label");
       basicLab.className = "field";
       const bspan = document.createElement("span");
       bspan.className = "field__label";
-      bspan.textContent = "Broad colour (optional)";
+      bspan.textContent = "Broad colour — primary (optional)";
       basicLab.appendChild(bspan);
       basicLab.appendChild(basicSel);
 
+      const basicPair = document.createElement("div");
+      basicPair.className = "item-edit-basic-colour-pair";
+
+      const syncItemBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
+        colour: itemEditColourNameSaveValue(colourNameInput),
+        colourCode: itemEditColourCodeSaveValue(colourCodeInput),
+      }));
+
+      /** @type {{ block: HTMLElement, panel: HTMLElement, addBtn: HTMLElement, removeBtn: HTMLElement, secNameInput: HTMLInputElement, secCodeInput: HTMLInputElement } | null} */
+      let secondaryColourMount = null;
+
+      const hasInitialSecondary = Boolean(itemSecondaryColour(item) || itemSecondaryColourCode(item));
+      const secBasicMount = createItemEditSecondaryBasicColourField(itemSecondaryBasicColour(item), {
+        id: "item-edit-secondary-basic-colour",
+        hidden: !hasInitialSecondary,
+        getFields: () =>
+          readItemEditSecondaryColourFieldValues(
+            secondaryColourMount?.secNameInput,
+            secondaryColourMount?.secCodeInput
+          ),
+      });
+
+      function syncSecondaryBasicVisibility() {
+        const hasSec = shouldShowItemEditSecondaryBasicColour(secondaryColourMount);
+        secBasicMount.wrap.hidden = !hasSec;
+        if (hasSec) secBasicMount.sync?.();
+      }
+
+      colourNameInput.addEventListener("input", syncItemBasicAuto);
+      colourCodeInput.addEventListener("input", syncItemBasicAuto);
+
       colourBlock.appendChild(colourNameLab);
       colourBlock.appendChild(colourCodeLab);
-      colourBlock.appendChild(basicLab);
+      secondaryColourMount = mountItemEditSecondaryColourBlock(
+        colourBlock,
+        {
+          secondaryColour: itemSecondaryColour(item),
+          secondaryColourCode: itemSecondaryColourCode(item),
+        },
+        {
+          nameId: "item-edit-secondary-colour",
+          codeId: "item-edit-secondary-colour-code",
+          addBtnParent: colourCodeRow,
+          onRemoved: () => {
+            syncPrimaryColourPreview();
+            syncSecondaryBasicVisibility();
+          },
+          onShown: syncSecondaryBasicVisibility,
+        }
+      );
+      secondaryColourMount.secNameInput?.addEventListener("input", () => {
+        syncPrimaryColourPreview();
+        syncSecondaryBasicVisibility();
+      });
+      secondaryColourMount.secCodeInput?.addEventListener("input", () => {
+        syncPrimaryColourPreview();
+        syncSecondaryBasicVisibility();
+      });
+      const secColourBlock = colourBlock.querySelector(".item-edit-secondary-colour-block");
+      secColourBlock?.addEventListener("change", syncSecondaryBasicVisibility);
+      basicPair.append(basicLab, secBasicMount.wrap);
+      colourBlock.appendChild(basicPair);
+      syncSecondaryBasicVisibility();
 
       if (isCustomPiece) {
         const migrateHint = document.createElement("p");
         migrateHint.className = "item-edit-variant-migrate-hint";
         migrateHint.textContent =
           "Same piece in another colour needs its own cover photo — outfits will ask which colour to use.";
-        const migrateBtn = document.createElement("button");
-        migrateBtn.type = "button";
-        migrateBtn.className = "btn btn--small btn--ghost item-edit-enable-variants";
-        migrateBtn.textContent = "Add another colour…";
+        const colourToolbar = document.createElement("div");
+        colourToolbar.className = "item-edit-toolbar item-edit-toolbar--colour";
+        const migrateBtn = createItemEditIconButton(
+          "item-edit-enable-variants",
+          TW_ITEM_EDIT_ICON.plus,
+          "Add another colour",
+          { title: "Add another colour…" }
+        );
         colourBlock.appendChild(migrateHint);
-        colourBlock.appendChild(migrateBtn);
+        colourToolbar.appendChild(migrateBtn);
+        colourBlock.appendChild(colourToolbar);
       }
       colourGrid.appendChild(colourBlock);
       colourSingleField = colourBlock;
@@ -12602,15 +16281,22 @@
       listEl.id = "item-edit-variants-list";
       listEl.className = "item-edit-variants-list";
 
-      const addVarBtn = document.createElement("button");
-      addVarBtn.type = "button";
-      addVarBtn.className = "btn btn--small btn--ghost item-edit-variant-add";
-      addVarBtn.textContent = "Add another colour…";
+      const variantsToolbar = document.createElement("div");
+      variantsToolbar.className = "item-edit-toolbar item-edit-variants-toolbar";
+
+      const addVarBtn = createItemEditIconButton(
+        "item-edit-variant-add",
+        TW_ITEM_EDIT_ICON.plus,
+        "Add another colour",
+        { title: "Add another colour…" }
+      );
       addVarBtn.hidden = !initialVariants;
-      const disableVariantsBtn = document.createElement("button");
-      disableVariantsBtn.type = "button";
-      disableVariantsBtn.className = "btn btn--small btn--ghost item-edit-variant-disable";
-      disableVariantsBtn.textContent = "Use single colour";
+      const disableVariantsBtn = createItemEditIconButton(
+        "item-edit-variant-disable",
+        TW_ITEM_EDIT_ICON.single,
+        "Use single colour",
+        { title: "Use single colour" }
+      );
       disableVariantsBtn.hidden = !initialVariants || !colourSingleField;
 
       if (initialVariants) {
@@ -12620,6 +16306,8 @@
             label: v.label,
             colour: v.colour ?? v.color,
             colourCode: v.colourCode,
+            secondaryColour: v.secondaryColour,
+            secondaryColourCode: v.secondaryColourCode,
             basicColour: v.basicColour,
             image: v.image,
             previewImage: v.previewImage,
@@ -12629,9 +16317,9 @@
         }
       }
 
+      variantsToolbar.append(addVarBtn, disableVariantsBtn);
       variantsWrap.appendChild(listEl);
-      variantsWrap.appendChild(addVarBtn);
-      variantsWrap.appendChild(disableVariantsBtn);
+      variantsWrap.appendChild(variantsToolbar);
 
       addVarBtn.addEventListener("click", () => {
         appendVariantEditorRow(listEl, {
@@ -12657,19 +16345,35 @@
           const firstLabel = firstRow.querySelector(".item-edit-variant-label")?.value?.trim() || "";
           const firstColour = firstRow.querySelector(".item-edit-variant-colour")?.value?.trim() || "";
           const firstCode = firstRow.querySelector(".item-edit-variant-colour-code")?.value?.trim() || "";
+          const firstSecondary = firstRow.querySelector(".item-edit-secondary-colour")?.value?.trim() || "";
+          const firstSecondaryCode = firstRow.querySelector(".item-edit-secondary-colour-code")?.value?.trim() || "";
           const colourNameEl = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour"));
           const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
+          const secNameEl = /** @type {HTMLInputElement | null} */ (
+            colourSingleField.querySelector("#item-edit-secondary-colour")
+          );
+          const secCodeIn = /** @type {HTMLInputElement | null} */ (
+            colourSingleField.querySelector("#item-edit-secondary-colour-code")
+          );
           if (colourNameEl) colourNameEl.value = firstColour || firstLabel || colourNameEl.value;
           if (codeIn) codeIn.value = firstCode || codeIn.value;
+          if (secNameEl) secNameEl.value = firstSecondary;
+          if (secCodeIn) secCodeIn.value = firstSecondaryCode;
           const firstBasic = /** @type {HTMLSelectElement | null} */ (firstRow.querySelector(".item-edit-variant-basic-colour"));
+          const firstSecBasic = /** @type {HTMLSelectElement | null} */ (
+            firstRow.querySelector(".item-edit-variant-secondary-basic-colour")
+          );
           const singleBasic = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
+          const singleSecBasic = /** @type {HTMLSelectElement | null} */ (
+            colourSingleField.querySelector("#item-edit-secondary-basic-colour")
+          );
           if (singleBasic) {
-            const raw = String(firstBasic?.value ?? "").trim();
-            const sel =
-              raw.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
-                ? BASIC_COLOUR_CLASSIFICATION_OMIT
-                : normalizeStoredBasicColourKey(raw);
-            fillBasicColourSelectOptions(singleBasic, sel || "");
+            refillBasicColourSelectOptions(singleBasic, parseBasicColourSelectValue(firstBasic?.value ?? "") || "");
+          }
+          if (singleSecBasic) {
+            refillBasicColourSelectOptions(singleSecBasic, parseBasicColourSelectValue(firstSecBasic?.value ?? "") || "", {
+              includeOmit: false,
+            });
           }
         }
         variantsWrap.dataset.active = "0";
@@ -12688,8 +16392,16 @@
             colourSingleField.querySelector("#item-edit-colour")
           );
           const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
+          const secNameEl = /** @type {HTMLInputElement | null} */ (
+            colourSingleField.querySelector("#item-edit-secondary-colour")
+          );
+          const secCodeIn = /** @type {HTMLInputElement | null} */ (
+            colourSingleField.querySelector("#item-edit-secondary-colour-code")
+          );
           const baseColour = colourNameEl?.value?.trim() || "";
           const baseCode = codeIn?.value?.trim() || "";
+          const baseSecondary = secNameEl?.value?.trim() || "";
+          const baseSecondaryCode = secCodeIn?.value?.trim() || "";
           const basicTop = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
           const rawTop = String(basicTop?.value ?? "").trim();
           const basicFromSingle =
@@ -12697,11 +16409,17 @@
           const label0 = baseColour || "Colour 1";
           const key0 = slugVariantKeyBase(label0) || "colour-1";
           listEl.innerHTML = "";
+          const baseSecondaryBasic = parseBasicColourSelectValue(
+            colourSingleField.querySelector("#item-edit-secondary-basic-colour")?.value ?? ""
+          );
           appendVariantEditorRow(listEl, {
             key: key0,
             label: label0,
             colour: baseColour,
             colourCode: baseCode,
+            secondaryColour: baseSecondary,
+            secondaryColourCode: baseSecondaryCode,
+            secondaryBasicColour: baseSecondaryBasic,
             basicColour: basicFromSingle,
             image: String(item.image ?? ""),
             previewImage: "",
@@ -12767,38 +16485,22 @@
 
       addField("Season (optional)", seaSel, colourGrid);
       addField("Material (optional)", fabIn, materialGrid);
-      addField("Weight / specs (optional)", wtIn, materialGrid);
+      addField("Specs / weight (optional)", wtIn, materialGrid);
       addField("Size (optional)", sizeIn, materialGrid);
 
-      const pd = String(item.purchaseDate ?? "").trim();
-      const { date: purchaseDateValue, note: purchaseNoteValue } = splitPurchaseDateForForm(pd);
-      const purchaseWrap = document.createElement("div");
-      purchaseWrap.className = "item-edit-purchase-fields";
       const purchaseIn = document.createElement("input");
       purchaseIn.type = "date";
       purchaseIn.id = "item-edit-purchase-date";
-      purchaseIn.value = purchaseDateValue;
-      const purchaseNoteIn = document.createElement("input");
-      purchaseNoteIn.type = "text";
-      purchaseNoteIn.id = "item-edit-purchase-date-note";
-      purchaseNoteIn.maxLength = 80;
-      purchaseNoteIn.autocomplete = "off";
-      purchaseNoteIn.placeholder = "Optional note (e.g. approximate, gift)";
-      purchaseNoteIn.value = purchaseNoteValue;
-      purchaseWrap.appendChild(purchaseIn);
-      purchaseWrap.appendChild(purchaseNoteIn);
+      purchaseIn.value = splitPurchaseDateForForm(String(item.purchaseDate ?? "").trim()).date;
 
       const priceWrap = document.createElement("div");
       priceWrap.className = "item-edit-price-row";
       const priceIn = document.createElement("input");
-      priceIn.type = "number";
       priceIn.id = "item-edit-price";
-      priceIn.min = "0";
-      priceIn.step = "any";
-      priceIn.inputMode = "decimal";
-      priceIn.placeholder = "e.g. 199 or 199.5";
+      priceIn.placeholder = "e.g. 199 or 19,900";
       priceIn.autocomplete = "off";
-      if (Number.isFinite(Number(item.price))) priceIn.value = String(item.price);
+      if (Number.isFinite(Number(item.price))) priceIn.value = formatPriceAmountForInput(item.price);
+      wirePriceAmountInput(priceIn);
       const priceCurSel = document.createElement("select");
       priceCurSel.id = "item-edit-price-currency";
       priceCurSel.setAttribute("aria-label", "Price currency");
@@ -12815,7 +16517,7 @@
       priceWrap.appendChild(priceIn);
       priceWrap.appendChild(priceCurSel);
 
-      addField("Purchase date (optional)", purchaseWrap, acquisitionGrid);
+      addField("Purchase date (optional)", purchaseIn, acquisitionGrid);
       addField("Price (optional)", priceWrap, acquisitionGrid);
 
       formScroll.appendChild(identitySec.section);
@@ -12854,11 +16556,10 @@
       measWrap.appendChild(measBlockHost);
       measSec.grid.appendChild(measWrap);
       formScroll.appendChild(measSec.section);
-      mountMeasurementRowsEditor(
-        measBlockHost,
-        resolveInitialMeasurementRowsForEditor(getMeasurementRows(item), { defaultsForEmpty: false }),
-        { unitSelectId: "item-edit-measurement-unit", initialUnit: getMeasurementUnit(item) }
-      );
+      mountMeasurementRowsEditor(measBlockHost, getMeasurementRowsForEditor(item), {
+        unitSelectId: "item-edit-measurement-unit",
+        initialUnit: getMeasurementUnit(item),
+      });
 
       const formFooter = document.createElement("div");
       formFooter.className = "item-edit-form-footer";
@@ -12884,42 +16585,41 @@
       act.className = "item-detail__form-actions";
       const actPush = document.createElement("div");
       actPush.className = "item-detail__form-actions-push";
-      const saveBtn = document.createElement("button");
-      saveBtn.type = "submit";
-      saveBtn.className = "btn btn--small";
-      saveBtn.textContent = "Save changes";
-      saveBtn.title = "Save (⌘ Enter or Ctrl+Enter)";
-      const cancelBtn = document.createElement("button");
-      cancelBtn.type = "button";
-      cancelBtn.className = "btn btn--small btn--ghost";
+      const cancelBtn = createItemEditTextButton("item-detail-cancel-edit", "Cancel", {
+        title: "Discard changes (Esc)",
+      });
       cancelBtn.id = "item-detail-cancel-edit";
-      cancelBtn.textContent = "Cancel";
-      cancelBtn.title = "Discard changes (Esc)";
-      actPush.appendChild(saveBtn);
-      actPush.appendChild(cancelBtn);
-      const dupBtn = document.createElement("button");
-      dupBtn.type = "button";
-      dupBtn.className = "btn btn--small btn--ghost";
+      const dupBtn = createItemEditTextButton("tw-admin-only item-detail-duplicate", "Duplicate", {
+        title:
+          "Save a copy as a new custom piece (same photos and fields; name gets “ (copy)”) — opens the copy here for editing.",
+      });
       dupBtn.id = "item-detail-duplicate";
-      dupBtn.classList.add("tw-admin-only");
-      dupBtn.textContent = "Duplicate";
-      dupBtn.title =
-        "Save a copy as a new custom piece (same photos and fields; name gets “ (copy)”) — opens the copy here for editing.";
+      const saveBtn = createItemEditIconButton(
+        "item-edit-icon-btn--primary item-edit-icon-btn--lg item-detail-save",
+        TW_ITEM_EDIT_ICON.save,
+        "Save changes",
+        { title: "Save changes (⌘ Enter or Ctrl+Enter)", submit: true }
+      );
+      actPush.appendChild(cancelBtn);
       actPush.appendChild(dupBtn);
+      actPush.appendChild(saveBtn);
       act.appendChild(actPush);
 
       const delWrap = document.createElement("div");
       delWrap.className = "item-detail__form-danger tw-admin-only";
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "btn btn--small btn--danger";
+      const delBtn = createItemEditTextButton(
+        "item-detail-delete item-edit-text-btn--danger-subtle",
+        "Delete",
+        {
+          ariaLabel: "Delete piece",
+          title:
+            "Remove this piece from Supabase (outfit links cleared; cloud images removed where applicable; cannot be undone).",
+        }
+      );
       delBtn.id = "item-detail-delete";
-      delBtn.textContent = "Delete piece…";
-      delBtn.title =
-        "Remove this piece from Supabase (outfit links cleared; cloud images removed where applicable; cannot be undone).";
       delWrap.appendChild(delBtn);
-      act.appendChild(delWrap);
       formFooter.appendChild(act);
+      formFooter.appendChild(delWrap);
 
       form.appendChild(formScroll);
       form.appendChild(formFooter);
@@ -12957,7 +16657,13 @@
       title.tabIndex = -1;
     }
     title.textContent = displayNameWithoutLeadingColour(item);
-    body.appendChild(title);
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "item-detail__title-row";
+    titleRow.appendChild(title);
+    titleRow.appendChild(createItemDetailCopyAiButton());
+    titleRow.appendChild(createItemDetailEditButton());
+    body.appendChild(titleRow);
 
     const brand = document.createElement("p");
     brand.className = "item-detail__brand";
@@ -13007,6 +16713,32 @@
         labelRow.appendChild(document.createTextNode(" "));
         labelRow.appendChild(labelV);
         picker.appendChild(labelRow);
+        const soloFields = {
+          colour: item.colour ?? item.color,
+          colourCode: itemColourCode(item),
+          basicColour: item.basicColour,
+          secondaryColour: itemSecondaryColour(item),
+          secondaryColourCode: itemSecondaryColourCode(item),
+        };
+        const priHex = resolveSwatchHexFromFields(soloFields);
+        const secHex = variantSecondarySwatchHex(soloFields);
+        if (
+          priHex ||
+          secHex ||
+          hasSecondaryColourFields({
+            colour: soloFields.secondaryColour,
+            colourCode: soloFields.secondaryColourCode,
+          })
+        ) {
+          const swRow = document.createElement("div");
+          swRow.className = "card__swatches item-detail__colour-swatches";
+          const sw = document.createElement("span");
+          sw.className = "card__swatch card__swatch--detail card__swatch--colour-fill";
+          sw.setAttribute("aria-hidden", "true");
+          applyVariantSwatchFill(sw, soloFields);
+          swRow.appendChild(sw);
+          picker.appendChild(swRow);
+        }
         body.appendChild(picker);
       }
     }
@@ -13049,49 +16781,26 @@
 
     appendItemDetailBoardCta(body, item);
 
-    if (item.notes) {
-      if (isItemPageView) mountItemDetailNotesSection(body, item.notes);
-      else {
-        const nh = document.createElement("h3");
-        nh.className = "item-detail__notes-h";
-        nh.textContent = "Notes";
-        const np = document.createElement("div");
-        np.className = "item-detail__notes";
-        np.textContent = item.notes;
-        body.appendChild(nh);
-        body.appendChild(np);
-      }
+    if (item.notes && !isItemPageView) {
+      const nh = document.createElement("h3");
+      nh.className = "item-detail__notes-h";
+      nh.textContent = "Notes";
+      const np = document.createElement("motion");
+      np.className = "item-detail__notes";
+      np.textContent = item.notes;
+      body.appendChild(nh);
+      body.appendChild(np);
     }
 
-    appendMeasurementDisplaySection(body, item);
+    if (item.notes && isItemPageView) {
+      mountItemDetailNotesSection(body, item.notes, { pdpAccordion: true, startCollapsed: false });
+    }
+
+    if (isItemPageView) {
+      appendMeasurementDisplaySection(body, item);
+    }
 
     root.appendChild(body);
-
-    const actions = document.createElement("div");
-    actions.className = "item-detail__actions";
-
-    const copyBtn = document.createElement("button");
-    copyBtn.type = "button";
-    copyBtn.className = "btn btn--small btn--ghost";
-    copyBtn.id = "item-detail-copy-text";
-    copyBtn.textContent = "Copy text for AI";
-    copyBtn.title =
-      "Copies text fields only; paths stay as text, embedded images are summarized (not pasted in full).";
-    actions.appendChild(copyBtn);
-
-    const ed = document.createElement("button");
-    ed.type = "button";
-    ed.className = "btn btn--small";
-    ed.id = "item-detail-edit";
-    ed.classList.add("tw-admin-only");
-    ed.textContent = "Edit";
-    if (!isSupabaseReady()) {
-      ed.disabled = true;
-      ed.title = CLOUD_WRITE_REQUIRED_MESSAGE;
-    }
-    actions.appendChild(ed);
-    actions.id = "item-detail-actions";
-    root.appendChild(actions);
     afterItemDetailPageRender(root, false);
   }
 
@@ -13288,7 +16997,7 @@
         collectionSearchWithinRecordCategory = "";
         collectionSearchBrowseAllSlots = true;
         collectionSearchReturnSnapshot = null;
-        document.body.classList.remove("collection-ui--search-results-plp");
+        document.body.classList.add("collection-ui--search-results-plp");
       }
     }
 
@@ -13376,9 +17085,10 @@
           addToOutfit(String(outfitBtn.dataset.outfitAdd ?? ""));
           return;
         }
-        if (t?.closest("#item-detail-copy-text")) {
+        const copyAiBtn = t?.closest("#item-detail-copy-ai");
+        if (copyAiBtn instanceof HTMLButtonElement) {
           const it = itemById.get(detailItemId);
-          if (it) void copyItemPlainTextForAi(it);
+          if (it) void copyItemPlainTextForAi(it, { button: copyAiBtn });
           return;
         }
         if (t?.closest("#item-detail-duplicate")) {
@@ -13390,10 +17100,24 @@
             return;
           }
           const dupBtnEl = /** @type {HTMLButtonElement | null} */ (mount.querySelector("#item-detail-duplicate"));
-          if (dupBtnEl) dupBtnEl.disabled = true;
           void (async () => {
+            const pieceLabel = [String(it.brand ?? "").trim(), displayNameWithoutLeadingColour(it)]
+              .filter(Boolean)
+              .join(" — ");
+            const ok = await openTwConfirmDialog({
+              title: "Duplicate this piece?",
+              message: pieceLabel
+                ? `Create a copy of ${pieceLabel}? Photos and all fields are copied; the name will get “ (copy)”.`
+                : "Create a copy of this piece? Photos and all fields are copied; the name will get “ (copy)”.",
+              confirmLabel: "確定",
+              cancelLabel: "取消",
+            });
+            if (!ok) return;
+            if (dupBtnEl) dupBtnEl.disabled = true;
             try {
+              showToast("Copying photos…");
               const dup = buildDuplicateCustomItem(it);
+              await materializeDuplicateItemCloudImages(dup, it);
               const newId = await persistNewCustomItemRow(dup);
               const next = itemById.get(newId);
               if (!next) {
@@ -13682,18 +17406,67 @@
   }
 
   /**
-   * Filter drawer: pill row of record types present in the current slot + season (counts), above sort/colour.
-   * Mirrors `fillItemEditRecordTypeSelect` key ordering; hidden when fewer than two distinct types.
+   * Filter drawer Categories: browse slots (Clothing, …) on All collection; record types when a slot is active.
    */
   function syncCollectionDrawerSubcategoryPills() {
     const section = document.getElementById("collection-drawer-record-types");
     const chipWrap = document.getElementById("collection-drawer-record-type-chips");
     if (!section || !chipWrap) return;
 
-    const slot = String(categoryNavFilter ?? "").trim();
-    if (!slot || !SLOT_OPTIONS.includes(slot)) {
+    if (isCollectionSearchResultsMode()) {
       section.hidden = true;
       chipWrap.replaceChildren();
+      return;
+    }
+
+    const slot = String(categoryNavFilter ?? "").trim();
+
+    if (!slot || !SLOT_OPTIONS.includes(slot)) {
+      const pool = poolItemsForDrillSubcategories({ respectCategory: false });
+      const slotEntries = SLOT_OPTIONS.map((s) => ({
+        slot: s,
+        label: categoryDisplayLabel(s),
+        count: pool.filter((i) => itemSlot(i) === s).length,
+      })).filter((x) => x.count > 0);
+
+      if (slotEntries.length === 0) {
+        section.hidden = true;
+        chipWrap.replaceChildren();
+        return;
+      }
+
+      section.hidden = false;
+      chipWrap.replaceChildren();
+
+      const allSectionsBtn = document.createElement("button");
+      allSectionsBtn.type = "button";
+      allSectionsBtn.className = "collection-drawer-record-type-chip";
+      allSectionsBtn.dataset.drawerBrowseSlot = "";
+      const allSectionsActive = !String(categoryNavFilter ?? "").trim();
+      allSectionsBtn.classList.toggle("is-active", allSectionsActive);
+      allSectionsBtn.setAttribute("aria-pressed", allSectionsActive ? "true" : "false");
+      allSectionsBtn.setAttribute("aria-label", "All sections");
+      const allSectionsTxt = document.createElement("span");
+      allSectionsTxt.className = "colour-filter-chip__text";
+      allSectionsTxt.textContent = "All sections";
+      allSectionsBtn.appendChild(allSectionsTxt);
+      chipWrap.appendChild(allSectionsBtn);
+
+      for (const { slot: browseSlot, label, count } of slotEntries) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "collection-drawer-record-type-chip";
+        b.dataset.drawerBrowseSlot = browseSlot;
+        const on = String(categoryNavFilter ?? "").trim() === browseSlot;
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+        b.setAttribute("aria-label", `Filter by ${label}`);
+        const txt = document.createElement("span");
+        txt.className = "colour-filter-chip__text";
+        txt.textContent = `${label} (${count})`;
+        b.appendChild(txt);
+        chipWrap.appendChild(b);
+      }
       return;
     }
 
@@ -13814,6 +17587,8 @@
       chipWrap.appendChild(b);
     }
 
+    syncCollectionColourFilterCountBadge();
+
     if (chipWrap.dataset.twColourChipsWired !== "1") {
       chipWrap.dataset.twColourChipsWired = "1";
       chipWrap.addEventListener("click", (e) => {
@@ -13895,6 +17670,8 @@
       syncCollectionSortChipUi();
       syncCollectionBrandFilterChipUi();
       syncCollectionFilterDrawerDoneLabel(applyFilters(items).length);
+      syncCollectionFilterDrawerCountUi();
+      syncCollectionFilterDrawerAccordionState();
       document.getElementById("collection-filter-drawer-close")?.focus();
     });
   }
@@ -13980,10 +17757,31 @@
         const b = e.target.closest("button.collection-drawer-record-type-chip");
         if (!b || !drawerRecChips.contains(b)) return;
         withPreservedCollectionScroll(() => {
+          if (Object.prototype.hasOwnProperty.call(b.dataset, "drawerBrowseSlot")) {
+            const browseSlot = String(b.dataset.drawerBrowseSlot ?? "").trim();
+            if (!browseSlot) {
+              categoryNavFilter = "";
+              clearSubcategoryFilters();
+            } else if (SLOT_OPTIONS.includes(browseSlot)) {
+              categoryNavFilter = browseSlot;
+              clearSubcategoryFilters();
+            }
+            validateSubcategoryFilter();
+            syncCategoryTabUI();
+            syncCollectionDrawerSubcategoryPills();
+            syncCollectionFilterDrawerCountUi();
+            syncToolbarActiveFilterChips();
+            renderCategoryDrill();
+            syncCollectionUrlFromBrowseState({ replace: true });
+            renderGrid();
+            return;
+          }
           const raw = String(b.dataset.drawerRecordType ?? "").trim();
           if (!raw) clearSubcategoryFilters();
           else toggleSubcategoryFilter(raw);
           validateSubcategoryFilter();
+          syncCollectionFilterDrawerCountUi();
+          syncToolbarActiveFilterChips();
           renderCategoryDrill();
           renderGrid();
         });
@@ -13995,6 +17793,9 @@
       document.getElementById("collection-filter-drawer-backdrop")?.addEventListener("click", () => closeCollectionFilterDrawer());
       document.getElementById("collection-filter-drawer-close")?.addEventListener("click", () => closeCollectionFilterDrawer());
       document.getElementById("collection-filter-drawer-done")?.addEventListener("click", () => closeCollectionFilterDrawer());
+      document.getElementById("collection-filter-clear-all")?.addEventListener("click", () => {
+        clearCollectionDrawerFilters();
+      });
       if (document.body.dataset.twFilterDrawerEscapeWired !== "1") {
         document.body.dataset.twFilterDrawerEscapeWired = "1";
         document.addEventListener(
@@ -14020,6 +17821,18 @@
     if (brandWrap && brandWrap.dataset.twBrandWired !== "1") {
       brandWrap.dataset.twBrandWired = "1";
       syncCollectionBrandFilterChipUi();
+    }
+
+    if (filterDrawer && filterDrawer.dataset.twAccordionWired !== "1") {
+      filterDrawer.dataset.twAccordionWired = "1";
+      filterDrawer.querySelectorAll(".afd-collapsible > .afd-section-toggle").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const section = btn.closest(".afd-collapsible");
+          if (!section) return;
+          const collapsed = section.classList.toggle("is-collapsed");
+          btn.setAttribute("aria-expanded", String(!collapsed));
+        });
+      });
     }
   }
 
@@ -14647,10 +18460,10 @@
       rootFooter.innerHTML = `
         <div class="site-mobile-nav__footer-divider" aria-hidden="true"></div>
         <div class="site-mobile-nav__season-row" role="group" aria-label="Season">
-          <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="S/S">SPRING / SUMMER</button>
-          <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="A/W">AUTUMN / WINTER</button>
-          <a class="site-mobile-nav__season-link site-mobile-nav__browse-all" href="#" data-mobile-nav-browse-all="1">ALL PIECES</a>
-          <a class="site-mobile-nav__season-link site-mobile-nav__editorial-home" href="/" data-mobile-nav-editorial-home="1">EDITORIAL HOME</a>
+          <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="S/S">Spring / Summer</button>
+          <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="A/W">Autumn / Winter</button>
+          <a class="site-mobile-nav__season-link site-mobile-nav__browse-all" href="#" data-mobile-nav-browse-all="1">All pieces</a>
+          <a class="site-mobile-nav__season-link site-mobile-nav__editorial-home" href="/" data-mobile-nav-editorial-home="1">Editorial home</a>
         </div>
       `;
       rootLevel.appendChild(rootFooter);
@@ -14685,7 +18498,7 @@
         });
         return;
       }
-      applyCategoryNavFilter(resolveCategoryJump(jump), { scrollTop: true });
+      applyCategoryNavFilter(resolveCategoryJump(jump), { scrollTop: false });
       collapseFiltersMenuPanel();
     };
 
@@ -14695,7 +18508,8 @@
     /** @type {(() => void) | null} */
     let headerSubmenuCloseAbort = null;
     const HEADER_SUBMENU_HOVER_HIDE_MS = 120;
-    const HEADER_SUBMENU_MOTION_MS = 300;
+    const HEADER_SUBMENU_OPEN_MOTION_MS = 300;
+    const HEADER_SUBMENU_CLOSE_MOTION_MS = 120;
 
     const headerSubmenuUsesDomHidden = () => isFiltersNarrowViewport();
 
@@ -14753,9 +18567,21 @@
       if (!content) return;
       content
         .querySelectorAll(
-          "#site-header-submenu-title, .mega-menu-content__heading, .site-header__submenu-title, hr"
+          "#site-header-submenu-title, .mega-menu-content__heading, .site-header__submenu-title"
         )
         .forEach((el) => el.remove());
+      content.querySelectorAll("hr").forEach((el) => {
+        if (el.closest(".mega-menu-preview__head")) return;
+        el.remove();
+      });
+    };
+
+    const syncDesktopMegaMenuPreviewLabel = (slot) => {
+      const labelEl = document.getElementById("site-header-submenu-preview-label");
+      if (!labelEl) return;
+      const s = String(slot ?? "").trim();
+      labelEl.textContent =
+        s && SLOT_OPTIONS.includes(s) ? `${categoryDisplayLabel(s)} preview` : "Items preview";
     };
 
     const clearHeaderSubmenuContent = () => {
@@ -14831,7 +18657,7 @@
 
       headerSubmenuCloseAbort = twAfterMotion(
         wrap,
-        HEADER_SUBMENU_MOTION_MS,
+        HEADER_SUBMENU_CLOSE_MOTION_MS,
         () => {
           headerSubmenuCloseAbort = null;
           finalizeHeaderSubmenuHide(wrap);
@@ -15162,6 +18988,7 @@
 
     const renderHeaderSubmenuPreview = (slot, subcategory) => {
       stripDesktopMegaMenuDivisionHeading();
+      syncDesktopMegaMenuPreviewLabel(slot);
       const preview = document.getElementById("site-header-submenu-preview");
       if (!preview) return;
       const pool = items.filter((it) => itemPassesSeasonNav(it, seasonNavFilter) && itemSlot(it) === slot);
@@ -15191,8 +19018,8 @@
         wireCoverImageWithFallbacks(im, item, {
           host: media,
           missingClass: "site-header__submenu-preview-media--missing",
-          coverRenderWidth: 360,
-          coverRenderHeight: 480,
+          coverRenderWidth: 420,
+          coverRenderHeight: 560,
           coverRenderQuality: 86,
           coverRenderResize: "contain",
         });
@@ -15412,6 +19239,17 @@
       closeMobileCategoryPanel();
       collapseFiltersMenuPanel();
       handleSiteHeaderBrandClick();
+    });
+
+    const utilityBarHome = document.getElementById("site-utility-bar-home");
+    utilityBarHome?.addEventListener("click", (e) => {
+      e.preventDefault();
+      hideHeaderSubmenu();
+      closeMobileCategoryPanel();
+      collapseFiltersMenuPanel();
+      closeHeaderSearch();
+      closeMegaMenuNow();
+      navigateToSiteHome();
     });
 
     megaMenuRef?.addEventListener("mouseenter", () => {
@@ -15847,14 +19685,20 @@
     els.outfitName?.addEventListener("input", persistDraftFromFields);
     els.outfitNotes?.addEventListener("input", persistDraftFromFields);
 
+    const runClearStylingBoard = () => {
+      if (!currentOutfitSlots.length && !els.outfitName?.value.trim() && !els.outfitNotes?.value.trim()) {
+        showToast("Nothing to clear.");
+        return;
+      }
+      clearOutfit();
+    };
+
     if (els.outfitClear) {
-      els.outfitClear.addEventListener("click", () => {
-        if (!currentOutfitSlots.length && !els.outfitName.value.trim()) {
-          showToast("Nothing to clear.");
-          return;
-        }
-        clearOutfit();
-      });
+      els.outfitClear.addEventListener("click", runClearStylingBoard);
+    }
+
+    if (els.stylingBoardClearAll) {
+      els.stylingBoardClearAll.addEventListener("click", runClearStylingBoard);
     }
 
     if (els.savedList) {
@@ -15944,6 +19788,7 @@
       });
       globalThis.matchMedia?.("(max-width: 900px)")?.addEventListener?.("change", () => {
         syncFiltersMenuForViewport();
+        renderCategoryDrill();
       });
     }
 

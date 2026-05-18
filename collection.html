@@ -32,11 +32,16 @@
     <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
 
     <div class="site-utility-bar" role="note" aria-label="Brand masthead">
-      <div class="site-utility-bar__inner">
-        <span class="site-utility-bar__left">CVM IVDICIO ET CONSTANTIA</span>
+      <a
+        class="site-utility-bar__inner"
+        id="site-utility-bar-home"
+        href="/"
+        aria-label="Editorial home"
+      >
+        <span class="site-utility-bar__left">IVDICIO ET CONSTANTIA</span>
         <span class="site-utility-bar__center">Only What Endures</span>
         <span class="site-utility-bar__right">Since 2020</span>
-      </div>
+      </a>
     </div>
     <div class="site-header-shell">
     <header class="site-header site-header--solid">
@@ -150,6 +155,10 @@
               class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
               aria-label="Category preview"
             >
+              <header class="mega-menu-preview__head">
+                <p class="mega-menu-preview__label" id="site-header-submenu-preview-label">Items preview</p>
+                <hr class="mega-menu-preview__rule" aria-hidden="true" />
+              </header>
               <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
             </section>
           </div>
@@ -321,11 +330,16 @@
             <div class="items-toolbar__intro">
               <div class="collection-heading" id="collection-heading" aria-label="Collection">
                 <div class="collection-heading__context" id="collection-heading-context"></div>
-                <h2 class="collection-heading__title items-toolbar__page-title" id="items-toolbar-page-title"></h2>
-                <div class="items-toolbar__collection-summary items-toolbar__collection-summary--under-title" aria-live="polite">
-                  <p class="items-toolbar__count-line" id="filter-count"></p>
-                  <p class="items-toolbar__spend-line" id="filter-spend-total" hidden></p>
+                <div class="collection-heading__title-row">
+                  <h2 class="collection-heading__title items-toolbar__page-title" id="items-toolbar-page-title"></h2>
+                  <div class="items-toolbar__collection-summary items-toolbar__collection-summary--under-title" aria-live="polite">
+                    <p class="items-toolbar__count-line" id="filter-count"></p>
+                    <p class="items-toolbar__spend-line" id="filter-spend-total" hidden></p>
+                  </div>
                 </div>
+              </div>
+              <div id="category-drill" class="category-drill category-drill--toolbar" hidden>
+                <div id="category-drill-grid" class="category-drill__grid"></div>
               </div>
               <nav
                 id="season-nav"
@@ -343,9 +357,6 @@
                   </button>
                 </div>
               </nav>
-              <div id="category-drill" class="category-drill category-drill--toolbar" hidden>
-                <div id="category-drill-grid" class="category-drill__grid"></div>
-              </div>
             </div>
           </div>
         </div>
@@ -358,29 +369,36 @@
               aria-label="Active filters"
               hidden
             ></div>
-            <button
-              type="button"
-              class="items-toolbar__filter-sort-btn"
+            <div class="items-toolbar__control-bar-end">
+              <div class="collection-actions tw-admin-only" hidden aria-label="Collection actions">
+                <button type="button" class="btn btn--ghost collection-actions__add" id="add-item-open">
+                  Add a piece
+                </button>
+              </div>
+              <button
+                type="button"
+                class="items-toolbar__filter-sort-btn"
                 id="collection-filter-drawer-open"
-              aria-haspopup="dialog"
-              aria-controls="collection-filter-drawer"
-              aria-expanded="false"
-            >
-              <span class="items-toolbar__filter-sort-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <line x1="4" y1="21" x2="4" y2="14" />
-                <line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" />
-                <line x1="20" y1="12" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" />
-                <line x1="9" y1="8" x2="15" y2="8" />
-                <line x1="17" y1="16" x2="23" y2="16" />
-              </svg>
-            </span>
-              <span>Filter &amp; Sort</span>
-            </button>
+                aria-haspopup="dialog"
+                aria-controls="collection-filter-drawer"
+                aria-expanded="false"
+              >
+                <span class="items-toolbar__filter-sort-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="4" y1="21" x2="4" y2="14" />
+                    <line x1="4" y1="10" x2="4" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12" y2="3" />
+                    <line x1="20" y1="21" x2="20" y2="16" />
+                    <line x1="20" y1="12" x2="20" y2="3" />
+                    <line x1="1" y1="14" x2="7" y2="14" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="17" y1="16" x2="23" y2="16" />
+                  </svg>
+                </span>
+                <span>Filter &amp; Sort</span>
+              </button>
+            </div>
           </div>
         </div>
         <div
@@ -450,15 +468,15 @@
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <section
-          id="styling-board-drawer-added"
-          class="styling-board-drawer__added"
-          hidden
-          aria-labelledby="styling-board-drawer-status-text"
-        >
-          <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
-        </section>
         <div class="styling-board-drawer__scroll">
+          <section
+            id="styling-board-drawer-added"
+            class="styling-board-drawer__added"
+            hidden
+            aria-labelledby="styling-board-drawer-status-text"
+          >
+            <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+          </section>
           <p class="styling-board-drawer__lede" id="outfit-hint">
             Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
           </p>
@@ -506,11 +524,14 @@
           </section>
         </div>
         <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue browsing
+          </button>
           <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
             Save outfit
           </button>
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
-            Continue browsing
+          <button type="button" class="styling-board-drawer__clear-all" id="styling-board-clear-all" hidden>
+            Clear all
           </button>
         </footer>
       </div>
@@ -534,6 +555,11 @@
       >
         <div class="collection-filter-drawer__header">
           <h2 class="collection-filter-drawer__title" id="collection-filter-drawer-title">Filter &amp; Sort</h2>
+          <div class="collection-filter-drawer__header-actions">
+            <span id="collection-filter-count-label" class="collection-filter-drawer__count-label" hidden></span>
+            <span class="collection-filter-drawer__count-sep" id="collection-filter-count-sep" hidden>–</span>
+            <button type="button" id="collection-filter-clear-all" class="collection-filter-drawer__clear-all" hidden>Clear All</button>
+          </div>
           <button
             type="button"
             class="collection-filter-drawer__close"
@@ -544,8 +570,11 @@
           </button>
         </div>
         <div class="collection-filter-drawer__body">
-          <section class="collection-filter-drawer__block collection-filter-drawer__block--sort" aria-labelledby="collection-drawer-sort-heading">
-            <h3 class="collection-filter-drawer__section-heading" id="collection-drawer-sort-heading">Sort by</h3>
+          <section class="collection-filter-drawer__block collection-filter-drawer__block--sort afd-collapsible" aria-labelledby="collection-drawer-sort-heading">
+            <button type="button" class="collection-filter-drawer__section-heading afd-section-toggle" id="collection-drawer-sort-heading" aria-expanded="true" aria-controls="collection-drawer-sort-chips">
+              <span class="afd-section-toggle__label">Sort by</span>
+              <svg class="afd-chevron" viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div
               id="collection-drawer-sort-chips"
               class="collection-filter-drawer__chip-row collection-filter-drawer__chip-row--sort"
@@ -555,10 +584,13 @@
               <button
                 type="button"
                 class="collection-drawer-sort-chip is-active"
-                data-collection-sort="date-desc"
+                data-collection-sort="default"
                 data-collection-sort-default="true"
                 aria-pressed="true"
               >
+                Default
+              </button>
+              <button type="button" class="collection-drawer-sort-chip" data-collection-sort="date-desc" aria-pressed="false">
                 Newest
               </button>
               <button type="button" class="collection-drawer-sort-chip" data-collection-sort="date-asc" aria-pressed="false">
@@ -573,10 +605,13 @@
             </div>
           </section>
           <section
-            class="collection-filter-drawer__block collection-filter-drawer__block--season"
+            class="collection-filter-drawer__block collection-filter-drawer__block--season afd-collapsible is-collapsed"
             aria-labelledby="collection-drawer-season-heading"
           >
-            <h3 class="collection-filter-drawer__section-heading" id="collection-drawer-season-heading">Season</h3>
+            <button type="button" class="collection-filter-drawer__section-heading afd-section-toggle" id="collection-drawer-season-heading" aria-expanded="false" aria-controls="collection-drawer-season-chips">
+              <span class="afd-section-toggle__label">Season</span>
+              <svg class="afd-chevron" viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div
               id="collection-drawer-season-chips"
               class="collection-filter-drawer__chip-row"
@@ -608,11 +643,13 @@
           </section>
           <section
             id="collection-drawer-record-types"
-            class="collection-filter-drawer__block collection-filter-drawer__block--categories collection-filter-drawer__record-types"
+            class="collection-filter-drawer__block collection-filter-drawer__block--categories collection-filter-drawer__record-types afd-collapsible is-collapsed"
             aria-labelledby="collection-drawer-record-types-label"
-            hidden
           >
-            <h3 class="collection-filter-drawer__section-heading" id="collection-drawer-record-types-label">Categories</h3>
+            <button type="button" class="collection-filter-drawer__section-heading afd-section-toggle" id="collection-drawer-record-types-label" aria-expanded="false" aria-controls="collection-drawer-record-type-chips">
+              <span class="afd-section-toggle__label">Categories</span>
+              <svg class="afd-chevron" viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div
               class="collection-filter-drawer__chip-row collection-filter-drawer__record-type-chips"
               id="collection-drawer-record-type-chips"
@@ -621,10 +658,16 @@
             ></div>
           </section>
           <section
-            class="collection-filter-drawer__block collection-filter-drawer__block--colour"
+            class="collection-filter-drawer__block collection-filter-drawer__block--colour afd-collapsible is-collapsed"
             aria-labelledby="collection-colour-filter-label"
           >
-            <h3 class="collection-filter-drawer__section-heading" id="collection-colour-filter-label">Colour</h3>
+            <button type="button" class="collection-filter-drawer__section-heading afd-section-toggle" id="collection-colour-filter-label" aria-expanded="false" aria-controls="collection-colour-chips">
+              <span class="afd-section-toggle__label">
+                Colour
+                <span id="collection-colour-filter-count" class="afd-section-count" hidden aria-hidden="true"></span>
+              </span>
+              <svg class="afd-chevron" viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div
               class="collection-filter-drawer__chip-row collection-filter-drawer__colour-chips"
               role="group"
@@ -633,10 +676,13 @@
             ></div>
           </section>
           <section
-            class="collection-filter-drawer__block collection-filter-drawer__block--brands"
+            class="collection-filter-drawer__block collection-filter-drawer__block--brands afd-collapsible is-collapsed"
             aria-labelledby="collection-drawer-brands-heading"
           >
-            <h3 class="collection-filter-drawer__section-heading" id="collection-drawer-brands-heading">Brands</h3>
+            <button type="button" class="collection-filter-drawer__section-heading afd-section-toggle" id="collection-drawer-brands-heading" aria-expanded="false" aria-controls="collection-drawer-brand-chips">
+              <span class="afd-section-toggle__label">Brands</span>
+              <svg class="afd-chevron" viewBox="0 0 10 6" fill="none" aria-hidden="true" width="10" height="6"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div
               id="collection-drawer-brand-chips"
               class="collection-filter-drawer__chip-row collection-filter-drawer__brand-chips"
@@ -650,59 +696,6 @@
         </div>
       </div>
     </div>
-
-    <section class="collection-actions tw-admin-only" hidden aria-label="Collection actions">
-      <button type="button" class="btn btn--ghost collection-actions__add" id="add-item-open">Add a piece</button>
-    </section>
-
-    <section class="data-load-note tw-admin-only" aria-label="Where this data comes from">
-      <h2 class="data-load-note__title">Where this data comes from</h2>
-      <p class="data-load-note__lead">
-        Each reload builds one merged wardrobe list: rows you added are merged first, then the catalogue (from
-        Supabase or the bundled seed), with per-piece edits applied the same way whether the piece started as seed or
-        custom. Cover and gallery URLs are plain strings on each row (often <code>https://…</code> public object URLs).
-      </p>
-      <ul class="data-load-note__list">
-        <li>
-          <strong>Catalogue source</strong> — With <code>js/tw-supabase-config.js</code> and a non-empty
-          <code>wardrobe_items</code> fetch, that table is the catalogue. Otherwise the app uses
-          <code>data/wardrobe.js</code> (<code>WARDROBE_ITEMS</code>).
-        </li>
-        <li>
-          <strong>Your wardrobe in the browser</strong> — Extra rows and any edits not yet in the cloud live under
-          <code>localStorage</code> keys such as <code>timeless-wardrobe-custom-items-v1</code>,
-          <code>timeless-wardrobe-collection-overrides-v1</code>, and <code>timeless-wardrobe-collection-hidden-v1</code>, plus
-          optional <code>data/custom-items.json</code> when you use <code>npm run dev</code>.
-        </li>
-        <li>
-          <strong>Supabase sync (same bar for every piece)</strong> — With cloud configured, new pieces and edits are
-          written to <code>wardrobe_items</code> (catalogue pieces you changed are mirrored there like any other row).
-          Hidden collection ids and any legacy per-id override blobs still round-trip through
-          <code>wardrobe_app_state</code> row <code>id = default</code> when needed.
-        </li>
-        <li>
-          <strong>Saved outfits</strong> — Supabase tables <code>outfits</code> + <code>outfit_items</code> when the
-          wardrobe is cloud-backed and outfit fetch succeeds; otherwise <code>localStorage</code> key
-          <code>timeless-wardrobe-outfits-v1</code>.
-        </li>
-      </ul>
-      <p class="data-load-note__backup">
-        <button type="button" class="btn btn--small btn--ghost" id="data-note-text-to-localstorage">
-          Save all text to localStorage
-        </button>
-        <button type="button" class="btn btn--small btn--ghost" id="data-note-download-text-json">
-          Download text JSON
-        </button>
-        <button type="button" class="btn btn--small btn--ghost" id="data-note-backup-json">
-          Download browser backup JSON
-        </button>
-        <span class="data-load-note__backup-hint">
-          — <strong>Text JSON</strong> = every piece’s text fields for review (no images). Project export:
-          <code>npm run db:export-wardrobe</code> → <code>data/local/wardrobe-text.json</code>, then
-          <code>npm run db:apply-local-text</code> after edits. Backup JSON also includes overrides, outfits, and prefs.
-        </span>
-      </p>
-    </section>
 
     <footer class="site-footer">
       <p>Timeless Wardrobe</p>
@@ -733,14 +726,16 @@
                 <span class="field__label">Name</span>
                 <input id="add-item-name" name="name" type="text" maxlength="200" required autocomplete="off" />
               </label>
-              <label class="field">
-                <span class="field__label">Section</span>
-                <select id="add-item-category" name="browseSlot" required></select>
-              </label>
-              <label class="field">
-                <span class="field__label">Record type</span>
-                <select id="add-item-record-type" name="recordCategory" required></select>
-              </label>
+              <div class="item-edit-select-row field--span2">
+                <label class="field item-edit-select-row__cell">
+                  <span class="field__label">Section</span>
+                  <select id="add-item-category" name="browseSlot" required></select>
+                </label>
+                <label class="field item-edit-select-row__cell">
+                  <span class="field__label">Record type</span>
+                  <select id="add-item-record-type" name="recordCategory" required></select>
+                </label>
+              </div>
               <label class="field">
                 <span class="field__label">Season (optional)</span>
                 <select id="add-item-season" name="season">
@@ -750,11 +745,11 @@
                 </select>
               </label>
               <label class="field">
-                <span class="field__label">Colour (optional)</span>
+                <span class="field__label">Primary colour (optional)</span>
                 <input id="add-item-colour" name="colour" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
-                <span class="field__label">Colour code (optional)</span>
+                <span class="field__label">Primary colour code (optional)</span>
                 <input
                   id="add-item-colour-code"
                   name="colourCode"
@@ -764,8 +759,9 @@
                   placeholder="#hex, SKU…"
                 />
               </label>
+              <div id="add-item-secondary-colour-mount" class="item-edit-secondary-colour-mount field--span2"></div>
               <label class="field">
-                <span class="field__label">Broad colour (optional)</span>
+                <span class="field__label">Broad colour — primary (optional)</span>
                 <select id="add-item-basic-colour" name="basicColour" aria-label="Broad colour for collection filters">
                   <option value="__omit__">None (not filtered by colour)</option>
                   <option value="" selected>Auto (from name / code / hex)</option>
@@ -786,26 +782,16 @@
                 <input id="add-item-fabric" name="fabric" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
-                <span class="field__label">Weight / specs (optional)</span>
+                <span class="field__label">Specs / weight (optional)</span>
                 <input id="add-item-weight" name="weight" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
                 <span class="field__label">Size (optional)</span>
                 <input id="add-item-size" name="size" type="text" maxlength="120" autocomplete="off" />
               </label>
-              <label class="field field--span2">
+              <label class="field">
                 <span class="field__label">Purchase date (optional)</span>
-                <span class="add-item-purchase-fields">
-                  <input id="add-item-purchase-date" name="purchaseDate" type="date" />
-                  <input
-                    id="add-item-purchase-date-note"
-                    name="purchaseDateNote"
-                    type="text"
-                    maxlength="80"
-                    placeholder="Optional note (e.g. approximate, gift)"
-                    autocomplete="off"
-                  />
-                </span>
+                <input id="add-item-purchase-date" name="purchaseDate" type="date" />
               </label>
               <label class="field">
                 <span class="field__label">Price (optional)</span>
@@ -813,11 +799,9 @@
                   <input
                     id="add-item-price"
                     name="price"
-                    type="number"
-                    min="0"
-                    step="any"
+                    type="text"
                     inputmode="decimal"
-                    placeholder="e.g. 199 or 199.5"
+                    placeholder="e.g. 199 or 19,900"
                     autocomplete="off"
                   />
                   <select id="add-item-price-currency" name="priceCurrency" aria-label="Price currency">
@@ -848,7 +832,7 @@
               <input type="hidden" id="add-item-measured-dimensions" name="measuredDimensions" value="" />
               <div id="add-item-measured-dims-block" class="add-item-measured-dims-host"></div>
               <p class="measured-dims-hint">
-                Defaults: Shoulder, Chest, Waist, Sleeve, Back Length — pick <strong>cm</strong> or <strong>mm</strong> for all values in this piece.
+                Default fields: shoulder, chest, sleeve, length — rows without a value are not saved. Unit: <strong>cm</strong> or <strong>mm</strong>.
               </p>
             </label>
             <p id="add-item-form-msg" class="add-item-form__msg" role="status" aria-live="polite"></p>

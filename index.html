@@ -30,11 +30,16 @@
     <a class="skip-link" href="#saved-outfits-heading">Skip to Styling Board</a>
 
     <div class="site-utility-bar" role="note" aria-label="Brand masthead">
-      <div class="site-utility-bar__inner">
-        <span class="site-utility-bar__left">CVM IVDICIO ET CONSTANTIA</span>
+      <a
+        class="site-utility-bar__inner"
+        id="site-utility-bar-home"
+        href="/"
+        aria-label="Editorial home"
+      >
+        <span class="site-utility-bar__left">IVDICIO ET CONSTANTIA</span>
         <span class="site-utility-bar__center">Only What Endures</span>
         <span class="site-utility-bar__right">Since 2020</span>
-      </div>
+      </a>
     </div>
     <div class="site-header-shell site-header-shell--home-overlay">
     <header class="site-header site-header--overlay">
@@ -148,6 +153,10 @@
             class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
             aria-label="Category preview"
           >
+            <header class="mega-menu-preview__head">
+              <p class="mega-menu-preview__label" id="site-header-submenu-preview-label">Items preview</p>
+              <hr class="mega-menu-preview__rule" aria-hidden="true" />
+            </header>
             <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
           </section>
         </div>
@@ -293,7 +302,7 @@
           <p class="ed-lp__hero-sub">A Private Collection of Classic Menswear</p>
           <p class="ed-lp__hero-line">English Heritage × Mediterranean Leisure</p>
           <div class="ed-lp__hero-cta">
-            <a class="ed-lp__btn ed-lp__btn--solid" href="/collection">Browse collection</a>
+            <a class="ed-lp__btn ed-lp__btn--solid" href="/collection">Browse now</a>
             <a class="ed-lp__btn ed-lp__btn--ghost" href="/collection">Explore collection</a>
           </div>
         </div>
@@ -497,14 +506,16 @@
                 <span class="field__label">Name</span>
                 <input id="add-item-name" name="name" type="text" maxlength="200" required autocomplete="off" />
               </label>
-              <label class="field">
-                <span class="field__label">Section</span>
-                <select id="add-item-category" name="browseSlot" required></select>
-              </label>
-              <label class="field">
-                <span class="field__label">Record type</span>
-                <select id="add-item-record-type" name="recordCategory" required></select>
-              </label>
+              <div class="item-edit-select-row field--span2">
+                <label class="field item-edit-select-row__cell">
+                  <span class="field__label">Section</span>
+                  <select id="add-item-category" name="browseSlot" required></select>
+                </label>
+                <label class="field item-edit-select-row__cell">
+                  <span class="field__label">Record type</span>
+                  <select id="add-item-record-type" name="recordCategory" required></select>
+                </label>
+              </div>
               <label class="field">
                 <span class="field__label">Season (optional)</span>
                 <select id="add-item-season" name="season">
@@ -514,11 +525,11 @@
                 </select>
               </label>
               <label class="field">
-                <span class="field__label">Colour (optional)</span>
+                <span class="field__label">Primary colour (optional)</span>
                 <input id="add-item-colour" name="colour" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
-                <span class="field__label">Colour code (optional)</span>
+                <span class="field__label">Primary colour code (optional)</span>
                 <input
                   id="add-item-colour-code"
                   name="colourCode"
@@ -528,8 +539,9 @@
                   placeholder="#hex, SKU…"
                 />
               </label>
+              <div id="add-item-secondary-colour-mount" class="item-edit-secondary-colour-mount field--span2"></div>
               <label class="field">
-                <span class="field__label">Broad colour (optional)</span>
+                <span class="field__label">Broad colour — primary (optional)</span>
                 <select id="add-item-basic-colour" name="basicColour" aria-label="Broad colour for collection filters">
                   <option value="__omit__">None (not filtered by colour)</option>
                   <option value="" selected>Auto (from name / code / hex)</option>
@@ -550,26 +562,16 @@
                 <input id="add-item-fabric" name="fabric" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
-                <span class="field__label">Weight / specs (optional)</span>
+                <span class="field__label">Specs / weight (optional)</span>
                 <input id="add-item-weight" name="weight" type="text" maxlength="80" autocomplete="off" />
               </label>
               <label class="field">
                 <span class="field__label">Size (optional)</span>
                 <input id="add-item-size" name="size" type="text" maxlength="120" autocomplete="off" />
               </label>
-              <label class="field field--span2">
+              <label class="field">
                 <span class="field__label">Purchase date (optional)</span>
-                <span class="add-item-purchase-fields">
-                  <input id="add-item-purchase-date" name="purchaseDate" type="date" />
-                  <input
-                    id="add-item-purchase-date-note"
-                    name="purchaseDateNote"
-                    type="text"
-                    maxlength="80"
-                    placeholder="Optional note (e.g. approximate, gift)"
-                    autocomplete="off"
-                  />
-                </span>
+                <input id="add-item-purchase-date" name="purchaseDate" type="date" />
               </label>
               <label class="field">
                 <span class="field__label">Price (optional)</span>
@@ -577,11 +579,9 @@
                   <input
                     id="add-item-price"
                     name="price"
-                    type="number"
-                    min="0"
-                    step="any"
+                    type="text"
                     inputmode="decimal"
-                    placeholder="e.g. 199 or 199.5"
+                    placeholder="e.g. 199 or 19,900"
                     autocomplete="off"
                   />
                   <select id="add-item-price-currency" name="priceCurrency" aria-label="Price currency">
@@ -612,7 +612,7 @@
               <input type="hidden" id="add-item-measured-dimensions" name="measuredDimensions" value="" />
               <div id="add-item-measured-dims-block" class="add-item-measured-dims-host"></div>
               <p class="measured-dims-hint">
-                Defaults: Shoulder, Chest, Waist, Sleeve, Back Length — pick <strong>cm</strong> or <strong>mm</strong> for all values in this piece.
+                Default fields: shoulder, chest, sleeve, length — rows without a value are not saved. Unit: <strong>cm</strong> or <strong>mm</strong>.
               </p>
             </label>
             <p id="add-item-form-msg" class="add-item-form__msg" role="status" aria-live="polite"></p>
@@ -666,15 +666,15 @@
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <section
-          id="styling-board-drawer-added"
-          class="styling-board-drawer__added"
-          hidden
-          aria-labelledby="styling-board-drawer-status-text"
-        >
-          <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
-        </section>
         <div class="styling-board-drawer__scroll">
+          <section
+            id="styling-board-drawer-added"
+            class="styling-board-drawer__added"
+            hidden
+            aria-labelledby="styling-board-drawer-status-text"
+          >
+            <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+          </section>
           <p class="styling-board-drawer__lede" id="outfit-hint">
             Add clothing, shoes, watches, and accessories from the collection. Drag pieces to reorder, then save as a named outfit.
           </p>
@@ -722,11 +722,14 @@
           </section>
         </div>
         <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue browsing
+          </button>
           <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
             Save outfit
           </button>
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
-            Continue browsing
+          <button type="button" class="styling-board-drawer__clear-all" id="styling-board-clear-all" hidden>
+            Clear all
           </button>
         </footer>
       </div>
