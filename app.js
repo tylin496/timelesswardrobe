@@ -9794,10 +9794,9 @@
     );
   }
 
-  /** Mobile drawer: “All Clothing”, “All Accessories”, etc. */
-  function mobileNavSubcategoryAllLabel(browseSlot) {
-    const cat = categoryDisplayLabel(String(browseSlot ?? "").trim()) || String(browseSlot ?? "").trim();
-    return cat ? `All ${cat}` : SUBCATEGORY_ALL_LABEL;
+  /** Mobile drawer drill: first row is always “All” (not “All Clothing”, etc.). */
+  function mobileNavSubcategoryAllLabel(_browseSlot) {
+    return SUBCATEGORY_ALL_LABEL;
   }
 
   /** @returns {{ raw: string, label: string }[]} */
@@ -15104,6 +15103,7 @@
   function openStylingBoardDrawer(options = {}) {
     const root = document.getElementById("styling-board-drawer");
     if (!root) return;
+    forceCloseHeaderSearchOverlay();
     if (!options.fromAdd) clearStylingBoardAddedReveal();
     syncStylingBoardDrawerLayout();
     stylingBoardDrawerOpen = true;
@@ -15182,7 +15182,7 @@
         finish();
       };
       sheet.addEventListener("transitionend", onEnd);
-      const motionMs = isHeaderCompactViewport() ? 380 : 400;
+      const motionMs = isHeaderCompactViewport() ? TW_MOBILE_SEARCH_MOTION_MS : 400;
       setTimeout(finish, motionMs);
     } else {
       finish();
@@ -18874,7 +18874,34 @@
     });
   }
 
+  /** @type {{ parent: HTMLElement; next: ChildNode | null } | null} */
+  let headerSearchWrapDock = null;
+
+  /** Compact search: escape sticky header shell stacking — overlay covers full viewport. */
+  function mountHeaderSearchWrapToBody() {
+    const wrap = document.getElementById("site-header-search-wrap");
+    if (!wrap || wrap.parentElement === document.body) return;
+    headerSearchWrapDock = {
+      parent: wrap.parentElement,
+      next: wrap.nextSibling,
+    };
+    document.body.appendChild(wrap);
+  }
+
+  function restoreHeaderSearchWrapFromBody() {
+    const wrap = document.getElementById("site-header-search-wrap");
+    const dock = headerSearchWrapDock;
+    headerSearchWrapDock = null;
+    if (!wrap || !dock?.parent) return;
+    if (dock.next && dock.next.parentNode === dock.parent) {
+      dock.parent.insertBefore(wrap, dock.next);
+    } else {
+      dock.parent.appendChild(wrap);
+    }
+  }
+
   function forceCloseHeaderSearchOverlay({ submitted = false, clear = false } = {}) {
+    restoreHeaderSearchWrapFromBody();
     const headerSearchWrap = document.getElementById("site-header-search-wrap");
     const headerSearchBtn = document.getElementById("site-header-search-btn");
     const headerSearchInput = /** @type {HTMLInputElement | null} */ (document.getElementById("filter-search"));
@@ -19445,6 +19472,7 @@
       const snap = headerSearchOverlayOpeningQueryRaw;
 
       const finishClose = () => {
+        restoreHeaderSearchWrapFromBody();
         headerSearchCloseAbort = null;
         headerSearchWrap.setAttribute("aria-hidden", "true");
         setHeaderSearchFlyoutState(headerSearchWrap, "closed");
@@ -19592,13 +19620,7 @@
       try {
         const utilBottom = measureUtilityBarBottom();
         const chromeBottom = measureHeaderChromeBottom();
-        const homeNavOpen =
-          document.body.classList.contains("home-page") &&
-          document.body.classList.contains("collection-ui--mobile-nav-open");
-        const sigPx = readCssLengthPx("var(--brand-signature-bar-height)") || utilBottom || 40;
-        const shellTop = homeNavOpen
-          ? Math.max(utilBottom, sigPx)
-          : Math.max(utilBottom, chromeBottom);
+        const shellTop = Math.max(utilBottom, chromeBottom);
         if (shellTop > 0) {
           document.documentElement.style.setProperty("--site-mobile-shell-top", `${shellTop}px`);
         }
@@ -19607,7 +19629,7 @@
       }
     }
 
-    /** Compact search: full-bleed sheet from viewport top; chrome bottom drives inner padding only. */
+    /** Compact search: full-screen overlay; chrome bottom for dims/backdrops only. */
     function syncHeaderSearchSheetInset() {
       syncBrandSignatureBarHeight();
       try {
@@ -20163,12 +20185,16 @@
         syncSearchKeywordChip();
         hideHeaderSubmenu();
         closeMobileCategoryPanel();
+        closeStylingBoardDrawer();
         document.body.classList.remove("collection-ui--nav-folded", "collection-ui--header-search-closing");
         syncHeaderSearchFeaturedSubcategoryCards();
         headerSearchWrap.removeAttribute("hidden");
         headerSearchWrap.setAttribute("aria-hidden", "false");
         headerSearchBtn.setAttribute("aria-expanded", "true");
         headerSearchBtn.setAttribute("aria-label", "Close search");
+        if (isHeaderCompactLayout()) {
+          mountHeaderSearchWrapToBody();
+        }
         document.body.classList.add("collection-ui--header-search-open");
         if (!isHeaderCompactLayout()) {
           headerSearchWrap.classList.remove("is-open", "is-closing");
@@ -20194,6 +20220,8 @@
             if (!document.body.classList.contains("collection-ui--header-search-open")) return;
             setHeaderSearchFlyoutState(headerSearchWrap, "open");
             headerSearchWrap.classList.add("is-open");
+            syncHeaderSearchSheetInset();
+            requestAnimationFrame(() => syncHeaderSearchSheetInset());
           };
           if (twPrefersReducedMotion()) {
             revealCompactSearch();

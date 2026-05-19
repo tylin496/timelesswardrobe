@@ -139,6 +139,10 @@
   /* Collection drawers / panels that must cover sticky header chrome (mobile filter sheet, Outfits). */
   --z-styling-board-backdrop: 1290;
   --z-styling-board-drawer: 1300;
+  --z-header-search-overlay: 1400;
+  /* Search + Outfits compact sheets share one motion curve. */
+  --tw-header-overlay-duration: 320ms;
+  --tw-header-overlay-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --z-collection-filter-drawer: 1300;
   --z-mega-menu: 1100;
   --z-mega-menu-backdrop: 900;
@@ -1394,6 +1398,20 @@ body.theme-catalogue .site-header.site-header--overlay {
   color: var(--ink);
 }
 
+/* Search + Outfits — same pressed/open tool chrome. */
+.site-header__search-btn[aria-expanded="true"],
+.site-header__styling-board-btn[aria-expanded="true"],
+.site-header__saved-btn[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.site-header--overlay .site-header__search-btn[aria-expanded="true"],
+.site-header--overlay .site-header__styling-board-btn[aria-expanded="true"],
+.site-header--overlay .site-header__saved-btn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
 @media (max-width: 1024px) {
   .site-header__styling-board-label {
   @apply -m-px;
@@ -1450,10 +1468,17 @@ body.theme-catalogue .site-header.site-header--overlay {
 .site-header__styling-board-btn:hover,
 .site-header__saved-btn:hover,
 .site-header__styling-board-btn:focus-visible,
-.site-header__saved-btn:focus-visible,
-.site-header__styling-board-btn[aria-expanded="true"],
-.site-header__saved-btn[aria-expanded="true"] {
+.site-header__saved-btn:focus-visible {
   background: transparent;
+}
+
+.site-header--overlay .site-header__search-btn:hover,
+.site-header--overlay .site-header__styling-board-btn:hover,
+.site-header--overlay .site-header__saved-btn:hover,
+.site-header--overlay .site-header__search-btn:focus-visible,
+.site-header--overlay .site-header__styling-board-btn:focus-visible,
+.site-header--overlay .site-header__saved-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .site-header:hover .site-header__search-btn:hover,
@@ -1659,7 +1684,7 @@ body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-gl
   min-height: 0;
   width: 100%;
   max-width: var(--content-max);
-  padding-top: 32px;
+  padding-top: max(32px, calc(var(--brand-signature-bar-height, 40px) + 0.75rem));
   padding-bottom: 56px;
   padding-left: max(var(--search-x), env(safe-area-inset-left, 0px));
   padding-right: max(var(--search-x), env(safe-area-inset-right, 0px));
@@ -4557,9 +4582,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
   /* Compact: bottom sheet (same motion as Outfits drawer). */
   .site-header__search-wrap,
   .site-header__search-wrap.desktop-search-flyout {
-    --tw-mobile-search-duration: 320ms;
-    --tw-mobile-search-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-    /* Full-bleed from viewport top; content inset via padding + utility z-index. */
+    --tw-mobile-search-duration: var(--tw-header-overlay-duration, 320ms);
+    --tw-mobile-search-ease: var(--tw-header-overlay-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+    /* Full-screen overlay from viewport top (portaled to `body` on compact). */
     --tw-mobile-search-sheet-top: 0;
     position: fixed !important;
     inset: 0 !important;
@@ -4576,7 +4601,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     clip-path: none !important;
     opacity: 1 !important;
     background: transparent !important;
-    z-index: var(--z-styling-board-drawer, 1300);
+    z-index: var(--z-header-search-overlay, 1400);
     overflow: hidden;
     visibility: hidden;
     pointer-events: none;
@@ -4626,12 +4651,12 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
   .site-header__search-wrap .site-header__search-megamenu-inner,
   .site-header__search-wrap.desktop-search-flyout .desktop-search-flyout-inner,
   .site-header__search-wrap.desktop-search-flyout .site-header__search-megamenu-inner {
-    position: fixed;
-    top: var(--tw-mobile-search-sheet-top, 0);
+    position: absolute;
+    top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: var(--z-styling-board-drawer, 1300);
+    z-index: 1;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -4663,20 +4688,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     transform: translate3d(0, 100%, 0);
   }
 
-  /* Signature bar stays above the full-bleed search sheet (content clears bar via padding). */
-  body.collection-ui--header-search-open .site-utility-bar,
-  body.collection-ui--header-search-closing .site-utility-bar,
-  body.home-page.collection-ui--header-search-open .site-header-shell--home-overlay .site-utility-bar,
-  body.home-page.collection-ui--header-search-closing .site-header-shell--home-overlay .site-utility-bar {
-    z-index: calc(var(--z-styling-board-drawer, 1300) + 2);
-  }
-
-  body.collection-ui--header-search-open .site-header,
-  body.collection-ui--header-search-closing .site-header,
-  body.home-page.collection-ui--header-search-open .site-header,
-  body.home-page.collection-ui--header-search-closing .site-header {
-    position: relative;
-    z-index: calc(var(--z-styling-board-drawer, 1300) + 1);
+  body.collection-ui--header-search-open .site-header__search-wrap,
+  body.collection-ui--header-search-closing .site-header__search-wrap {
+    z-index: var(--z-header-search-overlay, 1400);
   }
 
   /* Dim layer for mega menu only — search uses inner `.site-header__search-dim`. */
@@ -4716,10 +4730,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     overflow: hidden;
   }
 
-  /* Homepage overlay: hide logo/tools row when search or mobile nav is open; ivory chrome band. */
+  /* Homepage overlay: hide logo/tools row when search is open (mobile nav matches collection — keep flyout). */
   body.home-page.collection-ui--header-search-open .site-header__flyout,
-  body.home-page.collection-ui--header-search-closing .site-header__flyout,
-  body.home-page.collection-ui--mobile-nav-open .site-header__flyout {
+  body.home-page.collection-ui--header-search-closing .site-header__flyout {
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
@@ -4738,21 +4751,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     border-bottom: none;
   }
 
-  body.home-page.collection-ui--mobile-nav-open .site-header.site-header--overlay {
-    background-color: var(--tw-brand-ivory);
-    background-image: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
-  }
-
   body.home-page.collection-ui--header-search-open .site-header__container.site-header__inner,
   body.home-page.collection-ui--header-search-closing .site-header__container.site-header__inner {
     background-color: var(--tw-mobile-nav-surface, #e3dfd6);
-    background-image: none;
-    min-height: 0;
-  }
-
-  body.home-page.collection-ui--mobile-nav-open .site-header__container.site-header__inner {
-    background-color: var(--tw-brand-ivory);
     background-image: none;
     min-height: 0;
   }
@@ -5020,14 +5021,18 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     justify-content: center;
   }
 
+  body.collection-ui--header-search-open .site-header__search-wrap .desktop-search-flyout-inner,
+  body.collection-ui--header-search-open .site-header__search-wrap .site-header__search-megamenu-inner,
+  body.collection-ui--header-search-closing .site-header__search-wrap .desktop-search-flyout-inner,
+  body.collection-ui--header-search-closing .site-header__search-wrap .site-header__search-megamenu-inner {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  }
+
   .site-header__search-wrap .site-header__search-megamenu-inner {
     max-width: 100%;
     padding-left: calc(var(--tw-search-inline-gutter) + env(safe-area-inset-left, 0px));
     padding-right: env(safe-area-inset-right, 0px);
-    padding-top: calc(
-      max(env(safe-area-inset-top, 0px), var(--site-header-chrome-bottom, var(--brand-signature-bar-height, 40px)))
-      + 0.65rem
-    );
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
     padding-bottom: max(
       calc(1.2rem * var(--tw-search-v)),
       calc(env(safe-area-inset-bottom, 0px) + 1rem * var(--tw-search-v))
@@ -5382,14 +5387,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     z-index: var(--z-styling-board-drawer, 1300);
   }
 
-  body.home-page.collection-ui--mobile-nav-open .site-mobile-shell.is-open,
-  body.home-page.collection-ui--mobile-nav-open .site-mobile-shell.is-closing {
-    top: max(
-      var(--site-mobile-shell-top, var(--brand-signature-bar-height, 40px)),
-      var(--brand-signature-bar-height, 40px)
-    );
-  }
-
   .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
     display: none;
   }
@@ -5617,10 +5614,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open) 
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     background-color: var(--tw-mobile-nav-surface, var(--tw-surface-preview, #e3dfd6));
-  }
-
-  body.home-page.collection-ui--mobile-nav-open .site-mobile-nav__level--root {
-    padding-top: 0.65rem;
   }
 
   #site-mobile-nav-root.site-mobile-nav__level--root {
@@ -7766,8 +7759,12 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
 /* Mobile Outfits drawer — full-width bottom sheet (slide up / down). */
 @media (max-width: 1024px) {
   .styling-board-drawer {
-    --tw-styling-board-sheet-duration: 320ms;
-    --tw-styling-board-sheet-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --tw-styling-board-sheet-duration: var(--tw-header-overlay-duration, 320ms);
+    --tw-styling-board-sheet-ease: var(--tw-header-overlay-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  }
+
+  .styling-board-drawer__backdrop {
+    transition: opacity var(--tw-header-overlay-duration, 320ms) var(--tw-header-overlay-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
   }
 
   .styling-board-drawer__sheet {
