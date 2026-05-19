@@ -11,6 +11,7 @@
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
     "db:export-wardrobe": "node scripts/export_wardrobe_from_supabase.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
+    "db:backup-to-local": "node scripts/backup_wardrobe_to_local.mjs",
     "db:apply-local-text": "node scripts/apply_local_wardrobe_text.mjs",
     "db:titlecase-brands-once": "node scripts/titlecase_brands_once.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",

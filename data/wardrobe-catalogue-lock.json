@@ -1,7 +1,7 @@
 {
   "_schema": "timeless-wardrobe-catalogue-lock-v1",
-  "frozenAt": "2026-05-16T20:44:39.750Z",
-  "count": 69,
+  "frozenAt": "2026-05-19T14:43:57.148Z",
+  "count": 70,
   "ids": [
     "acme-cultum-navy-double-breasted-super-120s-blazer",
     "alden-563-tassel-loafer-color-8-cordovan",
@@ -28,6 +28,7 @@
     "custom-b1b60797-6d7a-4cc6-b294-b3a82e1c0712",
     "custom-b5af381a-752a-4e09-a1d5-434ab96efda0",
     "custom-c60ef29b-7596-4b2c-aac2-6d1dcedbd74c",
+    "custom-c6f7f72c-01dd-42fc-a5aa-4aa79a135d67",
     "custom-f5c105c7-9ca8-486f-b726-e7aa8b8fd416",
     "future-sapphire-engagement-ring",
     "future-wedding-bands",
@@ -73,5 +74,5 @@
     "zara-ecru-purl-knit-t-shirt",
     "zara-navy-baker-neck-knitted-t-shirt"
   ],
-  "source": "supabase:wardrobe_items"
+  "source": "local:images/wardrobe + wardrobe.js"
 }

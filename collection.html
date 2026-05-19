@@ -805,12 +805,14 @@
           <div class="add-item-panel__head">
             <h2 id="add-item-heading" class="add-item-panel__title">Add a piece</h2>
             <p class="add-item-panel__hint">
-              Required: <strong>brand</strong>, <strong>name</strong>, <strong>section</strong>, and <strong>record type</strong>. Photos are optional: in one batch, the <strong>first</strong> file becomes the cover and any further files are saved to the gallery (you can change them when editing). Optional fields and extra photos
-              help later when you search or edit. Run <code>npm run dev</code> and open the app from that server so new pieces are written straight to <code>data/custom-items.json</code> in the project (and still cached in the browser). Plain static hosting only keeps a browser copy unless you use cloud sync or export JSON.
+              Required: <strong>brand</strong>, <strong>name</strong>, <strong>section</strong>, and <strong>type</strong>. Same layout as edit — first photo is the cover; drag tiles to reorder. Saved to cloud when Supabase is configured.
             </p>
           </div>
-          <form id="add-item-form" class="add-item-form">
-            <div class="add-item-form__grid">
+          <form id="add-item-form" class="add-item-form item-edit-form" novalidate>
+            <div class="item-edit-form-scroll">
+              <section class="item-edit-section" aria-labelledby="add-item-section-details">
+                <h3 id="add-item-section-details" class="item-edit-section__heading">Details</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
               <label class="field">
                 <span class="field__label">Brand</span>
                 <input id="add-item-brand" name="brand" type="text" maxlength="120" required autocomplete="off" />
@@ -825,121 +827,146 @@
                   <select id="add-item-category" name="browseSlot" required></select>
                 </label>
                 <label class="field item-edit-select-row__cell">
-                  <span class="field__label">Record type</span>
-                  <select id="add-item-record-type" name="recordCategory" required></select>
+                  <span class="field__label">Type</span>
+                  <select id="add-item-record-type" name="recordCategory" class="item-edit-record-type-select" required></select>
                 </label>
               </div>
-              <label class="field">
-                <span class="field__label">Season (optional)</span>
-                <select id="add-item-season" name="season">
-                  <option value="All-season" selected>All seasons</option>
-                  <option value="A/W">A/W</option>
-                  <option value="S/S">S/S</option>
-                </select>
-              </label>
-              <label class="field">
-                <span class="field__label">Primary colour (optional)</span>
-                <input id="add-item-colour" name="colour" type="text" maxlength="80" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field__label">Primary colour code (optional)</span>
-                <input
-                  id="add-item-colour-code"
-                  name="colourCode"
-                  type="text"
-                  maxlength="80"
-                  autocomplete="off"
-                  placeholder="#hex, SKU…"
-                />
-              </label>
-              <div id="add-item-secondary-colour-mount" class="item-edit-secondary-colour-mount field--span2"></div>
-              <label class="field">
-                <span class="field__label">Broad colour — primary (optional)</span>
-                <select id="add-item-basic-colour" name="basicColour" aria-label="Broad colour for collection filters">
-                  <option value="__omit__">None (not filtered by colour)</option>
-                  <option value="" selected>Auto (from name / code / hex)</option>
-                  <option value="blue">Blue</option>
-                  <option value="brown">Brown</option>
-                  <option value="red">Red</option>
-                  <option value="white">White</option>
-                  <option value="black">Black</option>
-                  <option value="beige">Beige</option>
-                  <option value="gold">Gold</option>
-                  <option value="silver">Silver</option>
-                  <option value="green">Green</option>
-                  <option value="grey">Grey</option>
-                </select>
-              </label>
-              <label class="field">
-                <span class="field__label">Material (optional)</span>
-                <input id="add-item-fabric" name="fabric" type="text" maxlength="80" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field__label">Specs / weight (optional)</span>
-                <input id="add-item-weight" name="weight" type="text" maxlength="80" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field__label">Size (optional)</span>
-                <input id="add-item-size" name="size" type="text" maxlength="120" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field__label">Purchase date (optional)</span>
-                <input id="add-item-purchase-date" name="purchaseDate" type="date" />
-              </label>
-              <label class="field">
-                <span class="field__label">Price (optional)</span>
-                <span class="add-item-price-row">
-                  <input
-                    id="add-item-price"
-                    name="price"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="e.g. 199 or 19,900"
-                    autocomplete="off"
-                  />
-                  <select id="add-item-price-currency" name="priceCurrency" aria-label="Price currency">
-                    <option value="TWD">TWD</option>
-                    <option value="USD">USD</option>
-                    <option value="JPY">JPY</option>
-                    <option value="CNY">CNY</option>
-                  </select>
+                  <div class="field field--span2 item-edit-photos-field">
+                    <span class="field__label">Photos (optional)</span>
+                    <div id="add-item-photos" class="item-edit-photo-manager-host"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="item-edit-section" aria-labelledby="add-item-section-colour">
+                <h3 id="add-item-section-colour" class="item-edit-section__heading">Colour &amp; season</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
+                  <div class="field--span2 item-edit-single-colour-block" id="add-item-colour-block">
+                    <label class="field">
+                      <span class="field__label">Primary colour (optional)</span>
+                      <input id="add-item-colour" name="colour" type="text" maxlength="80" autocomplete="off" />
+                    </label>
+                    <label class="field">
+                      <span class="field__label">Primary colour code (optional)</span>
+                      <div class="item-edit-colour-code-row" id="add-item-colour-code-row">
+                        <button
+                          type="button"
+                          class="item-edit-colour-code-preview item-edit-colour-code-preview--empty"
+                          id="add-item-colour-code-preview"
+                          aria-label="Choose colour"
+                        ></button>
+                        <input
+                          id="add-item-colour-code"
+                          name="colourCode"
+                          type="text"
+                          maxlength="80"
+                          autocomplete="off"
+                          placeholder="#hex, SKU…"
+                        />
+                      </div>
+                    </label>
+                    <div id="add-item-secondary-colour-mount"></div>
+                    <div class="item-edit-basic-colour-pair field--span2" id="add-item-basic-colour-pair">
+                      <label class="field">
+                        <span class="field__label">Broad colour — primary (optional)</span>
+                        <select
+                          id="add-item-basic-colour"
+                          name="basicColour"
+                          class="item-edit-basic-colour"
+                          aria-label="Broad colour for collection filters"
+                        ></select>
+                      </label>
+                    </div>
+                  </div>
+                  <label class="field">
+                    <span class="field__label">Season (optional)</span>
+                    <select id="add-item-season" name="season">
+                      <option value="All-season" selected>All seasons</option>
+                      <option value="A/W">A/W</option>
+                      <option value="S/S">S/S</option>
+                    </select>
+                  </label>
+                </div>
+              </section>
+
+              <section class="item-edit-section" aria-labelledby="add-item-section-material">
+                <h3 id="add-item-section-material" class="item-edit-section__heading">Material &amp; fit</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
+                  <label class="field">
+                    <span class="field__label">Material (optional)</span>
+                    <input id="add-item-fabric" name="fabric" type="text" maxlength="80" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span class="field__label">Specs / weight (optional)</span>
+                    <input id="add-item-weight" name="weight" type="text" maxlength="80" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span class="field__label">Size (optional)</span>
+                    <input id="add-item-size" name="size" type="text" maxlength="120" autocomplete="off" />
+                  </label>
+                </div>
+              </section>
+
+              <section class="item-edit-section" aria-labelledby="add-item-section-acquisition">
+                <h3 id="add-item-section-acquisition" class="item-edit-section__heading">Acquisition</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
+                  <label class="field">
+                    <span class="field__label">Purchase date (optional)</span>
+                    <input id="add-item-purchase-date" name="purchaseDate" type="date" />
+                  </label>
+                  <label class="field">
+                    <span class="field__label">Price (optional)</span>
+                    <span class="item-edit-price-row add-item-price-row">
+                      <input
+                        id="add-item-price"
+                        name="price"
+                        type="text"
+                        inputmode="decimal"
+                        placeholder="e.g. 199 or 19,900"
+                        autocomplete="off"
+                      />
+                      <select id="add-item-price-currency" name="priceCurrency" aria-label="Price currency"></select>
+                    </span>
+                  </label>
+                </div>
+              </section>
+
+              <section class="item-edit-section" aria-labelledby="add-item-section-notes">
+                <h3 id="add-item-section-notes" class="item-edit-section__heading">Notes</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
+                  <label class="field field--block item-edit-section__block-field">
+                    <span class="field__label">Notes (optional)</span>
+                    <textarea id="add-item-notes" name="notes" class="textarea-autosize" rows="2" maxlength="2000"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="item-edit-section" aria-labelledby="add-item-section-measurements">
+                <h3 id="add-item-section-measurements" class="item-edit-section__heading">Measurements</h3>
+                <div class="item-detail__form-grid item-edit-section__grid">
+                  <label class="field field--block item-edit-measurements-wrap item-edit-section__block-field">
+                    <span class="field__label">Measurements (optional)</span>
+                    <input type="hidden" id="add-item-measured-dimensions" name="measuredDimensions" value="" />
+                    <div id="add-item-measured-dims-block" class="item-edit-measured-dims-host"></div>
+                  </label>
+                </div>
+              </section>
+            </div>
+
+            <div class="item-edit-form-footer add-item-form__footer">
+              <p id="add-item-form-msg" class="item-detail__edit-msg add-item-form__msg" role="status" aria-live="polite" hidden></p>
+              <div class="item-detail__form-actions add-item-form__actions">
+                <button type="submit" class="btn" id="add-item-submit">Add to wardrobe</button>
+                <button type="reset" class="btn btn--ghost" id="add-item-reset">Reset form</button>
+                <span class="tw-admin-only add-item-form__dev-actions">
+                  <button type="button" class="btn btn--ghost" id="add-item-export-custom-json">
+                    Export custom JSON…
+                  </button>
+                  <button type="button" class="btn btn--ghost" id="add-item-sync-custom-to-project">
+                    Save browser customs to project file…
+                  </button>
                 </span>
-              </label>
-              <label class="field field--file field--span2">
-                <span class="field__label">Photos (optional, multi-select)</span>
-                <input id="add-item-photos" name="photos" type="file" accept="image/*" multiple />
-                <p class="measured-dims-hint">
-                  The first image becomes the cover; any additional images are stored in the gallery (up to 12 gallery images).
-                </p>
-              </label>
-            </div>
-            <div class="add-item-form__preview-wrap">
-              <img id="add-item-preview" class="add-item-form__preview" alt="" width="200" height="250" hidden />
-            </div>
-            <label class="field field--block">
-              <span class="field__label">Notes (optional)</span>
-              <textarea id="add-item-notes" name="notes" class="textarea-autosize" rows="2" maxlength="2000"></textarea>
-            </label>
-            <label class="field field--block">
-              <span class="field__label">Measurements (optional)</span>
-              <input type="hidden" id="add-item-measured-dimensions" name="measuredDimensions" value="" />
-              <div id="add-item-measured-dims-block" class="add-item-measured-dims-host"></div>
-              <p class="measured-dims-hint">
-                Default fields: shoulder, chest, sleeve, length — rows without a value are not saved. Unit: <strong>cm</strong> or <strong>mm</strong>.
-              </p>
-            </label>
-            <p id="add-item-form-msg" class="add-item-form__msg" role="status" aria-live="polite"></p>
-            <div class="add-item-form__actions">
-              <button type="submit" class="btn" id="add-item-submit">Add to wardrobe</button>
-              <button type="reset" class="btn btn--ghost" id="add-item-reset">Reset form</button>
-              <span class="tw-admin-only add-item-form__dev-actions">
-                <button type="button" class="btn btn--ghost" id="add-item-export-custom-json">
-                  Export custom JSON…
-                </button>
-                <button type="button" class="btn btn--ghost" id="add-item-sync-custom-to-project">
-                  Save browser customs to project file…
-                </button>
-              </span>
+              </div>
             </div>
           </form>
         </section>

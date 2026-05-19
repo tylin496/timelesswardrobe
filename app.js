@@ -826,6 +826,29 @@
     ui.sv.focus();
   }
 
+  function itemEditColourCodeHasSwatch(codeInput) {
+    if (!(codeInput instanceof HTMLInputElement)) return false;
+    return Boolean(extractSwatchHexFromVariant({ colourCode: codeInput.value }));
+  }
+
+  /** @param {HTMLInputElement} codeInput */
+  async function pickColourFromScreen(codeInput) {
+    if (!(codeInput instanceof HTMLInputElement) || !("EyeDropper" in window)) return false;
+    try {
+      const dropper = new window.EyeDropper();
+      const result = await dropper.open();
+      if (result?.sRGBHex) {
+        codeInput.value = result.sRGBHex;
+        codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        codeInput.focus();
+        return true;
+      }
+    } catch {
+      /* cancelled */
+    }
+    return false;
+  }
+
   /**
    * @param {HTMLElement} preview
    * @param {HTMLInputElement} codeInput
@@ -834,42 +857,25 @@
   function mountColourPickerOnPreview(preview, codeInput, colourInput = null) {
     if (!(preview instanceof HTMLElement) || preview.dataset.colourPicker === "1") return;
     preview.dataset.colourPicker = "1";
-    preview.addEventListener("click", () => {
+    if ("EyeDropper" in window) {
+      preview.classList.add("item-edit-colour-code-preview--eyedropper");
+    }
+    const syncPickerAffordance = () => {
+      preview.classList.toggle("item-edit-colour-code-preview--has-code", itemEditColourCodeHasSwatch(codeInput));
+    };
+    syncPickerAffordance();
+    codeInput.addEventListener("input", syncPickerAffordance);
+    preview.addEventListener("click", async () => {
+      if (!itemEditColourCodeHasSwatch(codeInput)) {
+        await pickColourFromScreen(codeInput);
+        return;
+      }
       openItemColourPicker({
         codeInput,
         colourInput: colourInput instanceof HTMLInputElement ? colourInput : null,
         anchor: preview,
       });
     });
-  }
-
-  /** Eyedropper on colour-code row (Chrome / Edge); hidden when API unavailable. */
-  function mountEyedropperBtn(codeRow, codeInput) {
-    if (!("EyeDropper" in window)) return;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "item-edit-eyedropper-btn";
-    btn.setAttribute("aria-label", "Pick colour from screen");
-    btn.title = "Pick colour from screen";
-    btn.innerHTML =
-      '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">' +
-      '<path d="M13.5 1.5a1.8 1.8 0 0 0-2.55 0L9.5 3l-.7-.7a1 1 0 0 0-1.42 1.42l.35.35-5.3 5.3A2 2 0 0 0 2 10.8V13h2.2a2 2 0 0 0 1.42-.59l5.3-5.3.35.35a1 1 0 0 0 1.42-1.42l-.7-.7 1.5-1.5a1.8 1.8 0 0 0 0-2.54z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>' +
-      '<circle cx="3.5" cy="11.5" r="1" fill="currentColor"/>' +
-      "</svg>";
-    btn.addEventListener("click", async () => {
-      try {
-        const dropper = new window.EyeDropper();
-        const result = await dropper.open();
-        if (result?.sRGBHex) {
-          codeInput.value = result.sRGBHex;
-          codeInput.dispatchEvent(new Event("input", { bubbles: true }));
-          codeInput.focus();
-        }
-      } catch {
-        /* cancelled */
-      }
-    });
-    codeRow.appendChild(btn);
   }
 
   const TW_ITEM_EDIT_ICON = {
@@ -1097,7 +1103,6 @@
       syncDualOnPrimaryPreview: false,
       colourNamePlaceholder: "Secondary colour (optional)",
     });
-    mountEyedropperBtn(secCodeRow, secCodeInput);
     if (removeBtn) secCodeRow.appendChild(removeBtn);
 
     panel.append(secNameLab, secCodeLab);
@@ -4894,6 +4899,7 @@
       if (!row || typeof row !== "object") return;
       const id = String(row.id ?? "").trim();
       if (!id || cloudIds.has(id) || buriedIds.has(id) || candidatesById.has(id)) return;
+      if (isLocalCatalogueItemId(id)) return;
       candidatesById.set(id, normalizeItemDerivedFields({ ...row }));
     };
 
@@ -5644,7 +5650,11 @@
         return { ...base, __collectionOrdinal: idx };
       });
     slotRecordFallbackCategory = computeSlotRecordFallbackCategories(mergedBase);
-    const mergedList = isCloudModeActive() ? [...mergedBase] : [...loadCustomItems(), ...mergedBase];
+    const mergedList = isHybridLocalCatalogueEnabled()
+      ? [...mergedBase, ...filterCloudRowsForHybridCatalogue(cloudBackedCustomItems)]
+      : isCloudModeActive()
+        ? [...mergedBase]
+        : [...loadCustomItems(), ...mergedBase];
     items = mergedList.map((row) => {
       let row2 = row;
       let cat = String(row2.category ?? "").trim();
@@ -7518,12 +7528,265 @@
     back.addEventListener("click", (e) => navigateItemPageBack(e));
   }
 
+  function isItemPageCoarsePointer() {
+    return globalThis.matchMedia?.("(max-width: 900px), (hover: none), (pointer: coarse)")?.matches ?? false;
+  }
+
+  /** @type {HTMLDialogElement | null} */
+  let itemImageZoomDialogEl = null;
+
+  function ensureItemImageZoomDialog() {
+    if (itemImageZoomDialogEl?.isConnected) return itemImageZoomDialogEl;
+    const dlg = document.createElement("dialog");
+    dlg.id = "item-image-zoom-dialog";
+    dlg.className = "item-image-zoom-dialog";
+    dlg.setAttribute("aria-label", "Enlarged product photo");
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "item-image-zoom__close";
+    closeBtn.setAttribute("aria-label", "Close enlarged photo");
+    closeBtn.textContent = "Close";
+
+    const viewport = document.createElement("div");
+    viewport.className = "item-image-zoom__viewport";
+
+    const img = document.createElement("img");
+    img.className = "item-image-zoom__img";
+    img.alt = "";
+    img.decoding = "async";
+    img.draggable = false;
+
+    viewport.appendChild(img);
+    dlg.append(closeBtn, viewport);
+    document.body.appendChild(dlg);
+
+    const resetViewRef = { current: /** @type {null | (() => void)} */ (null) };
+
+    const closeDialog = () => {
+      resetViewRef.current?.();
+      resetViewRef.current = null;
+      if (dlg.open) dlg.close();
+    };
+
+    closeBtn.addEventListener("click", () => closeDialog());
+    dlg.addEventListener("click", (ev) => {
+      if (ev.target === dlg) closeDialog();
+    });
+    dlg.addEventListener("close", () => {
+      resetViewRef.current?.();
+      resetViewRef.current = null;
+      img.removeAttribute("src");
+    });
+    dlg.addEventListener("cancel", (ev) => {
+      ev.preventDefault();
+      closeDialog();
+    });
+
+    const wirePanPinch = () => {
+      let scale = 1;
+      let panX = 0;
+      let panY = 0;
+      /** @type {Map<number, PointerEvent>} */
+      const pointers = new Map();
+      let pinchStartDist = 0;
+      let pinchStartScale = 1;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragPanX = 0;
+      let dragPanY = 0;
+
+      const pointerDistance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+
+      const applyTransform = () => {
+        img.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+      };
+
+      const resetView = () => {
+        scale = 1;
+        panX = 0;
+        panY = 0;
+        img.style.transform = "";
+      };
+
+      const clampPan = () => {
+        const vr = viewport.getBoundingClientRect();
+        const ir = img.getBoundingClientRect();
+        if (!vr.width || !ir.width) return;
+        const maxX = Math.max(0, (ir.width * scale - vr.width) / 2);
+        const maxY = Math.max(0, (ir.height * scale - vr.height) / 2);
+        panX = Math.max(-maxX, Math.min(maxX, panX));
+        panY = Math.max(-maxY, Math.min(maxY, panY));
+      };
+
+      const onPointerDown = (ev) => {
+        if (ev.pointerType === "mouse" && ev.button !== 0) return;
+        ev.preventDefault();
+        viewport.setPointerCapture(ev.pointerId);
+        pointers.set(ev.pointerId, ev);
+        if (pointers.size === 1) {
+          dragStartX = ev.clientX;
+          dragStartY = ev.clientY;
+          dragPanX = panX;
+          dragPanY = panY;
+        } else if (pointers.size === 2) {
+          const pts = [...pointers.values()];
+          pinchStartDist = pointerDistance(pts[0], pts[1]);
+          pinchStartScale = scale;
+        }
+      };
+
+      const onPointerMove = (ev) => {
+        if (!pointers.has(ev.pointerId)) return;
+        pointers.set(ev.pointerId, ev);
+        if (pointers.size === 2) {
+          const pts = [...pointers.values()];
+          const d = pointerDistance(pts[0], pts[1]);
+          if (pinchStartDist > 0) {
+            scale = Math.min(4, Math.max(1, pinchStartScale * (d / pinchStartDist)));
+            if (scale <= 1.02) {
+              scale = 1;
+              panX = 0;
+              panY = 0;
+            }
+            applyTransform();
+            clampPan();
+          }
+          return;
+        }
+        if (pointers.size === 1 && scale > 1) {
+          panX = dragPanX + (ev.clientX - dragStartX);
+          panY = dragPanY + (ev.clientY - dragStartY);
+          clampPan();
+          applyTransform();
+        }
+      };
+
+      const endPointer = (ev) => {
+        pointers.delete(ev.pointerId);
+        try {
+          viewport.releasePointerCapture(ev.pointerId);
+        } catch {
+          /* ignore */
+        }
+        if (pointers.size === 1) {
+          const remaining = [...pointers.values()][0];
+          dragStartX = remaining.clientX;
+          dragStartY = remaining.clientY;
+          dragPanX = panX;
+          dragPanY = panY;
+          pinchStartDist = 0;
+        } else if (!pointers.size) {
+          pinchStartDist = 0;
+        }
+      };
+
+      viewport.addEventListener("pointerdown", onPointerDown);
+      viewport.addEventListener("pointermove", onPointerMove);
+      viewport.addEventListener("pointerup", endPointer);
+      viewport.addEventListener("pointercancel", endPointer);
+
+      return resetView;
+    };
+
+    dlg.__twOpen = ({ src, alt }) => {
+      resetViewRef.current?.();
+      resetViewRef.current = wirePanPinch();
+      img.alt = alt || "";
+      img.src = src;
+      try {
+        dlg.showModal();
+      } catch {
+        resetViewRef.current?.();
+        resetViewRef.current = null;
+      }
+    };
+
+    itemImageZoomDialogEl = dlg;
+    return dlg;
+  }
+
   /**
-   * item.html hero zoom in-place (inside media frame), with pointer pan.
+   * Mobile / touch: full-screen viewer with pinch-pan (inline scale zoom is desktop-only).
+   * @param {{ src: string, alt?: string }} opts
+   */
+  function openItemImageZoomLightbox(opts) {
+    const src = String(opts?.src ?? "").trim();
+    if (!src) return;
+    const dlg = ensureItemImageZoomDialog();
+    dlg.__twOpen?.({ src, alt: String(opts?.alt ?? "") });
+  }
+
+  /**
+   * Touch PDP hero: horizontal swipe between frames; tap opens full-screen zoom.
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} heroImg
+   * @param {{ frameCount?: number, step?: (delta: number) => void } | null} galleryApi
+   */
+  function wireItemPageMobileHero(media, heroImg, galleryApi) {
+    if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
+    if (media.dataset.twMobileHeroWired === "1") return;
+    media.dataset.twMobileHeroWired = "1";
+
+    media.classList.add("item-detail__media--mobile-hero");
+    heroImg.title = "Tap to view full screen";
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let suppressTap = false;
+
+    media.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches?.[0];
+        if (!t) return;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        suppressTap = false;
+      },
+      { passive: true }
+    );
+
+    media.addEventListener(
+      "touchend",
+      (e) => {
+        const frameCount = galleryApi?.frameCount ?? 0;
+        if (frameCount < 2) return;
+        const t = e.changedTouches?.[0];
+        if (!t) return;
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (Math.abs(dx) < 48) return;
+        if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
+        suppressTap = true;
+        galleryApi?.step?.(dx < 0 ? 1 : -1);
+        e.preventDefault();
+      },
+      { passive: false }
+    );
+
+    heroImg.addEventListener("click", (e) => {
+      if (e.target.closest(".item-detail__gallery-nav")) return;
+      if (suppressTap) {
+        suppressTap = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      e.preventDefault();
+      const src = heroImg.currentSrc || heroImg.src;
+      if (!src) return;
+      openItemImageZoomLightbox({ src, alt: heroImg.alt });
+    });
+  }
+
+  /**
+   * item.html hero zoom in-place (inside media frame), with pointer pan — desktop / fine pointer only.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
    */
   function wireInlineItemHeroZoom(media, heroImg) {
+    if (isItemPageCoarsePointer()) return;
     if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
     media.classList.add("item-detail__media--zoomable");
     heroImg.classList.add("item-detail__hero-img--zoomable");
@@ -9577,6 +9840,19 @@
     document.body.classList.add("collection-ui--division-chips");
   }
 
+  let lastCategoryDrillStructureKey = "";
+
+  function categoryDrillStructureKey(slot, typeEntries) {
+    return [slot, subcategoryFiltersKey(), ...typeEntries.map((e) => `${e.raw}\t${e.label}`)].join("\0");
+  }
+
+  function syncCategoryDrillActiveStates(grid) {
+    grid.querySelectorAll(".category-drill__choice[data-subcategory]").forEach((btn) => {
+      const raw = String(btn.dataset.subcategory ?? "");
+      btn.classList.toggle("is-active", subcategoryEntryIsActive(raw));
+    });
+  }
+
   function renderCategoryDrill() {
     const drill = document.getElementById("category-drill");
     const grid = document.getElementById("category-drill-grid");
@@ -9592,6 +9868,7 @@
       drill.hidden = true;
       grid.hidden = true;
       grid.innerHTML = "";
+      lastCategoryDrillStructureKey = "";
       return;
     }
 
@@ -9602,13 +9879,73 @@
       drill.hidden = true;
       grid.hidden = true;
       grid.innerHTML = "";
+      lastCategoryDrillStructureKey = "";
       return;
     }
 
-    /** Division pills (Clothing, Accessories, …) in toolbar; record types stay in mega menu + filter drawer. */
-    renderCollectionSlotTypeStrip({ omitAllTypes: true });
+    const slot = String(categoryNavFilter ?? "").trim();
+
+    /** All Types: division pills only (Clothing, Accessories, …). */
+    if (!slot) {
+      renderCollectionSlotTypeStrip({ omitAllTypes: true });
+      grid.innerHTML = "";
+      grid.hidden = true;
+      lastCategoryDrillStructureKey = "";
+      return;
+    }
+
+    /** In a category: record-type chips only — division pills are collection-level. */
+    document.getElementById("collection-slot-type-strip")?.remove();
+    document.body.classList.remove("collection-ui--division-chips");
+    drill.hidden = false;
+    drill.removeAttribute("aria-hidden");
+
+    const seasonalPool = poolItemsForDrillSubcategories();
+    if (!seasonalPool.length) {
+      clearSubcategoryFilters();
+      grid.innerHTML = "";
+      grid.hidden = true;
+      lastCategoryDrillStructureKey = "";
+      return;
+    }
+
+    const typeEntries = megaMenuSubcategoryEntriesForSlot(slot, seasonalPool);
+    const specificTypes = typeEntries.filter((e) => String(e.raw ?? "").trim());
+
+    if (!specificTypes.length) {
+      clearSubcategoryFilters();
+      grid.innerHTML = "";
+      grid.hidden = true;
+      lastCategoryDrillStructureKey = "";
+      return;
+    }
+
+    const structureKey = categoryDrillStructureKey(slot, typeEntries);
+    if (structureKey === lastCategoryDrillStructureKey && grid.childElementCount > 0) {
+      syncCategoryDrillActiveStates(grid);
+      grid.hidden = false;
+      return;
+    }
+    lastCategoryDrillStructureKey = structureKey;
+
     grid.innerHTML = "";
-    grid.hidden = true;
+    grid.hidden = false;
+
+    for (const { raw, label } of typeEntries) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "category-drill__choice";
+      if (subcategoryEntryIsActive(raw)) b.classList.add("is-active");
+      b.dataset.subcategory = String(raw ?? "");
+      b.textContent = label;
+      grid.appendChild(b);
+    }
+
+    if (grid.childElementCount <= 0) {
+      clearSubcategoryFilters();
+      grid.hidden = true;
+      lastCategoryDrillStructureKey = "";
+    }
   }
 
   /** Season, slot, drill, basic colour, and brand — no live keyword typing (keywords are commit-only). */
@@ -10138,6 +10475,7 @@
    */
   function mountItemDetailPageGallery(galleryEl, thumbsEl, stageEl, heroImgEl, item, opts = {}) {
     if (!galleryEl || !thumbsEl || !stageEl || !heroImgEl) return;
+    delete stageEl.dataset.twMobileHeroWired;
     if (galleryEl.__twThumbRailObs?.disconnect) {
       galleryEl.__twThumbRailObs.disconnect();
       galleryEl.__twThumbRailObs = null;
@@ -10273,13 +10611,30 @@
       galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
       thumbsEl.style.removeProperty("max-height");
     }
+
+    if (opts.mobileHeroInteractions && isItemPageCoarsePointer()) {
+      stageEl.__twPdpGallery = {
+        frameCount: frames.length,
+        step(delta) {
+          showFrame(currentIndex + delta);
+        },
+      };
+      wireItemPageMobileHero(stageEl, heroImgEl, stageEl.__twPdpGallery);
+    }
   }
 
   function remountItemDetailHeroGallery(heroHost, heroImg, item) {
     const galleryRoot = heroHost?.closest?.(".item-detail__gallery");
     if (galleryRoot && heroHost.classList.contains("item-detail__gallery-stage")) {
       const thumbs = galleryRoot.querySelector(".item-detail__gallery-thumbs");
-      if (thumbs) mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item);
+      const root = itemDetailMountRoot();
+      const mobileHero =
+        itemDetailIsPageRoot(root) && !root?.classList?.contains("item-detail__root--edit");
+      if (thumbs) {
+        mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item, {
+          mobileHeroInteractions: mobileHero,
+        });
+      }
       return;
     }
     heroHost.querySelector(".card__gallery-strip")?.remove();
@@ -10995,8 +11350,104 @@
   function showAddItemFormMsg(text, isError) {
     const el = document.getElementById("add-item-form-msg");
     if (!el) return;
-    el.textContent = text || "";
+    const msg = String(text ?? "").trim();
+    el.textContent = msg;
+    el.hidden = !msg;
     el.classList.toggle("add-item-form__msg--error", Boolean(isError));
+  }
+
+  function resetAddItemPhotoManager() {
+    const host = document.getElementById("add-item-photos");
+    if (!(host instanceof HTMLElement)) return;
+    revokeItemEditPhotoManager(host);
+    mountItemEditPhotoManager(host, { uploadLabel: "Upload photos" });
+  }
+
+  /** Wire add-item colour block to match item edit (preview picker, secondary, broad colour). */
+  function wireAddItemFormColourFields() {
+    const addItemColourCode = document.getElementById("add-item-colour-code");
+    const addItemColourName = document.getElementById("add-item-colour");
+    const addItemCodePreview = document.getElementById("add-item-colour-code-preview");
+    const addItemCodeRow = document.getElementById("add-item-colour-code-row");
+    const addItemBasicPair = document.getElementById("add-item-basic-colour-pair");
+    const addItemBasicSel = document.getElementById("add-item-basic-colour");
+    const noop = () => {};
+    if (!(addItemColourCode instanceof HTMLInputElement) || !(addItemCodePreview instanceof HTMLElement)) {
+      return { syncAddPrimaryPreview: noop, addSecColourMount: null, syncAddSecondaryBasicVisibility: noop };
+    }
+
+    mountColourPickerOnPreview(
+      addItemCodePreview,
+      addItemColourCode,
+      addItemColourName instanceof HTMLInputElement ? addItemColourName : null
+    );
+    const syncAddPrimaryPreview = wireItemEditColourCodePreview({
+      input: addItemColourCode,
+      preview: addItemCodePreview,
+      colourInput: addItemColourName instanceof HTMLInputElement ? addItemColourName : null,
+      getSecondarySources: () => ({
+        colour: document.getElementById("add-item-secondary-colour")?.value ?? "",
+        colourCode: document.getElementById("add-item-secondary-colour-code")?.value ?? "",
+      }),
+    });
+
+    /** @type {ReturnType<typeof mountItemEditSecondaryColourBlock> | null} */
+    let addSecColourMount = null;
+    /** @type {{ wrap: HTMLElement, sel: HTMLSelectElement, sync: (() => void) | null } | null} */
+    let addItemSecBasicMount = null;
+    const syncAddSecondaryBasicVisibility = () => {
+      if (!addItemSecBasicMount) return;
+      const hasSec = shouldShowItemEditSecondaryBasicColour(addSecColourMount);
+      addItemSecBasicMount.wrap.hidden = !hasSec;
+      if (hasSec) addItemSecBasicMount.sync?.();
+    };
+
+    const addItemSecondaryMountEl = document.getElementById("add-item-secondary-colour-mount");
+    if (addItemSecondaryMountEl && addItemSecondaryMountEl.dataset.mounted !== "1") {
+      addItemSecondaryMountEl.dataset.mounted = "1";
+      addSecColourMount = mountItemEditSecondaryColourBlock(addItemSecondaryMountEl, {}, {
+        nameId: "add-item-secondary-colour",
+        codeId: "add-item-secondary-colour-code",
+        addBtnParent: addItemCodeRow instanceof HTMLElement ? addItemCodeRow : undefined,
+        onRemoved: () => {
+          syncAddPrimaryPreview();
+          syncAddSecondaryBasicVisibility();
+        },
+        onShown: syncAddSecondaryBasicVisibility,
+      });
+      addSecColourMount.secNameInput?.addEventListener("input", () => {
+        syncAddPrimaryPreview();
+        syncAddSecondaryBasicVisibility();
+      });
+      addSecColourMount.secCodeInput?.addEventListener("input", () => {
+        syncAddPrimaryPreview();
+        syncAddSecondaryBasicVisibility();
+      });
+      addItemSecondaryMountEl.addEventListener("change", syncAddSecondaryBasicVisibility);
+    }
+
+    if (addItemBasicSel instanceof HTMLSelectElement && addItemBasicPair instanceof HTMLElement) {
+      refillBasicColourSelectOptions(addItemBasicSel, "");
+      addItemSecBasicMount = createItemEditSecondaryBasicColourField("", {
+        id: "add-item-secondary-basic-colour",
+        hidden: true,
+        getFields: () =>
+          readItemEditSecondaryColourFieldValues(
+            addSecColourMount?.secNameInput,
+            addSecColourMount?.secCodeInput
+          ),
+      });
+      addItemBasicPair.appendChild(addItemSecBasicMount.wrap);
+      const syncAddItemBasicAuto = wireItemEditBasicColourAutoDisplay(addItemBasicSel, () => ({
+        colour: itemEditColourNameSaveValue(addItemColourName),
+        colourCode: itemEditColourCodeSaveValue(addItemColourCode),
+      }));
+      addItemColourName?.addEventListener("input", syncAddItemBasicAuto);
+      addItemColourCode.addEventListener("input", syncAddItemBasicAuto);
+    }
+    syncAddSecondaryBasicVisibility();
+
+    return { syncAddPrimaryPreview, addSecColourMount, syncAddSecondaryBasicVisibility };
   }
 
   /**
@@ -11037,7 +11488,15 @@
   let itemPhotoCropDialogEl = null;
 
   function ensureItemPhotoCropDialog() {
-    if (itemPhotoCropDialogEl) return itemPhotoCropDialogEl;
+    if (itemPhotoCropDialogEl) {
+      if (itemPhotoCropDialogEl.__twCrop?.nudgePad) return itemPhotoCropDialogEl;
+      try {
+        itemPhotoCropDialogEl.remove();
+      } catch {
+        /* ignore */
+      }
+      itemPhotoCropDialogEl = null;
+    }
 
     const dlg = document.createElement("dialog");
     dlg.id = "item-photo-crop-dialog";
@@ -11054,7 +11513,7 @@
 
     const meta = document.createElement("p");
     meta.className = "item-photo-crop__meta";
-    meta.textContent = "Drag to reposition · pinch or slider to zoom";
+    meta.textContent = "Drag or arrow keys to reposition · use position pad or zoom slider";
 
     const viewport = document.createElement("div");
     viewport.className = "item-photo-crop__viewport";
@@ -11090,6 +11549,55 @@
     zoomRow.appendChild(zoomLabel);
     zoomRow.appendChild(zoomInput);
 
+    const nudgeRow = document.createElement("div");
+    nudgeRow.className = "item-photo-crop__nudge";
+    const nudgeLabel = document.createElement("span");
+    nudgeLabel.className = "item-photo-crop__nudge-label";
+    nudgeLabel.textContent = "Position";
+    const nudgePad = document.createElement("div");
+    nudgePad.className = "item-photo-crop__nudge-pad";
+    nudgePad.setAttribute("role", "group");
+    nudgePad.setAttribute("aria-label", "Fine-tune position");
+
+    const nudgeUp = document.createElement("button");
+    nudgeUp.type = "button";
+    nudgeUp.className = "item-photo-crop__nudge-btn item-photo-crop__nudge-btn--up";
+    nudgeUp.dataset.nudge = "up";
+    nudgeUp.setAttribute("aria-label", "Move up");
+    nudgeUp.textContent = "↑";
+
+    const nudgeMid = document.createElement("div");
+    nudgeMid.className = "item-photo-crop__nudge-mid";
+
+    const nudgeLeft = document.createElement("button");
+    nudgeLeft.type = "button";
+    nudgeLeft.className = "item-photo-crop__nudge-btn";
+    nudgeLeft.dataset.nudge = "left";
+    nudgeLeft.setAttribute("aria-label", "Move left");
+    nudgeLeft.textContent = "←";
+
+    const nudgeRight = document.createElement("button");
+    nudgeRight.type = "button";
+    nudgeRight.className = "item-photo-crop__nudge-btn";
+    nudgeRight.dataset.nudge = "right";
+    nudgeRight.setAttribute("aria-label", "Move right");
+    nudgeRight.textContent = "→";
+
+    const nudgeDown = document.createElement("button");
+    nudgeDown.type = "button";
+    nudgeDown.className = "item-photo-crop__nudge-btn item-photo-crop__nudge-btn--down";
+    nudgeDown.dataset.nudge = "down";
+    nudgeDown.setAttribute("aria-label", "Move down");
+    nudgeDown.textContent = "↓";
+
+    nudgeMid.appendChild(nudgeLeft);
+    nudgeMid.appendChild(nudgeRight);
+    nudgePad.appendChild(nudgeUp);
+    nudgePad.appendChild(nudgeMid);
+    nudgePad.appendChild(nudgeDown);
+    nudgeRow.appendChild(nudgeLabel);
+    nudgeRow.appendChild(nudgePad);
+
     const actions = document.createElement("div");
     actions.className = "item-photo-crop__actions";
 
@@ -11110,11 +11618,12 @@
     inner.appendChild(meta);
     inner.appendChild(viewport);
     inner.appendChild(zoomRow);
+    inner.appendChild(nudgeRow);
     inner.appendChild(actions);
     dlg.appendChild(inner);
     document.body.appendChild(dlg);
 
-    dlg.__twCrop = { title, meta, viewport, img, frame, zoomInput, cancelBtn, useBtn };
+    dlg.__twCrop = { title, meta, viewport, img, frame, zoomInput, nudgePad, cancelBtn, useBtn };
     itemPhotoCropDialogEl = dlg;
     return dlg;
   }
@@ -11381,7 +11890,7 @@
         return;
       }
 
-      const { title, meta, viewport, img: cropImg, frame, zoomInput, cancelBtn, useBtn } = ui;
+      const { title, meta, viewport, img: cropImg, frame, zoomInput, nudgePad, cancelBtn, useBtn } = ui;
 
       /** @type {{ left: number, top: number, width: number, height: number, right: number, bottom: number }} */
       let frameRect = { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
@@ -11428,6 +11937,8 @@
         resizeObserver?.disconnect();
         resizeObserver = null;
         endDrag();
+        dlg.removeEventListener("keydown", onCropKeyDown);
+        nudgePad?.removeEventListener("click", onNudgePadClick);
         if (objectUrl) {
           try {
             URL.revokeObjectURL(objectUrl);
@@ -11525,6 +12036,20 @@
         cropImg.style.top = `${panY}px`;
       };
 
+      const nudgeStepPx = (fine = false) => {
+        const base = Math.max(2, Math.round(Math.min(frameRect.width || 120, frameRect.height || 160) * 0.012));
+        return fine ? Math.max(1, Math.round(base * 0.35)) : base;
+      };
+
+      const nudgePan = (dx, dy, fine = false) => {
+        if (!dx && !dy) return;
+        const step = nudgeStepPx(fine);
+        panX += dx * step;
+        panY += dy * step;
+        clampPan();
+        applyTransform();
+      };
+
       const fitImageCover = () => {
         if (!naturalW || !naturalH) return;
         enforceCoverScale();
@@ -11572,19 +12097,19 @@
           zoomInput.max = "3";
           baseScale = containScaleFit();
           meta.textContent = opts.label
-            ? `${opts.label} · 3×4 frame · cutout — drag freely, zoom to size`
-            : "3×4 frame · cutout — drag freely · zoom to size";
+            ? `${opts.label} · 3×4 frame · cutout — drag, arrows, or position pad`
+            : "3×4 frame · cutout — drag, arrows, or position pad · zoom to size";
         } else {
           zoomInput.min = "1";
           zoomInput.max = aspectMatched ? "2" : "3";
           baseScale = coverScaleMin() * CROP_COVER_OVERSCAN;
           meta.textContent = aspectMatched
             ? opts.label
-              ? `${opts.label} · 3×4 frame · edges filled · drag or zoom`
-              : "3×4 frame · edges filled · drag to reposition · slider to zoom"
+              ? `${opts.label} · 3×4 frame · edges filled · drag, arrows, or position pad`
+              : "3×4 frame · edges filled · drag, arrows, or position pad · zoom"
             : opts.label
-              ? `${opts.label} · 3×4 frame · drag to reposition, slider to zoom`
-              : "3×4 frame · drag to reposition · slider to zoom";
+              ? `${opts.label} · 3×4 frame · drag, arrows, or position pad · zoom`
+              : "3×4 frame · drag, arrows, or position pad · zoom";
         }
         if (cutoutFreeCrop) fitImageInFrame({ resetScale: true, resetZoom: true, recenter: true });
         else fitImageCover();
@@ -11712,10 +12237,47 @@
           }
         })();
       };
+      const onCropKeyDown = (ev) => {
+        if (!dlg.open) return;
+        let dx = 0;
+        let dy = 0;
+        switch (ev.key) {
+          case "ArrowLeft":
+            dx = -1;
+            break;
+          case "ArrowRight":
+            dx = 1;
+            break;
+          case "ArrowUp":
+            dy = -1;
+            break;
+          case "ArrowDown":
+            dy = 1;
+            break;
+          default:
+            return;
+        }
+        ev.preventDefault();
+        nudgePan(dx, dy, ev.shiftKey);
+      };
+
+      const onNudgePadClick = (ev) => {
+        const btn = ev.target instanceof Element ? ev.target.closest("[data-nudge]") : null;
+        if (!btn || !(btn instanceof HTMLButtonElement)) return;
+        ev.preventDefault();
+        const dir = btn.dataset.nudge;
+        if (dir === "left") nudgePan(-1, 0, ev.shiftKey);
+        else if (dir === "right") nudgePan(1, 0, ev.shiftKey);
+        else if (dir === "up") nudgePan(0, -1, ev.shiftKey);
+        else if (dir === "down") nudgePan(0, 1, ev.shiftKey);
+      };
+
       zoomInput.oninput = onZoom;
       viewport.onwheel = onWheel;
       viewport.onpointerdown = onPointerDown;
       dlg.oncancel = onDialogCancel;
+      dlg.addEventListener("keydown", onCropKeyDown);
+      nudgePad?.addEventListener("click", onNudgePadClick);
 
       title.textContent = "Crop photo";
       useBtn.disabled = false;
@@ -12774,10 +13336,9 @@
     let priceVal = parsePriceFormValue(priceRaw);
     if (!Number.isFinite(priceVal) || priceVal < 0) priceVal = null;
     const notes = document.getElementById("add-item-notes")?.value?.trim() || "";
-    const photosInput = document.getElementById("add-item-photos");
-    const photoFiles = photosInput?.files ? Array.from(photosInput.files) : [];
-    const file = photoFiles[0];
-    const galleryFiles = photoFiles.slice(1);
+    const photoHost = document.getElementById("add-item-photos");
+    const photoSlots =
+      photoHost instanceof HTMLElement ? readItemEditPhotoManager(photoHost).slots : [];
     if (!brand || !name || !browseSlot) {
       showAddItemFormMsg("Fill required fields (brand, name, section).", true);
       return;
@@ -12788,7 +13349,7 @@
       return;
     }
 
-    if (file || galleryFiles.length) showAddItemFormMsg("Processing images…", false);
+    if (photoSlots.length) showAddItemFormMsg("Processing images…", false);
 
     const newId =
       typeof crypto !== "undefined" && crypto.randomUUID
@@ -12796,36 +13357,14 @@
         : `custom-${Date.now()}`;
 
     let dataUrl = "";
-    if (file) {
-      try {
-        dataUrl = isSupabaseReady()
-          ? await uploadWardrobeImageFileToCloud(file, newId, { type: "main_cover" })
-          : await fileToStorageDataUrl(file);
-      } catch (err) {
-        console.warn(err);
-        showAddItemFormMsg(messageForCloudUploadFailure("main cover", err), true);
-        return;
-      }
+    let galleryDeduped = [];
+    if (photoSlots.length) {
+      const materialized = await materializeItemEditPhotoSlots(photoSlots, newId, (msg, err) =>
+        showAddItemFormMsg(msg, err)
+      );
+      dataUrl = materialized.image;
+      galleryDeduped = materialized.gallery;
     }
-    const MAX_GALLERY = 12;
-    /** @type {string[]} */
-    const galleryUrls = [];
-    const gallerySlice = galleryFiles.slice(0, MAX_GALLERY);
-    for (let gi = 0; gi < gallerySlice.length; gi++) {
-      const gf = gallerySlice[gi];
-      try {
-        galleryUrls.push(
-          isSupabaseReady()
-            ? await uploadWardrobeImageFileToCloud(gf, newId, { type: "main_gallery", index: gi + 1 })
-            : await fileToStorageDataUrl(gf, { preferJpeg: true })
-        );
-      } catch (err) {
-        console.warn(err);
-        showAddItemFormMsg(messageForCloudUploadFailure(`gallery image #${gi + 1}`, err), true);
-      }
-    }
-
-    const galleryDeduped = galleryUrls.filter((u) => u && u !== dataUrl);
 
     const colourTrim = String(colourVal ?? "").trim();
     const colourCodeTrim = String(colourCodeInput ?? "").trim();
@@ -13033,12 +13572,24 @@
     const form = document.getElementById("add-item-form");
     const cat = document.getElementById("add-item-category");
     const recordSel = document.getElementById("add-item-record-type");
-    const photosInput = document.getElementById("add-item-photos");
-    const preview = document.getElementById("add-item-preview");
     if (!form || !cat || !recordSel) return;
     addItemFormWired = true;
     const addItemPriceIn = document.getElementById("add-item-price");
     if (addItemPriceIn instanceof HTMLInputElement) wirePriceAmountInput(addItemPriceIn);
+    const addItemPriceCur = document.getElementById("add-item-price-currency");
+    if (addItemPriceCur instanceof HTMLSelectElement) {
+      addItemPriceCur.replaceChildren();
+      for (const c of PRICE_CURRENCY_CODES) {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        if (c === "TWD") o.selected = true;
+        addItemPriceCur.appendChild(o);
+      }
+    }
+    const addItemNotes = document.getElementById("add-item-notes");
+    if (addItemNotes instanceof HTMLTextAreaElement) wireTextareaAutosize(addItemNotes);
+    resetAddItemPhotoManager();
     cat.innerHTML = "";
     for (const c of SLOT_OPTIONS) {
       const o = document.createElement("option");
@@ -13064,128 +13615,27 @@
     cat.addEventListener("change", () => syncAddItemRecordTypes(""));
     syncAddItemRecordTypes();
 
-    photosInput?.addEventListener("change", () => {
-      const f = photosInput.files?.[0];
-      if (!preview) return;
-      if (!f) {
-        preview.hidden = true;
-        preview.removeAttribute("src");
-        return;
-      }
-      const u = URL.createObjectURL(f);
-      preview.onload = () => URL.revokeObjectURL(u);
-      preview.src = u;
-      preview.hidden = false;
-    });
-
     form.addEventListener("submit", (e) => void handleAddItemSubmit(e));
 
-    /** @type {{ wrap: HTMLElement, sel: HTMLSelectElement, sync: (() => void) | null } | null} */
-    let addItemSecBasicMount = null;
-    /** @type {ReturnType<typeof mountItemEditSecondaryColourBlock> | null} */
-    let addSecColourMount = null;
-    const syncAddSecondaryBasicVisibility = () => {
-      if (!addItemSecBasicMount) return;
-      const hasSec = shouldShowItemEditSecondaryBasicColour(addSecColourMount);
-      addItemSecBasicMount.wrap.hidden = !hasSec;
-      if (hasSec) addItemSecBasicMount.sync?.();
-    };
-
-    const addItemColourCode = document.getElementById("add-item-colour-code");
-    const addItemColourName = document.getElementById("add-item-colour");
-    if (addItemColourCode instanceof HTMLInputElement) {
-      const addItemCodeLab = addItemColourCode.closest("label.field");
-      if (addItemCodeLab && !addItemCodeLab.querySelector(".item-edit-colour-code-row")) {
-        const addItemCodeRow = document.createElement("div");
-        addItemCodeRow.className = "item-edit-colour-code-row";
-        const addItemCodePreview = createItemEditColourCodePreview();
-        addItemCodeLab.removeChild(addItemColourCode);
-        addItemCodeRow.append(addItemCodePreview, addItemColourCode);
-        addItemCodeLab.appendChild(addItemCodeRow);
-        const syncAddPrimaryPreview = wireItemEditColourCodePreview({
-          input: addItemColourCode,
-          preview: addItemCodePreview,
-          colourInput: addItemColourName instanceof HTMLInputElement ? addItemColourName : null,
-          getSecondarySources: () => ({
-            colour: document.getElementById("add-item-secondary-colour")?.value ?? "",
-            colourCode: document.getElementById("add-item-secondary-colour-code")?.value ?? "",
-          }),
-        });
-        mountEyedropperBtn(addItemCodeRow, addItemColourCode);
-
-        const addItemSecondaryMountEl = document.getElementById("add-item-secondary-colour-mount");
-        if (addItemSecondaryMountEl && addItemSecondaryMountEl.dataset.mounted !== "1") {
-          addItemSecondaryMountEl.dataset.mounted = "1";
-          addSecColourMount = mountItemEditSecondaryColourBlock(addItemSecondaryMountEl, {}, {
-            nameId: "add-item-secondary-colour",
-            codeId: "add-item-secondary-colour-code",
-            onRemoved: () => {
-              syncAddPrimaryPreview();
-              syncAddSecondaryBasicVisibility();
-            },
-            onShown: syncAddSecondaryBasicVisibility,
-          });
-          addSecColourMount.secNameInput?.addEventListener("input", () => {
-            syncAddPrimaryPreview();
-            syncAddSecondaryBasicVisibility();
-          });
-          addSecColourMount.secCodeInput?.addEventListener("input", () => {
-            syncAddPrimaryPreview();
-            syncAddSecondaryBasicVisibility();
-          });
-          addItemSecondaryMountEl.addEventListener("change", syncAddSecondaryBasicVisibility);
-        }
-      }
-    }
-
-    const addItemBasicSel = document.getElementById("add-item-basic-colour");
-    if (addItemBasicSel instanceof HTMLSelectElement) {
-      const addBasicLab = addItemBasicSel.closest("label.field");
-      const addBasicLabel = addBasicLab?.querySelector(".field__label");
-      if (addBasicLabel) addBasicLabel.textContent = "Broad colour — primary (optional)";
-      if (addBasicLab?.parentElement && !addBasicLab.parentElement.querySelector(".item-edit-basic-colour-pair")) {
-        const addBasicPair = document.createElement("div");
-        addBasicPair.className = "item-edit-basic-colour-pair field--span2";
-        addBasicLab.parentElement.insertBefore(addBasicPair, addBasicLab);
-        addBasicPair.appendChild(addBasicLab);
-        addItemSecBasicMount = createItemEditSecondaryBasicColourField("", {
-          id: "add-item-secondary-basic-colour",
-          hidden: true,
-          getFields: () =>
-            readItemEditSecondaryColourFieldValues(
-              addSecColourMount?.secNameInput,
-              addSecColourMount?.secCodeInput
-            ),
-        });
-        addBasicPair.appendChild(addItemSecBasicMount.wrap);
-        syncAddSecondaryBasicVisibility();
-      }
-      const syncAddItemBasicAuto = wireItemEditBasicColourAutoDisplay(addItemBasicSel, () => ({
-        colour: itemEditColourNameSaveValue(addItemColourName),
-        colourCode: itemEditColourCodeSaveValue(addItemColourCode),
-      }));
-      addItemColourName?.addEventListener("input", syncAddItemBasicAuto);
-      addItemColourCode?.addEventListener("input", syncAddItemBasicAuto);
-    }
+    const { syncAddPrimaryPreview, syncAddSecondaryBasicVisibility } = wireAddItemFormColourFields();
 
     form.addEventListener("reset", () => {
       requestAnimationFrame(() => {
-        if (preview) {
-          preview.hidden = true;
-          preview.removeAttribute("src");
-        }
         showAddItemFormMsg("", false);
         syncAddItemRecordTypes();
         resetAddItemMeasurementBlock();
+        resetAddItemPhotoManager();
         const secBlock = document
           .getElementById("add-item-secondary-colour-mount")
           ?.querySelector(".item-edit-secondary-colour-block");
         resetItemEditSecondaryColourBlock(/** @type {HTMLElement} */ (secBlock));
         const addBasic = document.getElementById("add-item-basic-colour");
         if (addBasic instanceof HTMLSelectElement) {
+          refillBasicColourSelectOptions(addBasic, "");
           const getFields = basicColourAutoFieldSources.get(addBasic);
           if (typeof getFields === "function") syncItemEditBasicColourAutoDisplay(addBasic, getFields());
         }
+        syncAddPrimaryPreview();
         syncAddSecondaryBasicVisibility();
       });
     });
@@ -13210,6 +13660,7 @@
       queueMicrotask(() => {
         document.getElementById("add-item-brand")?.focus();
         resetAddItemMeasurementBlock();
+        resetAddItemPhotoManager();
       });
     });
     closeAdd?.addEventListener("click", () => addDlg?.close());
@@ -14789,7 +15240,6 @@
     secondarySlot.className = "item-edit-variant-secondary-slot";
     const syncPrimaryColourPreviewRef = { fn: () => {} };
     const syncVariantSecondaryBasicVisibilityRef = { fn: () => {} };
-    mountEyedropperBtn(codeRow, codeIn);
 
     const variantSecondaryMount = mountItemEditSecondaryColourBlock(
       secondarySlot,
@@ -15503,44 +15953,66 @@
           patch.metadata = null;
       }
 
-      try {
-        const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
-        const saved = await saveWardrobeItemToCloud(mergedForCloud);
-        const mediaBust = stampWardrobeItemMediaNonce(
-          saved,
+      if (isLocalCatalogueItemId(id)) {
+        const mergedLocal = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
+        stampWardrobeItemMediaNonce(
+          mergedLocal,
           typeof /** @type {any} */ (updated).__displayNonce === "number"
             ? /** @type {any} */ (updated).__displayNonce
             : Date.now()
         );
-        collectionCloudRowSaved = true;
-        upsertWardrobeBaseRowInMemory(saved);
+        upsertWardrobeBaseRowInMemory(mergedLocal);
         try {
           const allOv = loadCollectionOverrides();
-          if (Object.prototype.hasOwnProperty.call(allOv, id)) {
-            delete allOv[id];
-            await saveCollectionOverrides(allOv);
-          }
-        } catch (clearOvErr) {
-          console.warn("Could not clear stale collection override after cloud save.", clearOvErr);
+          const patchOv = { ...patch };
+          delete patchOv.metadata;
+          allOv[id] = patchOv;
+          await saveCollectionOverrides(allOv);
+        } catch (ovErr) {
+          console.warn("Could not persist collection override for local catalogue row.", ovErr);
         }
-        cloudBackedCustomItems = [
-          saved,
-          ...cloudBackedCustomItems.filter((x) => String(x?.id ?? "") !== String(saved.id)),
-        ];
+        collectionSavedAsOverride = true;
+        savedRowForPin = mergedLocal;
+      } else {
         try {
-          await deleteSupabaseImagesNoLongerUsed(prev, saved, mergedForCloud);
-        } catch (imgErr) {
-          console.warn("Image cleanup after catalogue save (continuing):", imgErr);
+          const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
+          const saved = await saveWardrobeItemToCloud(mergedForCloud);
+          const mediaBust = stampWardrobeItemMediaNonce(
+            saved,
+            typeof /** @type {any} */ (updated).__displayNonce === "number"
+              ? /** @type {any} */ (updated).__displayNonce
+              : Date.now()
+          );
+          collectionCloudRowSaved = true;
+          upsertWardrobeBaseRowInMemory(saved);
+          try {
+            const allOv = loadCollectionOverrides();
+            if (Object.prototype.hasOwnProperty.call(allOv, id)) {
+              delete allOv[id];
+              await saveCollectionOverrides(allOv);
+            }
+          } catch (clearOvErr) {
+            console.warn("Could not clear stale collection override after cloud save.", clearOvErr);
+          }
+          cloudBackedCustomItems = [
+            saved,
+            ...cloudBackedCustomItems.filter((x) => String(x?.id ?? "") !== String(saved.id)),
+          ];
+          try {
+            await deleteSupabaseImagesNoLongerUsed(prev, saved, mergedForCloud);
+          } catch (imgErr) {
+            console.warn("Image cleanup after catalogue save (continuing):", imgErr);
+          }
+          savedRowForPin = saved;
+          await refreshCloudBackedCustomItems({ pinnedRows: [saved] });
+          const hitCat = cloudBackedCustomItems.find((x) => String(x?.id ?? "") === String(id));
+          if (hitCat) /** @type {any} */ (hitCat).__displayNonce = mediaBust;
+          didCloudListRefresh = true;
+        } catch (e) {
+          setMsg(`Cloud row save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
+          keepFinalWarningMessage = true;
+          return;
         }
-        savedRowForPin = saved;
-        await refreshCloudBackedCustomItems({ pinnedRows: [saved] });
-        const hitCat = cloudBackedCustomItems.find((x) => String(x?.id ?? "") === String(id));
-        if (hitCat) /** @type {any} */ (hitCat).__displayNonce = mediaBust;
-        didCloudListRefresh = true;
-      } catch (e) {
-        setMsg(`Cloud row save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
-        keepFinalWarningMessage = true;
-        return;
       }
     }
 
@@ -15567,6 +16039,10 @@
       }
     }
     if (isSupabaseReady()) {
+      if (!isCustom && collectionSavedAsOverride && isLocalCatalogueItemId(id)) {
+        showToast("Saved locally (catalogue file + browser overrides).");
+        return;
+      }
       if (!isCustom && !collectionCloudRowSaved && collectionSavedAsOverride) {
         showToast("Saved as override (cloud row write failed).");
         return;
@@ -15843,14 +16319,16 @@
     });
     media.appendChild(img);
     if (isItemPageView) {
-      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia);
+      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia, {
+        mobileHeroInteractions: true,
+      });
     } else if (!isPageEdit && !detailVariants?.length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
     } else if (!isPageEdit && itemGalleryList(itemForMedia).length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
     }
 
-    if (isItemPageView) {
+    if (isItemPageView && !isItemPageCoarsePointer()) {
       wireInlineItemHeroZoom(media, img);
     }
 
@@ -16042,7 +16520,6 @@
           colourCode: itemEditColourCodeSaveValue(form.querySelector("#item-edit-secondary-colour-code")),
         }),
       });
-      mountEyedropperBtn(colourCodeRow, colourCodeInput);
 
       const itemMetaForBasic =
         item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
@@ -17792,7 +18269,21 @@
     return bottom;
   }
 
-  /** Desktop mega menu + flyouts: RL rail — left column at division nav, preview flush to tools. */
+  /** Resolve a CSS length custom property to pixels (e.g. `var(--chrome-x)`). */
+  function readCssLengthPx(length) {
+    const probe = document.createElement("div");
+    probe.style.cssText =
+      "position:absolute;visibility:hidden;pointer-events:none;width:0;height:0;margin:0;padding:0;border:0;";
+    const inner = document.createElement("div");
+    inner.style.width = length;
+    probe.appendChild(inner);
+    document.documentElement.appendChild(probe);
+    const px = inner.getBoundingClientRect().width;
+    probe.remove();
+    return Math.max(0, Math.round(px));
+  }
+
+  /** Desktop mega menu + flyouts: one inset tier inside header chrome (`--chrome-x`). */
   function syncHeaderMegaMenuNavInset() {
     try {
       if (!globalThis.matchMedia?.(HEADER_DESKTOP_MQ)?.matches) {
@@ -17801,23 +18292,16 @@
         document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
         return;
       }
-      const divisionZone = document.querySelector(".site-header__division-hover-zone");
       const tools = document.querySelector(".site-header__tools");
-      const brandNav = document.querySelector(".site-header__brand-nav");
+      const flyoutInset = readCssLengthPx("var(--chrome-x)");
 
-      if (divisionZone) {
-        const left = Math.max(0, Math.round(divisionZone.getBoundingClientRect().left));
-        document.documentElement.style.setProperty("--header-mega-nav-inset-left", `${left}px`);
-      } else if (brandNav) {
-        const left = Math.max(0, Math.round(brandNav.getBoundingClientRect().left));
-        document.documentElement.style.setProperty("--header-mega-nav-inset-left", `${left}px`);
-      }
+      document.documentElement.style.setProperty("--header-mega-nav-inset-left", `${flyoutInset}px`);
 
       if (tools) {
         const right = Math.max(0, Math.round(window.innerWidth - tools.getBoundingClientRect().right));
         document.documentElement.style.setProperty("--header-mega-preview-inset-right", `${right}px`);
       } else {
-        document.documentElement.style.removeProperty("--header-mega-preview-inset-right");
+        document.documentElement.style.setProperty("--header-mega-preview-inset-right", `${flyoutInset}px`);
       }
 
       document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
@@ -19882,6 +20366,44 @@
   /** @type {{ count: number, ids: Set<string>, frozenAt: string } | null} */
   let catalogueLockManifest = null;
 
+  /** @type {{ enabled: boolean, migratedAt: string, localImageRoot: string } | null} */
+  let hybridLocalCatalogueManifest = null;
+
+  async function loadHybridLocalCatalogueManifest() {
+    try {
+      const res = await fetch("data/wardrobe-hybrid-mode.json", { cache: "no-store" });
+      if (!res.ok) return null;
+      const p = await res.json();
+      if (String(p?._schema ?? "") !== "timeless-wardrobe-hybrid-local-v1") return null;
+      if (!p.enabled) return null;
+      return {
+        enabled: true,
+        migratedAt: String(p.migratedAt ?? ""),
+        localImageRoot: String(p.localImageRoot ?? "/images/wardrobe").trim() || "/images/wardrobe",
+      };
+    } catch (e) {
+      console.warn("wardrobe-hybrid-mode.json", e);
+      return null;
+    }
+  }
+
+  function isHybridLocalCatalogueEnabled() {
+    return Boolean(hybridLocalCatalogueManifest?.enabled && catalogueLockManifest?.ids?.size);
+  }
+
+  function isLocalCatalogueItemId(id) {
+    if (!isHybridLocalCatalogueEnabled()) return false;
+    const sid = String(id ?? "").trim();
+    return Boolean(sid && catalogueLockManifest.ids.has(sid));
+  }
+
+  /** Cloud rows that are not part of the frozen local catalogue (new pieces stay on Supabase). */
+  function filterCloudRowsForHybridCatalogue(cloudRows) {
+    const rows = Array.isArray(cloudRows) ? cloudRows : [];
+    if (!isHybridLocalCatalogueEnabled()) return rows;
+    return rows.filter((r) => r && r.id != null && !isLocalCatalogueItemId(r.id));
+  }
+
   async function loadCatalogueLockManifest() {
     try {
       const res = await fetch("data/wardrobe-catalogue-lock.json", { cache: "no-store" });
@@ -19938,10 +20460,13 @@
         raw && typeof raw === "object" && raw.__source === "supabase"
           ? normalizeItemDerivedFields({ ...raw })
           : normalizeCloudItemRow(raw);
-      if (n) byId.set(String(n.id), { ...n });
+      if (!n) continue;
+      if (isLocalCatalogueItemId(n.id)) continue;
+      byId.set(String(n.id), { ...n });
     }
     wardrobeBase = wardrobeBase.map((row) => {
       if (!row || row.id == null) return row;
+      if (isLocalCatalogueItemId(row.id)) return { ...row };
       const hit = byId.get(String(row.id));
       return hit ? carryForwardMediaNonce(row, hit) : { ...row };
     });
@@ -19993,10 +20518,13 @@
       }
       return cloudBackedCustomItems;
     }
-    cloudBackedCustomItems = await loadWardrobeItemsFromCloud();
+    const loadedCloud = await loadWardrobeItemsFromCloud();
+    cloudBackedCustomItems = isHybridLocalCatalogueEnabled()
+      ? filterCloudRowsForHybridCatalogue(loadedCloud)
+      : loadedCloud;
     if (cloudBackedCustomItems.length) {
       stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
-      if (wardrobeCatalogueSource === "cloud") {
+      if (wardrobeCatalogueSource === "cloud" && !isHybridLocalCatalogueEnabled()) {
         const prevById = new Map();
         for (const r of wardrobeBase) {
           if (r?.id != null) prevById.set(String(r.id), r);
@@ -20121,9 +20649,15 @@
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
     catalogueLockManifest = await loadCatalogueLockManifest();
+    hybridLocalCatalogueManifest = await loadHybridLocalCatalogueManifest();
     if (catalogueLockManifest) {
       console.info(
         `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
+      );
+    }
+    if (isHybridLocalCatalogueEnabled()) {
+      console.info(
+        `[hybrid local] Catalogue (${catalogueLockManifest.count} pieces) from data/wardrobe.js + ${hybridLocalCatalogueManifest.localImageRoot}; new rows still from Supabase.`
       );
     }
     const cfg = globalThis.APP_CONFIG || {};
@@ -20141,11 +20675,22 @@
           let outfitsFetchPromise = null;
           const res = await api.fetchWardrobeItems(supabaseClient);
           if (res.ok && res.items.length) {
-            const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
-            wardrobeBase = resolved;
-            wardrobeFromSupabase = true;
-            if (wardrobeCatalogueSource !== "seed") wardrobeCatalogueSource = "cloud";
-            deferredSeedSyncSnapshot = wardrobeBase.slice();
+            if (isHybridLocalCatalogueEnabled()) {
+              wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
+              wardrobeCatalogueSource = "seed";
+              wardrobeFromSupabase = false;
+              cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(
+                res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean)
+              );
+              mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+              deferredSeedSyncSnapshot = null;
+            } else {
+              const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
+              wardrobeBase = resolved;
+              wardrobeFromSupabase = true;
+              if (wardrobeCatalogueSource !== "seed") wardrobeCatalogueSource = "cloud";
+              deferredSeedSyncSnapshot = wardrobeBase.slice();
+            }
             outfitsFetchPromise = api.fetchOutfits(supabaseClient);
           } else {
             if (!res.ok) {
@@ -20176,7 +20721,7 @@
             }
           }
 
-          if (wardrobeFromSupabase) {
+          if (wardrobeFromSupabase || outfitsFetchPromise) {
             const outfitsRes = outfitsFetchPromise
               ? await outfitsFetchPromise
               : await api.fetchOutfits(supabaseClient);
@@ -20230,7 +20775,16 @@
 
     if (isCloudModeActive()) {
       fileBackedCustomItems = [];
-      if (wardrobeCatalogueSource === "cloud" && wardrobeBase.length) {
+      if (isHybridLocalCatalogueEnabled()) {
+        if (!cloudBackedCustomItems.length) {
+          const allCloud = await loadWardrobeItemsFromCloud();
+          cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
+          if (cloudBackedCustomItems.length) {
+            stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
+            mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+          }
+        }
+      } else if (wardrobeCatalogueSource === "cloud" && wardrobeBase.length) {
         cloudBackedCustomItems = wardrobeBase.map((r) => (r && typeof r === "object" ? { ...r } : /** @type {any} */ (r)));
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       } else {
