@@ -6317,20 +6317,6 @@
       });
     }
 
-    carouselUi?.addEventListener("click", (e) => {
-      const t = e.target;
-      if (!(t instanceof Element)) return;
-      if (t.closest("#ed-lp-hero-prev")) {
-        e.preventDefault();
-        step(-1, { manual: true });
-        return;
-      }
-      if (t.closest("#ed-lp-hero-next")) {
-        e.preventDefault();
-        step(1, { manual: true });
-      }
-    });
-
     let touchStartX = 0;
     let touchStartY = 0;
     const onHeroTouchStart = (e) => {

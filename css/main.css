@@ -65,10 +65,15 @@
   /* Desktop: shared retail horizontal inset (header + collection PLP). */
   --space-header-inline: clamp(1.2075rem, 5.25vw, 3.15rem);
   --space-collection-inline: clamp(2.85rem, 9vw, 6.5rem);
-  /* Horizontal inset ladder (top → bottom): header < flyouts (search / mega) < PLP. */
+  /*
+   * Horizontal inset ladder (shallow → deep). One padding per surface — never stack scales.
+   *   Tier 1 — Header: `--chrome-content-inset-*` (logo ↔ tools, utility bar, home editorial)
+   *   Tier 2 — Flyouts: `--chrome-x` (mega menu, search overlay body)
+   *   Tier 3 — PLP: `--catalogue-plp-inline-x` (collection toolbar; grid bleeds on mobile)
+   */
   --page-gutter: clamp(12px, 1.5vw, 32px);
   --header-x: calc(var(--page-gutter) * var(--header-margin-scale));
-  /* Utility bar + primary nav — shared pad (scale) + rail inset (viewport margin). */
+  /* Utility bar + primary nav — rail margin + pad (feeds tier 1). */
   --header-chrome-margin-scale: 1.28;
   --header-chrome-rail-inset: 16px;
   --header-chrome-pad-left: max(
@@ -79,18 +84,19 @@
     calc(var(--header-x) * var(--header-chrome-margin-scale)),
     env(safe-area-inset-right, 0px)
   );
-  /* Shared content rail — logo/tools left & right (utility, header, PLP, flyout copy). */
   --chrome-content-inset-left: calc(var(--header-chrome-rail-inset) + var(--header-chrome-pad-left));
   --chrome-content-inset-right: calc(var(--header-chrome-rail-inset) + var(--header-chrome-pad-right));
   --chrome-inset-floor: 88px;
   --chrome-inset-beyond-header: 62px;
-  /* Mobile / base: chrome between header and PLP without desktop floors. */
-  --chrome-x: max(calc(var(--header-x) + 8px), calc(var(--page-gutter) * 1.28));
+  --chrome-x: max(
+    calc(var(--header-x) + var(--chrome-inset-beyond-header)),
+    var(--chrome-inset-floor),
+    calc(var(--page-gutter) * 1.28)
+  );
   --search-x: var(--chrome-x);
   --mega-x: var(--chrome-x);
-  /* Inset ladder: header chrome < flyouts (`--chrome-x`) < PLP (`--catalogue-plp-inline-x`). */
-  --collection-plp-inset-floor: 130px;
-  --collection-plp-inset-beyond-header: 125px;
+  /* PLP nest step + cap (desktop uses tier 2 + step; mobile uses edge/nest tokens below). */
+  --collection-plp-inset-cap: 6.5rem;
   --collection-x: var(--header-x);
   --content-inline: var(--collection-x);
   --tw-catalogue-inline: clamp(3rem, 4vw, 4rem);
@@ -336,9 +342,16 @@ body.collection-page #main {
 /* Shared catalogue content rail — collection PLP + home editorial sections stay in sync. */
 body.collection-page,
 body.home-page {
+  /* Mobile / base PLP edge — capped so scale never blows out on small viewports. */
   --collection-plp-margin-scale: 2.09;
-  --catalogue-plp-inline-x: calc(var(--header-x) * var(--collection-plp-margin-scale));
-  --collection-plp-mobile-inline: calc(1rem * var(--collection-plp-margin-scale));
+  --catalogue-plp-inline-x: min(
+    calc(var(--header-x) * var(--collection-plp-margin-scale)),
+    var(--collection-plp-inset-cap)
+  );
+  --collection-plp-mobile-inline: min(
+    calc(1rem * var(--collection-plp-margin-scale)),
+    var(--collection-plp-inset-cap)
+  );
 }
 
 body.collection-page {
@@ -2891,7 +2904,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     );
     --search-x: var(--chrome-x);
     --mega-x: var(--chrome-x);
-    /* PLP shares header / utility bar rail — no extra inset floor on desktop. */
     --collection-x: var(--header-x);
     --content-inline: var(--header-x);
   }
@@ -2929,9 +2941,9 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
    */
   .site-header__search-wrap.desktop-search-flyout {
   @apply ml-[calc(50%-50vw)] mr-[calc(50%-50vw)];
-    /* Search copy rail — same as header / PLP content box (RL). */
-    --search-flyout-plp-x: var(--chrome-content-inset-left);
-    --search-flyout-row-x: var(--chrome-content-inset-left);
+    /* Search copy rail — flyout tier (aligns with mega menu, one step in from header). */
+    --search-flyout-plp-x: var(--chrome-x);
+    --search-flyout-row-x: var(--chrome-x);
     --search-flyout-field-icon-size: var(--site-header-tool-icon-size, 15px);
     --search-flyout-field-gap: 12px;
     --search-flyout-field-pad-inline: 18px;
@@ -7966,9 +7978,6 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   font-weight: 500;
 }
 
-.styling-board-drawer .styling-board__board-row > #outfit-clear[hidden] {
-  display: none !important;
-}
 
 .styling-board-drawer .styling-board__section-title,
 .styling-board-drawer .saved-outfits__title {
@@ -8006,8 +8015,12 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   overflow: hidden;
 }
 
-.styling-board-drawer .styling-board__board-row > #outfit-strip:empty {
+.styling-board-drawer .styling-board__board-stack > #outfit-strip:empty {
   display: none;
+}
+
+.styling-board-drawer .styling-board__board-stack:has(> #outfit-strip:empty) > #outfit-clear {
+  display: none !important;
 }
 
 .styling-board-drawer .styling-board__current:has(#outfit-empty:not([hidden])) .styling-board__section-title {
@@ -8158,7 +8171,7 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   line-height: 1.5;
 }
 
-/* Board: overlapping cards + Clear all on the right; wraps when row is full. */
+/* Board: overlapping cards; Clear all overlays last card bottom-right. */
 .styling-board-drawer .styling-board__current {
   display: flex;
   flex-direction: column;
@@ -8167,25 +8180,41 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
 }
 
 .styling-board-drawer .styling-board__board-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem 0.75rem;
   width: 100%;
   max-width: 100%;
 }
 
-.styling-board-drawer .styling-board__board-row > #outfit-strip {
-  flex: 1 1 auto;
-  min-width: min(12rem, 100%);
+.styling-board-drawer .styling-board__board-stack {
+  position: relative;
+  display: inline-block;
   max-width: 100%;
-  width: auto;
+  vertical-align: top;
 }
 
-.styling-board-drawer .styling-board__board-row > #outfit-clear {
-  flex: 0 0 auto;
-  align-self: center;
-  margin: 0 0 0 auto;
+.styling-board-drawer .styling-board__board-stack > #outfit-strip {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+}
+
+.styling-board-drawer .styling-board__board-stack > #outfit-clear {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.4rem;
+  z-index: 30;
+  margin: 0;
+  padding: 0.15rem 0.35rem;
+  min-height: 0;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: color-mix(in srgb, var(--sb-surface, #f6f4ef) 88%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sb-line, #e4dfd6) 55%, transparent);
+  border-radius: 3px;
+}
+
+.styling-board-drawer .styling-board__board-stack > #outfit-clear[hidden] {
+  display: none !important;
 }
 
 .styling-board-drawer .styling-board__current > #outfit-empty {
@@ -13969,11 +13998,13 @@ body.collection-page .collection-container > .collection-actions {
     --collection-plp-gap-pills-filter: 28px;
     --collection-plp-gap-filter-grid: 14px;
     --collection-plp-gap-pill: 12px;
-    /* PLP body: deepest rail — beyond header + flyouts. */
-    --catalogue-plp-inline-x: max(
-      calc(var(--header-x) * var(--collection-plp-margin-scale)),
-      calc(var(--header-x) + var(--collection-plp-inset-beyond-header)),
-      var(--chrome-x)
+    /* PLP tier 3: one nest step inside flyouts, capped (no header-x × scale on desktop). */
+    --catalogue-plp-inline-x: min(
+      max(
+        calc(var(--chrome-x) + var(--collection-plp-nest-step)),
+        calc(var(--chrome-content-inset-left) + 1.75rem)
+      ),
+      var(--collection-plp-inset-cap)
     );
     --collection-plp-x: var(--catalogue-plp-inline-x);
   }
@@ -15505,66 +15536,6 @@ body.home-page .site-header-shell--home-overlay .site-header {
   pointer-events: none;
 }
 
-.ed-lp__hero-nav {
-  @apply m-0;
-  position: absolute;
-  top: 50%;
-  z-index: 6;
-  transform: translateY(-50%);
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  background: rgba(12, 10, 8, 0.22);
-  color: #fff;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transition:
-    background 0.22s var(--ease-out),
-    border-color 0.22s var(--ease-out),
-    opacity 0.22s var(--ease-out);
-}
-
-.ed-lp__hero-nav--prev {
-  left: clamp(0.85rem, 2.5vw, 1.75rem);
-}
-
-.ed-lp__hero-nav--next {
-  right: clamp(0.85rem, 2.5vw, 1.75rem);
-}
-
-.ed-lp__hero-nav:hover {
-  background: rgba(12, 10, 8, 0.38);
-  border-color: rgba(255, 255, 255, 0.48);
-}
-
-.ed-lp__hero-nav:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.85);
-  outline-offset: 2px;
-}
-
-.ed-lp__hero-nav-icon {
-  display: block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-top: 1.5px solid currentColor;
-  border-right: 1.5px solid currentColor;
-}
-
-.ed-lp__hero-nav--prev .ed-lp__hero-nav-icon {
-  transform: translateX(0.08rem) rotate(-135deg);
-}
-
-.ed-lp__hero-nav--next .ed-lp__hero-nav-icon {
-  transform: translateX(-0.08rem) rotate(45deg);
-}
-
 .ed-lp__hero-dots {
   position: absolute;
   left: 50%;
@@ -16679,11 +16650,6 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     max-width: 18rem;
   }
 
-  .ed-lp__hero-nav {
-    width: 2.05rem;
-    height: 2.05rem;
-  }
-
   .ed-lp__hero-layer[data-ed-hero-stack] {
     display: none;
   }
@@ -16822,10 +16788,6 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     color: #ffffff;
     text-decoration-color: #ffffff;
     opacity: 0.88;
-  }
-
-  .ed-lp__hero-nav {
-    display: none !important;
   }
 
   .ed-lp__hero-dots {

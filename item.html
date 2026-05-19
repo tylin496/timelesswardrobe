@@ -339,21 +339,23 @@
           <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
             <h3 id="styling-board-current-heading" class="styling-board__section-title">On your board</h3>
             <div class="styling-board__board-row">
-              <div
-                id="outfit-strip"
-                class="styling-board__pieces outfit-strip"
-                role="list"
-                aria-label="Pieces on outfits"
-              ></div>
-              <button
-                type="button"
-                class="btn btn--ghost styling-board__clear-link"
-                id="outfit-clear"
-                hidden
-                aria-label="Clear all pieces from the board"
-              >
-                Clear all
-              </button>
+              <div class="styling-board__board-stack">
+                <div
+                  id="outfit-strip"
+                  class="styling-board__pieces outfit-strip"
+                  role="list"
+                  aria-label="Pieces on outfits"
+                ></div>
+                <button
+                  type="button"
+                  class="btn btn--ghost styling-board__clear-link"
+                  id="outfit-clear"
+                  hidden
+                  aria-label="Clear all pieces from the board"
+                >
+                  Clear all
+                </button>
+              </div>
             </div>
             <p id="outfit-empty" class="styling-board__empty" hidden>
               Save pieces here to build outfits from the collection.

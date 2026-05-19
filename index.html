@@ -288,22 +288,6 @@
         <div class="ed-lp__hero-layers" id="ed-lp-hero-layers" aria-hidden="true"></div>
         <div class="ed-lp__hero-scrim" aria-hidden="true"></div>
         <div class="ed-lp__hero-carousel" id="ed-lp-hero-carousel" hidden>
-          <button
-            type="button"
-            class="ed-lp__hero-nav ed-lp__hero-nav--prev"
-            id="ed-lp-hero-prev"
-            aria-label="Previous photograph"
-          >
-            <span class="ed-lp__hero-nav-icon" aria-hidden="true"></span>
-          </button>
-          <button
-            type="button"
-            class="ed-lp__hero-nav ed-lp__hero-nav--next"
-            id="ed-lp-hero-next"
-            aria-label="Next photograph"
-          >
-            <span class="ed-lp__hero-nav-icon" aria-hidden="true"></span>
-          </button>
           <div
             class="ed-lp__hero-dots"
             id="ed-lp-hero-dots"
@@ -684,21 +668,23 @@
           <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
             <h3 id="styling-board-current-heading" class="styling-board__section-title">On your board</h3>
             <div class="styling-board__board-row">
-              <div
-                id="outfit-strip"
-                class="styling-board__pieces outfit-strip"
-                role="list"
-                aria-label="Pieces on outfits"
-              ></div>
-              <button
-                type="button"
-                class="btn btn--ghost styling-board__clear-link"
-                id="outfit-clear"
-                hidden
-                aria-label="Clear all pieces from the board"
-              >
-                Clear all
-              </button>
+              <div class="styling-board__board-stack">
+                <div
+                  id="outfit-strip"
+                  class="styling-board__pieces outfit-strip"
+                  role="list"
+                  aria-label="Pieces on outfits"
+                ></div>
+                <button
+                  type="button"
+                  class="btn btn--ghost styling-board__clear-link"
+                  id="outfit-clear"
+                  hidden
+                  aria-label="Clear all pieces from the board"
+                >
+                  Clear all
+                </button>
+              </div>
             </div>
             <p id="outfit-empty" class="styling-board__empty" hidden>
               Save pieces here to build outfits from the collection.
