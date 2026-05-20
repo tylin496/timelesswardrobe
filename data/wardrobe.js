@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — frozen catalogue seed (offline fallback + dev).
  *
- * Frozen from Supabase wardrobe_items on 2026-05-20T17:33:36.940Z.
+ * Frozen from Supabase wardrobe_items on 2026-05-20T17:35:39.172Z.
  * Regenerate: npm run db:freeze-catalogue
  *
  * Collection thesis is described in the site header. Each row uses `category` (and optional
@@ -118,7 +118,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain/1778704232768-cover-edit.png",
     "gallery": [
-      "/images/wardrobe/rolo-chain/main/gallery/01.jpg"
+      "/images/wardrobe/rolo-chain/main/gallery/01.png"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
     "metadata": {

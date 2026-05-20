@@ -25,6 +25,7 @@ import {
   rewriteItemMediaUrlsToLocal,
   storagePathFromWardrobeImageUrl,
   normalizeFrozenItemLocalMedia,
+  sanitizeSeedItemMediaForBackup,
 } from "./lib/wardrobe-image-local.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -95,7 +96,8 @@ const downloadsByPath = new Map();
 for (const row of rawRows) {
   const seed = cloudRowToSeedItem(row);
   if (!seed) continue;
-  for (const { url: imgUrl, path: storagePath } of collectWardrobeImageUrlsFromItem(seed)) {
+  const safe = sanitizeSeedItemMediaForBackup(seed);
+  for (const { url: imgUrl, path: storagePath } of collectWardrobeImageUrlsFromItem(safe)) {
     if (!storagePath) continue;
     let entry = downloadsByPath.get(storagePath);
     if (!entry) {

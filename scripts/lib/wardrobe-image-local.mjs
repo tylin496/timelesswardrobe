@@ -118,6 +118,39 @@ export function rewriteItemMediaUrlsToLocal(item) {
   return out;
 }
 
+/** @param {Record<string, unknown>} item */
+function variantRowsFromItem(item) {
+  const a = Array.isArray(item.colourVariants) ? item.colourVariants : [];
+  if (a.length) return a;
+  const meta = item.metadata;
+  if (meta && typeof meta === "object" && !Array.isArray(meta)) {
+    const m = meta.colourVariants || meta.colorVariants;
+    if (Array.isArray(m)) return m;
+  }
+  return [];
+}
+
+/** @param {Record<string, unknown>} item @param {string} key */
+function variantCoverUrlFromItem(item, key) {
+  const v = variantRowsFromItem(item).find((row) => row && String(row.key ?? "") === key);
+  return v && typeof v === "object" ? String(v.image ?? "").trim() : "";
+}
+
+/**
+ * Before backup downloads, rewrite legacy Storage URLs that 404 after id migration.
+ * @param {Record<string, unknown>} item
+ */
+export function sanitizeSeedItemMediaForBackup(item) {
+  const out = { ...item };
+  const id = String(out.id ?? "").trim();
+  const img = String(out.image ?? "").trim();
+  if (id === "pleated-trousers" && /uniqlo-tuck-trousers/i.test(img)) {
+    const grey = variantCoverUrlFromItem(out, "grey");
+    if (grey) out.image = grey;
+  }
+  return out;
+}
+
 /**
  * After id migration, Supabase may still point at legacy Storage paths. Prefer on-disk
  * `main/cover.png` or variant covers under the canonical item folder.
@@ -128,24 +161,10 @@ export function normalizeFrozenItemLocalMedia(item) {
   const id = String(out.id ?? "").trim();
   const img = String(out.image ?? "").trim();
 
-  const variantRows = () => {
-    const a = Array.isArray(out.colourVariants) ? out.colourVariants : [];
-    if (a.length) return a;
-    const meta = out.metadata;
-    if (meta && typeof meta === "object" && !Array.isArray(meta)) {
-      const m = meta.colourVariants || meta.colorVariants;
-      if (Array.isArray(m)) return m;
-    }
-    return [];
-  };
-
-  const variantCover = (key) => {
-    const v = variantRows().find((row) => row && String(row.key ?? "") === key);
-    return v && typeof v === "object" ? String(v.image ?? "").trim() : "";
-  };
-
   if (id === "pleated-trousers" && /uniqlo-tuck-trousers/i.test(img)) {
-    out.image = variantCover("grey") || `${LOCAL_WARDROBE_IMAGE_ROOT}/pleated-trousers/variants/grey/cover.png`;
+    out.image =
+      variantCoverUrlFromItem(out, "grey") ||
+      `${LOCAL_WARDROBE_IMAGE_ROOT}/pleated-trousers/variants/grey/cover.png`;
   }
   if (id === "signet-ring" && /1778698092039-cover-edit/i.test(img)) {
     out.image = `${LOCAL_WARDROBE_IMAGE_ROOT}/signet-ring/main/cover.png`;
