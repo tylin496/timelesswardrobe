@@ -1995,22 +1995,39 @@
     document.getElementById("tw-editor-auth")?.remove();
   }
 
+  /** Production deploy root (GitHub Pages project site). */
+  const TW_GITHUB_PAGES_BASE = "https://tylin496.github.io/timeless-wardrobe";
+
+  function twSiteBaseUrl() {
+    const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
+    if (configured) return configured;
+    if (isTwLocalDevHost()) return globalThis.location.origin;
+    return TW_GITHUB_PAGES_BASE;
+  }
+
   /**
-   * OAuth must return to a stable origin. Preview `*.vercel.app` deployment URLs expire → DEPLOYMENT_NOT_FOUND.
+   * OAuth must return to a URL that actually exists. `timeless-wardrobe.vercel.app` may 404 (deployment gone).
    * @returns {string}
    */
   function twOAuthRedirectUrl() {
-    const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
-    const origin = isTwLocalDevHost()
-      ? globalThis.location.origin
-      : configured || "https://timeless-wardrobe.vercel.app";
-    try {
-      const path = globalThis.location.pathname || "/";
-      const search = globalThis.location.search || "";
-      return new URL(`${path}${search}`, `${origin}/`).href;
-    } catch {
-      return `${origin}/`;
+    if (isTwLocalDevHost()) {
+      try {
+        return new URL(
+          `${globalThis.location.pathname || "/"}${globalThis.location.search || ""}`,
+          `${globalThis.location.origin}/`
+        ).href;
+      } catch {
+        return `${globalThis.location.origin}/`;
+      }
     }
+    const base = twSiteBaseUrl();
+    let path = globalThis.location.pathname || "/item.html";
+    const search = globalThis.location.search || "";
+    if (path.startsWith("/timeless-wardrobe")) {
+      path = path.slice("/timeless-wardrobe".length) || "/";
+    }
+    if (!path.startsWith("/")) path = `/${path}`;
+    return `${base}${path}${search}`;
   }
 
   async function signInWithGoogleEditor({ itemIdForEditAfter } = {}) {
