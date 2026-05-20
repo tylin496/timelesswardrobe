@@ -165,7 +165,7 @@ const WARDROBE_ITEMS = [
     "weight": "18ct yellow gold, 12 × 14 mm",
     "size": "HK 14",
     "purchaseDate": "2020-11-01",
-    "image": "/images/wardrobe/signet-ring/1778698092039-cover-edit.png",
+    "image": "/images/wardrobe/signet-ring/main/cover.png",
     "gallery": [
       "/images/wardrobe/signet-ring/main/gallery/01.jpg",
       "/images/wardrobe/signet-ring/main/gallery/01.png",
@@ -391,7 +391,7 @@ const WARDROBE_ITEMS = [
     "colour": "Gold",
     "colourCode": "#DCC98A",
     "fabric": "Pt950 1.8 mm (bride) / 18ct YG 2 mm size 13 (groom)",
-    "image": "/images/wardrobe/wedding-bands/1778704141467-cover-edit.png",
+    "image": "/images/wardrobe/wedding-bands/main/cover.png",
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
     "metadata": {
       "basicColour": "gold"
