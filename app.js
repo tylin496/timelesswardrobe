@@ -8318,35 +8318,6 @@
       heroSwipeSurface.tabIndex = heroSwipeSurface.tabIndex >= 0 ? heroSwipeSurface.tabIndex : 0;
       heroSwipeSurface.setAttribute("role", "region");
       heroSwipeSurface.setAttribute("aria-label", "Homepage hero carousel");
-      let wheelAccumX = 0;
-      let wheelAccumResetTimer = 0;
-
-      const resetWheelAccum = () => {
-        wheelAccumX = 0;
-        if (wheelAccumResetTimer) {
-          clearTimeout(wheelAccumResetTimer);
-          wheelAccumResetTimer = 0;
-        }
-      };
-
-      heroSwipeSurface.addEventListener(
-        "wheel",
-        (e) => {
-          const absX = Math.abs(e.deltaX);
-          const absY = Math.abs(e.deltaY);
-          /* Desktop hero: support both trackpad horizontal deltas and regular mouse wheel (deltaY). */
-          if (absX < 1 && absY < 1) return;
-          if (wheelAccumResetTimer) clearTimeout(wheelAccumResetTimer);
-          wheelAccumResetTimer = setTimeout(resetWheelAccum, 320);
-          const primaryDelta = absX >= 4 ? e.deltaX : e.deltaY;
-          wheelAccumX += primaryDelta;
-          if (Math.abs(wheelAccumX) < 14) return;
-          e.preventDefault();
-          step(wheelAccumX > 0 ? 1 : -1, { manual: true });
-          resetWheelAccum();
-        },
-        { passive: false }
-      );
 
       heroSwipeSurface.addEventListener("keydown", (e) => {
         if (e.key === "ArrowLeft") {
