@@ -3,7 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /** @param {import('@supabase/supabase-js').SupabaseClient} client */
 export function createBrowserClient(url, key) {
   if (!url || !key) return null;
-  return createClient(url, key);
+  return createClient(url, key, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
 }
 
 /** Edge timeouts (e.g. HTTP 522) often omit CORS headers — browsers report “CORS” even though retry works. */

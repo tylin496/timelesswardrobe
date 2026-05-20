@@ -5,3 +5,10 @@
  */
 globalThis.__TW_SUPABASE_URL__ = "https://yyzrzmbsxphlhoqzikjn.supabase.co";
 globalThis.__TW_SUPABASE_ANON_KEY__ = "YOUR_ANON_PUBLIC_KEY";
+
+/** Google accounts allowed to edit (must match `wardrobe_editors` in Supabase). */
+window.APP_CONFIG = {
+  SUPABASE_URL: globalThis.__TW_SUPABASE_URL__,
+  SUPABASE_ANON_KEY: globalThis.__TW_SUPABASE_ANON_KEY__,
+  EDITOR_ALLOWED_EMAILS: ["you@gmail.com"],
+};

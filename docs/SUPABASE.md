@@ -53,6 +53,26 @@ The migration enables RLS with **prototype** policies:
 - Empty `js/tw-supabase-config.js` URL/key → full offline: seed + `localStorage`.
 - Configured client but **0** `wardrobe_items` rows → wardrobe falls back to `data/wardrobe.js`; outfits stay **`localStorage`** until the wardrobe loads successfully from Supabase and outfit fetch succeeds.
 
-## 6. Later (Vercel / build)
+## 6. Google Sign-In (editors only)
+
+1. Supabase Dashboard → **Authentication → Providers** → enable **Google** (OAuth client from Google Cloud Console).
+2. Add redirect URLs: `http://127.0.0.1:8787/**`, `http://localhost:8787/**`, and your production origin (e.g. `https://timeless-wardrobe.vercel.app/**`).
+3. Run `supabase/migrations/20260520120000_wardrobe_editor_auth.sql` in the SQL editor.
+4. Insert your Gmail into `wardrobe_editors`:
+
+   ```sql
+   insert into public.wardrobe_editors (email) values ('you@gmail.com');
+   ```
+
+5. Set the same address in `js/tw-supabase-config.js` → `EDITOR_ALLOWED_EMAILS`.
+
+**Hidden entry (no sign-in button on the public site):**
+
+- Edit one piece: `item.html?id=<piece-id>/edit` (example: `item.html?id=glen-check-tweed-jacket/edit`) — opens Google sign-in, then the edit form.
+- Collection tools: `collection.html?editor=1` — sign-in, then add-piece / admin chrome.
+
+Local dev (`127.0.0.1`) still skips sign-in and may show a small header sign-in control for testing.
+
+## 7. Later (Vercel / build)
 
 You can replace `tw-supabase-config.js` with a build step that inlines `VITE_SUPABASE_*` or similar; keep the same global names or adjust `app.js` accordingly.

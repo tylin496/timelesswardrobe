@@ -1887,6 +1887,10 @@
   /** Full wardrobe text snapshot for offline review (browser localStorage). */
   const WARDROBE_TEXT_LOCAL_KEY = "timeless-wardrobe-text-local-v1";
   const TW_ADMIN_MODE_STORAGE_KEY = "adminMode";
+  /** @type {{ email: string, denied?: boolean } | null} */
+  let twEditorSession = null;
+  /** Open item edit after Google OAuth redirect. */
+  let twPendingItemEditId = "";
 
   /** Local dev hosts (`npm run dev` uses 127.0.0.1). */
   function isTwLocalDevHost() {
@@ -1898,6 +1902,28 @@
     }
   }
 
+  function getEditorAllowedEmails() {
+    const raw = globalThis.APP_CONFIG?.EDITOR_ALLOWED_EMAILS;
+    if (!Array.isArray(raw)) return [];
+    return raw.map((e) => String(e ?? "").trim().toLowerCase()).filter(Boolean);
+  }
+
+  /** @param {import("@supabase/supabase-js").Session | null} session */
+  function resolveTwEditorSession(session) {
+    const email = String(session?.user?.email ?? "").trim().toLowerCase();
+    if (!email) return null;
+    const allowed = getEditorAllowedEmails();
+    if (!allowed.length || !allowed.includes(email)) {
+      return { email, denied: true };
+    }
+    return { email, denied: false };
+  }
+
+  function isTwEditorUser() {
+    return Boolean(twEditorSession?.email && !twEditorSession.denied);
+  }
+
+  /** Collection-wide admin tools (add piece, export, duplicate on PDP, etc.). */
   function isTwAdminMode() {
     if (isTwLocalDevHost()) return true;
     try {
@@ -1913,6 +1939,189 @@
     return false;
   }
 
+  /**
+   * Hidden editor entry (production): `item.html?id=<slug>/edit` or `/item/<slug>/edit`.
+   * `?edit=1` is for localhost / explicit admin only.
+   */
+  function parseItemPageRoute() {
+    const params = new URLSearchParams(globalThis.location.search);
+    let id = String(params.get("id") ?? "").trim();
+    let hiddenEdit = false;
+    let wantEdit = false;
+    const editorGate = params.get("editor") === "1";
+    if (id.endsWith("/edit")) {
+      id = id.slice(0, -"/edit".length);
+      hiddenEdit = true;
+      wantEdit = true;
+    }
+    try {
+      const path = String(globalThis.location?.pathname ?? "");
+      const m = path.match(/\/item(?:\.html)?\/([^/]+)\/edit\/?$/i);
+      if (m) {
+        id = decodeURIComponent(m[1]);
+        hiddenEdit = true;
+        wantEdit = true;
+      }
+    } catch {
+      /* ignore */
+    }
+    if (params.get("edit") === "1") wantEdit = true;
+    return { id, wantEdit, hiddenEdit, editorGate: editorGate || hiddenEdit };
+  }
+
+  function isTwHiddenItemEditRoute() {
+    return parseItemPageRoute().hiddenEdit;
+  }
+
+  /** Item PDP edit form — production uses hidden `/edit` URL + Google editor sign-in. */
+  function canUseItemDetailEdit() {
+    if (isTwLocalDevHost()) {
+      const route = parseItemPageRoute();
+      return isTwAdminMode() || route.wantEdit;
+    }
+    if (!isTwEditorUser()) return false;
+    return isTwHiddenItemEditRoute();
+  }
+
+  function isTwEditorGateActive() {
+    if (isTwLocalDevHost()) return true;
+    const route = parseItemPageRoute();
+    if (route.editorGate) return true;
+    return Boolean(route.hiddenEdit && route.id);
+  }
+
+  function syncTwEditorAuthUi() {
+    if (!isTwLocalDevHost()) return;
+    const wrap = document.getElementById("tw-editor-auth");
+    if (!wrap) return;
+    const signInBtn = wrap.querySelector("[data-tw-editor-sign-in]");
+    const signedIn = wrap.querySelector("[data-tw-editor-signed-in]");
+    const emailEl = wrap.querySelector("[data-tw-editor-email]");
+    const signOutBtn = wrap.querySelector("[data-tw-editor-sign-out]");
+    const on = isTwEditorUser();
+    const denied = Boolean(twEditorSession?.denied);
+    if (signInBtn instanceof HTMLElement) signInBtn.hidden = on || denied;
+    if (signedIn instanceof HTMLElement) signedIn.hidden = !on;
+    if (emailEl) emailEl.textContent = on ? twEditorSession.email : "";
+    if (signOutBtn instanceof HTMLElement) signOutBtn.hidden = !on && !denied;
+    wrap.hidden = false;
+  }
+
+  function ensureTwEditorAuthUi() {
+    if (!isTwLocalDevHost()) return;
+    if (document.getElementById("tw-editor-auth")) {
+      syncTwEditorAuthUi();
+      return;
+    }
+    const tools = document.querySelector(".site-header__tools");
+    if (!tools) return;
+    const wrap = document.createElement("div");
+    wrap.id = "tw-editor-auth";
+    wrap.className = "tw-editor-auth";
+    wrap.hidden = isTwLocalDevHost();
+    wrap.innerHTML =
+      '<button type="button" class="tw-editor-auth__btn" data-tw-editor-sign-in hidden>Sign in</button>' +
+      '<span class="tw-editor-auth__signed-in" data-tw-editor-signed-in hidden>' +
+      '<span class="tw-editor-auth__email" data-tw-editor-email></span>' +
+      '<button type="button" class="tw-editor-auth__btn tw-editor-auth__btn--ghost" data-tw-editor-sign-out>Sign out</button>' +
+      "</span>";
+    const menuBtn = document.getElementById("site-header-menu-btn");
+    if (menuBtn) tools.insertBefore(wrap, menuBtn);
+    else tools.appendChild(wrap);
+    wrap.querySelector("[data-tw-editor-sign-in]")?.addEventListener("click", () => {
+      void signInWithGoogleEditor();
+    });
+    wrap.querySelector("[data-tw-editor-sign-out]")?.addEventListener("click", () => {
+      void signOutGoogleEditor();
+    });
+    syncTwEditorAuthUi();
+  }
+
+  async function signInWithGoogleEditor({ itemIdForEditAfter } = {}) {
+    if (!isSupabaseReady() || !supabaseClient?.auth) {
+      showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
+      return;
+    }
+    if (itemIdForEditAfter) twPendingItemEditId = String(itemIdForEditAfter).trim();
+    const redirectTo = globalThis.location.href;
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+    if (error) {
+      console.warn("Google sign-in failed:", error);
+      showToast(formatSupabaseUserMessage(error) || "Google sign-in failed.");
+    }
+  }
+
+  async function signOutGoogleEditor() {
+    twPendingItemEditId = "";
+    if (supabaseClient?.auth) {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) console.warn("Sign out failed:", error);
+    }
+    twEditorSession = null;
+    applyTwAdminModeUi();
+    showToast("Signed out.");
+  }
+
+  async function initTwEditorAuth() {
+    if (!supabaseClient?.auth) {
+      twEditorSession = null;
+      syncTwEditorAuthUi();
+      return;
+    }
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) console.warn("Auth session read failed:", error);
+    twEditorSession = resolveTwEditorSession(data?.session ?? null);
+    if (twEditorSession?.denied) {
+      showToast("This Google account cannot edit this wardrobe.");
+    }
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+      twEditorSession = resolveTwEditorSession(session);
+      applyTwAdminModeUi();
+      syncTwEditorAuthUi();
+      if (!isTwEditorUser()) {
+        if (twEditorSession?.denied) {
+          showToast("This Google account cannot edit this wardrobe.");
+        }
+        exitItemDetailEditIfOpen();
+        return;
+      }
+      const pendingId = twPendingItemEditId;
+      if (!pendingId) return;
+      twPendingItemEditId = "";
+      const mount = document.getElementById("item-detail-root");
+      const it = itemById.get(pendingId);
+      if (mount && it) {
+        renderItemDetailContent(mount, it, { edit: true });
+        replaceItemPageUrl(it.id, true);
+        showToast("Signed in — you can edit now.");
+      }
+    });
+    syncTwEditorAuthUi();
+    if (isTwLocalDevHost()) ensureTwEditorAuthUi();
+    if (
+      !isTwLocalDevHost() &&
+      isTwEditorGateActive() &&
+      !isTwEditorUser() &&
+      isSupabaseReady() &&
+      !document.getElementById("item-detail-root")
+    ) {
+      void signInWithGoogleEditor();
+    }
+    if (isTwEditorUser() && twPendingItemEditId) {
+      const pendingId = twPendingItemEditId;
+      twPendingItemEditId = "";
+      const mount = document.getElementById("item-detail-root");
+      const it = itemById.get(pendingId);
+      if (mount && it) {
+        renderItemDetailContent(mount, it, { edit: true });
+        replaceItemPageUrl(it.id, true);
+      }
+    }
+  }
+
   function applyTwAdminModeUi() {
     const on = isTwAdminMode();
     document.documentElement.classList.toggle("tw-admin-mode", on);
@@ -1921,6 +2130,7 @@
       if (on) el.removeAttribute("hidden");
       else el.setAttribute("hidden", "");
     });
+    syncTwEditorAuthUi();
     if (!on) {
       const addDlg = document.getElementById("add-item-dialog");
       if (addDlg?.open) {
@@ -1930,7 +2140,7 @@
           /* */
         }
       }
-      exitItemDetailEditIfOpen();
+      if (!canUseItemDetailEdit()) exitItemDetailEditIfOpen();
     }
   }
 
@@ -1944,6 +2154,11 @@
   }
 
   function setTwAdminMode(enabled) {
+    if (!isTwLocalDevHost()) {
+      if (enabled) void signInWithGoogleEditor();
+      else void signOutGoogleEditor();
+      return;
+    }
     const on = Boolean(enabled);
     try {
       if (on) localStorage.setItem(TW_ADMIN_MODE_STORAGE_KEY, "true");
@@ -1963,16 +2178,18 @@
   }
 
   function initTwAdminMode() {
-    try {
-      const p = new URLSearchParams(globalThis.location.search);
-      if (p.get("admin") === "true") {
-        localStorage.setItem(TW_ADMIN_MODE_STORAGE_KEY, "true");
+    if (isTwLocalDevHost()) {
+      try {
+        const p = new URLSearchParams(globalThis.location.search);
+        if (p.get("admin") === "true") {
+          localStorage.setItem(TW_ADMIN_MODE_STORAGE_KEY, "true");
+        }
+      } catch {
+        /* */
       }
-    } catch {
-      /* */
     }
     applyTwAdminModeUi();
-    console.log("isAdmin:", isTwAdminMode());
+    ensureTwEditorAuthUi();
     if (document.body.dataset.twAdminShortcutWired === "1") return;
     document.body.dataset.twAdminShortcutWired = "1";
     document.addEventListener("keydown", (e) => {
@@ -2000,9 +2217,15 @@
 
   function buildItemPageUrl(id, { edit = false } = {}) {
     const u = new URL(ITEM_PAGE_PATH, globalThis.location.origin);
-    u.searchParams.set("id", String(id));
-    if (edit) u.searchParams.set("edit", "1");
-    else u.searchParams.delete("edit");
+    const clean = String(id).replace(/\/edit$/i, "");
+    if (edit && !isTwLocalDevHost()) {
+      u.searchParams.set("id", `${clean}/edit`);
+      u.searchParams.delete("edit");
+    } else {
+      u.searchParams.set("id", clean);
+      if (edit) u.searchParams.set("edit", "1");
+      else u.searchParams.delete("edit");
+    }
     return u;
   }
 
@@ -4133,7 +4356,13 @@
     }
 
     try {
-      const client = globalThis.supabase.createClient(url, key);
+      const client = globalThis.supabase.createClient(url, key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
       console.info("Supabase client initialized.");
       return client;
     } catch (err) {
@@ -8676,6 +8905,74 @@
   }
 
   /**
+   * Max edit distance for typo-tolerant token match (Latin tokens only).
+   * @param {number} len
+   */
+  function searchTokenMaxEditDistance(len) {
+    if (len < 4) return 0;
+    if (len < 6) return 1;
+    return 2;
+  }
+
+  /**
+   * @param {string} a
+   * @param {string} b
+   * @param {number} maxDist
+   */
+  function stringsWithinEditDistance(a, b, maxDist) {
+    const la = a.length;
+    const lb = b.length;
+    if (a === b) return true;
+    if (Math.abs(la - lb) > maxDist) return false;
+    if (!la) return lb <= maxDist;
+    if (!lb) return la <= maxDist;
+
+    const row = new Int32Array(lb + 1);
+    for (let j = 0; j <= lb; j++) row[j] = j;
+
+    for (let i = 1; i <= la; i++) {
+      let prev = row[0];
+      row[0] = i;
+      let rowMin = i;
+      for (let j = 1; j <= lb; j++) {
+        const tmp = row[j];
+        const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+        row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + cost);
+        prev = tmp;
+        if (row[j] < rowMin) rowMin = row[j];
+      }
+      if (rowMin > maxDist) return false;
+    }
+    return row[lb] <= maxDist;
+  }
+
+  /** @param {string} token already normalizeSearch'd */
+  function searchTokenFuzzyMatchesHaystackNorm(hay, token) {
+    const t = normalizeSearch(token);
+    if (!t || t.length < 4 || !/^[a-z0-9]+$/.test(t)) return false;
+    const maxDist = searchTokenMaxEditDistance(t.length);
+    if (!maxDist) return false;
+
+    const words = hay.split(/[^a-z0-9]+/);
+    for (const w of words) {
+      if (!w || w.length < t.length - maxDist || w.length > t.length + maxDist) continue;
+      if (stringsWithinEditDistance(t, w, maxDist)) return true;
+    }
+
+    const minLen = Math.max(4, t.length - maxDist);
+    const maxLen = t.length + maxDist;
+    for (let len = minLen; len <= maxLen; len++) {
+      if (len > hay.length) break;
+      for (let i = 0; i + len <= hay.length; i++) {
+        const slice = hay.slice(i, i + len);
+        if (!/^[a-z0-9]+$/.test(slice)) continue;
+        if (stringsWithinEditDistance(t, slice, maxDist)) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Rough singular/plural fragments for substring match (e.g. bag↔bags, watch↔watches).
    * @param {string} token already normalizeSearch'd
    */
@@ -8707,7 +9004,7 @@
     for (const frag of searchTokenInflectionFragments(t)) {
       if (frag && hay.includes(frag)) return true;
     }
-    return false;
+    return searchTokenFuzzyMatchesHaystackNorm(hay, t);
   }
 
   /** @param {unknown} item */
@@ -12017,8 +12314,10 @@
   /** Main edit: 1 cover + up to 12 gallery slots. */
   const ITEM_EDIT_PHOTO_MAX = 13;
   const ITEM_PHOTO_CROP_ASPECT = 3 / 4;
-  const ITEM_PHOTO_CROP_EXPORT_WIDTH = 1200;
-  const ITEM_PHOTO_CROP_EXPORT_HEIGHT = 1600;
+  /** Wardrobe 3×4 upload frame — raise here if exports feel too soft on retina. */
+  const ITEM_PHOTO_CROP_EXPORT_WIDTH = 1800;
+  const ITEM_PHOTO_CROP_EXPORT_HEIGHT = 2400;
+  const ITEM_PHOTO_JPEG_EXPORT_QUALITY = 0.94;
 
   /** @type {HTMLDialogElement | null} */
   let itemPhotoCropDialogEl = null;
@@ -12175,7 +12474,7 @@
         if (preferPng) ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0);
         const mime = preferPng ? "image/png" : "image/jpeg";
-        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
         const base = String(fallbackName).replace(/\.[^.]+$/i, "") || "photo";
         const ext = mime === "image/png" ? ".png" : ".jpg";
         canvas.toBlob(
@@ -12251,7 +12550,7 @@
       bitmap?.close();
     }
     const mime = preferPng ? "image/png" : "image/jpeg";
-    const quality = mime === "image/jpeg" ? 0.92 : undefined;
+    const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
     const blob = await new Promise((res, rej) => {
       canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
     });
@@ -12319,7 +12618,7 @@
         bmp.close();
         const preferPng = String(file.type || "").toLowerCase() === "image/png";
         const mime = preferPng ? "image/png" : "image/jpeg";
-        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
         const blob = await new Promise((res, rej) => {
           canvas.toBlob((b) => (b ? res(b) : rej(new Error("blob"))), mime, quality);
         });
@@ -12635,7 +12934,7 @@
           bitmap?.close();
         }
         const mime = preferPng ? "image/png" : "image/jpeg";
-        const quality = mime === "image/jpeg" ? 0.92 : undefined;
+        const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
         const blob = await new Promise((res, rej) => {
           canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
         });
@@ -13298,7 +13597,7 @@
   }
 
   /** Target max decoded size per embedded photo (local JSON + uploads). Tune here (bytes). */
-  const STORAGE_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+  const STORAGE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 
   /**
    * Approximate binary size of a `data:*;base64,…` payload (decoded bytes).
@@ -13345,10 +13644,10 @@
     if (typeof opts === "number") o = { maxSide: opts };
     else if (opts && typeof opts === "object") o = opts;
 
-    const quality = typeof o.quality === "number" ? o.quality : 0.82;
+    const quality = typeof o.quality === "number" ? o.quality : 0.88;
     const forcePng = Boolean(o.forcePng);
     const preferJpeg = Boolean(o.preferJpeg);
-    const maxSide = typeof o.maxSide === "number" ? o.maxSide : typeof o.maxWidth === "number" ? null : 1920;
+    const maxSide = typeof o.maxSide === "number" ? o.maxSide : typeof o.maxWidth === "number" ? null : 2560;
     const maxWidthLegacy = typeof o.maxWidth === "number" ? o.maxWidth : null;
 
     const mime = String(file?.type ?? "").toLowerCase();
@@ -13385,7 +13684,7 @@
             h = Math.round(h * s);
           }
         } else {
-          const capW = maxWidthLegacy != null && maxWidthLegacy > 0 ? maxWidthLegacy : 1920;
+          const capW = maxWidthLegacy != null && maxWidthLegacy > 0 ? maxWidthLegacy : 2560;
           if (w > capW) {
             h = Math.round((h * capW) / w);
             w = capW;
@@ -13420,8 +13719,8 @@
   }
 
   /** After `QuotaExceededError`: one aggressive re-encode (still HD-class before tiny fallbacks). */
-  const QUOTA_SHRINK_MAX_SIDE = 1280;
-  const QUOTA_SHRINK_QUALITY = 0.72;
+  const QUOTA_SHRINK_MAX_SIDE = 1920;
+  const QUOTA_SHRINK_QUALITY = 0.78;
 
   /**
    * Encode for storage: under `STORAGE_IMAGE_MAX_BYTES` (decoded). Small files stay lossless as raw data URLs.
@@ -13442,8 +13741,8 @@
       /* fall through to canvas */
     }
 
-    let maxSide = 2560;
-    let quality = 0.88;
+    let maxSide = 3200;
+    let quality = 0.9;
     let preferJpeg = Boolean(extra.preferJpeg);
     /** @type {string} */
     let last = "";
@@ -16807,7 +17106,7 @@
   }
 
   function renderItemDetailContent(root, item, opts = {}) {
-    const edit = Boolean(opts.edit) && isTwAdminMode();
+    const edit = Boolean(opts.edit) && canUseItemDetailEdit();
     const isPageEdit = edit && root.classList.contains("item-detail__root--page");
     const isItemPageView = !edit && root.classList.contains("item-detail__root--page");
     const usePdpGalleryLayout = isItemPageView || isPageEdit;
@@ -18127,9 +18426,12 @@
   }
 
   async function runItemDetailPage(root, pageId) {
-    const item = await resolveItemForDetailPage(pageId);
-    const params = new URLSearchParams(globalThis.location.search);
-    const wantEdit = params.get("edit") === "1";
+    const route = parseItemPageRoute();
+    const resolvedPageId = String(pageId ?? route.id ?? "")
+      .trim()
+      .replace(/\/edit$/i, "");
+    const item = await resolveItemForDetailPage(resolvedPageId);
+    const wantEdit = route.wantEdit;
 
     if (!item) {
       root.innerHTML =
@@ -18146,11 +18448,20 @@
     document.title = `${item.brand} — ${displayNameWithoutLeadingColour(item)} · Timeless Wardrobe`;
     recordRecentlyViewedItem(item.id);
     const wantEditRequested = wantEdit;
-    let allowEdit = wantEditRequested && isTwAdminMode();
-    if (wantEditRequested && !isTwAdminMode()) {
-      replaceItemPageUrl(item.id, false);
-    }
-    if (wantEditRequested && isTwAdminMode() && !isSupabaseReady()) {
+    const hiddenEdit = route.hiddenEdit;
+    let allowEdit = wantEditRequested && canUseItemDetailEdit();
+    if (wantEditRequested && !allowEdit) {
+      if (!isSupabaseReady()) {
+        showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
+        replaceItemPageUrl(item.id, false);
+      } else if (hiddenEdit || (isTwLocalDevHost() && wantEdit)) {
+        twPendingItemEditId = String(item.id);
+        void signInWithGoogleEditor({ itemIdForEditAfter: item.id });
+      } else {
+        replaceItemPageUrl(item.id, false);
+      }
+      allowEdit = false;
+    } else if (wantEditRequested && allowEdit && !isSupabaseReady()) {
       showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
       allowEdit = false;
       replaceItemPageUrl(item.id, false);
@@ -21550,6 +21861,8 @@
     }
 
     await hydrateCollectionAndSeasonState();
+    await initTwEditorAuth();
+    applyTwAdminModeUi();
 
     if (isCloudModeActive()) {
       fileBackedCustomItems = [];
@@ -21625,7 +21938,7 @@
 
     const itemRoot = document.getElementById("item-detail-root");
     const hasCollectionGrid = Boolean(document.getElementById("grid"));
-    const pageId = new URLSearchParams(globalThis.location.search).get("id");
+    const pageId = parseItemPageRoute().id;
     if (itemRoot && pageId && !hasCollectionGrid) {
       normalizeLegacyItemPagePath();
       initItemDetailRootDelegates();
