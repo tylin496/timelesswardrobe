@@ -5841,6 +5841,26 @@
     return data?.publicUrl || "";
   }
 
+  /** Derive a stable cache-bust token from a local `/images/wardrobe/…` path (incl. `*-cover-edit` filenames). */
+  function wardrobeImageCacheBustTokenFromPath(url) {
+    const path = String(url ?? "").trim().split("?")[0];
+    if (!/^\/images\/wardrobe\//i.test(path)) return "";
+    const stamp = path.match(/\/(\d{10,})-cover/i);
+    if (stamp) return stamp[1];
+    return path.replace(/^\/+/, "");
+  }
+
+  function fileBackedLocalGalleryUrls(item) {
+    if (!item || typeof item !== "object") return [];
+    return itemGalleryList(item).filter((u) => isFileBackedLocalWardrobeUrl(item, u));
+  }
+
+  /** True when URL is a frozen on-disk catalogue file for this item id. */
+  function isFileBackedLocalWardrobeUrl(item, url) {
+    const s = String(url ?? "").trim().split("?")[0];
+    return Boolean(s) && /^\/images\/wardrobe\//i.test(s) && primaryCoverUrlBelongsToItem(item, s);
+  }
+
   /** Bust browser/CDN cache for Supabase Storage wardrobe images (same path after upsert). */
   function wardrobeImageCacheBustToken(item) {
     if (!item || typeof item !== "object") return "";
@@ -5852,6 +5872,8 @@
     if (u) return u.slice(0, 120);
     const c = String(o.createdAt ?? o.created_at ?? "").trim();
     if (c) return c.slice(0, 120);
+    const fromCover = wardrobeImageCacheBustTokenFromPath(o.image);
+    if (fromCover) return fromCover;
     return "";
   }
 
@@ -5862,7 +5884,7 @@
     const isWardrobeMedia =
       Boolean(storagePathFromWardrobeImageUrl(raw)) || /^\/images\/wardrobe\//i.test(pathKey);
     if (!isWardrobeMedia) return raw;
-    const token = wardrobeImageCacheBustToken(item);
+    const token = wardrobeImageCacheBustToken(item) || wardrobeImageCacheBustTokenFromPath(raw);
     if (!token) return raw;
     try {
       const u = new URL(raw);
@@ -5925,25 +5947,73 @@
     return next;
   }
 
-  /** Hybrid local catalogue: overlay Supabase `image` / `gallery` / variant media onto frozen seed rows. */
+  /** Hybrid local catalogue: seed (`data/wardrobe.js`) vs Supabase — see `supabaseMediaAheadOfCatalogueSeed`. */
   function mergeCloudMediaOntoLocalCatalogueRow(localRow, cloudRow) {
     if (!localRow || typeof localRow !== "object") return localRow;
     if (!cloudRow || typeof cloudRow !== "object") return { ...localRow };
     const merged = { ...localRow };
+    const itemId = String(localRow.id ?? "").trim();
+    const seed = catalogueSeedRow(itemId) || localRow;
+    const useCloudMedia = supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow);
+    const seedImage = String(seed.image ?? "").trim();
     const cloudImage = String(cloudRow.image ?? "").trim();
-    if (cloudImage) merged.image = cloudImage;
-    if (Array.isArray(cloudRow.gallery)) {
+    const localGallery = fileBackedLocalGalleryUrls(seed);
+
+    if (isFileBackedLocalWardrobeUrl(seed, seedImage)) {
+      merged.image = seedImage;
+    } else if (useCloudMedia && cloudImage) {
+      merged.image = cloudImage;
+    } else if (isFileBackedLocalWardrobeUrl(localRow, String(localRow.image ?? "").trim())) {
+      merged.image = String(localRow.image ?? "").trim();
+    } else if (cloudImage) {
+      merged.image = cloudImage;
+    }
+
+    if (useCloudMedia) {
+      if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
+        merged.colourVariants = cloudRow.colourVariants;
+      }
+      const cloudTs = String(cloudRow.updatedAt ?? cloudRow.updated_at ?? "").trim();
+      if (cloudTs) merged.updatedAt = cloudTs;
+    }
+
+    // Never let stale Supabase gallery URLs replace on-disk `/images/wardrobe/…/main/gallery/*`.
+    if (localGallery.length) {
+      merged.gallery = normalizeGalleryFromDb(localGallery);
+    } else if (useCloudMedia && Array.isArray(cloudRow.gallery) && cloudRow.gallery.length) {
+      merged.gallery = normalizeGalleryFromDb(cloudRow.gallery);
+    } else if (Array.isArray(cloudRow.gallery) && cloudRow.gallery.length) {
       merged.gallery = normalizeGalleryFromDb(cloudRow.gallery);
     }
-    if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
-      merged.colourVariants = cloudRow.colourVariants;
-    }
-    const cloudTs = String(cloudRow.updatedAt ?? cloudRow.updated_at ?? "").trim();
-    if (cloudTs) merged.updatedAt = cloudTs;
+
     const forceFresh =
       wardrobeMediaUrlSignature(localRow) !== wardrobeMediaUrlSignature(merged) ||
       rowMediaTimestamp(cloudRow) > rowMediaTimestamp(localRow);
     return carryForwardMediaNonce(localRow, merged, { forceFresh });
+  }
+
+  /** Collection overrides must not re-apply stale remote gallery/cover over frozen local files. */
+  function applyCollectionOverrideToRow(row, patch) {
+    if (!patch || typeof patch !== "object") return { ...row };
+    const id = String(row?.id ?? "").trim();
+    const merged = { ...row, ...patch, id };
+    if (!isLocalCatalogueItemId(id)) return merged;
+    const localImage = String(row.image ?? "").trim();
+    const patchImage = String(patch.image ?? "").trim();
+    if (
+      isFileBackedLocalWardrobeUrl(row, localImage) &&
+      patchImage &&
+      /^https?:\/\//i.test(patchImage.split("?")[0])
+    ) {
+      merged.image = localImage;
+    }
+    const localGallery = fileBackedLocalGalleryUrls(row);
+    if (localGallery.length) {
+      const patchGallery = Array.isArray(patch.gallery) ? patch.gallery : [];
+      const patchRemote = patchGallery.some((u) => /^https?:\/\//i.test(String(u ?? "").split("?")[0]));
+      if (patchRemote) merged.gallery = [...localGallery];
+    }
+    return merged;
   }
 
   /** Ensure Supabase Storage URLs get a `cb` token when loading edit / detail views. */
@@ -7112,7 +7182,8 @@
         if (!row || row.id == null) return row;
         const id = String(row.id);
         const patch = ov[id];
-        const base = patch && typeof patch === "object" ? { ...row, ...patch, id } : { ...row };
+        const base =
+          patch && typeof patch === "object" ? applyCollectionOverrideToRow(row, patch) : { ...row };
         return { ...base, __collectionOrdinal: idx };
       });
     slotRecordFallbackCategory = computeSlotRecordFallbackCategories(mergedBase);
@@ -7526,16 +7597,18 @@
 
   function ensureHomeHeroPreloadLink() {
     if (!document.body?.classList.contains("home-page")) return;
-    const hero = pickHomeHeroImagePath();
-    const href = homeHeroMediaUrl(hero);
-    if (!href || document.querySelector(`link[data-tw-hero-preload="${CSS.escape(hero)}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "preload";
-    link.as = isHomeHeroVideoPath(hero) ? "video" : "image";
-    link.href = href;
-    if (!isHomeHeroVideoPath(hero)) link.setAttribute("fetchpriority", "high");
-    link.dataset.twHeroPreload = hero;
-    document.head.appendChild(link);
+    const paths = orderedHomeHeroImagePaths();
+    paths.slice(0, 2).forEach((hero, i) => {
+      const href = homeHeroMediaUrl(hero);
+      if (!href || document.querySelector(`link[data-tw-hero-preload="${CSS.escape(hero)}"]`)) return;
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = isHomeHeroVideoPath(hero) ? "video" : "image";
+      link.href = href;
+      if (!isHomeHeroVideoPath(hero)) link.setAttribute("fetchpriority", i === 0 ? "high" : "low");
+      link.dataset.twHeroPreload = hero;
+      document.head.appendChild(link);
+    });
   }
 
   function mountEditorialHomeHeroCatalogFallback(heroHost) {
@@ -8300,9 +8373,11 @@
     const section = assignHomeSectionDisplayPlans(items, options);
     syncHomeEditorialProductGridLayout(host, section.mode);
     host.replaceChildren();
-    for (const plan of section.plans) {
-      host.appendChild(buildEditorialHomeProductCard(plan.item, plan.displaySrc, plan.displayKind));
-    }
+    section.plans.forEach((plan, cardIndex) => {
+      host.appendChild(
+        buildEditorialHomeProductCard(plan.item, plan.displaySrc, plan.displayKind, { cardIndex })
+      );
+    });
   }
 
   const HOME_DIVISION_RAIL_SLOTS = [SLOT_CLOTHING, SLOT_ACCESSORIES, SLOT_WATCHES, SLOT_FRAGRANCE];
@@ -8386,10 +8461,10 @@
     wireHomeEditorialCardImage(img, item, displaySrc, {
       host: media,
       missingClass: "ed-lp__division-rail-media--missing",
-      coverRenderWidth: 512,
-      coverRenderHeight: 640,
-      coverRenderQuality: 86,
-      coverRenderResize: "cover",
+      coverRenderWidth: HOME_DIVISION_RAIL_RENDER.width,
+      coverRenderHeight: HOME_DIVISION_RAIL_RENDER.height,
+      coverRenderQuality: HOME_DIVISION_RAIL_RENDER.quality,
+      coverRenderResize: HOME_DIVISION_RAIL_RENDER.resize,
     });
 
     const cap = document.createElement("span");
@@ -8656,10 +8731,10 @@
     wireHomeEditorialCardImage(img, item, homeEditorialCoverSrc(item), {
       host: media,
       missingClass: "ed-lp__viewed-card-media--missing",
-      coverRenderWidth: 640,
-      coverRenderHeight: 853,
-      coverRenderQuality: 86,
-      coverRenderResize: "contain",
+      coverRenderWidth: HOME_RECENTLY_VIEWED_RENDER.width,
+      coverRenderHeight: HOME_RECENTLY_VIEWED_RENDER.height,
+      coverRenderQuality: HOME_RECENTLY_VIEWED_RENDER.quality,
+      coverRenderResize: HOME_RECENTLY_VIEWED_RENDER.resize,
     });
 
     const body = document.createElement("div");
@@ -8724,11 +8799,13 @@
     if (img.complete && img.naturalWidth > 0) img.classList.add("is-loaded");
   }
 
-  /** @param {object} item @param {string} [displaySrc] @param {"cover" | "gallery"} [displayKind] */
-  function buildEditorialHomeProductCard(item, displaySrc, displayKind = "cover") {
+  /** @param {object} item @param {string} [displaySrc] @param {"cover" | "gallery"} [displayKind] @param {{ cardIndex?: number }} [opts] */
+  function buildEditorialHomeProductCard(item, displaySrc, displayKind = "cover", opts = {}) {
     const slot = itemSlot(item);
     const recKey = recordCategoryForDrill(item, slot);
     const isGallery = displayKind === "gallery";
+    const cardIndex = Math.max(0, Math.floor(Number(opts.cardIndex) || 0));
+    const frame = isGallery ? HOME_EDITORIAL_CARD_RENDER.gallery : HOME_EDITORIAL_CARD_RENDER.cover;
     const a = document.createElement("a");
     a.href = buildItemDetailHrefFromId(item.id);
     a.className = `ed-lp__pcard ed-lp__pcard--${isGallery ? "gallery" : "cover"}`;
@@ -8738,16 +8815,18 @@
     const img = document.createElement("img");
     img.className = "ed-lp__pcard-img";
     img.alt = imageAltForItem(item);
-    img.loading = "lazy";
+    img.loading = cardIndex < 2 ? "eager" : "lazy";
     img.decoding = "async";
+    if (cardIndex === 0) img.fetchPriority = "high";
+    else if (cardIndex === 1) img.fetchPriority = "low";
     media.appendChild(img);
     wireHomeEditorialCardImage(img, item, displaySrc || homeEditorialCoverSrc(item), {
       host: media,
       missingClass: "ed-lp__pcard-media--missing",
-      coverRenderWidth: isGallery ? 840 : COLLECTION_GRID_CARD_RENDER.width,
-      coverRenderHeight: isGallery ? 1050 : COLLECTION_GRID_CARD_RENDER.height,
-      coverRenderQuality: isGallery ? 88 : COLLECTION_GRID_CARD_RENDER.quality,
-      coverRenderResize: isGallery ? "cover" : COLLECTION_GRID_CARD_RENDER.resize,
+      coverRenderWidth: frame.width,
+      coverRenderHeight: frame.height,
+      coverRenderQuality: frame.quality,
+      coverRenderResize: frame.resize,
     });
     const body = document.createElement("div");
     body.className = "ed-lp__pcard-body";
@@ -9008,6 +9087,7 @@
   let countLineDisplay = { visible: 0, total: 0, spend: 0 };
   let stylingBoardDrawerOpen = false;
   let stylingBoardDrawerOpenRaf = 0;
+  let outfitStripEntranceOnNextRender = false;
   let headerSearchOpenRaf = 0;
   /** Ignore document outside-click closes right after opening (iOS ghost click / bubble). */
   let headerSearchOutsideClickGuardUntil = 0;
@@ -12217,6 +12297,43 @@
     resize: "contain",
   });
 
+  /** Homepage editorial cards — smaller than PLP grid (faster loads on 2-col gallery highlights). */
+  const HOME_EDITORIAL_CARD_RENDER = Object.freeze({
+    cover: {
+      width: 560,
+      height: 747,
+      quality: 82,
+      resize: /** @type {const} */ ("contain"),
+    },
+    gallery: {
+      width: 480,
+      height: 600,
+      quality: 82,
+      resize: /** @type {const} */ ("cover"),
+    },
+  });
+
+  const HOME_DIVISION_RAIL_RENDER = Object.freeze({
+    width: 400,
+    height: 500,
+    quality: 82,
+    resize: /** @type {const} */ ("cover"),
+  });
+
+  const HOME_RECENTLY_VIEWED_RENDER = Object.freeze({
+    width: 400,
+    height: 533,
+    quality: 82,
+    resize: /** @type {const} */ ("contain"),
+  });
+
+  const HEADER_SUBMENU_PREVIEW_RENDER = Object.freeze({
+    width: 360,
+    height: 450,
+    quality: 80,
+    resize: /** @type {const} */ ("cover"),
+  });
+
   const ITEM_DETAIL_GALLERY_RENDER = Object.freeze({
     width: 1800,
     height: 2400,
@@ -12905,9 +13022,8 @@
         ? draft.editingSavedOutfitId
         : null;
     syncOutfitSaveButtonLabel();
-    if (editingSavedOutfitId || String(els.outfitName?.value ?? "").trim()) {
-      setStylingBoardSaveFormOpen(true);
-    }
+    if (editingSavedOutfitId) setStylingBoardSaveFormOpen(true);
+    else setStylingBoardSaveFormOpen(false);
     return true;
   }
 
@@ -13143,13 +13259,17 @@
 
   function setStylingBoardSaveFormOpen(open) {
     const form = document.getElementById("styling-board-save-form");
+    const root = document.getElementById("styling-board-drawer");
     if (!(form instanceof HTMLElement)) return;
     if (open) {
       form.removeAttribute("hidden");
+      root?.classList.add("styling-board-drawer--save-form-open");
       form.scrollIntoView({ block: "nearest", behavior: "smooth" });
     } else {
       form.setAttribute("hidden", "");
+      root?.classList.remove("styling-board-drawer--save-form-open");
     }
+    syncOutfitSaveButtonLabel();
   }
 
   function handleOutfitSaveClick() {
@@ -13169,7 +13289,14 @@
     const btn = els.outfitSave || document.getElementById("outfit-save");
     if (!btn) return;
     const n = currentOutfitSlots.length;
-    const base = editingSavedOutfitId ? "Update Outfit" : "Save Outfit";
+    const naming = isStylingBoardSaveFormOpen();
+    const base = editingSavedOutfitId
+      ? naming
+        ? "Confirm Update"
+        : "Update Outfit"
+      : naming
+        ? "Confirm Save"
+        : "Save Outfit";
     btn.textContent = n > 0 ? `${base} (${n})` : base;
     btn.title = editingSavedOutfitId
       ? "Save changes to the outfit you opened with Edit."
@@ -16992,6 +17119,7 @@
     dismissHeaderSubmenuDom();
     forceCloseHeaderSearchOverlay();
     if (!options.fromAdd) clearStylingBoardAddedReveal();
+    outfitStripEntranceOnNextRender = true;
     syncStylingBoardDrawerLayout();
     stylingBoardDrawerOpen = true;
     if (root.hasAttribute("hidden")) {
@@ -17088,6 +17216,8 @@
 
   function renderOutfitStrip() {
     if (!els.outfitStrip) return;
+    const animateEntrance = outfitStripEntranceOnNextRender;
+    outfitStripEntranceOnNextRender = false;
     els.outfitStrip.innerHTML = "";
     const boardEmpty = currentOutfitSlots.length === 0;
     if (els.outfitEmpty) {
@@ -17106,9 +17236,11 @@
 
       const slot = document.createElement("div");
       slot.className = "outfit-slot";
-      if (stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey) {
-        slot.classList.add("outfit-slot--just-added");
-      }
+      slot.style.setProperty("--outfit-slot-stagger", String(index));
+      const isJustAdded =
+        stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey;
+      if (isJustAdded) slot.classList.add("outfit-slot--just-added");
+      else if (animateEntrance) slot.classList.add("outfit-slot--enter");
       slot.setAttribute("role", "listitem");
       slot.draggable = true;
       slot.dataset.dragIndex = String(index);
@@ -18140,7 +18272,14 @@
           try {
             const saved = await saveWardrobeItemToCloud(mergedForCloud);
             const mediaBust = stampWardrobeItemMediaNonce(saved, Date.now());
-            upsertWardrobeBaseRowInMemory(saved);
+            const displayAfterSave = normalizeItemDerivedFields({
+              ...(catalogueSeedRow(id) || prev),
+              ...saved,
+              id,
+              image: updated.image,
+              gallery: updated.gallery,
+            });
+            upsertWardrobeBaseRowInMemory(displayAfterSave, { skipLocalMediaMerge: true });
             try {
               await deleteSupabaseImagesNoLongerUsed(prev, saved, mergedForCloud);
             } catch (imgErr) {
@@ -18158,10 +18297,10 @@
             } catch (ovErr) {
               console.warn("Could not persist collection override for local catalogue row.", ovErr);
             }
-            savedRowForPin = saved;
+            savedRowForPin = displayAfterSave;
             collectionCloudRowSaved = true;
             collectionSavedAsOverride = true;
-            await refreshCloudBackedCustomItems({ pinnedRows: [saved] });
+            await refreshCloudBackedCustomItems({ pinnedRows: [displayAfterSave] });
             didCloudListRefresh = true;
             const hitCat = cloudBackedCustomItems.find((x) => String(x?.id ?? "") === String(id));
             if (hitCat) /** @type {any} */ (hitCat).__displayNonce = mediaBust;
@@ -22036,7 +22175,7 @@
         preview.appendChild(empty);
         return;
       }
-      for (const item of matches) {
+      matches.forEach((item, previewIndex) => {
         const a = document.createElement("a");
         a.className = "site-header__submenu-preview-card";
         const brand = String(item.brand ?? "").trim();
@@ -22060,14 +22199,16 @@
         media.className = "site-header__submenu-preview-media site-header__submenu-preview-media--cover";
         const im = document.createElement("img");
         im.alt = imageAltForItem(item);
-        im.loading = "lazy";
+        im.loading = previewIndex < 2 ? "eager" : "lazy";
+        im.decoding = "async";
+        if (previewIndex === 0) im.fetchPriority = "high";
         wireCoverImageWithFallbacks(im, item, {
           host: media,
           missingClass: "site-header__submenu-preview-media--missing",
-          coverRenderWidth: 520,
-          coverRenderHeight: 650,
-          coverRenderQuality: 88,
-          coverRenderResize: "cover",
+          coverRenderWidth: HEADER_SUBMENU_PREVIEW_RENDER.width,
+          coverRenderHeight: HEADER_SUBMENU_PREVIEW_RENDER.height,
+          coverRenderQuality: HEADER_SUBMENU_PREVIEW_RENDER.quality,
+          coverRenderResize: HEADER_SUBMENU_PREVIEW_RENDER.resize,
         });
         media.appendChild(im);
         const caption = document.createElement("p");
@@ -22075,7 +22216,7 @@
         caption.textContent = brand || displayNameWithoutLeadingColour(item);
         a.append(media, caption);
         preview.appendChild(a);
-      }
+      });
     };
 
     let headerSubmenuDimEl = document.getElementById("site-header-submenu-dim");
@@ -22957,6 +23098,37 @@
   /** @type {{ enabled: boolean, migratedAt: string, localImageRoot: string } | null} */
   let hybridLocalCatalogueManifest = null;
 
+  /**
+   * Frozen `data/wardrobe.js` rows at load (committed seed / your local edits after refresh).
+   * Hybrid conflict rule: local file paths win unless Supabase media is newer than this snapshot (manual re-upload).
+   */
+  /** @type {Map<string, object>} */
+  let catalogueSeedById = new Map();
+
+  function refreshCatalogueSeedSnapshot() {
+    catalogueSeedById = new Map();
+    for (const row of seedItemsFromScript()) {
+      const id = String(row?.id ?? "").trim();
+      if (id) catalogueSeedById.set(id, { ...row });
+    }
+  }
+
+  function catalogueSeedRow(itemId) {
+    return catalogueSeedById.get(String(itemId ?? "").trim()) ?? null;
+  }
+
+  /** Supabase row reflects a manual re-upload (newer or different media vs catalogue seed). */
+  function supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow) {
+    const seed = catalogueSeedRow(itemId);
+    if (!seed || !cloudRow) return false;
+    const cloudImage = String(cloudRow.image ?? "").trim();
+    if (!cloudImage) return false;
+    const cloudTs = rowMediaTimestamp(cloudRow);
+    const seedTs = rowMediaTimestamp(seed);
+    if (cloudTs > seedTs && cloudTs > 0) return true;
+    return wardrobeMediaUrlSignature(seed) !== wardrobeMediaUrlSignature(cloudRow);
+  }
+
   async function loadHybridLocalCatalogueManifest() {
     try {
       const res = await fetch("data/wardrobe-hybrid-mode.json", { cache: "no-store" });
@@ -23040,6 +23212,7 @@
       `[catalogue lock] Cloud returned ${rows.length} rows but lock expects ${catalogueLockManifest.count} (frozen ${catalogueLockManifest.frozenAt || "—"}). Using seed merge — nothing was deleted unless you used Admin Delete.`
     );
     wardrobeCatalogueSource = "seed";
+    refreshCatalogueSeedSnapshot();
     wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
     mergeWardrobeBaseWithFetchedCloudRows(rows);
     return wardrobeBase.slice();
@@ -23072,7 +23245,10 @@
       if (!row || row.id == null) return row;
       const hit = byId.get(String(row.id));
       if (!hit) return { ...row };
-      if (isLocalCatalogueItemId(row.id)) return mergeCloudMediaOntoLocalCatalogueRow(row, hit);
+      if (isLocalCatalogueItemId(row.id)) {
+        const seed = catalogueSeedRow(row.id) || row;
+        return mergeCloudMediaOntoLocalCatalogueRow(seed, hit);
+      }
       return carryForwardMediaNonce(row, hit);
     });
     const have = new Set(wardrobeBase.map((r) => String(r?.id ?? "")));
@@ -23085,14 +23261,19 @@
   }
 
   /** Upsert one normalized row in `wardrobeBase` so UI can reflect successful cloud save immediately. */
-  function upsertWardrobeBaseRowInMemory(row) {
+  function upsertWardrobeBaseRowInMemory(row, opts = {}) {
     const id = String(row?.id ?? "").trim();
     if (!id) return;
     const existing = wardrobeBase.find((r) => String(r?.id ?? "") === id);
+    let incoming = { ...row };
+    if (isLocalCatalogueItemId(id) && !opts.skipLocalMediaMerge) {
+      const seed = catalogueSeedRow(id) || existing;
+      if (seed) incoming = mergeCloudMediaOntoLocalCatalogueRow(seed, row);
+    }
     const next =
-      existing && !(typeof /** @type {any} */ (row).__displayNonce === "number")
-        ? carryForwardMediaNonce(existing, row)
-        : { ...row };
+      existing && !(typeof /** @type {any} */ (incoming).__displayNonce === "number")
+        ? carryForwardMediaNonce(existing, incoming)
+        : { ...incoming };
     let replaced = false;
     wardrobeBase = wardrobeBase.map((r) => {
       if (String(r?.id ?? "") !== id) return r;
@@ -23307,6 +23488,7 @@
           const res = await api.fetchWardrobeItems(supabaseClient);
           if (res.ok && res.items.length) {
             if (isHybridLocalCatalogueEnabled()) {
+              refreshCatalogueSeedSnapshot();
               wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
               wardrobeCatalogueSource = "seed";
               wardrobeFromSupabase = false;
@@ -23332,6 +23514,7 @@
                   : "Supabase wardrobe_items returned 0 rows — falling back to data/wardrobe.js; run npm run db:import-seed."
               );
             }
+            refreshCatalogueSeedSnapshot();
             wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
             if (catalogueLockManifest) wardrobeCatalogueSource = "seed";
             deferredSeedSyncSnapshot = wardrobeBase.slice();
@@ -23386,12 +23569,14 @@
           storageMode = "local";
         }
         useCloudOutfits = false;
+        refreshCatalogueSeedSnapshot();
         wardrobeBase = seedItemsFromScript();
         wardrobeCatalogueSource = "seed";
         savedOutfits = loadSavedOutfitsFromStorage();
       }
     } else {
       storageMode = "local";
+      refreshCatalogueSeedSnapshot();
       wardrobeBase = seedItemsFromScript();
       wardrobeCatalogueSource = "seed";
       savedOutfits = loadSavedOutfitsFromStorage();

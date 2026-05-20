@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — frozen catalogue seed (offline fallback + dev).
  *
- * Frozen from Supabase wardrobe_items on 2026-05-20T17:11:43.394Z.
+ * Frozen from Supabase wardrobe_items on 2026-05-20T17:33:36.940Z.
  * Regenerate: npm run db:freeze-catalogue
  *
  * Collection thesis is described in the site header. Each row uses `category` (and optional
@@ -394,6 +394,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/wedding-bands/main/cover.png",
     "gallery": [
       "/images/wardrobe/wedding-bands/main/gallery/01.png",
+      "/images/wardrobe/wedding-bands/main/gallery/02.png",
       "/images/wardrobe/wedding-bands/main/cover.png"
     ],
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
@@ -454,8 +455,8 @@ const WARDROBE_ITEMS = [
     "fabric": "Poly blend",
     "weight": "Crease front",
     "size": "XL",
-    "purchaseDate": "2025-08-11 · Taupe",
-    "image": "/images/wardrobe/wide-straight-trousers/1778703733818-cover-edit.png",
+    "purchaseDate": "2025-08-11",
+    "image": "/images/wardrobe/wide-straight-trousers/main/cover.png",
     "gallery": [
       "/images/wardrobe/wide-straight-trousers/main/gallery/01.avif"
     ],
