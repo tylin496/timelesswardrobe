@@ -8905,7 +8905,6 @@
       syncCompactHeaderSearchVisualViewport();
       const input = document.getElementById("filter-search");
       if (document.activeElement === input) scrollCompactHeaderSearchFieldIntoView();
-      probeCompactSearchOpenLayout("visualViewport");
     };
     const vv = globalThis.visualViewport;
     vv.addEventListener("resize", onVisualViewportChange);
@@ -8931,44 +8930,6 @@
     compactSearchVisualViewportTeardown?.();
   }
 
-  /** @param {string} trigger */
-  function probeCompactSearchOpenLayout(trigger) {
-    if (!isHeaderCompactViewport()) return;
-    const inner = getCompactHeaderSearchSheetEl();
-    const input = document.getElementById("filter-search");
-    const wrap = document.getElementById("site-header-search-wrap");
-    if (!(inner instanceof HTMLElement)) return;
-    const ir = inner.getBoundingClientRect();
-    const inputRect = input instanceof HTMLElement ? input.getBoundingClientRect() : null;
-    const cs = getComputedStyle(inner);
-    // #region agent log
-    fetch("http://127.0.0.1:7456/ingest/079dc999-8840-4516-8d4f-8af68aa9201f", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "add19b" },
-      body: JSON.stringify({
-        sessionId: "add19b",
-        runId: document.documentElement.dataset.twSearchOpenProbeRun || "open-jump",
-        hypothesisId: "A-D",
-        location: "app.js:probeCompactSearchOpenLayout",
-        message: "compact search open layout",
-        data: {
-          trigger,
-          visible: wrap?.classList.contains(HEADER_SEARCH_SHEET_VISIBLE_CLASS) ?? false,
-          innerTop: Math.round(ir.top),
-          innerBottom: Math.round(ir.bottom),
-          innerScrollTop: inner.scrollTop,
-          transform: cs.transform,
-          inputTop: inputRect ? Math.round(inputRect.top) : null,
-          bodyTop: document.body.style.top || null,
-          vvHeight: globalThis.visualViewport ? Math.round(globalThis.visualViewport.height) : null,
-          vvOffsetTop: globalThis.visualViewport ? Math.round(globalThis.visualViewport.offsetTop) : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }
-
   /**
    * After compact sheet slide-up finishes: focus search without scroll jank.
    * @param {HTMLElement | null} sheet
@@ -8978,7 +8939,6 @@
     const finish = () => {
       if (!isHeaderSearchWrapOpen()) return;
       resetCompactHeaderSearchSheetScroll();
-      probeCompactSearchOpenLayout("afterOpenMotion");
       input?.focus({ preventScroll: true });
     };
     if (twPrefersReducedMotion() || !(sheet instanceof HTMLElement)) {
@@ -19286,6 +19246,24 @@
 
   let collectionNavScrollFoldLastY = 0;
   let collectionNavScrollFoldTicking = false;
+  /** Ignore scroll-fold toggles while header collapse reflow settles (prevents flash). */
+  let collectionNavScrollFoldLockUntil = 0;
+
+  function syncCollectionNavScrollFoldAnchor() {
+    collectionNavScrollFoldLastY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+  }
+
+  function applyCollectionNavFolded(fold) {
+    const folded = document.body.classList.contains("collection-ui--nav-folded");
+    if (folded === fold) return;
+    collectionNavScrollFoldLockUntil = performance.now() + 380;
+    if (fold) document.body.classList.add("collection-ui--nav-folded");
+    else document.body.classList.remove("collection-ui--nav-folded");
+    requestAnimationFrame(() => {
+      syncCollectionNavScrollFoldAnchor();
+      requestAnimationFrame(syncCollectionNavScrollFoldAnchor);
+    });
+  }
 
   /** Scroll fold: hide desktop header chrome while scrolling down on the collection page (`#filters-nav` removed — optional menu state kept for compatibility). */
   function initCollectionNavScrollFold() {
@@ -19319,27 +19297,29 @@
             return;
           }
           const y = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+          if (performance.now() < collectionNavScrollFoldLockUntil) {
+            syncCollectionNavScrollFoldAnchor();
+            return;
+          }
           /** PLP filters / chips: header collapse shifts layout and retriggers scroll (bounce loop). */
           if (categoryNavFilter || narrowingFiltersActive()) {
-            body.classList.remove("collection-ui--nav-folded");
-            collectionNavScrollFoldLastY = y;
+            applyCollectionNavFolded(false);
             return;
           }
           const dy = y - collectionNavScrollFoldLastY;
           if (filtersNav?.classList.contains("filters--menu-open")) {
-            body.classList.remove("collection-ui--nav-folded");
-            collectionNavScrollFoldLastY = y;
+            applyCollectionNavFolded(false);
             return;
           }
           const folded = body.classList.contains("collection-ui--nav-folded");
           if (y < 160) {
-            if (folded) body.classList.remove("collection-ui--nav-folded");
-          } else if (dy > 12) {
-            if (!folded) body.classList.add("collection-ui--nav-folded");
-          } else if (dy < -12) {
-            if (folded) body.classList.remove("collection-ui--nav-folded");
+            if (folded) applyCollectionNavFolded(false);
+          } else if (dy > 20) {
+            if (!folded) applyCollectionNavFolded(true);
+          } else if (dy < -18) {
+            if (folded) applyCollectionNavFolded(false);
           }
-          collectionNavScrollFoldLastY = y;
+          syncCollectionNavScrollFoldAnchor();
         } catch {
           /* ignore */
         }
@@ -20593,7 +20573,6 @@
             headerSearchWrap.classList.add(HEADER_SEARCH_SHEET_VISIBLE_CLASS);
             document.body.classList.add("collection-ui--header-search-open");
             bindCompactHeaderSearchVisualViewport();
-            probeCompactSearchOpenLayout("revealCompactSearch");
             runCompactHeaderSearchAfterOpenMotion(
               sheet instanceof HTMLElement ? sheet : null,
               headerSearchInput
@@ -20652,7 +20631,6 @@
       requestAnimationFrame(() => {
         syncCompactHeaderSearchVisualViewport();
         scrollCompactHeaderSearchFieldIntoView();
-        probeCompactSearchOpenLayout("inputFocus");
       });
     });
     document.getElementById("collection-search-results-clear")?.addEventListener("click", () => {
@@ -21380,23 +21358,14 @@
     return new Promise((r) => setTimeout(r, ms));
   }
 
-  const TW_INTRO_LOADER_SESSION_KEY = "tw-intro-loader-v1";
   let twPageLoaderShellInstalled = false;
 
-  function shouldShowTwIntroPageLoader() {
-    try {
-      return sessionStorage.getItem(TW_INTRO_LOADER_SESSION_KEY) !== "1";
-    } catch {
-      return true;
-    }
-  }
-
-  function markTwIntroPageLoaderShown() {
-    try {
-      sessionStorage.setItem(TW_INTRO_LOADER_SESSION_KEY, "1");
-    } catch {
-      /* ignore */
-    }
+  async function getSupabaseApiModule() {
+    const cached = globalThis.__TW_SUPABASE_API__;
+    if (cached) return cached;
+    const api = await import("./js/supabase-client.js");
+    globalThis.__TW_SUPABASE_API__ = api;
+    return api;
   }
 
   function clearTwPageLoaderBodyState() {
@@ -21465,17 +21434,16 @@
     initTwAdminMode();
     installPageThemeLifecycle();
     ensureHomeHeroPreloadLink();
-    const showIntroLoader = shouldShowTwIntroPageLoader();
-    if (showIntroLoader) {
-      installTwPageLoaderShell();
-    } else {
-      clearTwPageLoaderBodyState();
-    }
+    installTwPageLoaderShell();
     const twLoaderPageStarted = performance.now();
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
-    catalogueLockManifest = await loadCatalogueLockManifest();
-    hybridLocalCatalogueManifest = await loadHybridLocalCatalogueManifest();
+    const [lockManifest, hybridManifest] = await Promise.all([
+      loadCatalogueLockManifest(),
+      loadHybridLocalCatalogueManifest(),
+    ]);
+    catalogueLockManifest = lockManifest;
+    hybridLocalCatalogueManifest = hybridManifest;
     if (catalogueLockManifest) {
       console.info(
         `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
@@ -21492,8 +21460,9 @@
 
     if (url && key) {
       try {
-        const api = await import("./js/supabase-client.js");
-        supabaseClient = api.createBrowserClient(String(url).trim(), String(key).trim());
+        const api = await getSupabaseApiModule();
+        const supabaseUrl = String(url).trim();
+        supabaseClient = api.createBrowserClient(supabaseUrl, String(key).trim());
         if (supabaseClient) {
           storageMode = "cloud";
           let wardrobeFromSupabase = false;
@@ -21530,21 +21499,9 @@
             }
             wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
             if (catalogueLockManifest) wardrobeCatalogueSource = "seed";
-            const cloudBackfillReportBlocking = await syncMissingRowsToSupabase([]);
-            if (cloudBackfillReportBlocking && (cloudBackfillReportBlocking.synced > 0 || cloudBackfillReportBlocking.failed > 0)) {
-              console.info(
-                `Supabase backfill completed — synced: ${cloudBackfillReportBlocking.synced}, failed: ${cloudBackfillReportBlocking.failed}.`
-              );
-            }
-            const cloudReloaded = await loadWardrobeItemsFromCloud();
-            if (cloudReloaded.length) {
-              wardrobeBase = cloudReloaded;
-              wardrobeFromSupabase = true;
-              wardrobeCatalogueSource = "cloud";
-              outfitsFetchPromise = api.fetchOutfits(supabaseClient);
-            } else {
-              wardrobeCatalogueSource = "seed";
-            }
+            deferredSeedSyncSnapshot = wardrobeBase.slice();
+            savedOutfits = loadSavedOutfitsFromStorage();
+            useCloudOutfits = false;
           }
 
           if (wardrobeFromSupabase || outfitsFetchPromise) {
@@ -21718,12 +21675,7 @@
       devAsset?.refreshDomImages?.();
     }
     } finally {
-      if (showIntroLoader) {
-        await completeTwInitialPageLoader(twLoaderPageStarted);
-        markTwIntroPageLoaderShown();
-      } else {
-        clearTwPageLoaderBodyState();
-      }
+      await completeTwInitialPageLoader(twLoaderPageStarted);
     }
   }
 

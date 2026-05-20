@@ -6402,6 +6402,14 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 @media (min-width: 721px) {
+  .site-header {
+    overflow: hidden;
+    transition:
+      opacity 0.24s var(--ease-luxe),
+      transform 0.28s var(--ease-luxe),
+      visibility 0.28s var(--ease-luxe);
+  }
+
   body.collection-ui--nav-folded .site-header {
   @apply m-0;
     display: block;
@@ -6409,7 +6417,9 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
     height: 0;
     padding: 0;
     border: none;
-    overflow: visible;
+    overflow: hidden;
+    opacity: 0;
+    transform: translate3d(0, -12px, 0);
     pointer-events: none;
     animation: none !important;
   }
@@ -6463,6 +6473,14 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .site-header {
+    transition: none;
+  }
+
+  body.collection-ui--nav-folded .site-header {
+    transform: none;
+  }
+
   .site-header,
   .filters,
   body:not(.item-page) #main,
