@@ -7452,6 +7452,10 @@
   function initSiteHeaderEnterMotion() {
     const header = document.querySelector(".site-header");
     if (!header || header.classList.contains("site-header--entered")) return;
+    if (document.body.classList.contains("tw-page-loader-revealed")) {
+      header.classList.add("site-header--entered");
+      return;
+    }
     const markEntered = () => header.classList.add("site-header--entered");
     header.addEventListener(
       "animationend",
@@ -8898,6 +8902,8 @@
   function bindCompactHeaderSearchVisualViewport() {
     unbindCompactHeaderSearchVisualViewport();
     if (!isHeaderCompactViewport() || !globalThis.visualViewport) return;
+    const input = document.getElementById("filter-search");
+    if (!(input instanceof HTMLElement) || document.activeElement !== input) return;
     const wrap = document.getElementById("site-header-search-wrap");
     if (!(wrap instanceof HTMLElement)) return;
     wrap.classList.add("site-header__search-wrap--vv-bound");
@@ -14843,30 +14849,8 @@
     return Boolean(document.getElementById("item-detail-root"));
   }
 
-  /**
-   * Header logo / wordmark — context-aware:
-   * - Editorial home (`/`): scroll to hero top.
-   * - Collection PLP: reset to `/collection` (all pieces); scroll if already at root.
-   * - Item PDP: open collection hub (`/collection`).
-   */
+  /** Header logo / wordmark — always editorial home (`/`); scroll to top when already there. */
   function handleSiteHeaderBrandClick() {
-    if (isSiteHomePage()) {
-      scrollSiteHomeTop();
-      return;
-    }
-    if (isWardrobeCollectionPlp()) {
-      if (collectionHeadingAtCollectionRoot()) scrollCollectionViewportTop();
-      else navigateCollectionCollectionRoot();
-      return;
-    }
-    if (isItemDetailPageContext()) {
-      navigateItemPageBack();
-      return;
-    }
-    if (isCollectionLocation()) {
-      navigateToCollectionMain();
-      return;
-    }
     navigateToSiteHome();
   }
 
@@ -19200,9 +19184,7 @@
     unlockCollectionPageScroll();
     headerSearchWrap.setAttribute("aria-hidden", "true");
     headerSearchWrap.dataset.searchState = "closed";
-    if (globalThis.matchMedia?.(HEADER_DESKTOP_MQ)?.matches) {
-      headerSearchWrap.setAttribute("hidden", "");
-    }
+    headerSearchWrap.setAttribute("hidden", "");
     headerSearchBtn?.setAttribute("aria-expanded", "false");
     headerSearchBtn?.setAttribute("aria-label", "Open search");
     document.body.classList.remove("collection-ui--header-search-open", "collection-ui--header-search-closing");
@@ -20270,7 +20252,7 @@
 
     const showHeaderSubmenuForCategory = (jump) => {
       const searchW = document.getElementById("site-header-search-wrap");
-      if (searchW?.classList.contains("is-open")) closeHeaderSearch();
+      if (isHeaderSearchWrapOpen()) closeHeaderSearch();
       const slot = String(jump ?? "").trim();
       const wrap = document.getElementById("site-header-submenu");
       const links = document.getElementById("site-header-submenu-links");
@@ -20567,12 +20549,12 @@
             ".desktop-search-flyout-inner, .site-header__search-megamenu-inner"
           );
           const revealCompactSearch = () => {
-            if (headerSearchWrap.hasAttribute("hidden")) return;
+            headerSearchWrap.removeAttribute("hidden");
+            headerSearchWrap.setAttribute("aria-hidden", "false");
             syncHeaderSearchSheetInset();
             setHeaderSearchFlyoutState(headerSearchWrap, "open");
             headerSearchWrap.classList.add(HEADER_SEARCH_SHEET_VISIBLE_CLASS);
             document.body.classList.add("collection-ui--header-search-open");
-            bindCompactHeaderSearchVisualViewport();
             runCompactHeaderSearchAfterOpenMotion(
               sheet instanceof HTMLElement ? sheet : null,
               headerSearchInput
@@ -20631,6 +20613,13 @@
       requestAnimationFrame(() => {
         syncCompactHeaderSearchVisualViewport();
         scrollCompactHeaderSearchFieldIntoView();
+      });
+    });
+    headerSearchInput?.addEventListener("blur", () => {
+      if (!isHeaderCompactLayout()) return;
+      queueMicrotask(() => {
+        if (document.activeElement === headerSearchInput) return;
+        unbindCompactHeaderSearchVisualViewport();
       });
     });
     document.getElementById("collection-search-results-clear")?.addEventListener("click", () => {
@@ -21372,7 +21361,8 @@
     document.body.classList.remove(
       "tw-page-loader-active",
       "tw-page-loader-main-pending",
-      "tw-page-loader-main-reveal"
+      "tw-page-loader-main-reveal",
+      "tw-page-loader-revealed"
     );
   }
 
@@ -21427,6 +21417,8 @@
     document.body.classList.add("tw-page-loader-main-reveal");
     await twSleep(mainInMs);
     document.body.classList.remove("tw-page-loader-main-reveal");
+    document.body.classList.add("tw-page-loader-revealed");
+    document.querySelector(".site-header")?.classList.add("site-header--entered");
   }
 
   async function bootstrap() {
@@ -21635,7 +21627,6 @@
       normalizeLegacyItemPagePath();
       initItemDetailRootDelegates();
       initFilters();
-      wireEvents();
       syncOutfitSaveButtonLabel();
       installItemPageBackNavigation();
       await runItemDetailPage(itemRoot, pageId);
@@ -21647,7 +21638,6 @@
     consumeCollectionBrowseStateForReturn();
     syncCollectionUrlFromBrowseState({ replace: true });
     initFilters();
-    wireEvents();
     syncOutfitSaveButtonLabel();
     initAddItemForm();
     renderGrid();
@@ -21677,6 +21667,8 @@
     } finally {
       await completeTwInitialPageLoader(twLoaderPageStarted);
     }
+    wireEvents();
+    syncOutfitSaveButtonLabel();
   }
 
   void bootstrap();
