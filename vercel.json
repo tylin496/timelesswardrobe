@@ -14,12 +14,17 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/collection/additem", "destination": "/collection.html", "permanent": false },
+    { "source": "/collection/editor", "destination": "/collection.html", "permanent": false },
+    { "source": "/item/:id/edit", "destination": "/item.html?id=:id&edit=1", "permanent": false }
+  ],
   "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
     { "source": "/collection/item.html", "destination": "/item.html" },
     { "source": "/collection/item", "destination": "/item.html" },
     { "source": "/collection", "destination": "/collection.html" },
     { "source": "/collection/:division", "destination": "/collection.html" },
-    { "source": "/item/:id/edit", "destination": "/item.html?id=:id/edit" },
     { "source": "/favicon.ico", "destination": "/favicon.png" }
   ]
 }

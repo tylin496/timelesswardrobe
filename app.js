@@ -404,8 +404,8 @@
     const preview = document.createElement("button");
     preview.type = "button";
     preview.className = "item-edit-colour-code-preview item-edit-colour-code-preview--empty";
-    preview.setAttribute("aria-label", "Choose a colour");
-    preview.title = "Choose a colour";
+    preview.setAttribute("aria-label", "Open colour picker");
+    preview.title = "Open colour picker";
     return preview;
   }
 
@@ -516,11 +516,36 @@
     delete input.dataset.inferred;
   }
 
-  /** Saved value only — never placeholder or legacy inferred ghost text. */
+  function itemEditColourNameSuggestedPlaceholder(input) {
+    if (!(input instanceof HTMLInputElement)) return "";
+    const ph = String(input.placeholder ?? "").trim();
+    const defaultPh = String(input.dataset.defaultPlaceholder ?? ITEM_EDIT_COLOUR_NAME_DEFAULT_PH).trim();
+    if (!ph || ph === ITEM_EDIT_COLOUR_NAME_DEFAULT_PH || ph === defaultPh) return "";
+    return ph;
+  }
+
+  /** Typed value only — grey placeholder / auto-suggest is not included. */
   function itemEditColourNameSaveValue(input) {
     if (!(input instanceof HTMLInputElement)) return "";
     if (input.dataset.inferred === "1") return "";
     return String(input.value ?? "").trim();
+  }
+
+  /**
+   * Value to persist on save — user input wins; otherwise commit auto-suggest from placeholder.
+   * @param {HTMLInputElement | null | undefined} input
+   */
+  function itemEditColourNameCommittedValue(input) {
+    if (!(input instanceof HTMLInputElement)) return "";
+    const typed = itemEditColourNameSaveValue(input);
+    if (typed) return typed;
+    if (input.dataset.inferred === "1") return itemEditColourNameSuggestedPlaceholder(input);
+    return "";
+  }
+
+  /** For broad-colour Auto hints while editing — same as committed (includes grey placeholder suggest). */
+  function itemEditColourNameForInference(input) {
+    return itemEditColourNameCommittedValue(input);
   }
 
   function itemEditColourCodeSaveValue(input) {
@@ -529,25 +554,15 @@
   }
 
   /**
-   * Secondary colour fields for UI / save — includes `.value` and inferred placeholder text from hex.
+   * Secondary colour fields — save uses committed values (placeholder suggest only on save).
    * @param {HTMLInputElement | null | undefined} nameIn
    * @param {HTMLInputElement | null | undefined} codeIn
    */
   function readItemEditSecondaryColourFieldValues(nameIn, codeIn) {
-    const nameRaw = nameIn instanceof HTMLInputElement ? String(nameIn.value ?? "").trim() : "";
-    const codeRaw = codeIn instanceof HTMLInputElement ? String(codeIn.value ?? "").trim() : "";
-    const nameSaved = itemEditColourNameSaveValue(nameIn);
-    const codeSaved = itemEditColourCodeSaveValue(codeIn);
-    let secondaryColour = nameSaved || nameRaw;
-    const secondaryColourCode = codeSaved || codeRaw;
-    if (!secondaryColour && nameIn instanceof HTMLInputElement && nameIn.dataset.inferred === "1") {
-      const ph = String(nameIn.placeholder ?? "").trim();
-      const defaultPh = String(nameIn.dataset.defaultPlaceholder ?? ITEM_EDIT_COLOUR_NAME_DEFAULT_PH).trim();
-      if (ph && ph !== ITEM_EDIT_COLOUR_NAME_DEFAULT_PH && ph !== defaultPh) {
-        secondaryColour = ph;
-      }
-    }
-    return { secondaryColour, secondaryColourCode };
+    return {
+      secondaryColour: itemEditColourNameCommittedValue(nameIn),
+      secondaryColourCode: itemEditColourCodeSaveValue(codeIn),
+    };
   }
 
   /** @param {{ panel?: HTMLElement | null }} [mount] */
@@ -567,17 +582,14 @@
   /** Old sessions stored inferred names in `.value`; move to grey placeholder (only when flagged inferred). */
   function migrateGhostInferredColourNameToPlaceholder(colourInput, codeInput, defaultPh) {
     if (!(colourInput instanceof HTMLInputElement) || !(codeInput instanceof HTMLInputElement)) return;
-    if (colourInput.dataset.userEdited === "1") return;
-    if (colourInput.dataset.inferred !== "1") {
-      if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
-      return;
-    }
+    if (colourInput.dataset.userEdited === "1" || colourInput.dataset.inferred !== "1") return;
     const hex = extractSwatchHexFromVariant({ colourCode: codeInput.value });
     const suggested = hex ? colourNameFromHex(hex) : "";
     colourInput.value = "";
     delete colourInput.dataset.inferred;
     rememberItemEditDefaultPlaceholder(colourInput, defaultPh);
     colourInput.placeholder = suggested || defaultPh;
+    if (suggested) colourInput.dataset.inferred = "1";
   }
 
   /**
@@ -599,9 +611,10 @@
     if (colourInput) {
       rememberItemEditDefaultPlaceholder(colourInput, colourNameDefaultPh);
       migrateGhostInferredColourNameToPlaceholder(colourInput, input, colourNameDefaultPh);
-      if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
+      if (colourInput.value.trim() && colourInput.dataset.inferred !== "1") {
+        markItemEditColourFieldUserEdited(colourInput);
+      }
     }
-    if (input.value.trim()) markItemEditColourFieldUserEdited(input);
 
     const syncPreview = () => {
       const secondary =
@@ -654,15 +667,15 @@
       delete colourInput.dataset.inferred;
     };
 
-    input.addEventListener("focus", () => markItemEditColourFieldUserEdited(input));
     input.addEventListener("input", () => {
+      if (input.value.trim()) markItemEditColourFieldUserEdited(input);
       clearLegacyInferredColourValue();
       syncInferredColourNamePlaceholder();
       syncPreview();
     });
-    colourInput?.addEventListener("focus", () => markItemEditColourFieldUserEdited(colourInput));
     colourInput?.addEventListener("input", () => {
       if (colourInput.value.trim()) markItemEditColourFieldUserEdited(colourInput);
+      else delete colourInput.dataset.userEdited;
       syncInferredColourNamePlaceholder();
       syncPreview();
     });
@@ -742,17 +755,23 @@
     cancelBtn.className = "btn btn--ghost";
     cancelBtn.textContent = "Cancel";
 
+    const screenBtn = document.createElement("button");
+    screenBtn.type = "button";
+    screenBtn.className = "btn btn--ghost item-colour-picker__screen";
+    screenBtn.textContent = "Eyedropper";
+    screenBtn.hidden = !("EyeDropper" in window);
+
     const applyBtn = document.createElement("button");
     applyBtn.type = "button";
     applyBtn.className = "btn";
     applyBtn.textContent = "Apply";
 
-    actions.append(cancelBtn, applyBtn);
+    actions.append(cancelBtn, screenBtn, applyBtn);
     inner.append(title, sv, hueLab, hexLab, sample, actions);
     dlg.appendChild(inner);
     document.body.appendChild(dlg);
 
-    dlg.__twColourPicker = { sv, svCursor, hueInput, hexField, sample, cancelBtn, applyBtn };
+    dlg.__twColourPicker = { sv, svCursor, hueInput, hexField, sample, cancelBtn, screenBtn, applyBtn };
     itemColourPickerDialogEl = dlg;
     return dlg;
   }
@@ -868,6 +887,19 @@
       codeInput.focus();
     };
 
+    const onScreenPick = async () => {
+      const picked = await pickColourFromScreen(codeInput);
+      if (!picked) return;
+      const next = parseHex6Colour(extractSwatchHexFromVariant({ colourCode: codeInput.value }));
+      if (next) {
+        const hsv = hexToHsv(next);
+        h = hsv.h;
+        s = hsv.s;
+        v = hsv.v;
+        paintUi();
+      }
+    };
+
     const restore = () => {
       codeInput.value = snapshot;
       codeInput.dispatchEvent(new Event("input", { bubbles: true }));
@@ -883,6 +915,7 @@
       ui.hexField.removeEventListener("blur", onHexCommit);
       ui.hexField.removeEventListener("input", onHexInput);
       ui.cancelBtn.removeEventListener("click", onCancel);
+      ui.screenBtn.removeEventListener("click", onScreenPick);
       ui.applyBtn.removeEventListener("click", onApply);
       dlg.removeEventListener("cancel", onDialogCancel);
       dlg.removeEventListener("close", onDialogClose);
@@ -915,6 +948,7 @@
     ui.hexField.addEventListener("blur", onHexCommit);
     ui.hexField.addEventListener("input", onHexInput);
     ui.cancelBtn.addEventListener("click", onCancel);
+    ui.screenBtn.addEventListener("click", () => void onScreenPick());
     ui.applyBtn.addEventListener("click", onApply);
     dlg.addEventListener("cancel", onDialogCancel);
     dlg.addEventListener("close", onDialogClose);
@@ -951,6 +985,46 @@
     return false;
   }
 
+  function createItemEditEyedropperButton() {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "item-edit-eyedropper-btn";
+    btn.setAttribute("aria-label", "Pick colour from screen");
+    btn.title = "Eyedropper — pick from screen";
+    btn.innerHTML = TW_ITEM_EDIT_ICON.eyedropper;
+    return btn;
+  }
+
+  function itemEditColourCodeRowForPreview(preview) {
+    if (!(preview instanceof HTMLElement)) return null;
+    return preview.closest(".item-edit-colour-code-row");
+  }
+
+  /** @param {HTMLElement} row @param {HTMLInputElement} codeInput */
+  function mountItemEditEyedropperButton(row, codeInput) {
+    if (!(row instanceof HTMLElement) || !(codeInput instanceof HTMLInputElement)) return null;
+    const canScreenPick = "EyeDropper" in window;
+    const actions = itemEditColourCodeActionsEl(row);
+    let btn = actions.querySelector(":scope > .item-edit-eyedropper-btn");
+    if (!canScreenPick) {
+      btn?.remove();
+      return null;
+    }
+    if (!(btn instanceof HTMLButtonElement)) {
+      btn = createItemEditEyedropperButton();
+      itemEditRowActionsPush(actions, btn);
+    }
+    if (btn.dataset.eyedropperWired !== "1") {
+      btn.dataset.eyedropperWired = "1";
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await pickColourFromScreen(codeInput);
+      });
+    }
+    return btn;
+  }
+
   /**
    * @param {HTMLElement} preview
    * @param {HTMLInputElement} codeInput
@@ -959,19 +1033,16 @@
   function mountColourPickerOnPreview(preview, codeInput, colourInput = null) {
     if (!(preview instanceof HTMLElement) || preview.dataset.colourPicker === "1") return;
     preview.dataset.colourPicker = "1";
-    if ("EyeDropper" in window) {
-      preview.classList.add("item-edit-colour-code-preview--eyedropper");
-    }
+    preview.classList.add("item-edit-colour-code-preview--eyedropper");
+    const row = itemEditColourCodeRowForPreview(preview);
+    mountItemEditEyedropperButton(row, codeInput);
     const syncPickerAffordance = () => {
       preview.classList.toggle("item-edit-colour-code-preview--has-code", itemEditColourCodeHasSwatch(codeInput));
     };
     syncPickerAffordance();
     codeInput.addEventListener("input", syncPickerAffordance);
-    preview.addEventListener("click", async () => {
-      if (!itemEditColourCodeHasSwatch(codeInput)) {
-        await pickColourFromScreen(codeInput);
-        return;
-      }
+    preview.addEventListener("click", (e) => {
+      e.preventDefault();
       openItemColourPicker({
         codeInput,
         colourInput: colourInput instanceof HTMLInputElement ? colourInput : null,
@@ -1027,6 +1098,11 @@
       '<path d="M6 3H3v3M18 21h3v-3M21 18v3h-3M3 6V3h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
       '<rect x="7" y="7" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.75"/>' +
       "</svg>",
+    eyedropper:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="m4 20 1.25-1.25M14.5 6.5l3 3M12.5 8.5 19 2l3 3-6.5 6.5-3-3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M10 11 7 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      "</svg>",
   };
 
   /**
@@ -1053,9 +1129,8 @@
   function createItemEditTextButton(classNames, label, opts = {}) {
     const btn = document.createElement("button");
     btn.type = opts.submit ? "submit" : "button";
-    btn.className = ["item-edit-text-btn", "btn", "btn--small", "btn--ghost", classNames]
-      .filter(Boolean)
-      .join(" ");
+    const chrome = opts.bare ? [] : ["btn", "btn--small", "btn--ghost"];
+    btn.className = ["item-edit-text-btn", ...chrome, classNames].filter(Boolean).join(" ");
     btn.textContent = label;
     const aria = opts.ariaLabel ?? label;
     btn.setAttribute("aria-label", aria);
@@ -1067,7 +1142,15 @@
   let twConfirmDialogEl = null;
 
   /**
-   * @param {{ title?: string, message?: string, confirmLabel?: string, cancelLabel?: string }} opts
+   * @param {{
+   *   title?: string,
+   *   message?: string,
+   *   confirmLabel?: string,
+   *   cancelLabel?: string,
+   *   typeToConfirm?: string,
+   *   typePrompt?: string,
+   *   danger?: boolean,
+   * }} opts
    * @returns {Promise<boolean>}
    */
   function openTwConfirmDialog(opts = {}) {
@@ -1089,6 +1172,21 @@
       message.id = "tw-confirm-dialog-message";
       message.className = "tw-confirm-dialog__message";
 
+      const typeWrap = document.createElement("label");
+      typeWrap.id = "tw-confirm-dialog-type-wrap";
+      typeWrap.className = "field tw-confirm-dialog__type-field";
+      typeWrap.hidden = true;
+      const typeLabel = document.createElement("span");
+      typeLabel.className = "field__label";
+      typeLabel.id = "tw-confirm-dialog-type-label";
+      const typeInput = document.createElement("input");
+      typeInput.type = "text";
+      typeInput.id = "tw-confirm-dialog-type-input";
+      typeInput.className = "tw-confirm-dialog__type-input";
+      typeInput.autocomplete = "off";
+      typeInput.spellcheck = false;
+      typeWrap.append(typeLabel, typeInput);
+
       const actions = document.createElement("div");
       actions.className = "tw-confirm-dialog__actions";
 
@@ -1103,7 +1201,7 @@
       confirmBtn.id = "tw-confirm-dialog-confirm";
 
       actions.append(cancelBtn, confirmBtn);
-      inner.append(title, message, actions);
+      inner.append(title, message, typeWrap, actions);
       dlg.append(inner);
       document.body.append(dlg);
       twConfirmDialogEl = dlg;
@@ -1112,6 +1210,13 @@
     const dlg = twConfirmDialogEl;
     const titleEl = dlg.querySelector("#tw-confirm-dialog-title");
     const messageEl = dlg.querySelector("#tw-confirm-dialog-message");
+    const typeWrap = /** @type {HTMLLabelElement | null} */ (
+      dlg.querySelector("#tw-confirm-dialog-type-wrap")
+    );
+    const typeLabel = dlg.querySelector("#tw-confirm-dialog-type-label");
+    const typeInput = /** @type {HTMLInputElement | null} */ (
+      dlg.querySelector("#tw-confirm-dialog-type-input")
+    );
     const cancelBtn = /** @type {HTMLButtonElement} */ (dlg.querySelector("#tw-confirm-dialog-cancel"));
     const confirmBtn = /** @type {HTMLButtonElement} */ (dlg.querySelector("#tw-confirm-dialog-confirm"));
 
@@ -1119,9 +1224,34 @@
     if (messageEl) messageEl.textContent = String(opts.message ?? "");
     cancelBtn.textContent = String(opts.cancelLabel ?? "Cancel");
     confirmBtn.textContent = String(opts.confirmLabel ?? "OK");
+    confirmBtn.classList.toggle("btn--danger", Boolean(opts.danger));
+    dlg.classList.toggle("tw-confirm-dialog--danger", Boolean(opts.danger));
+
+    const requiredType = String(opts.typeToConfirm ?? "").trim();
+    if (typeWrap && typeInput && typeLabel) {
+      if (requiredType) {
+        typeWrap.hidden = false;
+        typeLabel.textContent =
+          String(opts.typePrompt ?? "") ||
+          `Type ${requiredType} to confirm`;
+        typeInput.value = "";
+        typeInput.placeholder = requiredType;
+        typeInput.setAttribute("aria-label", typeLabel.textContent);
+        confirmBtn.disabled = true;
+      } else {
+        typeWrap.hidden = true;
+        typeInput.value = "";
+        confirmBtn.disabled = false;
+      }
+    }
 
     return new Promise((resolve) => {
       let settled = false;
+      const onTypeInput = () => {
+        if (requiredType && typeInput) {
+          confirmBtn.disabled = typeInput.value.trim() !== requiredType;
+        }
+      };
       const finish = (ok) => {
         if (settled) return;
         settled = true;
@@ -1129,6 +1259,10 @@
         cancelBtn.removeEventListener("click", onCancel);
         confirmBtn.removeEventListener("click", onConfirm);
         dlg.removeEventListener("cancel", onDialogCancel);
+        typeInput?.removeEventListener("input", onTypeInput);
+        confirmBtn.disabled = false;
+        confirmBtn.classList.remove("btn--danger");
+        dlg.classList.remove("tw-confirm-dialog--danger");
         resolve(ok);
       };
       const onClose = () => finish(dlg.returnValue === "confirm");
@@ -1143,14 +1277,37 @@
       cancelBtn.addEventListener("click", onCancel);
       confirmBtn.addEventListener("click", onConfirm);
       dlg.addEventListener("cancel", onDialogCancel);
+      typeInput?.addEventListener("input", onTypeInput);
 
       try {
         dlg.showModal();
       } catch {
         dlg.show();
       }
-      confirmBtn.focus();
+      if (requiredType && typeInput) typeInput.focus();
+      else confirmBtn.focus();
     });
+  }
+
+  /** @param {object} item */
+  async function confirmDeleteWardrobePiece(item) {
+    const id = String(item?.id ?? "").trim();
+    const pieceLabel = [String(item?.brand ?? "").trim(), displayNameWithoutLeadingColour(item)]
+      .filter(Boolean)
+      .join(" — ");
+    const ok = await openTwConfirmDialog({
+      title: "Permanently delete this piece?",
+      message:
+        (pieceLabel ? `${pieceLabel}\n\n` : "") +
+        "This removes the piece from Supabase, clears outfit links, and deletes cloud photos in your bucket. It cannot be undone from the site.",
+      confirmLabel: "Delete permanently",
+      cancelLabel: "Cancel",
+      typeToConfirm: id,
+      typePrompt: `Type the piece id (${id}) to delete`,
+      danger: true,
+    });
+    if (!ok) showToast("Delete cancelled.");
+    return ok;
   }
 
   /**
@@ -1205,7 +1362,7 @@
       syncDualOnPrimaryPreview: false,
       colourNamePlaceholder: "Secondary colour (optional)",
     });
-    if (removeBtn) secCodeRow.appendChild(removeBtn);
+    if (removeBtn) itemEditRowActionsPush(itemEditColourCodeActionsEl(secCodeRow), removeBtn);
 
     panel.append(secNameLab, secCodeLab);
     return { secNameInput, secCodeInput };
@@ -1300,8 +1457,14 @@
     });
 
     const addBtnParent = opts.addBtnParent instanceof HTMLElement ? opts.addBtnParent : null;
-    if (addBtnParent) block.dataset.externalAddBtn = "1";
-    if (addBtnParent) addBtnParent.appendChild(addBtn);
+    const addBtnActions =
+      addBtnParent?.classList.contains("item-edit-colour-code-row__actions")
+        ? addBtnParent
+        : addBtnParent
+          ? itemEditColourCodeActionsEl(addBtnParent)
+          : null;
+    if (addBtnActions) block.dataset.externalAddBtn = "1";
+    if (addBtnActions instanceof HTMLElement) itemEditRowActionsPush(addBtnActions, addBtn);
     else block.appendChild(addBtn);
     block.appendChild(panel);
     parent.append(block);
@@ -1923,80 +2086,210 @@
     return Boolean(twEditorSession?.email && !twEditorSession.denied);
   }
 
-  /** Collection-wide admin tools (add piece, export, duplicate on PDP, etc.). */
-  function isTwAdminMode() {
-    if (isTwLocalDevHost()) return true;
+  function isCollectionPagePathname(pathname) {
+    const path = String(pathname ?? "").replace(/\/$/, "") || "/";
+    return path === "/collection" || path === "/collection.html" || /^\/collection(?:\.html)?\//i.test(path);
+  }
+
+  /** Strip legacy `?additem` / `/collection/additem` / `id=…/edit` bookmarks from the address bar. */
+  function normalizeLegacyEditorUrls() {
     try {
-      if (new URLSearchParams(globalThis.location.search).get("admin") === "true") return true;
+      const u = new URL(globalThis.location.href);
+      let changed = false;
+
+      if (isCollectionPagePathname(u.pathname)) {
+        const legacySegment = /^\/collection(?:\.html)?\/(?:additem|editor)$/i.test(
+          u.pathname.replace(/\/$/, "") || "/"
+        );
+        if (legacySegment) {
+          u.pathname = COLLECTION_PAGE_FILE;
+          changed = true;
+        }
+        if (u.searchParams.has("additem") || u.searchParams.get("editor") === "1") {
+          u.searchParams.delete("additem");
+          u.searchParams.delete("editor");
+          changed = true;
+        }
+      }
+
+      const path = u.pathname.replace(/\/$/, "") || "/";
+      const pathEdit = path.match(/^\/item(?:\.html)?\/([^/]+)\/edit$/i);
+      if (pathEdit) {
+        u.pathname = ITEM_PAGE_PATH;
+        u.searchParams.set("id", decodeURIComponent(pathEdit[1]));
+        u.searchParams.set("edit", "1");
+        changed = true;
+      } else {
+        const rawId = String(u.searchParams.get("id") ?? "").trim();
+        if (rawId.endsWith("/edit")) {
+          u.searchParams.set("id", rawId.slice(0, -"/edit".length));
+          u.searchParams.set("edit", "1");
+          changed = true;
+        }
+      }
+
+      if (changed) globalThis.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
     } catch {
       /* */
     }
-    try {
-      if (localStorage.getItem(TW_ADMIN_MODE_STORAGE_KEY) === "true") return true;
-    } catch {
-      /* private mode */
-    }
-    return false;
   }
 
-  /**
-   * Hidden editor entry (production): `item.html?id=<slug>/edit` or `/item/<slug>/edit`.
-   * `?edit=1` is for localhost / explicit admin only.
-   */
+  /** Collection-wide admin tools (add piece, export, duplicate on PDP, etc.). */
+  function isTwAdminMode() {
+    if (isTwLocalDevHost()) {
+      try {
+        if (new URLSearchParams(globalThis.location.search).get("admin") === "true") return true;
+      } catch {
+        /* */
+      }
+      try {
+        if (localStorage.getItem(TW_ADMIN_MODE_STORAGE_KEY) === "true") return true;
+      } catch {
+        /* private mode */
+      }
+      return true;
+    }
+    return isTwEditorUser();
+  }
+
+  /** Item page route: `?id=<slug>` and optional `?edit=1` (legacy `/edit` paths normalized on load). */
   function parseItemPageRoute() {
     const params = new URLSearchParams(globalThis.location.search);
     let id = String(params.get("id") ?? "").trim();
-    let hiddenEdit = false;
-    let wantEdit = false;
-    const editorGate = params.get("editor") === "1";
-    if (id.endsWith("/edit")) {
-      id = id.slice(0, -"/edit".length);
-      hiddenEdit = true;
-      wantEdit = true;
-    }
+    if (id.endsWith("/edit")) id = id.slice(0, -"/edit".length);
+    let wantEdit = params.get("edit") === "1";
     try {
       const path = String(globalThis.location?.pathname ?? "");
       const m = path.match(/\/item(?:\.html)?\/([^/]+)\/edit\/?$/i);
       if (m) {
         id = decodeURIComponent(m[1]);
-        hiddenEdit = true;
         wantEdit = true;
       }
     } catch {
       /* ignore */
     }
-    if (params.get("edit") === "1") wantEdit = true;
-    return { id, wantEdit, hiddenEdit, editorGate: editorGate || hiddenEdit };
+    return { id, wantEdit };
   }
 
-  function isTwHiddenItemEditRoute() {
-    return parseItemPageRoute().hiddenEdit;
-  }
-
-  /** Item PDP edit form — production uses hidden `/edit` URL + Google editor sign-in. */
   function canUseItemDetailEdit() {
-    if (isTwLocalDevHost()) {
-      const route = parseItemPageRoute();
-      return isTwAdminMode() || route.wantEdit;
+    return isTwAdminMode();
+  }
+
+  function installTwEditorAuthUi() {
+    const tools = document.querySelector(".site-header__tools");
+    if (!tools) return;
+    let wrap = document.getElementById("tw-editor-auth");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "tw-editor-auth";
+      wrap.className = "site-header__editor-auth";
+      tools.appendChild(wrap);
     }
-    if (!isTwEditorUser()) return false;
-    return isTwHiddenItemEditRoute();
-  }
-
-  function isTwEditorGateActive() {
-    if (isTwLocalDevHost()) return true;
-    const route = parseItemPageRoute();
-    if (route.editorGate) return true;
-    return Boolean(route.hiddenEdit && route.id);
-  }
-
-  /** Header never shows sign-in chrome — OAuth only via hidden `/edit` or `?editor=1` on production. */
-  function removeTwEditorAuthUi() {
-    document.getElementById("tw-editor-auth")?.remove();
+    wrap.replaceChildren();
+    if (isTwLocalDevHost()) return;
+    if (!isSupabaseReady()) return;
+    if (isTwEditorUser()) {
+      const out = document.createElement("button");
+      out.type = "button";
+      out.className = "site-header__editor-auth-btn btn btn--small btn--ghost";
+      out.textContent = "Sign out";
+      out.setAttribute("aria-label", "Sign out editor");
+      out.addEventListener("click", () => void signOutGoogleEditor());
+      wrap.appendChild(out);
+      return;
+    }
+    const signIn = document.createElement("button");
+    signIn.type = "button";
+    signIn.className = "site-header__editor-auth-btn btn btn--small btn--ghost";
+    signIn.textContent = "Sign in";
+    signIn.setAttribute("aria-label", "Sign in to edit wardrobe");
+    signIn.addEventListener("click", () => void signInWithGoogleEditor());
+    wrap.appendChild(signIn);
   }
 
   /** Vercel production default origin. */
   const TW_VERCEL_PRODUCTION_ORIGIN = "https://timeless-wardrobe.vercel.app";
+
+  let twLoginOAuthKickoff = false;
+
+  function isTwLoginPage() {
+    try {
+      const path = String(globalThis.location?.pathname ?? "").replace(/\/$/, "") || "/";
+      return path === "/login" || path === "/login.html";
+    } catch {
+      return false;
+    }
+  }
+
+  /** @returns {string} Same-origin path after successful `/login`. */
+  function twLoginNextUrl() {
+    try {
+      const raw = String(new URLSearchParams(globalThis.location.search).get("next") ?? "").trim();
+      if (!raw) return "/collection.html";
+      const u = new URL(raw, globalThis.location.origin);
+      if (u.origin !== globalThis.location.origin) return "/collection.html";
+      if (!u.pathname.startsWith("/")) return "/collection.html";
+      return `${u.pathname}${u.search}${u.hash}`;
+    } catch {
+      return "/collection.html";
+    }
+  }
+
+  function updateLoginPageStatus(text, { showRetry = false } = {}) {
+    const status = document.getElementById("login-status");
+    if (status) status.textContent = text;
+    const retry = document.getElementById("login-retry");
+    if (retry instanceof HTMLButtonElement) {
+      retry.hidden = !showRetry;
+      if (!retry.dataset.wired) {
+        retry.dataset.wired = "1";
+        retry.addEventListener("click", () => {
+          twLoginOAuthKickoff = false;
+          void handleTwLoginPage();
+        });
+      }
+    }
+  }
+
+  function completeTwLoginPageRedirect() {
+    if (!isTwLoginPage()) return;
+    try {
+      globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
+    } catch {
+      globalThis.location.replace("/collection.html");
+    }
+  }
+
+  async function handleTwLoginPage() {
+    if (!isTwLoginPage()) return;
+    if (isTwLocalDevHost()) {
+      updateLoginPageStatus("Local dev does not require sign-in. Redirecting…");
+      globalThis.location.replace("/collection.html");
+      return;
+    }
+    if (!isSupabaseReady()) {
+      updateLoginPageStatus("Sign-in is not configured on this deployment.", { showRetry: false });
+      return;
+    }
+    if (isTwEditorUser()) {
+      updateLoginPageStatus("Signed in. Redirecting…");
+      applyTwAdminModeUi();
+      completeTwLoginPageRedirect();
+      return;
+    }
+    if (twEditorSession?.denied) {
+      updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+      return;
+    }
+    if (twLoginOAuthKickoff) return;
+    updateLoginPageStatus("Opening Google sign-in…");
+    twLoginOAuthKickoff = true;
+    await signInWithGoogleEditor();
+    if (!isTwEditorUser() && !twEditorSession?.denied) {
+      updateLoginPageStatus("Sign-in was cancelled or did not complete.", { showRetry: true });
+      twLoginOAuthKickoff = false;
+    }
+  }
 
   function twSiteBaseUrl() {
     const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
@@ -2023,8 +2316,11 @@
         return `${globalThis.location.origin}/`;
       }
     }
-    const base = twSiteBaseUrl();
-    const path = globalThis.location.pathname || "/item.html";
+    const base = twSiteBaseUrl().replace(/\/$/, "");
+    if (isTwLoginPage()) {
+      return `${base}/login${globalThis.location.search || ""}`;
+    }
+    const path = globalThis.location.pathname || "/collection.html";
     const search = globalThis.location.search || "";
     return `${base}${path.startsWith("/") ? path : `/${path}`}${search}`;
   }
@@ -2036,7 +2332,7 @@
     }
     if (itemIdForEditAfter) twPendingItemEditId = String(itemIdForEditAfter).trim();
     const redirectTo = twOAuthRedirectUrl();
-    /** Force Google account picker when there is no editor session (hidden `/edit` entry). */
+    /** Force Google account picker when there is no editor session. */
     const oauthOptions = { redirectTo };
     if (!isTwEditorUser()) {
       oauthOptions.queryParams = { prompt: "login" };
@@ -2065,7 +2361,8 @@
   async function initTwEditorAuth() {
     if (!supabaseClient?.auth) {
       twEditorSession = null;
-      removeTwEditorAuthUi();
+      installTwEditorAuthUi();
+      await handleTwLoginPage();
       return;
     }
     const { data, error } = await supabaseClient.auth.getSession();
@@ -2077,13 +2374,32 @@
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       twEditorSession = resolveTwEditorSession(session);
       applyTwAdminModeUi();
-      removeTwEditorAuthUi();
+      installTwEditorAuthUi();
+      if (isTwLoginPage() && isTwEditorUser()) {
+        updateLoginPageStatus("Signed in. Redirecting…");
+        completeTwLoginPageRedirect();
+        return;
+      }
+      if (isTwLoginPage() && twEditorSession?.denied) {
+        updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+        twLoginOAuthKickoff = false;
+        return;
+      }
       if (!isTwEditorUser()) {
         if (twEditorSession?.denied) {
           showToast("This Google account cannot edit this wardrobe.");
         }
         exitItemDetailEditIfOpen();
+        if (isTwLoginPage()) {
+          updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+          twLoginOAuthKickoff = false;
+        }
         return;
+      }
+      if (isTwAdminMode()) {
+        initAddItemForm();
+        installLocalDataRiskBanner();
+        installWardrobeTextLocalExportActions();
       }
       const pendingId = twPendingItemEditId;
       if (!pendingId) return;
@@ -2096,14 +2412,7 @@
         showToast("Signed in — you can edit now.");
       }
     });
-    removeTwEditorAuthUi();
-    if (!isTwLocalDevHost() && isTwEditorGateActive() && !isTwEditorUser() && isSupabaseReady()) {
-      const route = parseItemPageRoute();
-      if (route.id && route.hiddenEdit) twPendingItemEditId = String(route.id);
-      void signInWithGoogleEditor(
-        twPendingItemEditId ? { itemIdForEditAfter: twPendingItemEditId } : {}
-      );
-    }
+    installTwEditorAuthUi();
     if (isTwEditorUser() && twPendingItemEditId) {
       const pendingId = twPendingItemEditId;
       twPendingItemEditId = "";
@@ -2114,6 +2423,7 @@
         replaceItemPageUrl(it.id, true);
       }
     }
+    await handleTwLoginPage();
   }
 
   function applyTwAdminModeUi() {
@@ -2124,8 +2434,13 @@
       if (on) el.removeAttribute("hidden");
       else el.setAttribute("hidden", "");
     });
-    removeTwEditorAuthUi();
-    if (!on) {
+    installTwEditorAuthUi();
+    if (on) {
+      initAddItemForm();
+      installLocalDataRiskBanner();
+      installWardrobeTextLocalExportActions();
+    } else {
+      addItemFormWired = false;
       const addDlg = document.getElementById("add-item-dialog");
       if (addDlg?.open) {
         try {
@@ -2183,7 +2498,7 @@
       }
     }
     applyTwAdminModeUi();
-    removeTwEditorAuthUi();
+    installTwEditorAuthUi();
     if (document.body.dataset.twAdminShortcutWired === "1") return;
     document.body.dataset.twAdminShortcutWired = "1";
     document.addEventListener("keydown", (e) => {
@@ -2212,14 +2527,9 @@
   function buildItemPageUrl(id, { edit = false } = {}) {
     const u = new URL(ITEM_PAGE_PATH, globalThis.location.origin);
     const clean = String(id).replace(/\/edit$/i, "");
-    if (edit && !isTwLocalDevHost()) {
-      u.searchParams.set("id", `${clean}/edit`);
-      u.searchParams.delete("edit");
-    } else {
-      u.searchParams.set("id", clean);
-      if (edit) u.searchParams.set("edit", "1");
-      else u.searchParams.delete("edit");
-    }
+    u.searchParams.set("id", clean);
+    if (edit) u.searchParams.set("edit", "1");
+    else u.searchParams.delete("edit");
     return u;
   }
 
@@ -3231,12 +3541,12 @@
     });
 
     function syncAddBtnPlacement() {
-      addBtn.remove();
-      const rows = dyn.querySelectorAll(".measured-dims-row");
-      const last = rows[rows.length - 1];
-      if (!last) return;
-      const actions = last.querySelector(".measured-dims-row__actions");
-      actions?.appendChild(addBtn);
+      for (const row of dyn.querySelectorAll(".measured-dims-row")) {
+        row.querySelector(".measured-dims-row__add-slot")?.replaceChildren();
+      }
+      const last = dyn.querySelector(".measured-dims-row:last-child");
+      const addSlot = last?.querySelector(".measured-dims-row__add-slot");
+      if (addSlot instanceof HTMLElement) addSlot.appendChild(addBtn);
     }
 
     function appendRow(label = "", value = "", labelPlaceholder = "") {
@@ -3276,10 +3586,12 @@
         if (!dyn.querySelector(".measured-dims-row")) appendRow("", "");
         else syncAddBtnPlacement();
       });
-      const actions = document.createElement("div");
-      actions.className = "measured-dims-row__actions";
-      actions.appendChild(rm);
-      row.append(labIn, valIn, actions);
+      const rmSlot = document.createElement("div");
+      rmSlot.className = "measured-dims-row__remove-slot";
+      rmSlot.appendChild(rm);
+      const addSlot = document.createElement("div");
+      addSlot.className = "measured-dims-row__add-slot";
+      row.append(labIn, valIn, rmSlot, addSlot);
       dyn.appendChild(row);
       syncAddBtnPlacement();
     }
@@ -3573,20 +3885,61 @@
       if (from !== collectionDisplayCurrency) {
         const raw = formatMoneyInCurrency(Number(p), from);
         if (brief) return unitShown;
-        return `${unitShown} (${raw})`;
+        return `${unitShown} · ${raw}`;
       }
       return unitShown;
     }
 
     if (from !== collectionDisplayCurrency) {
-      const rawUnit = formatMoneyInCurrency(Number(p), from);
       const rawTotalFmt = formatMoneyInCurrency(Number(p) * n, from);
       if (brief) return totalShown;
-      return `${totalShown} (${n} × ${unitShown}; ${rawTotalFmt} = ${n} × ${rawUnit})`;
+      return `${totalShown} · ${n} × ${unitShown} · ${rawTotalFmt}`;
     }
 
     if (brief) return totalShown;
-    return `${totalShown} (${n} × ${unitShown})`;
+    return `${totalShown} · ${n} × ${unitShown}`;
+  }
+
+  /** Item detail page — stacked lines instead of one dense parenthetical string. */
+  function appendItemDetailPrice(body, item) {
+    const p = item?.price;
+    if (!Number.isFinite(Number(p))) return;
+    const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
+    const n = collectionPriceColourVariantCount(item);
+    const convertedUnit = convertPriceAmount(Number(p), from, collectionDisplayCurrency);
+    if (!Number.isFinite(convertedUnit)) return;
+
+    const unitShown = formatMoneyInCurrency(convertedUnit, collectionDisplayCurrency);
+    const totalShown = formatMoneyInCurrency(convertedUnit * n, collectionDisplayCurrency);
+    const cross = from !== collectionDisplayCurrency;
+
+    const wrap = document.createElement("p");
+    wrap.className = "item-detail__price";
+
+    const primary = document.createElement("span");
+    primary.className = "item-detail__price-primary";
+    if (n > 1) {
+      primary.textContent = totalShown;
+      const breakdown = document.createElement("span");
+      breakdown.className = "item-detail__price-breakdown";
+      breakdown.textContent = `${n} × ${unitShown}`;
+      wrap.append(primary, breakdown);
+    } else {
+      primary.textContent = unitShown;
+      wrap.appendChild(primary);
+    }
+
+    if (cross) {
+      const orig = document.createElement("span");
+      orig.className = "item-detail__price-original";
+      orig.textContent =
+        n > 1
+          ? formatMoneyInCurrency(Number(p) * n, from)
+          : formatMoneyInCurrency(Number(p), from);
+      wrap.appendChild(orig);
+    }
+
+    body.appendChild(wrap);
   }
 
   function purchaseDateSortMs(item) {
@@ -3679,11 +4032,13 @@
     const m = path.match(/^\/collection(?:\.html)?(?:\/([a-z]+))?$/i);
     if (!m) return null;
     const slug = String(m[1] ?? "").toLowerCase();
+    if (slug === "editor" || slug === "additem") return null;
     const slot = slug ? String(COLLECTION_SLUG_TO_SLOT[slug] ?? "") : "";
     return { slot, slug, legacy: false };
   }
 
   function isCollectionLocation() {
+    if (isCollectionPagePathname(globalThis.location?.pathname)) return true;
     return parseCollectionLocationPath(globalThis.location?.pathname) != null;
   }
 
@@ -5591,28 +5946,29 @@
   /** @type {boolean} */
   let localDataRiskBannerWired = false;
 
+  function refreshLocalDataRiskBannerVisibility() {
+    const el = document.getElementById("local-data-risk-banner");
+    if (!el || !isTwAdminMode()) return;
+    if (isSupabaseReady()) {
+      el.hidden = true;
+      return;
+    }
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem(LOCAL_DATA_RISK_BANNER_DISMISSED_KEY) === "1";
+    } catch {
+      /* private mode */
+    }
+    el.hidden = dismissed;
+  }
+
   function installLocalDataRiskBanner() {
     if (!isTwAdminMode()) return;
     if (localDataRiskBannerWired) return;
     localDataRiskBannerWired = true;
 
     const el = document.getElementById("local-data-risk-banner");
-    const refreshVisibility = () => {
-      if (!el) return;
-      if (isSupabaseReady()) {
-        el.hidden = true;
-        return;
-      }
-      let dismissed = false;
-      try {
-        dismissed = localStorage.getItem(LOCAL_DATA_RISK_BANNER_DISMISSED_KEY) === "1";
-      } catch {
-        /* private mode */
-      }
-      el.hidden = dismissed;
-    };
-
-    refreshVisibility();
+    refreshLocalDataRiskBannerVisibility();
 
     document.getElementById("local-data-backup-json")?.addEventListener("click", () => {
       downloadBrowserWardrobeBackupJson();
@@ -5623,7 +5979,7 @@
       } catch {
         /* */
       }
-      refreshVisibility();
+      refreshLocalDataRiskBannerVisibility();
     });
   }
 
@@ -7959,7 +8315,6 @@
   };
 
   let itemDetailDelegatesInstalled = false;
-  let itemDetailPageKeyboardInstalled = false;
   let itemPageBackNavInstalled = false;
 
   function itemDetailMountRoot() {
@@ -8203,6 +8558,23 @@
       viewport.addEventListener("pointermove", onPointerMove);
       viewport.addEventListener("pointerup", endPointer);
       viewport.addEventListener("pointercancel", endPointer);
+      viewport.addEventListener(
+        "wheel",
+        (ev) => {
+          if (!dlg.open) return;
+          ev.preventDefault();
+          const delta = ev.deltaY < 0 ? 0.14 : -0.14;
+          scale = Math.min(4, Math.max(1, scale + delta));
+          if (scale <= 1.02) {
+            scale = 1;
+            panX = 0;
+            panY = 0;
+          }
+          applyTransform();
+          clampPan();
+        },
+        { passive: false }
+      );
 
       return resetView;
     };
@@ -8236,52 +8608,67 @@
   }
 
   /**
-   * Touch PDP hero: horizontal swipe between frames; tap opens full-screen zoom.
+   * PDP hero: click opens full-screen viewer; touch swipe changes frames when gallery has 2+ photos.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
-   * @param {{ frameCount?: number, step?: (delta: number) => void } | null} galleryApi
+   * @param {object} item
+   * @param {{ frameCount?: number, step?: (delta: number) => void, frameUrlAt?: (index: number) => string } | null} galleryApi
    */
-  function wireItemPageMobileHero(media, heroImg, galleryApi) {
+  function wireItemPageHeroView(media, heroImg, item, galleryApi) {
     if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
-    if (media.dataset.twMobileHeroWired === "1") return;
-    media.dataset.twMobileHeroWired = "1";
+    if (media.dataset.twHeroViewWired === "1") return;
+    media.dataset.twHeroViewWired = "1";
 
-    media.classList.add("item-detail__media--mobile-hero");
-    heroImg.title = "Tap to view full screen";
+    media.classList.add("item-detail__media--hero-view");
+    heroImg.classList.add("item-detail__hero-img--enlarge");
+    heroImg.title = "Click to enlarge";
 
     let touchStartX = 0;
     let touchStartY = 0;
     let suppressTap = false;
 
-    media.addEventListener(
-      "touchstart",
-      (e) => {
-        const t = e.touches?.[0];
-        if (!t) return;
-        touchStartX = t.clientX;
-        touchStartY = t.clientY;
-        suppressTap = false;
-      },
-      { passive: true }
-    );
+    const openEnlarged = () => {
+      const idx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
+      const safeIdx = Number.isFinite(idx) && idx >= 0 ? idx : 0;
+      const raw =
+        galleryApi?.frameUrlAt?.(safeIdx) ||
+        String(heroImg.dataset.coverSrc ?? "").trim() ||
+        String(heroImg.src ?? "").trim();
+      const src =
+        wardrobeImageFullResolutionUrl(raw, item) || heroImg.currentSrc || heroImg.src || raw;
+      if (!src) return;
+      openItemImageZoomLightbox({ src, alt: heroImg.alt });
+    };
 
-    media.addEventListener(
-      "touchend",
-      (e) => {
-        const frameCount = galleryApi?.frameCount ?? 0;
-        if (frameCount < 2) return;
-        const t = e.changedTouches?.[0];
-        if (!t) return;
-        const dx = t.clientX - touchStartX;
-        const dy = t.clientY - touchStartY;
-        if (Math.abs(dx) < 48) return;
-        if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
-        suppressTap = true;
-        galleryApi?.step?.(dx < 0 ? 1 : -1);
-        e.preventDefault();
-      },
-      { passive: false }
-    );
+    if (isItemPageCoarsePointer() && (galleryApi?.frameCount ?? 0) >= 2) {
+      media.addEventListener(
+        "touchstart",
+        (e) => {
+          const t = e.touches?.[0];
+          if (!t) return;
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          suppressTap = false;
+        },
+        { passive: true }
+      );
+
+      media.addEventListener(
+        "touchend",
+        (e) => {
+          const t = e.changedTouches?.[0];
+          if (!t) return;
+          const dx = t.clientX - touchStartX;
+          const dy = t.clientY - touchStartY;
+          if (Math.abs(dx) < 48) return;
+          if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
+          suppressTap = true;
+          galleryApi?.step?.(dx < 0 ? 1 : -1);
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+    }
 
     heroImg.addEventListener("click", (e) => {
       if (e.target.closest(".item-detail__gallery-nav")) return;
@@ -8292,69 +8679,12 @@
         return;
       }
       e.preventDefault();
-      const src = heroImg.currentSrc || heroImg.src;
-      if (!src) return;
-      openItemImageZoomLightbox({ src, alt: heroImg.alt });
+      openEnlarged();
     });
-  }
-
-  /**
-   * item.html hero zoom in-place (inside media frame), with pointer pan — desktop / fine pointer only.
-   * @param {HTMLElement} media
-   * @param {HTMLImageElement} heroImg
-   */
-  function wireInlineItemHeroZoom(media, heroImg) {
-    if (isItemPageCoarsePointer()) return;
-    if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
-    media.classList.add("item-detail__media--zoomable");
-    heroImg.classList.add("item-detail__hero-img--zoomable");
-    heroImg.tabIndex = 0;
-    heroImg.title = "Click to zoom, move mouse to inspect details";
-
-    const setOriginFromEvent = (ev) => {
-      const rect = media.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const x = ((ev.clientX - rect.left) / rect.width) * 100;
-      const y = ((ev.clientY - rect.top) / rect.height) * 100;
-      const px = Math.max(0, Math.min(100, x));
-      const py = Math.max(0, Math.min(100, y));
-      heroImg.style.setProperty("--hero-zoom-x", `${px}%`);
-      heroImg.style.setProperty("--hero-zoom-y", `${py}%`);
-    };
-
-    const openZoom = () => {
-      media.classList.add("item-detail__media--zoomed");
-      heroImg.classList.add("item-detail__hero-img--zoomed");
-      heroImg.title = "Click to zoom out";
-    };
-    const closeZoom = () => {
-      media.classList.remove("item-detail__media--zoomed");
-      heroImg.classList.remove("item-detail__hero-img--zoomed");
-      heroImg.style.removeProperty("--hero-zoom-x");
-      heroImg.style.removeProperty("--hero-zoom-y");
-      heroImg.title = "Click to zoom, move mouse to inspect details";
-    };
-    const toggleZoom = () => {
-      if (media.classList.contains("item-detail__media--zoomed")) closeZoom();
-      else openZoom();
-    };
-
-    heroImg.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      toggleZoom();
-    });
-    heroImg.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" || ev.key === " ") {
-        ev.preventDefault();
-        toggleZoom();
-      } else if (ev.key === "Escape") {
-        ev.preventDefault();
-        closeZoom();
-      }
-    });
-    media.addEventListener("pointermove", (ev) => {
-      if (!media.classList.contains("item-detail__media--zoomed")) return;
-      setOriginFromEvent(ev);
+    heroImg.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      openEnlarged();
     });
   }
 
@@ -10157,6 +10487,17 @@
     return s;
   }
 
+  /** English date labels regardless of phone OS locale (see `lang` on HTML). */
+  const TW_DISPLAY_DATE_LOCALE = "en-GB";
+
+  function formatDisplayDate(d) {
+    return d.toLocaleDateString(TW_DISPLAY_DATE_LOCALE, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   /** Display `purchaseDate` (often ISO YYYY-MM-DD) for cards and detail. */
   function formatPurchaseDateForDisplay(raw) {
     const s = String(raw ?? "").trim();
@@ -10167,7 +10508,7 @@
       try {
         const d = new Date(`${m[1]}T12:00:00`);
         if (!Number.isNaN(d.getTime())) {
-          const pretty = d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+          const pretty = formatDisplayDate(d);
           const note = m[2] != null ? String(m[2]).trim() : "";
           return note ? `${pretty} · ${note}` : pretty;
         }
@@ -11182,7 +11523,20 @@
    */
   function mountItemDetailPageGallery(galleryEl, thumbsEl, stageEl, heroImgEl, item, opts = {}) {
     if (!galleryEl || !thumbsEl || !stageEl || !heroImgEl) return;
-    delete stageEl.dataset.twMobileHeroWired;
+    delete stageEl.dataset.twHeroViewWired;
+    stageEl.classList.remove(
+      "item-detail__media--mobile-hero",
+      "item-detail__media--hero-view",
+      "item-detail__media--zoomable",
+      "item-detail__media--zoomed"
+    );
+    heroImgEl.classList.remove(
+      "item-detail__hero-img--zoomable",
+      "item-detail__hero-img--zoomed",
+      "item-detail__hero-img--enlarge"
+    );
+    heroImgEl.style.removeProperty("--hero-zoom-x");
+    heroImgEl.style.removeProperty("--hero-zoom-y");
     if (galleryEl.__twThumbRailObs?.disconnect) {
       galleryEl.__twThumbRailObs.disconnect();
       galleryEl.__twThumbRailObs = null;
@@ -11236,7 +11590,12 @@
       thumbsEl.querySelectorAll(".item-detail__gallery-thumb").forEach((btn, idx) => {
         const on = idx === currentIndex;
         btn.classList.toggle("is-active", on);
-        if (on) activeBtn = /** @type {HTMLElement} */ (btn);
+        if (on) {
+          btn.setAttribute("aria-current", "true");
+          activeBtn = /** @type {HTMLElement} */ (btn);
+        } else {
+          btn.removeAttribute("aria-current");
+        }
       });
       if (activeBtn && thumbsEl.scrollHeight > thumbsEl.clientHeight + 2) {
         activeBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -11245,10 +11604,15 @@
 
     const showFrame = (index) => {
       currentIndex = ((index % frames.length) + frames.length) % frames.length;
+      stageEl.classList.remove("item-detail__media--zoomed");
+      heroImgEl.classList.remove("item-detail__hero-img--zoomed");
+      heroImgEl.style.removeProperty("--hero-zoom-x");
+      heroImgEl.style.removeProperty("--hero-zoom-y");
       const url = heroFrameSrc(frames[currentIndex].url);
       if (url) {
         heroImgEl.src = url;
         if (currentIndex === 0) heroImgEl.dataset.coverSrc = url;
+        heroImgEl.dataset.frameRaw = String(frames[currentIndex].url ?? "").trim();
       }
       heroImgEl.alt =
         currentIndex === 0
@@ -11319,14 +11683,18 @@
       thumbsEl.style.removeProperty("max-height");
     }
 
-    if (opts.mobileHeroInteractions && isItemPageCoarsePointer()) {
+    if (opts.heroInteractions) {
       stageEl.__twPdpGallery = {
         frameCount: frames.length,
+        frameUrlAt(i) {
+          const fr = frames[((i % frames.length) + frames.length) % frames.length];
+          return String(fr?.url ?? "").trim();
+        },
         step(delta) {
           showFrame(currentIndex + delta);
         },
       };
-      wireItemPageMobileHero(stageEl, heroImgEl, stageEl.__twPdpGallery);
+      wireItemPageHeroView(stageEl, heroImgEl, item, stageEl.__twPdpGallery);
     }
   }
 
@@ -11335,11 +11703,11 @@
     if (galleryRoot && heroHost.classList.contains("item-detail__gallery-stage")) {
       const thumbs = galleryRoot.querySelector(".item-detail__gallery-thumbs");
       const root = itemDetailMountRoot();
-      const mobileHero =
+      const heroInteractions =
         itemDetailIsPageRoot(root) && !root?.classList?.contains("item-detail__root--edit");
       if (thumbs) {
         mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item, {
-          mobileHeroInteractions: mobileHero,
+          heroInteractions,
         });
       }
       return;
@@ -12174,19 +12542,15 @@
       return { syncAddPrimaryPreview: noop, addSecColourMount: null, syncAddSecondaryBasicVisibility: noop };
     }
 
-    mountColourPickerOnPreview(
-      addItemCodePreview,
-      addItemColourCode,
-      addItemColourName instanceof HTMLInputElement ? addItemColourName : null
-    );
     const syncAddPrimaryPreview = wireItemEditColourCodePreview({
       input: addItemColourCode,
       preview: addItemCodePreview,
       colourInput: addItemColourName instanceof HTMLInputElement ? addItemColourName : null,
-      getSecondarySources: () => ({
-        colour: document.getElementById("add-item-secondary-colour")?.value ?? "",
-        colourCode: document.getElementById("add-item-secondary-colour-code")?.value ?? "",
-      }),
+      getSecondarySources: () =>
+        readItemEditSecondaryColourFieldValues(
+          document.getElementById("add-item-secondary-colour"),
+          document.getElementById("add-item-secondary-colour-code")
+        ),
     });
 
     /** @type {ReturnType<typeof mountItemEditSecondaryColourBlock> | null} */
@@ -12237,7 +12601,7 @@
       });
       addItemBasicPair.appendChild(addItemSecBasicMount.wrap);
       const syncAddItemBasicAuto = wireItemEditBasicColourAutoDisplay(addItemBasicSel, () => ({
-        colour: itemEditColourNameSaveValue(addItemColourName),
+        colour: itemEditColourNameForInference(addItemColourName),
         colourCode: itemEditColourCodeSaveValue(addItemColourCode),
       }));
       addItemColourName?.addEventListener("input", syncAddItemBasicAuto);
@@ -14062,12 +14426,14 @@
     const recordPick = document.getElementById("add-item-record-type")?.value?.trim() || "";
     const season = normalizeStoredItemSeason(document.getElementById("add-item-season")?.value?.trim() || "");
     const category = resolveCategoryForBrowseSlot(browseSlot, recordPick, season, {});
-    const colourVal = itemEditColourNameSaveValue(document.getElementById("add-item-colour"));
+    const colourVal = itemEditColourNameCommittedValue(document.getElementById("add-item-colour"));
     const colourCodeInput = itemEditColourCodeSaveValue(document.getElementById("add-item-colour-code"));
-    const secondaryColourVal = itemEditColourNameSaveValue(document.getElementById("add-item-secondary-colour"));
-    const secondaryColourCodeInput = itemEditColourCodeSaveValue(
+    const addSecRead = readItemEditSecondaryColourFieldValues(
+      document.getElementById("add-item-secondary-colour"),
       document.getElementById("add-item-secondary-colour-code")
     );
+    const secondaryColourVal = addSecRead.secondaryColour;
+    const secondaryColourCodeInput = addSecRead.secondaryColourCode;
     const fabric = document.getElementById("add-item-fabric")?.value?.trim() || "";
     const weight = document.getElementById("add-item-weight")?.value?.trim() || "";
     const size = document.getElementById("add-item-size")?.value?.trim() || "";
@@ -15868,11 +16234,7 @@
     try {
       const d = new Date(iso);
       if (Number.isNaN(d.getTime())) return "";
-      return d.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      return formatDisplayDate(d);
     } catch {
       return "";
     }
@@ -16013,11 +16375,13 @@
     if (image) fs.setAttribute("data-prev-image", image);
     if (previewImg) fs.setAttribute("data-prev-preview", previewImg);
 
-    const leg = document.createElement("legend");
-    leg.className = "item-edit-variant-legend-wrap";
+    const head = document.createElement("div");
+    head.className = "item-edit-variant-row__head";
     const legText = document.createElement("span");
     legText.className = "item-edit-variant-legend";
     legText.textContent = "Colour";
+    const rowActions = document.createElement("div");
+    rowActions.className = "item-edit-row-actions";
 
     const keyIn = document.createElement("input");
     keyIn.type = "hidden";
@@ -16048,7 +16412,9 @@
     const codeRow = document.createElement("div");
     codeRow.className = "item-edit-colour-code-row";
     const codePreview = createItemEditColourCodePreview();
-    codeRow.append(codePreview, codeIn);
+    const codeActions = document.createElement("div");
+    codeActions.className = "item-edit-colour-code-row__actions";
+    codeRow.append(codePreview, codeIn, codeActions);
 
     const secondarySlot = document.createElement("div");
     secondarySlot.className = "item-edit-variant-secondary-slot";
@@ -16060,7 +16426,7 @@
       { secondaryColour, secondaryColourCode },
       {
         variant: true,
-        addBtnParent: codeRow,
+        addBtnParent: codeActions,
         onRemoved: () => {
           syncPrimaryColourPreviewRef.fn();
           syncVariantSecondaryBasicVisibilityRef.fn();
@@ -16074,10 +16440,11 @@
       preview: codePreview,
       colourInput: colourIn,
       labelInput: labelIn,
-      getSecondarySources: () => ({
-        colour: variantSecondaryMount.secNameInput?.value ?? "",
-        colourCode: variantSecondaryMount.secCodeInput?.value ?? "",
-      }),
+      getSecondarySources: () =>
+        readItemEditSecondaryColourFieldValues(
+          variantSecondaryMount.secNameInput,
+          variantSecondaryMount.secCodeInput
+        ),
     });
     syncPrimaryColourPreviewRef.fn = syncPrimaryColourPreview;
     variantSecondaryMount.secNameInput?.addEventListener("input", syncPrimaryColourPreview);
@@ -16088,7 +16455,7 @@
     basicSel.setAttribute("aria-label", "Broad colour for collection filter (primary)");
     refillBasicColourSelectOptions(basicSel, String(data.basicColour ?? "").trim());
     const syncVariantBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
-      colour: itemEditColourNameSaveValue(colourIn),
+      colour: itemEditColourNameForInference(colourIn),
       colourCode: itemEditColourCodeSaveValue(codeIn),
       label: String(labelIn.value ?? "").trim(),
     }));
@@ -16182,21 +16549,30 @@
       syncVariantRemoveButtons(listEl);
     });
 
-    leg.append(legText, rm);
-    previewActions.append(rmPrev);
+    rowActions.appendChild(rm);
+    head.append(legText, rowActions);
 
-    fs.appendChild(leg);
-    fs.appendChild(keyIn);
-    fs.appendChild(labelIn);
-    fs.appendChild(colourIn);
-    fs.appendChild(codeRow);
-    fs.appendChild(secondarySlot);
-    fs.appendChild(basicSel);
-    fs.appendChild(variantSecBasicMount.wrap);
-    fs.appendChild(notesIn);
-    fs.appendChild(photoHost);
-    fs.appendChild(previewLab);
-    fs.appendChild(previewActions);
+    const body = document.createElement("div");
+    body.className = "item-edit-variant-row__body";
+
+    const basics = document.createElement("div");
+    basics.className = "item-edit-variant-row__basics";
+    basics.append(labelIn, colourIn, codeRow);
+
+    const broadRow = document.createElement("div");
+    broadRow.className = "item-edit-variant-row__broad";
+    broadRow.append(basicSel, variantSecBasicMount.wrap);
+
+    const previewRow = document.createElement("div");
+    previewRow.className = "item-edit-variant-preview-row";
+    previewRow.append(previewLab);
+    const previewAct = document.createElement("div");
+    previewAct.className = "item-edit-row-actions";
+    previewAct.appendChild(rmPrev);
+    previewRow.appendChild(previewAct);
+
+    body.append(basics, secondarySlot, broadRow, notesIn, photoHost, previewRow);
+    fs.append(head, keyIn, body);
     listEl.appendChild(fs);
     syncVariantRemoveButtons(listEl);
   }
@@ -16236,7 +16612,7 @@
     for (const row of rows) {
       const key = row.querySelector(".item-edit-variant-key")?.value?.trim() || "";
       const label = row.querySelector(".item-edit-variant-label")?.value?.trim() || "";
-      const colourTxt = itemEditColourNameSaveValue(row.querySelector(".item-edit-variant-colour"));
+      const colourTxt = itemEditColourNameCommittedValue(row.querySelector(".item-edit-variant-colour"));
       const colourCode = itemEditColourCodeSaveValue(row.querySelector(".item-edit-variant-colour-code"));
       const secNameIn = row.querySelector(".item-edit-secondary-colour");
       const secCodeIn = row.querySelector(".item-edit-secondary-colour-code");
@@ -16426,7 +16802,7 @@
     const primaryColour =
       variantsMode && colourVariantsBuilt?.length
         ? String(colourVariantsBuilt[0].colour ?? colourVariantsBuilt[0].label ?? "").trim()
-        : itemEditColourNameSaveValue(form.querySelector("#item-edit-colour"));
+        : itemEditColourNameCommittedValue(form.querySelector("#item-edit-colour"));
 
     const colourCode =
       variantsMode && colourVariantsBuilt?.length
@@ -16973,14 +17349,66 @@
     }
     section.appendChild(heading);
     const grid = document.createElement("div");
-    grid.className = "item-detail__form-grid item-edit-section__grid";
+    grid.className = "item-detail__form-grid item-edit-section__grid item-edit-aligned-grid";
     section.appendChild(grid);
     return { section, grid, heading };
   }
 
-  function appendItemEditField(grid, labelText, child) {
+  /** @param {HTMLElement} row `.item-edit-colour-code-row` or a child inside it */
+  function itemEditColourCodeActionsEl(row) {
+    const codeRow =
+      row instanceof HTMLElement && row.classList.contains("item-edit-colour-code-row")
+        ? row
+        : row instanceof HTMLElement
+          ? row.closest(".item-edit-colour-code-row")
+          : null;
+    if (!(codeRow instanceof HTMLElement)) {
+      const fallback = document.createElement("div");
+      fallback.className = "item-edit-colour-code-row__actions";
+      return fallback;
+    }
+    let actions = codeRow.querySelector(":scope > .item-edit-colour-code-row__actions");
+    if (!actions) {
+      actions = document.createElement("div");
+      actions.className = "item-edit-colour-code-row__actions";
+      codeRow.appendChild(actions);
+    }
+    return actions;
+  }
+
+  /**
+   * Row icon actions: non-delete left, delete right, add right of delete.
+   * @param {HTMLElement} actionsEl
+   * @param {HTMLElement} btn
+   */
+  function itemEditRowActionsPush(actionsEl, btn) {
+    const isAdd =
+      btn.classList.contains("measured-dims-row__add") ||
+      btn.classList.contains("item-edit-secondary-colour-add");
+    if (isAdd) {
+      actionsEl.appendChild(btn);
+      return;
+    }
+    const addAnchor = actionsEl.querySelector(
+      ".measured-dims-row__add, .item-edit-secondary-colour-add"
+    );
+    if (addAnchor) actionsEl.insertBefore(btn, addAnchor);
+    else actionsEl.appendChild(btn);
+  }
+
+  /**
+   * @param {HTMLElement} grid
+   * @param {string} labelText
+   * @param {HTMLElement} child
+   * @param {{ width?: "compact" | "medium" | "wide", span2?: boolean }} [opts]
+   */
+  function appendItemEditField(grid, labelText, child, opts = {}) {
     const lab = document.createElement("label");
     lab.className = "field";
+    const width = opts.span2 ? "wide" : opts.width || "medium";
+    if (width === "wide") lab.classList.add("field--span2", "field--wide");
+    else if (width === "compact") lab.classList.add("field--compact");
+    else lab.classList.add("field--medium");
     const span = document.createElement("span");
     span.className = "field__label";
     span.textContent = labelText;
@@ -16999,7 +17427,7 @@
    */
   function appendItemEditSelectRow(grid, leftLabel, leftChild, rightLabel, rightChild) {
     const row = document.createElement("div");
-    row.className = "item-edit-select-row field--span2";
+    row.className = "item-edit-pair-row item-edit-select-row field--span2";
 
     const leftLab = document.createElement("label");
     leftLab.className = "field item-edit-select-row__cell";
@@ -17134,16 +17562,12 @@
     media.appendChild(img);
     if (isItemPageView) {
       mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia, {
-        mobileHeroInteractions: true,
+        heroInteractions: true,
       });
     } else if (!isPageEdit && !detailVariants?.length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
     } else if (!isPageEdit && itemGalleryList(itemForMedia).length) {
       mountHeroGalleryStrip(media, img, itemForMedia);
-    }
-
-    if (isItemPageView && !isItemPageCoarsePointer()) {
-      wireInlineItemHeroZoom(media, img);
     }
 
     if (isPageEdit) root.classList.add("item-detail__root--edit");
@@ -17215,15 +17639,23 @@
       const identityGrid = identitySec.grid;
       const initialVariants = getItemColourVariants(item);
       const isCustomPiece = String(item.id ?? "").startsWith("custom-");
-      const colourSec = createItemEditSection("Colour & season");
+      const colourSec = createItemEditSection("Colour");
       const colourGrid = colourSec.grid;
       const materialSec = createItemEditSection("Material & fit");
       const materialGrid = materialSec.grid;
       const acquisitionSec = createItemEditSection("Acquisition");
       const acquisitionGrid = acquisitionSec.grid;
 
-      function addField(labelText, child, targetGrid = identityGrid) {
-        appendItemEditField(targetGrid, labelText, child);
+      function addField(labelText, child, targetGridOrOpts = identityGrid, maybeOpts) {
+        let targetGrid = identityGrid;
+        let opts = {};
+        if (targetGridOrOpts instanceof HTMLElement) {
+          targetGrid = targetGridOrOpts;
+          opts = maybeOpts && typeof maybeOpts === "object" ? maybeOpts : {};
+        } else if (targetGridOrOpts && typeof targetGridOrOpts === "object") {
+          opts = targetGridOrOpts;
+        }
+        appendItemEditField(targetGrid, labelText, child, opts);
       }
 
       const brandIn = document.createElement("input");
@@ -17232,15 +17664,52 @@
       brandIn.required = true;
       brandIn.maxLength = 120;
       brandIn.value = String(item.brand ?? "");
-      addField("Brand", brandIn);
-
       const nameIn = document.createElement("input");
       nameIn.type = "text";
       nameIn.id = "item-edit-name";
       nameIn.required = true;
       nameIn.maxLength = 200;
       nameIn.value = String(item.name ?? "");
-      addField("Name", nameIn);
+      appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn);
+
+      const seaSel = document.createElement("select");
+      seaSel.id = "item-edit-season";
+      const seasonRows = [
+        { value: "All-season", label: "All seasons" },
+        { value: "A/W", label: "A/W" },
+        { value: "S/S", label: "S/S" },
+      ];
+      const curSe = String(item.season ?? "").trim();
+      const curPick = curSe === "A/W" || curSe === "S/S" ? curSe : "All-season";
+      for (const row of seasonRows) {
+        const o = document.createElement("option");
+        o.value = row.value;
+        o.textContent = row.label;
+        if (row.value === curPick) o.selected = true;
+        seaSel.appendChild(o);
+      }
+      appendItemEditField(identityGrid, "Season (optional)", seaSel, { width: "compact" });
+
+      const catSel = document.createElement("select");
+      catSel.id = "item-edit-browse-slot";
+      catSel.required = true;
+      const rawCat = String(item.category ?? "").trim();
+      const slotPick = SLOT_OPTIONS.includes(rawCat) ? rawCat : itemSlot(item);
+      for (const c of SLOT_OPTIONS) {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = categoryDisplayLabel(c);
+        if (c === slotPick) o.selected = true;
+        catSel.appendChild(o);
+      }
+      const recordTypeSel = document.createElement("select");
+      recordTypeSel.id = "item-edit-record-type";
+      recordTypeSel.className = "item-edit-record-type-select";
+      recordTypeSel.title =
+        'Same labels as the collection "type" strip — controls filtering and default browse order.';
+      const currentRecKey = recordCategoryForDrill(item, slotPick);
+      fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
+      appendItemEditSelectRow(identityGrid, "Section", catSel, "Type", recordTypeSel);
 
       const photosFieldWrap = document.createElement("div");
       photosFieldWrap.className = "field field--span2 item-edit-photos-field";
@@ -17264,27 +17733,6 @@
       photosFieldWrap.appendChild(photosHost);
       photosFieldWrap.hidden = Boolean(initialVariants);
       identityGrid.appendChild(photosFieldWrap);
-
-      const catSel = document.createElement("select");
-      catSel.id = "item-edit-browse-slot";
-      catSel.required = true;
-      const rawCat = String(item.category ?? "").trim();
-      const slotPick = SLOT_OPTIONS.includes(rawCat) ? rawCat : itemSlot(item);
-      for (const c of SLOT_OPTIONS) {
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = categoryDisplayLabel(c);
-        if (c === slotPick) o.selected = true;
-        catSel.appendChild(o);
-      }
-      const recordTypeSel = document.createElement("select");
-      recordTypeSel.id = "item-edit-record-type";
-      recordTypeSel.className = "item-edit-record-type-select";
-      recordTypeSel.title =
-        'Same labels as the collection "type" strip — controls filtering and default browse order.';
-      const currentRecKey = recordCategoryForDrill(item, slotPick);
-      fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
-      appendItemEditSelectRow(identityGrid, "Section", catSel, "Type", recordTypeSel);
 
       function refreshIdentityBrowsePath() {
         identitySec.heading.replaceChildren(
@@ -17337,17 +17785,20 @@
       const colourCodeRow = document.createElement("div");
       colourCodeRow.className = "item-edit-colour-code-row";
       const colourCodePreview = createItemEditColourCodePreview();
-      colourCodeRow.append(colourCodePreview, colourCodeInput);
+      const colourCodeActions = document.createElement("div");
+      colourCodeActions.className = "item-edit-colour-code-row__actions";
+      colourCodeRow.append(colourCodePreview, colourCodeInput, colourCodeActions);
       colourCodeLab.appendChild(ccspan);
       colourCodeLab.appendChild(colourCodeRow);
       const syncPrimaryColourPreview = wireItemEditColourCodePreview({
         input: colourCodeInput,
         preview: colourCodePreview,
         colourInput: colourNameInput,
-        getSecondarySources: () => ({
-          colour: itemEditColourNameSaveValue(form.querySelector("#item-edit-secondary-colour")),
-          colourCode: itemEditColourCodeSaveValue(form.querySelector("#item-edit-secondary-colour-code")),
-        }),
+        getSecondarySources: () =>
+          readItemEditSecondaryColourFieldValues(
+            form.querySelector("#item-edit-secondary-colour"),
+            form.querySelector("#item-edit-secondary-colour-code")
+          ),
       });
 
       const itemMetaForBasic =
@@ -17374,7 +17825,7 @@
       basicPair.className = "item-edit-basic-colour-pair";
 
       const syncItemBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
-        colour: itemEditColourNameSaveValue(colourNameInput),
+        colour: itemEditColourNameForInference(colourNameInput),
         colourCode: itemEditColourCodeSaveValue(colourCodeInput),
       }));
 
@@ -17412,7 +17863,7 @@
         {
           nameId: "item-edit-secondary-colour",
           codeId: "item-edit-secondary-colour-code",
-          addBtnParent: colourCodeRow,
+          addBtnParent: colourCodeActions,
           onRemoved: () => {
             syncPrimaryColourPreview();
             syncSecondaryBasicVisibility();
@@ -17513,7 +17964,7 @@
         }
       }
 
-      variantsToolbar.append(addVarBtn, disableVariantsBtn);
+      variantsToolbar.append(disableVariantsBtn, addVarBtn);
       variantsWrap.appendChild(listEl);
       variantsWrap.appendChild(variantsToolbar);
 
@@ -17644,23 +18095,6 @@
 
       colourGrid.appendChild(variantsWrap);
 
-      const seaSel = document.createElement("select");
-      seaSel.id = "item-edit-season";
-      const seasonRows = [
-        { value: "All-season", label: "All seasons" },
-        { value: "A/W", label: "A/W" },
-        { value: "S/S", label: "S/S" },
-      ];
-      const curSe = String(item.season ?? "").trim();
-      const curPick = curSe === "A/W" || curSe === "S/S" ? curSe : "All-season";
-      for (const row of seasonRows) {
-        const o = document.createElement("option");
-        o.value = row.value;
-        o.textContent = row.label;
-        if (row.value === curPick) o.selected = true;
-        seaSel.appendChild(o);
-      }
-
       const fabIn = document.createElement("input");
       fabIn.type = "text";
       fabIn.id = "item-edit-fabric";
@@ -17679,10 +18113,13 @@
       sizeIn.maxLength = 120;
       sizeIn.value = String(item.size ?? "");
 
-      addField("Season (optional)", seaSel, colourGrid);
-      addField("Material (optional)", fabIn, materialGrid);
-      addField("Specs / weight (optional)", wtIn, materialGrid);
-      addField("Size (optional)", sizeIn, materialGrid);
+      addField("Material (optional)", fabIn, materialGrid, { width: "wide" });
+
+      const fitStrip = document.createElement("div");
+      fitStrip.className = "item-edit-pair-row item-edit-spec-strip";
+      appendItemEditField(fitStrip, "Specs / weight (optional)", wtIn, { width: "compact" });
+      appendItemEditField(fitStrip, "Size (optional)", sizeIn, { width: "compact" });
+      materialGrid.appendChild(fitStrip);
 
       const purchaseIn = document.createElement("input");
       purchaseIn.type = "date";
@@ -17713,8 +18150,11 @@
       priceWrap.appendChild(priceIn);
       priceWrap.appendChild(priceCurSel);
 
-      addField("Purchase date (optional)", purchaseIn, acquisitionGrid);
-      addField("Price (optional)", priceWrap, acquisitionGrid);
+      const acquisitionStrip = document.createElement("div");
+      acquisitionStrip.className = "item-edit-pair-row item-edit-acquisition-strip";
+      appendItemEditField(acquisitionStrip, "Purchase date (optional)", purchaseIn, { width: "compact" });
+      appendItemEditField(acquisitionStrip, "Price (optional)", priceWrap, { width: "medium" });
+      acquisitionGrid.appendChild(acquisitionStrip);
 
       formScroll.appendChild(identitySec.section);
       formScroll.appendChild(colourSec.section);
@@ -17778,11 +18218,13 @@
       });
 
       const act = document.createElement("div");
-      act.className = "item-detail__form-actions";
-      const actPush = document.createElement("div");
-      actPush.className = "item-detail__form-actions-push";
+      act.className = "item-detail__form-actions item-edit-form-actions";
+      const actMain = document.createElement("div");
+      actMain.className = "item-edit-form-actions__main";
+      const actEnd = document.createElement("div");
+      actEnd.className = "item-edit-form-actions__end";
       const cancelBtn = createItemEditTextButton("item-detail-cancel-edit", "Cancel", {
-        title: "Discard changes (Esc)",
+        title: "Discard changes",
       });
       cancelBtn.id = "item-detail-cancel-edit";
       const dupBtn = createItemEditTextButton("tw-admin-only item-detail-duplicate", "Duplicate", {
@@ -17796,26 +18238,21 @@
         "Save changes",
         { title: "Save changes (⌘ Enter or Ctrl+Enter)", submit: true }
       );
-      actPush.appendChild(cancelBtn);
-      actPush.appendChild(dupBtn);
-      actPush.appendChild(saveBtn);
-      act.appendChild(actPush);
-
-      const delWrap = document.createElement("div");
-      delWrap.className = "item-detail__form-danger tw-admin-only";
       const delBtn = createItemEditTextButton(
-        "item-detail-delete item-edit-text-btn--danger-subtle",
+        "tw-admin-only item-detail-delete item-edit-text-btn--danger-subtle",
         "Delete",
         {
+          bare: true,
           ariaLabel: "Delete piece",
           title:
             "Remove this piece from Supabase (outfit links cleared; cloud images removed where applicable; cannot be undone).",
         }
       );
       delBtn.id = "item-detail-delete";
-      delWrap.appendChild(delBtn);
+      actMain.append(cancelBtn, dupBtn);
+      actEnd.append(delBtn, saveBtn);
+      act.append(actMain, actEnd);
       formFooter.appendChild(act);
-      formFooter.appendChild(delWrap);
 
       form.appendChild(formScroll);
       form.appendChild(formFooter);
@@ -17866,15 +18303,7 @@
     brand.textContent = item.brand;
     body.appendChild(brand);
 
-    if (isItemPageView) {
-      const priceLine = formattedCollectionPriceLine(item);
-      if (priceLine) {
-        const priceEl = document.createElement("p");
-        priceEl.className = "item-detail__price";
-        priceEl.textContent = priceLine;
-        body.appendChild(priceEl);
-      }
-    }
+    if (isItemPageView) appendItemDetailPrice(body, item);
 
     if (isItemPageView && detailVariants?.length) {
       mountVariantSwatchStrip(body, itemForMedia, {
@@ -18354,10 +18783,10 @@
             showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
             return;
           }
-          const msg =
-            "Delete this piece from Supabase? Links in saved outfits are removed first (`outfit_items`). Then we delete Storage objects only when the image URL maps to your wardrobe-images bucket—external URLs stay. Finally we delete the `wardrobe_items` row; nothing here can restore it.";
-          if (!confirm(msg)) return;
-          void deleteWardrobePieceFromBrowser(it.id);
+          void (async () => {
+            if (!(await confirmDeleteWardrobePiece(it))) return;
+            await deleteWardrobePieceFromBrowser(it.id);
+          })();
           return;
         }
         if (t?.closest("#item-detail-cancel-edit")) {
@@ -18371,22 +18800,6 @@
       });
     }
 
-    if (!itemDetailPageKeyboardInstalled) {
-      itemDetailPageKeyboardInstalled = true;
-      document.addEventListener("keydown", (e) => {
-        if (e.key !== "Escape") return;
-        if (document.querySelector("dialog[open]")) return;
-        const mount = itemDetailMountRoot();
-        if (!mount?.classList.contains("item-detail__root--page")) return;
-        if (document.getElementById("grid")) return;
-        if (!document.getElementById("item-detail-edit-form")) return;
-        const it = itemById.get(detailItemId);
-        if (!it || !mount) return;
-        e.preventDefault();
-        renderItemDetailContent(mount, it, { edit: false });
-        replaceItemPageUrl(it.id, false);
-      });
-    }
   }
 
   /**
@@ -18415,43 +18828,6 @@
     return hit || null;
   }
 
-  function renderItemDetailEditorSignInGate(root, item) {
-    detailItemId = item.id;
-    root.innerHTML = "";
-    root.classList.remove("item-detail__root--edit");
-    const wrap = document.createElement("div");
-    wrap.className = "item-detail__editor-gate";
-    wrap.setAttribute("role", "region");
-    wrap.setAttribute("aria-labelledby", "item-editor-gate-heading");
-    const h = document.createElement("h2");
-    h.id = "item-editor-gate-heading";
-    h.className = "item-detail__editor-gate-title";
-    h.textContent = "Sign in to edit";
-    const hint = document.createElement("p");
-    hint.className = "item-detail__editor-gate-hint";
-    hint.textContent =
-      "This hidden URL is for wardrobe editors only. Sign in with your approved Google account to open the edit form.";
-    const actions = document.createElement("div");
-    actions.className = "item-detail__editor-gate-actions";
-    const signInBtn = document.createElement("button");
-    signInBtn.type = "button";
-    signInBtn.className = "btn";
-    signInBtn.textContent = "Sign in with Google";
-    signInBtn.addEventListener("click", () => {
-      twPendingItemEditId = String(item.id);
-      void signInWithGoogleEditor({ itemIdForEditAfter: item.id });
-    });
-    const viewLink = document.createElement("a");
-    viewLink.className = "btn btn--ghost";
-    viewLink.href = buildItemPageUrl(item.id, { edit: false }).toString();
-    viewLink.textContent = "View piece (read-only)";
-    actions.append(signInBtn, viewLink);
-    wrap.append(h, hint, actions);
-    root.appendChild(wrap);
-    document.title = `${item.brand} — ${displayNameWithoutLeadingColour(item)} · Timeless Wardrobe`;
-    recordRecentlyViewedItem(item.id);
-  }
-
   async function runItemDetailPage(root, pageId) {
     const route = parseItemPageRoute();
     const resolvedPageId = String(pageId ?? route.id ?? "")
@@ -18475,27 +18851,14 @@
     document.title = `${item.brand} — ${displayNameWithoutLeadingColour(item)} · Timeless Wardrobe`;
     recordRecentlyViewedItem(item.id);
     const wantEditRequested = wantEdit;
-    const hiddenEdit = route.hiddenEdit;
     let allowEdit = wantEditRequested && canUseItemDetailEdit();
     if (wantEditRequested && !allowEdit) {
       if (!isSupabaseReady()) {
         showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
-        replaceItemPageUrl(item.id, false);
-        renderItemDetailContent(root, item, { edit: false });
-        return;
+      } else if (!isTwLocalDevHost() && !isTwEditorUser()) {
+        showToast("Sign in from the header to edit this piece.");
       }
-      if (hiddenEdit && !isTwLocalDevHost()) {
-        twPendingItemEditId = String(item.id);
-        renderItemDetailEditorSignInGate(root, item);
-        void signInWithGoogleEditor({ itemIdForEditAfter: item.id });
-        return;
-      }
-      if (isTwLocalDevHost() && wantEdit) {
-        twPendingItemEditId = String(item.id);
-        void signInWithGoogleEditor({ itemIdForEditAfter: item.id });
-      } else {
-        replaceItemPageUrl(item.id, false);
-      }
+      replaceItemPageUrl(item.id, false);
       allowEdit = false;
     } else if (wantEditRequested && allowEdit && !isSupabaseReady()) {
       showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
@@ -21705,7 +22068,8 @@
   async function getSupabaseApiModule() {
     const cached = globalThis.__TW_SUPABASE_API__;
     if (cached) return cached;
-    const api = await import("./js/supabase-client.js");
+    const spec = new URL("/js/supabase-client.js", globalThis.location.origin).href;
+    const api = await import(spec);
     globalThis.__TW_SUPABASE_API__ = api;
     return api;
   }
@@ -21884,9 +22248,17 @@
         }
       } catch (e) {
         deferredSeedSyncSnapshot = null;
-        console.warn("Supabase unavailable, using local seed + cache.", e);
-        supabaseClient = null;
-        storageMode = "local";
+        console.warn("Supabase load/fetch failed — local seed + cache; keeping CDN client if available.", e);
+        if (!isSupabaseReady()) {
+          supabaseClient = initSupabaseClientFromConfig();
+        }
+        if (isSupabaseReady()) {
+          storageMode = "cloud";
+          console.info("Supabase CDN fallback client is active (module import or fetch failed).");
+        } else {
+          supabaseClient = null;
+          storageMode = "local";
+        }
         useCloudOutfits = false;
         wardrobeBase = seedItemsFromScript();
         wardrobeCatalogueSource = "seed";
@@ -21899,6 +22271,7 @@
       savedOutfits = loadSavedOutfitsFromStorage();
     }
 
+    normalizeLegacyEditorUrls();
     await hydrateCollectionAndSeasonState();
     await initTwEditorAuth();
     applyTwAdminModeUi();
@@ -22004,6 +22377,7 @@
     consumeAndRestoreCollectionListScroll();
     if (document.getElementById("local-data-risk-banner")) {
       installLocalDataRiskBanner();
+      refreshLocalDataRiskBannerVisibility();
     }
     installWardrobeTextLocalExportActions();
     if (document.body.classList.contains("home-page")) {

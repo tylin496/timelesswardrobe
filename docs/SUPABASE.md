@@ -68,12 +68,14 @@ The migration enables RLS with **prototype** policies:
 
 7. Set the same address in `js/tw-supabase-config.js` → `EDITOR_ALLOWED_EMAILS`.
 
-**Hidden entry (no sign-in button on the public site):**
+**Editing on production:**
 
-- Edit one piece: `item.html?id=<piece-id>/edit` (example: `item.html?id=glen-check-tweed-jacket/edit`) — opens Google sign-in, then the edit form.
-- Collection tools: `collection.html?editor=1` — sign-in, then add-piece / admin chrome.
+- Open **`/login`** (rewrites to `login.html`) to start Google sign-in, or use **Sign in** in the site header on any page.
+- After OAuth with an allowed email, you are redirected to the collection (or `?next=/path` if provided). Admin tools match local dev: **+ NEW PIECE**, edit icon on piece pages, duplicate/delete in edit mode, export actions.
+- Add `https://timeless-wardrobe.vercel.app/login` to Supabase **Redirect URLs** (the `/**` wildcard usually covers this).
+- Piece edit URLs may use **`?edit=1`** (example: `item.html?id=ruby-gypsy-ring&edit=1`). Legacy `/item/<id>/edit` and `?additem` bookmarks redirect to normal collection/item URLs.
 
-Local dev (`127.0.0.1`) still skips sign-in; no sign-in control appears in the header on any environment.
+Local dev (`127.0.0.1`) still skips sign-in; the header sign-in control is hidden on localhost.
 
 ## 7. Later (Vercel / build)
 

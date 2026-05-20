@@ -192,7 +192,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-01",
     "image": "/images/wardrobe/golden-fleece-navy-blazer/1778693552701-cover-edit.png",
     "gallery": [
-      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.png"
+      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.jpg"
     ],
     "metadata": {
       "price": 55,

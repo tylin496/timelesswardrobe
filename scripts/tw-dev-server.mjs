@@ -143,7 +143,7 @@ async function serveHomeHeroManifest(/** @type {http.ServerResponse} */ res) {
 
 async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {http.ServerResponse} */ res) {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-  let pathname = decodeURIComponent(url.pathname);
+  let pathname = decodeURIComponent(url.pathname).replace(/\/$/, "") || "/";
   if (pathname === "/js/tw-home-hero-manifest.js") {
     await serveHomeHeroManifest(res);
     return;
@@ -164,6 +164,8 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
   let rel = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
   if (pathname === "/item.html" || pathname === "/collection/item.html") {
     rel = "item.html";
+  } else if (pathname === "/login" || pathname === "/login.html") {
+    rel = "login.html";
   } else if (pathname === "/collection" || pathname === "/collection.html") {
     rel = "collection.html";
   } else if (pathname.startsWith("/collection/")) {
@@ -171,6 +173,8 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     const segment = rest.split("/")[0].toLowerCase();
     if (segment === "item.html" || segment === "item") {
       rel = "item.html";
+    } else if (segment === "additem" || segment === "editor") {
+      rel = "collection.html";
     } else if (COLLECTION_DIVISION_SLUGS.has(segment)) {
       rel = "collection.html";
     } else if (rest && !rest.includes("..")) {
