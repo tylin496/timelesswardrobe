@@ -230,7 +230,15 @@ export async function insertOutfitWithItems(client, record) {
       : Array.isArray(record.itemIds)
         ? record.itemIds.map((itemId) => ({ itemId: String(itemId) }))
         : [];
-  const rows = slots.map((s, sort_order) => {
+  const normalizedSlots = slots
+    .map((s) => {
+      const itemId = String(s?.itemId ?? "").trim();
+      if (!itemId) return null;
+      const colourKey = String(s?.colourKey ?? s?.colorKey ?? "").trim();
+      return colourKey ? { itemId, colourKey } : { itemId };
+    })
+    .filter(Boolean);
+  const rows = normalizedSlots.map((s, sort_order) => {
     const ck = String(s.colourKey ?? s.colorKey ?? "").trim();
     return {
       outfit_id: record.id,
@@ -243,6 +251,37 @@ export async function insertOutfitWithItems(client, record) {
   if (e2) {
     await client.from("outfits").delete().eq("id", record.id);
     return { ok: false, error: e2.message };
+  }
+
+  // Guard against silent RLS no-op writes: verify the persisted row matches this insert.
+  const { data: verifyRow, error: verifyErr } = await client
+    .from("outfits")
+    .select("id, name, notes, outfit_items(item_id, sort_order, colour_key)")
+    .eq("id", record.id)
+    .maybeSingle();
+  if (verifyErr) return { ok: false, error: verifyErr.message };
+  if (!verifyRow) return { ok: false, error: "Cloud save did not persist (outfit row not returned)." };
+
+  const verifySlots = Array.isArray(verifyRow.outfit_items) ? verifyRow.outfit_items : [];
+  verifySlots.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const expectedSig = normalizedSlots.map((s) => `${s.itemId}::${String(s.colourKey ?? "").trim()}`).join("|");
+  const actualSig = verifySlots
+    .map((s) => `${String(s.item_id ?? "").trim()}::${String(s.colour_key ?? "").trim()}`)
+    .join("|");
+  if (expectedSig !== actualSig) {
+    return {
+      ok: false,
+      error: "Cloud save did not persist line items (possible RLS or stale write).",
+    };
+  }
+
+  const nameMatches = String(verifyRow.name ?? "") === String(record.name ?? "");
+  const notesMatches = String(verifyRow.notes ?? "").trim() === String(record.notes ?? "").trim();
+  if (!nameMatches || !notesMatches) {
+    return {
+      ok: false,
+      error: "Cloud save did not persist outfit name/notes (possible RLS or stale write).",
+    };
   }
   return { ok: true };
 }
@@ -268,7 +307,8 @@ export async function updateOutfitWithItems(client, record) {
 
   const notes = String(record.notes ?? "").trim();
   const patch = { name: record.name };
-  if (notes) patch.notes = notes;
+  // Explicitly clear notes when user deletes text.
+  patch.notes = notes || null;
   let eUp;
   ({ error: eUp } = await client.from("outfits").update(patch).eq("id", record.id));
   if (eUp && notes && /notes|column/i.test(String(eUp.message ?? ""))) {
@@ -276,7 +316,14 @@ export async function updateOutfitWithItems(client, record) {
   }
   if (eUp) return { ok: false, error: eUp.message };
 
-  const slots = Array.isArray(record.slots) ? record.slots : [];
+  const slots = (Array.isArray(record.slots) ? record.slots : [])
+    .map((s) => {
+      const itemId = String(s?.itemId ?? "").trim();
+      if (!itemId) return null;
+      const colourKey = String(s?.colourKey ?? s?.colorKey ?? "").trim();
+      return colourKey ? { itemId, colourKey } : { itemId };
+    })
+    .filter(Boolean);
   const rows = slots.map((s, sort_order) => {
     const ck = String(s.colourKey ?? s.colorKey ?? "").trim();
     return {
@@ -289,6 +336,37 @@ export async function updateOutfitWithItems(client, record) {
   if (rows.length) {
     const { error: eIns } = await client.from("outfit_items").insert(rows);
     if (eIns) return { ok: false, error: eIns.message };
+  }
+
+  // Guard against silent RLS no-op writes: verify the persisted row matches this update.
+  const { data: verifyRow, error: verifyErr } = await client
+    .from("outfits")
+    .select("id, name, notes, outfit_items(item_id, sort_order, colour_key)")
+    .eq("id", record.id)
+    .maybeSingle();
+  if (verifyErr) return { ok: false, error: verifyErr.message };
+  if (!verifyRow) return { ok: false, error: "Cloud update did not persist (outfit row not returned)." };
+
+  const verifySlots = Array.isArray(verifyRow.outfit_items) ? verifyRow.outfit_items : [];
+  verifySlots.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const expectedSig = slots.map((s) => `${s.itemId}::${String(s.colourKey ?? "").trim()}`).join("|");
+  const actualSig = verifySlots
+    .map((s) => `${String(s.item_id ?? "").trim()}::${String(s.colour_key ?? "").trim()}`)
+    .join("|");
+  if (expectedSig !== actualSig) {
+    return {
+      ok: false,
+      error: "Cloud update did not persist line-item edits (possible RLS or stale write).",
+    };
+  }
+
+  const nameMatches = String(verifyRow.name ?? "") === String(record.name ?? "");
+  const notesMatches = String(verifyRow.notes ?? "").trim() === String(record.notes ?? "").trim();
+  if (!nameMatches || !notesMatches) {
+    return {
+      ok: false,
+      error: "Cloud update did not persist outfit name/notes (possible RLS or stale write).",
+    };
   }
   return { ok: true };
 }

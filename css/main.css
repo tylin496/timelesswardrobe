@@ -162,7 +162,7 @@
   --header-mega-nav-inset-left: var(--chrome-x);
   --header-mega-preview-inset-right: var(--chrome-x);
   /* RL mega menu — left nav column (content width, not full 19vw rail). */
-  --header-mega-menu-rail-width: clamp(200px, 14vw, 260px);
+  --header-mega-menu-rail-width: clamp(260px, 18vw, 340px);
   /* Product imagery: 3×4 frame; image spans full width; vertical letterboxing OK. */
   --media-frame-ratio: 3 / 4;
   --card-colour-tray-fill: rgba(255, 255, 255, 0.52);
@@ -4165,7 +4165,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     --mega-menu-preview-pad-bottom: clamp(3.5rem, 5vh, 5rem);
     --mega-menu-preview-col-gap: 12px;
     --mega-menu-rail-column-width: calc(
-      var(--header-mega-nav-inset-left, 0px) + var(--header-mega-menu-rail-width, clamp(248px, 19vw, 304px))
+      var(--header-mega-nav-inset-left, 0px) + var(--header-mega-menu-rail-width, clamp(260px, 18vw, 340px))
     );
     display: flex;
     flex-direction: row;
@@ -12922,6 +12922,8 @@ body.item-page:has(.item-detail__root--edit) {
   > .field:has(.item-edit-colour-code-row)
   .item-edit-colour-code-row {
   --item-edit-colour-action-cols: 2;
+  /* Keep input width aligned with primary row (which reserves 3 action slots). */
+  --item-edit-colour-actions-width: calc(var(--item-edit-colour-action-size, 2.35rem) * 3 + 0.35rem * 2);
 }
 
 .item-edit-single-colour-block.field--span2
