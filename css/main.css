@@ -5606,14 +5606,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     min-height: 0;
   }
 
-  .site-header__search-dropdown-aside--trending {
+  .site-header__search-dropdown-aside--trending,
+  .site-header__search-dropdown-aside--recent {
     margin-bottom: 0;
     padding-left: var(--chrome-content-inset-left);
     padding-right: env(safe-area-inset-right, 0px);
-  }
-
-  .site-header__search-dropdown-aside--recent {
-    display: none !important;
   }
 
   .site-header__search-dropdown-body {
@@ -9732,8 +9729,21 @@ body.collection-ui--styling-board .styling-board-drawer {
   touch-action: pan-x;
 }
 
-/* Desktop drawer: end pad on scroll track so the last card clears the sheet edge. */
+/* Desktop drawer: end pad so the last card can scroll fully into view. */
 @media (min-width: 901px) {
+  .styling-board-drawer__scroll {
+    padding-bottom: 1.35rem;
+    scroll-padding-bottom: 0.65rem;
+  }
+
+  .styling-board__saved.saved-outfits {
+    padding-bottom: 0.55rem;
+  }
+
+  .styling-board-drawer .saved-outfits__list > li:last-child {
+    scroll-margin-bottom: 0.35rem;
+  }
+
   .styling-board-drawer .styling-board__board-row,
   .styling-board-drawer .styling-board__board-stack {
     overflow: visible;
@@ -9746,12 +9756,35 @@ body.collection-ui--styling-board .styling-board-drawer {
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip,
   .styling-board-drawer .styling-board__pieces.outfit-strip {
+    --outfit-strip-card-w: 6.75rem;
+    --outfit-strip-end-pad: max(0px, calc(100% - var(--outfit-strip-card-w)));
     padding-top: 0.4rem;
-    padding-bottom: 0.35rem;
+    padding-bottom: 0.55rem;
     padding-left: 0;
-    padding-right: calc(var(--styling-board-scroll-inline, 1.35rem) + 0.5rem);
+    padding-right: var(--outfit-strip-end-pad);
     scroll-padding-inline-start: 0;
-    scroll-padding-inline-end: calc(var(--styling-board-scroll-inline, 1.35rem) + 0.5rem);
+    scroll-padding-inline-end: var(--outfit-strip-end-pad);
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--sb-ink) 26%, transparent) transparent;
+    touch-action: auto;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+    display: block;
+    height: 5px;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-track,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--sb-ink) 8%, transparent);
+    border-radius: 999px;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-thumb,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--sb-ink) 28%, transparent);
+    border-radius: 999px;
   }
 }
 
@@ -9804,8 +9837,11 @@ body.tw-outfit-drag-active * {
   margin-left: 0 !important;
 }
 
-.styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar {
-  display: none;
+@media (max-width: 900px) {
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .styling-board-drawer .styling-board__current > #outfit-empty {
