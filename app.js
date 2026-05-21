@@ -7834,7 +7834,7 @@
 
       const cta = document.createElement("span");
       cta.className = "site-header__search-category-card__cta";
-      cta.textContent = "Shop Now";
+      cta.textContent = "Browse Now";
 
       const copy = document.createElement("div");
       copy.className = "site-header__search-category-card__copy";
@@ -9025,25 +9025,52 @@
   }
 
   /** @param {HTMLElement} scroller */
+  function resolveHomeHorizontalRailScrollEl(scroller) {
+    if (!(scroller instanceof HTMLElement)) return scroller;
+    const isDivisionRail =
+      scroller.id === "ed-lp-division-rail" || scroller.classList.contains("ed-lp__division-rail-scroller");
+    if (!isDivisionRail) return scroller;
+    const wrap = scroller.parentElement;
+    if (!(wrap instanceof HTMLElement) || !wrap.classList.contains("ed-lp__division-rail-scroller-wrap")) {
+      return scroller;
+    }
+    if (globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false) return wrap;
+    return scroller;
+  }
+
+  /** @param {HTMLElement} scroller */
   function refreshHomeHorizontalRailScroller(scroller) {
     if (!scroller) return;
     prepareHomeHorizontalRailScroller(scroller);
-    scroller.dispatchEvent(new Event("scroll"));
-    requestAnimationFrame(() => scroller.dispatchEvent(new Event("scroll")));
+    const scrollEl = resolveHomeHorizontalRailScrollEl(scroller);
+    scrollEl.dispatchEvent(new Event("scroll"));
+    requestAnimationFrame(() => scrollEl.dispatchEvent(new Event("scroll")));
   }
 
-  /** @param {HTMLElement | null} scroller */
-  function wireHomeHorizontalRailScroller(scroller) {
+  /** @param {HTMLElement | null} scroller @param {{ railRoot?: HTMLElement | null }} [options] */
+  function wireHorizontalRailScroller(scroller, options = {}) {
     if (!scroller) return;
     prepareHomeHorizontalRailScroller(scroller);
-    const section = scroller.closest("[data-ed-lp-horizontal-rail]");
-    const track = section?.querySelector(".ed-lp__rail-progress");
-    const thumb = section?.querySelector(".ed-lp__rail-progress-bar");
+    const section =
+      options.railRoot ??
+      scroller.closest("[data-ed-lp-horizontal-rail], [data-styling-board-outfit-rail]");
+    const track = section?.querySelector(
+      ".styling-board__outfit-rail-progress, .ed-lp__rail-progress, .ed-lp__division-rail-progress"
+    );
+    const thumb = section?.querySelector(
+      ".ed-lp__rail-progress-bar, .ed-lp__division-rail-progress-bar"
+    );
     if (scroller.dataset.horizontalRailWired === "1") {
       refreshHomeHorizontalRailScroller(scroller);
       return;
     }
     scroller.dataset.horizontalRailWired = "1";
+
+    /** @returns {HTMLElement} */
+    const getScrollEl = () => {
+      const el = resolveHomeHorizontalRailScrollEl(scroller);
+      return el instanceof HTMLElement ? el : scroller;
+    };
 
     scroller.addEventListener(
       "dragstart",
@@ -9070,18 +9097,21 @@
     let railEdgeFeedbackAt = 0;
 
     function scrollMax() {
-      return Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const el = getScrollEl();
+      return Math.max(0, el.scrollWidth - el.clientWidth);
     }
 
     /** @param {number} ratio 0–1 */
     function scrollToRatio(ratio) {
       const max = scrollMax();
-      scroller.scrollLeft = Math.max(0, Math.min(max, ratio * max));
+      const el = getScrollEl();
+      el.scrollLeft = Math.max(0, Math.min(max, ratio * max));
     }
 
     function scrollRatio() {
       const max = scrollMax();
-      return max > 0 ? scroller.scrollLeft / max : 0;
+      const el = getScrollEl();
+      return max > 0 ? el.scrollLeft / max : 0;
     }
 
     /** @param {number} clientX */
@@ -9095,19 +9125,30 @@
     }
 
     function syncThumb() {
-      if (!(thumb instanceof HTMLElement) || !(track instanceof HTMLElement) || scroller.scrollWidth <= 0) return;
-      const thumbFrac = Math.max(0.12, scroller.clientWidth / scroller.scrollWidth);
-      const travel = 1 - thumbFrac;
-      const offset = scrollMax() > 0 ? scrollRatio() * travel : 0;
+      const el = getScrollEl();
+      if (!(thumb instanceof HTMLElement) || !(track instanceof HTMLElement) || el.scrollWidth <= 0) return;
+      const thumbFrac = Math.max(0.12, el.clientWidth / el.scrollWidth);
+      const ratio = scrollRatio();
       thumb.style.width = `${thumbFrac * 100}%`;
-      thumb.style.transform = `translateY(-50%) translateX(${offset * 100}%)`;
+      if (isOutfitStripRailScroller(scroller)) {
+        /* GPU-friendly position: avoids % left + CSS transition fighting native scroll. */
+        const travel = Math.max(0, track.clientWidth - thumb.offsetWidth);
+        thumb.style.left = "0";
+        thumb.style.transform = `translate3d(${ratio * travel}px, 0, 0)`;
+        return;
+      }
+      /* left % is relative to the track; translateX(%) would be relative to thumb width (wrong). */
+      const posPct = ratio * (1 - thumbFrac) * 100;
+      thumb.style.left = `${posPct}%`;
+      thumb.style.transform = "translateY(-50%)";
     }
 
     function syncUi() {
+      const el = getScrollEl();
       const max = scrollMax();
       const canScroll = max > 4;
-      const atStart = scroller.scrollLeft <= 2;
-      const atEnd = canScroll && scroller.scrollLeft >= max - 2;
+      const atStart = el.scrollLeft <= 2;
+      const atEnd = canScroll && el.scrollLeft >= max - 2;
       if (track instanceof HTMLElement) {
         track.hidden = !canScroll;
         const pct = Math.round(scrollRatio() * 100);
@@ -9115,29 +9156,34 @@
         track.setAttribute("aria-valuetext", `${pct}%`);
       }
       if (!trackDragActive) syncThumb();
+      if (section instanceof HTMLElement) {
+        section.classList.toggle("is-rail-at-start", atStart || !canScroll);
+        section.classList.toggle("is-rail-at-end", atEnd || !canScroll);
+        section.classList.toggle("is-rail-scrollable", canScroll);
+      }
       const reduceMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
       const canAnimateEdge = !reduceMotion;
       const now = Date.now();
       if (canAnimateEdge && atEnd && !wasAtRailEnd && now - railEdgeFeedbackAt > 280) {
         railEdgeFeedbackAt = now;
-        scroller.classList.remove("is-edge-bump-left");
-        scroller.classList.remove("is-edge-bump-right");
-        void scroller.offsetWidth;
-        scroller.classList.add("is-edge-bump-right");
+        el.classList.remove("is-edge-bump-left");
+        el.classList.remove("is-edge-bump-right");
+        void el.offsetWidth;
+        el.classList.add("is-edge-bump-right");
         if (railEdgeFeedbackTimer) globalThis.clearTimeout(railEdgeFeedbackTimer);
         railEdgeFeedbackTimer = globalThis.setTimeout(() => {
-          scroller.classList.remove("is-edge-bump-right");
+          el.classList.remove("is-edge-bump-right");
           railEdgeFeedbackTimer = 0;
         }, 420);
       } else if (canAnimateEdge && atStart && !wasAtRailStart && now - railEdgeFeedbackAt > 280) {
         railEdgeFeedbackAt = now;
-        scroller.classList.remove("is-edge-bump-right");
-        scroller.classList.remove("is-edge-bump-left");
-        void scroller.offsetWidth;
-        scroller.classList.add("is-edge-bump-left");
+        el.classList.remove("is-edge-bump-right");
+        el.classList.remove("is-edge-bump-left");
+        void el.offsetWidth;
+        el.classList.add("is-edge-bump-left");
         if (railEdgeFeedbackTimer) globalThis.clearTimeout(railEdgeFeedbackTimer);
         railEdgeFeedbackTimer = globalThis.setTimeout(() => {
-          scroller.classList.remove("is-edge-bump-left");
+          el.classList.remove("is-edge-bump-left");
           railEdgeFeedbackTimer = 0;
         }, 420);
       }
@@ -9147,12 +9193,14 @@
 
     function endScrollerDrag() {
       if (!scrollerDragActive) return;
+      const el = getScrollEl();
       scrollerDragActive = false;
       scrollerDragDeferCapture = false;
+      el.classList.remove("is-dragging");
       scroller.classList.remove("is-dragging");
       if (scrollerDragPointerId != null) {
         try {
-          scroller.releasePointerCapture(scrollerDragPointerId);
+          el.releasePointerCapture(scrollerDragPointerId);
         } catch {
           /* ignore */
         }
@@ -9169,7 +9217,21 @@
       syncUi();
     }
 
-    scroller.addEventListener("pointerdown", (e) => {
+    const scrollPort = getScrollEl();
+    /** @type {number} */
+    let scrollSyncRaf = 0;
+
+    function scheduleScrollSync() {
+      if (scrollSyncRaf) return;
+      scrollSyncRaf = requestAnimationFrame(() => {
+        scrollSyncRaf = 0;
+        syncUi();
+      });
+    }
+
+    scrollPort.addEventListener("pointerdown", (e) => {
+      /* Outfit strip: native horizontal pan + progress track only (slot reorder uses its own pointer logic). */
+      if (isOutfitStripRailScroller(scroller)) return;
       /* Touch: native scroll on homepage rails; search overlay uses drag scroll (nested vertical scroll). */
       const touchDragScroll = scroller.dataset.horizontalRailTouchScroll === "1";
       const allowPointer = e.pointerType === "mouse" || (e.pointerType === "touch" && touchDragScroll);
@@ -9182,26 +9244,28 @@
       scrollerDragMoved = false;
       scrollerDragDeferCapture = dragFromLink;
       scrollerDragStartX = e.clientX;
-      scrollerDragStartScroll = scroller.scrollLeft;
+      scrollerDragStartScroll = getScrollEl().scrollLeft;
       scrollerDragPointerId = e.pointerId;
 
       if (!dragFromLink) {
         e.preventDefault();
+        getScrollEl().classList.add("is-dragging");
         scroller.classList.add("is-dragging");
-        scroller.setPointerCapture(e.pointerId);
+        scrollPort.setPointerCapture(e.pointerId);
       }
     });
 
-    scroller.addEventListener("pointermove", (e) => {
+    scrollPort.addEventListener("pointermove", (e) => {
       if (!scrollerDragActive) return;
       const dx = e.clientX - scrollerDragStartX;
       if (!scrollerDragMoved && Math.abs(dx) > 3) {
         scrollerDragMoved = true;
         if (scrollerDragDeferCapture && scrollerDragPointerId != null) {
           scrollerDragDeferCapture = false;
+          getScrollEl().classList.add("is-dragging");
           scroller.classList.add("is-dragging");
           try {
-            scroller.setPointerCapture(scrollerDragPointerId);
+            scrollPort.setPointerCapture(scrollerDragPointerId);
           } catch {
             /* ignore */
           }
@@ -9209,13 +9273,13 @@
       }
       if (!scrollerDragMoved) return;
       e.preventDefault();
-      scroller.scrollLeft = scrollerDragStartScroll - dx;
+      getScrollEl().scrollLeft = scrollerDragStartScroll - dx;
       syncThumb();
       syncUi();
     });
 
-    scroller.addEventListener("pointerup", endScrollerDrag);
-    scroller.addEventListener("pointercancel", endScrollerDrag);
+    scrollPort.addEventListener("pointerup", endScrollerDrag);
+    scrollPort.addEventListener("pointercancel", endScrollerDrag);
 
     scroller.addEventListener(
       "wheel",
@@ -9241,18 +9305,23 @@
         const absY = Math.abs(e.deltaY);
         const horizontalDelta = absX > absY ? e.deltaX : e.deltaY;
         if (Math.abs(horizontalDelta) < 1) return;
-        const prev = scroller.scrollLeft;
+        const el = getScrollEl();
+        const prev = el.scrollLeft;
         const next = Math.max(0, Math.min(max, prev + horizontalDelta));
         if (next === prev) return;
         e.preventDefault();
-        scroller.scrollLeft = next;
+        el.scrollLeft = next;
         syncThumb();
         syncUi();
       },
       { passive: false, capture: true }
     );
 
-    scroller.addEventListener("scroll", syncUi, { passive: true });
+    scrollPort.addEventListener(
+      "scroll",
+      isOutfitStripRailScroller(scroller) ? scheduleScrollSync : syncUi,
+      { passive: true }
+    );
     window.addEventListener("resize", syncUi);
 
     if (track instanceof HTMLElement && thumb instanceof HTMLElement) {
@@ -9260,6 +9329,8 @@
         trackDragActive = false;
         track.classList.remove("is-dragging");
         thumb.classList.remove("is-dragging");
+        scrollPort.classList.remove("is-dragging");
+        scroller.classList.remove("is-dragging");
         if (trackDragPointerId != null) {
           try {
             track.releasePointerCapture(trackDragPointerId);
@@ -9284,6 +9355,8 @@
         trackDragActive = true;
         track.classList.add("is-dragging");
         thumb.classList.add("is-dragging");
+        scrollPort.classList.add("is-dragging");
+        scroller.classList.add("is-dragging");
         trackDragPointerId = e.pointerId;
         track.setPointerCapture(e.pointerId);
         scrollToRatio(ratioFromClientX(e.clientX));
@@ -9299,6 +9372,56 @@
     }
 
     syncUi();
+  }
+
+  /** @param {HTMLElement | null} scroller */
+  function wireHomeHorizontalRailScroller(scroller) {
+    wireHorizontalRailScroller(scroller);
+  }
+
+  function ensureStylingBoardOutfitRailChrome() {
+    const strip = document.getElementById("outfit-strip");
+    if (!(strip instanceof HTMLElement)) return;
+    const row = strip.closest(".styling-board__board-row");
+    if (!(row instanceof HTMLElement)) return;
+    const stack = strip.closest(".styling-board__board-stack");
+    const railHost = stack instanceof HTMLElement ? stack : row;
+    row.setAttribute("data-styling-board-outfit-rail", "");
+    let track = railHost.querySelector(".styling-board__outfit-rail-progress");
+    if (!(track instanceof HTMLElement)) {
+      track = row.querySelector(".styling-board__outfit-rail-progress");
+    }
+    if (!(track instanceof HTMLElement)) {
+      track = document.createElement("div");
+      track.className = "styling-board__outfit-rail-progress";
+      track.setAttribute("role", "slider");
+      track.setAttribute("aria-label", "Scroll current outfit pieces");
+      track.setAttribute("aria-valuemin", "0");
+      track.setAttribute("aria-valuemax", "100");
+      track.setAttribute("aria-valuenow", "0");
+      track.setAttribute("aria-valuetext", "0%");
+      track.hidden = true;
+      const thumb = document.createElement("span");
+      thumb.className = "ed-lp__rail-progress-bar";
+      thumb.setAttribute("aria-hidden", "true");
+      track.appendChild(thumb);
+    }
+    if (track.parentElement !== railHost) {
+      railHost.appendChild(track);
+    }
+    wireHorizontalRailScroller(strip, { railRoot: row });
+  }
+
+  function refreshStylingBoardOutfitRailScroller() {
+    const strip = document.getElementById("outfit-strip");
+    if (!(strip instanceof HTMLElement)) return;
+    prepareHomeHorizontalRailScroller(strip);
+    if (strip.dataset.horizontalRailWired === "1") {
+      strip.dispatchEvent(new Event("scroll"));
+      requestAnimationFrame(() => strip.dispatchEvent(new Event("scroll")));
+      return;
+    }
+    ensureStylingBoardOutfitRailChrome();
   }
 
   /** @param {object[]} pool @param {{ excludeItemIds?: Iterable<string> | Set<string> }} [options] */
@@ -18793,7 +18916,12 @@
   }
 
   function outfitDragHoldMs() {
-    return isOutfitDragMobileUi() ? 95 : 140;
+    return isOutfitDragMobileUi() ? 220 : 140;
+  }
+
+  /** @param {HTMLElement} scroller */
+  function isOutfitStripRailScroller(scroller) {
+    return scroller.id === "outfit-strip" || scroller.classList.contains("outfit-strip");
   }
 
   function outfitDragLayoutFlipMs() {
@@ -18864,13 +18992,20 @@
       const dx = Math.abs(e.clientX - state.startX);
       const dy = Math.abs(e.clientY - state.startY);
       if (isOutfitDragMobileUi()) {
-        if ((dy > 52 && dy > dx * 1.35) || (dx > 58 && dx > dy * 1.1)) {
+        /* Horizontal swipe = scroll the rail; vertical = drawer scroll. Do not block native pan. */
+        if (dx > 8 && dx >= dy * 1.05) {
           state.canceled = true;
           clearOutfitPointerDragState();
           return;
         }
-        e.preventDefault();
-      } else if (dx > 28 || dy > 28) {
+        if (dy > 36 && dy > dx * 1.2) {
+          state.canceled = true;
+          clearOutfitPointerDragState();
+          return;
+        }
+        return;
+      }
+      if (dx > 28 || dy > 28) {
         state.canceled = true;
         clearOutfitPointerDragState();
       }
@@ -19062,6 +19197,13 @@
     state.lastClientX = 0;
     state.lastClientY = 0;
     if (state.sourceEl instanceof HTMLElement) {
+      if (state.pointerId != null) {
+        try {
+          state.sourceEl.releasePointerCapture(state.pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
       state.sourceEl.classList.remove("outfit-slot--dragging", "outfit-slot--drag-pending");
       state.sourceEl.style.removeProperty("visibility");
     }
@@ -19183,11 +19325,6 @@
     state.startY = pointerEvent.clientY;
     state.lastClientX = pointerEvent.clientX;
     state.lastClientY = pointerEvent.clientY;
-    try {
-      slot.setPointerCapture(pointerEvent.pointerId);
-    } catch {
-      /* ignore */
-    }
     slot.classList.add("outfit-slot--drag-pending");
     els.outfitStrip?.classList.add("outfit-strip--drag-pending");
     state.holdTimer = window.setTimeout(() => {
@@ -19208,6 +19345,13 @@
     els.outfitStrip?.classList.add("outfit-strip--drag-active");
     setOutfitDragSelectLock(true);
     slot.classList.add("outfit-slot--dragging");
+    if (state.pointerId != null) {
+      try {
+        slot.setPointerCapture(state.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
     const rect = slot.getBoundingClientRect();
     if (isOutfitDragMobileUi()) {
       state.offsetX = rect.width * 0.5;
@@ -19679,6 +19823,7 @@
     });
     playOutfitStripFlipAnimation();
     syncOutfitBuilderPanel();
+    refreshStylingBoardOutfitRailScroller();
   }
 
   function formatSavedDate(iso) {
@@ -25289,7 +25434,10 @@
         syncBrandSignatureBarHeight();
         if (mobileShell?.classList.contains("is-open")) syncMobileShellTop();
         if (isHeaderSearchWrapOpen() && isHeaderCompactLayout()) {
+          mountHeaderSearchWrapToBody();
           syncHeaderSearchSheetInset();
+        } else if (isHeaderSearchWrapOpen()) {
+          restoreHeaderSearchWrapFromBody();
         }
       },
       { passive: true }
@@ -25340,6 +25488,7 @@
       axis: "down",
     });
     wireStylingBoardDrawerScrollChrome();
+    ensureStylingBoardOutfitRailChrome();
 
     const mobileSearchSheet = /** @type {HTMLElement | null} */ (
       headerSearchWrap?.querySelector(".desktop-search-flyout-inner, .site-header__search-megamenu-inner")
