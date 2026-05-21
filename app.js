@@ -14247,7 +14247,7 @@
     onOutfitChange();
   }
 
-  function clearOutfit() {
+  function resetCurrentOutfitAfterSave() {
     currentOutfitSlots = [];
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
@@ -14257,6 +14257,10 @@
     clearStylingBoardAddedReveal();
     syncOutfitSaveButtonLabel();
     onOutfitChange();
+  }
+
+  function clearOutfit() {
+    resetCurrentOutfitAfterSave();
     showToast(`${OUTFITS_UI_NAME} cleared.`);
   }
 
@@ -14564,6 +14568,7 @@
       if (els.outfitNotes) els.outfitNotes.value = "";
       setStylingBoardSaveFormOpen(false);
       renderSavedOutfits();
+      resetCurrentOutfitAfterSave();
       showToast(`Updated: “${name}”`);
       return;
     }
@@ -14596,6 +14601,7 @@
     if (els.outfitNotes) els.outfitNotes.value = "";
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
+    resetCurrentOutfitAfterSave();
     showToast(`Saved outfit: “${name}”`);
   }
 
@@ -19385,6 +19391,10 @@
 
   function syncStylingBoardUi() {
     const n = currentOutfitSlots.length;
+    const currentSection = document.querySelector(".styling-board-drawer .styling-board__current");
+    if (currentSection instanceof HTMLElement) {
+      currentSection.classList.toggle("styling-board__current--empty", n === 0);
+    }
     const countEl = document.getElementById("styling-board-count");
     const btn = document.getElementById("site-header-saved-toggle");
     if (countEl) {
