@@ -7728,8 +7728,7 @@
     const grid = document.getElementById("site-header-search-featured-subcats");
     const wrap = document.querySelector(".site-header__search-category-scroller-wrap");
     if (!(grid instanceof HTMLElement)) return;
-    const useWrapScroller =
-      (globalThis.matchMedia?.("(max-width: 1024px)")?.matches ?? false) && wrap instanceof HTMLElement;
+    const useWrapScroller = isHeaderCompactViewport() && wrap instanceof HTMLElement;
     const scrollEl = useWrapScroller ? wrap : grid;
     wireHeaderSearchOverlayRail(scrollEl);
     grid.querySelectorAll("img").forEach((img) => {
@@ -7985,6 +7984,7 @@
       });
       heroHost.appendChild(layer);
     });
+    wireHomeHeroCollectionTap();
   }
 
   /** Random first slide (session), then remaining hero assets in catalog order. */
@@ -8262,6 +8262,30 @@
     });
   }
 
+  /** Tap hero imagery (not CTAs) → collection PLP; respects swipe click suppression. */
+  function wireHomeHeroCollectionTap() {
+    const hero =
+      document.querySelector("body.home-page .ed-lp__hero") || document.querySelector(".ed-lp__hero");
+    if (!(hero instanceof HTMLElement)) return;
+    if (hero.dataset.twHeroCollectionTapWired === "1") return;
+    hero.dataset.twHeroCollectionTapWired = "1";
+
+    const href = collectionHrefForBrowseState();
+    const targets = [
+      document.getElementById("ed-lp-hero-layers"),
+      hero.querySelector(".ed-lp__hero-scrim"),
+    ];
+
+    for (const el of targets) {
+      if (!(el instanceof HTMLElement)) continue;
+      el.addEventListener("click", (e) => {
+        if (e.defaultPrevented) return;
+        if (hero.classList.contains("is-hero-dragging")) return;
+        globalThis.location.href = href;
+      });
+    }
+  }
+
   function initEditorialHomeHeroCarousel(slideCount) {
     const carouselUi = document.getElementById("ed-lp-hero-carousel");
     const heroHost = document.getElementById("ed-lp-hero-layers");
@@ -8276,12 +8300,14 @@
     if (n < 2) {
       repairHomeHeroSlideVisibility(slides, 0);
       syncHomeHeroSlideMedia(slides, slides.findIndex((s) => s.classList.contains("is-active")) || 0);
+      wireHomeHeroCollectionTap();
       return;
     }
 
     if (heroHost.dataset.twHeroCarouselWired === "1") {
       repairHomeHeroSlideVisibility(slides);
       syncHomeHeroSlideMedia(slides, slides.findIndex((s) => s.classList.contains("is-active")) || 0);
+      wireHomeHeroCollectionTap();
       return;
     }
     heroHost.dataset.twHeroCarouselWired = "1";
@@ -8512,6 +8538,7 @@
 
     setActiveInstant(index);
     scheduleAutoplay();
+    wireHomeHeroCollectionTap();
   }
 
   function mountEditorialHomeHeroLayers(heroHost, paths = orderedHomeHeroImagePaths()) {
@@ -9127,7 +9154,12 @@
     function syncThumb() {
       const el = getScrollEl();
       if (!(thumb instanceof HTMLElement) || !(track instanceof HTMLElement) || el.scrollWidth <= 0) return;
-      const thumbFrac = Math.max(0.12, el.clientWidth / el.scrollWidth);
+      const thumbFracMin = isDivisionRailScroller(scroller)
+        ? 0.34
+        : isOutfitStripRailScroller(scroller)
+          ? 0.12
+          : 0.12;
+      const thumbFrac = Math.max(thumbFracMin, el.clientWidth / el.scrollWidth);
       const ratio = scrollRatio();
       thumb.style.width = `${thumbFrac * 100}%`;
       if (isOutfitStripRailScroller(scroller)) {
@@ -18924,6 +18956,11 @@
     return scroller.id === "outfit-strip" || scroller.classList.contains("outfit-strip");
   }
 
+  /** @param {HTMLElement} scroller */
+  function isDivisionRailScroller(scroller) {
+    return scroller.id === "ed-lp-division-rail" || scroller.classList.contains("ed-lp__division-rail-scroller");
+  }
+
   function outfitDragLayoutFlipMs() {
     return isOutfitDragMobileUi() ? 160 : 220;
   }
@@ -22688,9 +22725,9 @@
     return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
   }
 
-  /** Header hamburger + mobile shell; mega menu desktop nav off (`max-width: 1024px` in CSS). */
-  const HEADER_COMPACT_MQ = "(max-width: 1024px)";
-  const HEADER_DESKTOP_MQ = "(min-width: 1025px)";
+  /** Header hamburger + mobile shell; mega menu desktop nav off (`max-width: 900px` in CSS). */
+  const HEADER_COMPACT_MQ = "(max-width: 900px)";
+  const HEADER_DESKTOP_MQ = "(min-width: 901px)";
 
   function isHeaderCompactViewport() {
     return globalThis.matchMedia?.(HEADER_COMPACT_MQ)?.matches ?? false;
