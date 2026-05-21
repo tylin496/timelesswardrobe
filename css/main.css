@@ -5606,11 +5606,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     min-height: 0;
   }
 
-  .site-header__search-dropdown-aside--trending,
-  .site-header__search-dropdown-aside--recent {
+  .site-header__search-dropdown-aside--trending {
     margin-bottom: 0;
     padding-left: var(--chrome-content-inset-left);
     padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .site-header__search-dropdown-aside--recent {
+    display: none !important;
   }
 
   .site-header__search-dropdown-body {
@@ -8708,29 +8711,25 @@ body.collection-ui--styling-board .styling-board-drawer {
   }
 
   .styling-board-drawer .saved-card__piece {
-    width: 2.85rem;
-    height: 3.65rem;
-    margin-left: -2.05rem;
-  }
-
-  .styling-board-drawer .saved-card__piece:nth-child(1) {
-    transform: rotate(-5deg) translateY(2px);
+    width: 2.55rem;
+    height: 3.35rem;
+    margin-left: -0.9rem;
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(2) {
-    transform: rotate(4deg) translateY(-1px);
+    transform: rotate(2deg) translateY(2px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(3) {
-    transform: rotate(-3deg) translateY(3px);
+    transform: rotate(-2deg) translateY(-1px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(4) {
-    transform: rotate(5deg) translateY(0);
+    transform: rotate(3deg) translateY(2px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(5) {
-    transform: rotate(-2deg) translateY(2px);
+    transform: rotate(-1deg) translateY(0);
   }
 
   .styling-board-drawer .saved-card__meta {
@@ -9736,8 +9735,8 @@ body.collection-ui--styling-board .styling-board-drawer {
 /* Desktop drawer: end pad so the last card can scroll fully into view. */
 @media (min-width: 901px) {
   .styling-board-drawer__scroll {
-    padding-bottom: 1.35rem;
-    scroll-padding-bottom: 0.65rem;
+    padding-bottom: 0.75rem;
+    scroll-padding-bottom: 0.25rem;
   }
 
   .styling-board__saved.saved-outfits {
@@ -9804,6 +9803,8 @@ body.collection-ui--styling-board .styling-board-drawer {
 }
 
 .styling-board-drawer .outfit-slot--drag-pending {
+  touch-action: none;
+  scroll-snap-align: none;
   transform: translateY(2px) scale(0.985);
   opacity: 0.94;
   transition:
@@ -10144,7 +10145,7 @@ body.tw-outfit-drag-active * {
   align-items: stretch;
   gap: 0;
   min-height: unset;
-  padding: 0.68rem 0.85rem 20px;
+  padding: 0.68rem 0.85rem 0.72rem;
   background: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
   border: var(--wardrobe-card-border, 1px solid rgba(24, 55, 47, 0.06));
   border-radius: var(--wardrobe-card-radius, 12px);
@@ -10156,7 +10157,7 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-outfits__list > li:last-child .saved-card {
-  padding-bottom: 20px;
+  padding-bottom: 0.72rem;
 }
 
 .styling-board-drawer .saved-card:active {
@@ -10177,13 +10178,13 @@ body.tw-outfit-drag-active * {
 
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  width: fit-content;
-  max-width: calc(100% - 0.5rem);
-  min-height: 4.35rem;
-  margin: 0 auto 0.2rem;
-  padding: 0.15rem 0.5rem 0.05rem;
+  width: 100%;
+  max-width: 100%;
+  min-height: 3.5rem;
+  margin: 0 auto 0.1rem;
+  padding: 0 0.15rem;
   overflow: visible;
   background: transparent;
   isolation: isolate;
@@ -10196,9 +10197,9 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 3.15rem;
-  height: 4rem;
-  margin-left: -2.25rem;
+  width: 2.85rem;
+  height: 3.65rem;
+  margin-left: -1.05rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10210,27 +10211,27 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece:first-child {
   margin-left: 0;
   z-index: 1;
-  transform: rotate(-5deg) translateY(2px);
+  transform: rotate(-3deg) translateY(1px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(2) {
   z-index: 2;
-  transform: rotate(4deg) translateY(-1px);
+  transform: rotate(2deg) translateY(-2px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(3) {
   z-index: 3;
-  transform: rotate(-3deg) translateY(3px);
+  transform: rotate(-2deg) translateY(2px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(4) {
   z-index: 4;
-  transform: rotate(5deg) translateY(0);
+  transform: rotate(3deg) translateY(0);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(5) {
   z-index: 5;
-  transform: rotate(-2deg) translateY(2px);
+  transform: rotate(-1deg) translateY(1px);
 }
 
 .styling-board-drawer .saved-card__piece img {
@@ -10256,6 +10257,8 @@ body.tw-outfit-drag-active * {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
     overflow: visible;
   }
 }
@@ -18584,6 +18587,21 @@ body.home-page .site-header-shell--home-overlay .site-header button {
   align-items: center;
   gap: 0.45rem;
   pointer-events: auto;
+}
+
+.ed-lp__hero-counter {
+  @apply m-0;
+  font-family: var(--font-sans);
+  font-size: 0.56rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.36);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.22);
+  opacity: 0.88;
+  pointer-events: none;
+  user-select: none;
 }
 
 .ed-lp__hero-arrow {

@@ -13214,7 +13214,8 @@
       if (!x || !isDisplayableCloudImageUrl(x)) continue;
       const key = x.split("?")[0];
       if (!key || seen.has(key) || key === coverKey) continue;
-      if (imageSourceLooksAlphaCapable(null, x)) continue;
+      /* Explicit gallery/ paths are editorial frames even when PNG. */
+      if (imageSourceLooksAlphaCapable(null, x) && !/\/gallery\//i.test(key)) continue;
       seen.add(key);
       out.push(x);
     }
