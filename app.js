@@ -17307,6 +17307,12 @@
 
     const settleFromTouch = (dx, dy) => {
       const w = carousel.clientWidth || 1;
+      /* Vertical page scroll — keep the frame the user already picked (do not snap back to cover). */
+      if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
+        applyMobileGalleryFrameIndex(media, carousel, readMobileGalleryFrameIndex(media), false);
+        markSwiping();
+        return;
+      }
       const threshold = Math.min(44, w * 0.14);
       let target = touchStartIndex;
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
@@ -17344,7 +17350,8 @@
         const dy = t.clientY - touchStartY;
         if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
           touchActive = false;
-          applyMobileGalleryFrameIndex(media, carousel, touchStartIndex, true);
+          /* Let the page scroll — hold the swiped frame (avoid cover snap + transition jank). */
+          applyMobileGalleryFrameIndex(media, carousel, readMobileGalleryFrameIndex(media), false);
           return;
         }
         const atStart = touchStartIndex <= 0;
