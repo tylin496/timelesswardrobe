@@ -34,6 +34,8 @@
     '<span class="site-header__search-icon" aria-hidden="true">' + HEADER_SEARCH_GLYPH_SVG + "</span>";
   const HEADER_MENU_ICON_HTML =
     '<span class="site-header__menu-icon" aria-hidden="true">' + HEADER_MENU_GLYPH_SVG + "</span>";
+  /** Thin-arm × — search, drawers, mobile shell (see `--tw-dismiss-icon-*` in main.css). */
+  const HEADER_DISMISS_ICON_HTML = '<span class="site-mobile-shell__close-icon" aria-hidden="true"></span>';
 
   /** Split collection rows merged into one id — remap saved outfit lines. */
   const LEGACY_OUTFIT_ITEM_TO_SLOT = new Map([
@@ -8473,12 +8475,8 @@
 
     if (dotsHost) {
       dotsHost.replaceChildren();
-      if (n > 5) {
-        const counter = document.createElement("p");
-        counter.className = "ed-lp__hero-counter";
-        counter.setAttribute("aria-live", "polite");
-        dotsHost.appendChild(counter);
-      } else {
+      /* ≤5 slides: dot tabs; 6+ slides: no counter/dots chrome (swipe + arrows only). */
+      if (n <= 5) {
         for (let i = 0; i < n; i += 1) {
           const dot = document.createElement("button");
           dot.type = "button";
@@ -9065,13 +9063,36 @@
     return scroller;
   }
 
+  /** Division rail: mobile scrolls the wrap; desktop scrolls the scroller — listen to both. */
+  /** @param {HTMLElement} scroller @returns {HTMLElement[]} */
+  function homeHorizontalRailScrollTargets(scroller) {
+    if (!(scroller instanceof HTMLElement)) return [];
+    if (!isDivisionRailScroller(scroller)) {
+      const el = resolveHomeHorizontalRailScrollEl(scroller);
+      return el instanceof HTMLElement ? [el] : [];
+    }
+    const wrap = scroller.parentElement;
+    if (
+      wrap instanceof HTMLElement &&
+      wrap.classList.contains("ed-lp__division-rail-scroller-wrap") &&
+      wrap !== scroller
+    ) {
+      return [scroller, wrap];
+    }
+    return [scroller];
+  }
+
   /** @param {HTMLElement} scroller */
   function refreshHomeHorizontalRailScroller(scroller) {
     if (!scroller) return;
     prepareHomeHorizontalRailScroller(scroller);
-    const scrollEl = resolveHomeHorizontalRailScrollEl(scroller);
-    scrollEl.dispatchEvent(new Event("scroll"));
-    requestAnimationFrame(() => scrollEl.dispatchEvent(new Event("scroll")));
+    const fire = () => {
+      for (const el of homeHorizontalRailScrollTargets(scroller)) {
+        el.dispatchEvent(new Event("scroll"));
+      }
+    };
+    fire();
+    requestAnimationFrame(fire);
   }
 
   /** @param {HTMLElement | null} scroller @param {{ railRoot?: HTMLElement | null }} [options] */
@@ -9249,7 +9270,6 @@
       syncUi();
     }
 
-    const scrollPort = getScrollEl();
     /** @type {number} */
     let scrollSyncRaf = 0;
 
@@ -9261,57 +9281,62 @@
       });
     }
 
-    scrollPort.addEventListener("pointerdown", (e) => {
-      /* Outfit strip: native horizontal pan + progress track only (slot reorder uses its own pointer logic). */
-      if (isOutfitStripRailScroller(scroller)) return;
-      /* Touch: native scroll on homepage rails; search overlay uses drag scroll (nested vertical scroll). */
-      const touchDragScroll = scroller.dataset.horizontalRailTouchScroll === "1";
-      const allowPointer = e.pointerType === "mouse" || (e.pointerType === "touch" && touchDragScroll);
-      if (e.button !== 0 || trackDragActive || !allowPointer) return;
-      const link =
-        e.target instanceof Element ? /** @type {HTMLAnchorElement | null} */ (e.target.closest("a")) : null;
-      const dragFromLink = !!(link && scroller.contains(link));
+    const scrollTargets = homeHorizontalRailScrollTargets(scroller);
+    const scrollSyncHandler = isOutfitStripRailScroller(scroller) ? scheduleScrollSync : syncUi;
 
-      scrollerDragActive = true;
-      scrollerDragMoved = false;
-      scrollerDragDeferCapture = dragFromLink;
-      scrollerDragStartX = e.clientX;
-      scrollerDragStartScroll = getScrollEl().scrollLeft;
-      scrollerDragPointerId = e.pointerId;
+    for (const scrollPort of scrollTargets) {
+      scrollPort.addEventListener("pointerdown", (e) => {
+        /* Outfit strip: native horizontal pan + progress track only (slot reorder uses its own pointer logic). */
+        if (isOutfitStripRailScroller(scroller)) return;
+        /* Touch: native scroll on homepage rails; search overlay uses drag scroll (nested vertical scroll). */
+        const touchDragScroll = scroller.dataset.horizontalRailTouchScroll === "1";
+        const allowPointer = e.pointerType === "mouse" || (e.pointerType === "touch" && touchDragScroll);
+        if (e.button !== 0 || trackDragActive || !allowPointer) return;
+        const link =
+          e.target instanceof Element ? /** @type {HTMLAnchorElement | null} */ (e.target.closest("a")) : null;
+        const dragFromLink = !!(link && scroller.contains(link));
 
-      if (!dragFromLink) {
-        e.preventDefault();
-        getScrollEl().classList.add("is-dragging");
-        scroller.classList.add("is-dragging");
-        scrollPort.setPointerCapture(e.pointerId);
-      }
-    });
+        scrollerDragActive = true;
+        scrollerDragMoved = false;
+        scrollerDragDeferCapture = dragFromLink;
+        scrollerDragStartX = e.clientX;
+        scrollerDragStartScroll = getScrollEl().scrollLeft;
+        scrollerDragPointerId = e.pointerId;
 
-    scrollPort.addEventListener("pointermove", (e) => {
-      if (!scrollerDragActive) return;
-      const dx = e.clientX - scrollerDragStartX;
-      if (!scrollerDragMoved && Math.abs(dx) > 3) {
-        scrollerDragMoved = true;
-        if (scrollerDragDeferCapture && scrollerDragPointerId != null) {
-          scrollerDragDeferCapture = false;
+        if (!dragFromLink) {
+          e.preventDefault();
           getScrollEl().classList.add("is-dragging");
           scroller.classList.add("is-dragging");
-          try {
-            scrollPort.setPointerCapture(scrollerDragPointerId);
-          } catch {
-            /* ignore */
+          scrollPort.setPointerCapture(e.pointerId);
+        }
+      });
+
+      scrollPort.addEventListener("pointermove", (e) => {
+        if (!scrollerDragActive) return;
+        const dx = e.clientX - scrollerDragStartX;
+        if (!scrollerDragMoved && Math.abs(dx) > 3) {
+          scrollerDragMoved = true;
+          if (scrollerDragDeferCapture && scrollerDragPointerId != null) {
+            scrollerDragDeferCapture = false;
+            getScrollEl().classList.add("is-dragging");
+            scroller.classList.add("is-dragging");
+            try {
+              scrollPort.setPointerCapture(scrollerDragPointerId);
+            } catch {
+              /* ignore */
+            }
           }
         }
-      }
-      if (!scrollerDragMoved) return;
-      e.preventDefault();
-      getScrollEl().scrollLeft = scrollerDragStartScroll - dx;
-      syncThumb();
-      syncUi();
-    });
+        if (!scrollerDragMoved) return;
+        e.preventDefault();
+        getScrollEl().scrollLeft = scrollerDragStartScroll - dx;
+        syncThumb();
+        syncUi();
+      });
 
-    scrollPort.addEventListener("pointerup", endScrollerDrag);
-    scrollPort.addEventListener("pointercancel", endScrollerDrag);
+      scrollPort.addEventListener("pointerup", endScrollerDrag);
+      scrollPort.addEventListener("pointercancel", endScrollerDrag);
+    }
 
     scroller.addEventListener(
       "wheel",
@@ -9349,11 +9374,9 @@
       { passive: false, capture: true }
     );
 
-    scrollPort.addEventListener(
-      "scroll",
-      isOutfitStripRailScroller(scroller) ? scheduleScrollSync : syncUi,
-      { passive: true }
-    );
+    for (const scrollPort of scrollTargets) {
+      scrollPort.addEventListener("scroll", scrollSyncHandler, { passive: true });
+    }
     window.addEventListener("resize", syncUi);
 
     if (track instanceof HTMLElement && thumb instanceof HTMLElement) {
@@ -9361,7 +9384,7 @@
         trackDragActive = false;
         track.classList.remove("is-dragging");
         thumb.classList.remove("is-dragging");
-        scrollPort.classList.remove("is-dragging");
+        getScrollEl().classList.remove("is-dragging");
         scroller.classList.remove("is-dragging");
         if (trackDragPointerId != null) {
           try {
@@ -9387,7 +9410,7 @@
         trackDragActive = true;
         track.classList.add("is-dragging");
         thumb.classList.add("is-dragging");
-        scrollPort.classList.add("is-dragging");
+        getScrollEl().classList.add("is-dragging");
         scroller.classList.add("is-dragging");
         trackDragPointerId = e.pointerId;
         track.setPointerCapture(e.pointerId);
@@ -23896,11 +23919,61 @@
     const stylingBoardIconHtml =
       '<span class="site-header__styling-board-icon" aria-hidden="true">' + STYLING_BOARD_GLYPH_SVG + "</span>";
 
-    function ensureMobileNavHeaderBack() {
-      const brandNav = document.querySelector(".site-header__brand-nav");
-      if (!brandNav) return null;
+    const MOBILE_NAV_DRILL_PORTAL_ID = "site-mobile-nav-drill-portal";
+
+    /** Fixed layer above masthead + drawer; shell/header positions never change. */
+    function ensureMobileNavDrillPortal() {
+      let portal = document.getElementById(MOBILE_NAV_DRILL_PORTAL_ID);
+      if (!portal) {
+        portal = document.createElement("div");
+        portal.id = MOBILE_NAV_DRILL_PORTAL_ID;
+        portal.className = "site-mobile-nav-drill-portal";
+        portal.setAttribute("aria-hidden", "true");
+        document.body.appendChild(portal);
+      }
+      return portal;
+    }
+
+    function mountMobileNavDrillInPortal() {
+      const portal = ensureMobileNavDrillPortal();
+      const drill = document.getElementById("site-mobile-nav-drill");
+      if (drill && !portal.contains(drill)) portal.appendChild(drill);
+      return portal;
+    }
+
+    function restoreMobileNavDrillToNav() {
+      const portal = document.getElementById(MOBILE_NAV_DRILL_PORTAL_ID);
+      const drill = document.getElementById("site-mobile-nav-drill");
+      const nav = document.getElementById("site-mobile-nav");
+      if (nav && drill && portal?.contains(drill)) nav.appendChild(drill);
+      if (portal) {
+        portal.classList.remove("is-open", "is-closing");
+        portal.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    /** Back + category title live inside the drill panel so one layer slides over the root menu. */
+    function setMobileNavDrillChromeVisible(visible) {
+      const hidden = !visible;
+      for (const id of ["site-mobile-nav-back", "site-mobile-nav-drill-title", "site-mobile-nav-drill-close"]) {
+        const el = document.getElementById(id);
+        if (el instanceof HTMLElement) el.hidden = hidden;
+      }
+    }
+
+    function ensureMobileNavDrillChrome() {
+      const drill = document.getElementById("site-mobile-nav-drill");
+      if (!drill) return { back: null, title: null, close: null };
+
+      let head = drill.querySelector(".site-mobile-nav__drill-head");
+      if (!head) {
+        head = document.createElement("div");
+        head.className = "site-mobile-nav__drill-head";
+        drill.insertBefore(head, drill.firstChild);
+      }
+
       let back = document.getElementById("site-mobile-nav-back");
-      if (back && !brandNav.contains(back)) {
+      if (back && !head.contains(back)) {
         back.remove();
         back = null;
       }
@@ -23908,36 +23981,62 @@
         back = document.createElement("button");
         back.type = "button";
         back.id = "site-mobile-nav-back";
-        back.className = "site-header__mobile-nav-back site-mobile-shell__submenu-back";
+        back.className = "site-mobile-nav__drill-back site-mobile-shell__submenu-back";
         back.hidden = true;
         back.setAttribute("aria-label", "Back to main menu");
         back.innerHTML = '<span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>';
-        const drillTitle = document.createElement("span");
-        drillTitle.id = "site-mobile-nav-drill-title";
-        drillTitle.className = "site-mobile-shell__submenu-title";
-        drillTitle.hidden = true;
-        brandNav.insertBefore(back, brandNav.firstChild);
-        brandNav.insertBefore(drillTitle, back.nextSibling);
-      } else {
-        const drillTitle = document.getElementById("site-mobile-nav-drill-title");
-        if (drillTitle && back.contains(drillTitle)) {
-          drillTitle.remove();
-          back.innerHTML = '<span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>';
-          brandNav.insertBefore(drillTitle, back.nextSibling);
-        }
-        if (drillTitle instanceof HTMLElement) drillTitle.hidden = back.hidden;
       }
-      return back;
+
+      let title = document.getElementById("site-mobile-nav-drill-title");
+      if (title && !head.contains(title)) {
+        title.remove();
+        title = null;
+      }
+      if (!title) {
+        title = document.createElement("span");
+        title.id = "site-mobile-nav-drill-title";
+        title.className = "site-mobile-nav__drill-heading";
+        title.hidden = true;
+      }
+
+      let close = document.getElementById("site-mobile-nav-drill-close");
+      if (close && !head.contains(close)) {
+        close.remove();
+        close = null;
+      }
+      if (!close) {
+        close = document.createElement("button");
+        close.type = "button";
+        close.id = "site-mobile-nav-drill-close";
+        close.className = "site-mobile-nav__drill-close site-header__menu-btn";
+        close.hidden = true;
+        close.setAttribute("aria-label", "Close menu");
+        close.innerHTML = HEADER_DISMISS_ICON_HTML;
+      } else {
+        close.className = "site-mobile-nav__drill-close site-header__menu-btn";
+        if (!close.querySelector(".site-mobile-shell__close-icon")) close.innerHTML = HEADER_DISMISS_ICON_HTML;
+      }
+
+      if (!head.contains(back)) head.appendChild(back);
+      if (!head.contains(title)) head.appendChild(title);
+      if (!head.contains(close)) head.appendChild(close);
+      if (title instanceof HTMLElement) title.hidden = back.hidden;
+      if (close instanceof HTMLElement) close.hidden = back.hidden;
+
+      return { back, title, close };
     }
 
     function mountMobileNavigationShell() {
-      ensureMobileNavHeaderBack();
       let shell = document.getElementById("site-mobile-shell");
       if (shell) {
+        const drill = document.getElementById("site-mobile-nav-drill");
         const hasRlLayout =
-          document.getElementById("site-mobile-nav-back")?.closest(".site-header__brand-nav") &&
+          drill?.querySelector(".site-mobile-nav__drill-head") &&
           shell.querySelector(".site-mobile-nav__season-link");
-        if (hasRlLayout) return shell;
+        if (hasRlLayout) {
+          ensureMobileNavDrillChrome();
+          return shell;
+        }
         shell.remove();
         shell = null;
       }
@@ -24044,16 +24143,45 @@
       drillLevel.id = "site-mobile-nav-drill";
       drillLevel.className = "site-mobile-nav__level site-mobile-nav__level--drill";
       drillLevel.setAttribute("aria-hidden", "true");
+
+      const drillHead = document.createElement("div");
+      drillHead.className = "site-mobile-nav__drill-head";
+
+      const drillBack = document.createElement("button");
+      drillBack.type = "button";
+      drillBack.id = "site-mobile-nav-back";
+      drillBack.className = "site-mobile-nav__drill-back site-mobile-shell__submenu-back";
+      drillBack.hidden = true;
+      drillBack.setAttribute("aria-label", "Back to main menu");
+      drillBack.innerHTML = '<span class="site-mobile-nav__back-chevron" aria-hidden="true"></span>';
+
+      const drillHeading = document.createElement("span");
+      drillHeading.id = "site-mobile-nav-drill-title";
+      drillHeading.className = "site-mobile-nav__drill-heading";
+      drillHeading.hidden = true;
+
+      const drillClose = document.createElement("button");
+      drillClose.type = "button";
+      drillClose.id = "site-mobile-nav-drill-close";
+      drillClose.className = "site-mobile-nav__drill-close site-header__menu-btn";
+      drillClose.hidden = true;
+      drillClose.setAttribute("aria-label", "Close menu");
+      drillClose.innerHTML = HEADER_DISMISS_ICON_HTML;
+
       const drillList = document.createElement("ul");
       drillList.id = "site-mobile-nav-drill-list";
       drillList.className = "site-mobile-nav__list site-mobile-nav__list--drill";
-      drillLevel.appendChild(drillList);
+
+      drillHead.append(drillBack, drillHeading, drillClose);
+      drillLevel.append(drillHead, drillList);
 
       nav.append(rootLevel, drillLevel);
       body.appendChild(nav);
       shell.append(chrome, body);
       ensureMobileNavDim();
       document.body.appendChild(shell);
+      ensureMobileNavDrillPortal();
+      ensureMobileNavDrillChrome();
       return shell;
     }
 
@@ -24450,8 +24578,17 @@
         const utilBottom = measureUtilityBarBottom();
         const chromeBottom = measureHeaderChromeBottom();
         const shellTop = Math.max(utilBottom, chromeBottom);
+        if (utilBottom > 0) {
+          document.documentElement.style.setProperty("--site-mobile-drill-cover-top", `${utilBottom}px`);
+        }
         if (shellTop > 0) {
           document.documentElement.style.setProperty("--site-mobile-shell-top", `${shellTop}px`);
+        }
+        if (shellTop > utilBottom && utilBottom > 0) {
+          document.documentElement.style.setProperty(
+            "--site-mobile-drill-head-height",
+            `${shellTop - utilBottom}px`
+          );
         }
       } catch {
         /* ignore */
@@ -24603,21 +24740,18 @@
     }
 
     const MOBILE_NAV_MOTION_MS = 320;
+    /** Matches `--tw-mobile-nav-duration` (same slide as opening the mobile shell). */
+    const MOBILE_NAV_DRILL_MOTION_MS = MOBILE_NAV_MOTION_MS;
 
-    function resetMobileNavDrill({ focusMain = false } = {}) {
+    function finalizeMobileNavDrillReset({ focusMain = false } = {}) {
       const shell = document.getElementById("site-mobile-shell");
-      const nav = document.getElementById("site-mobile-nav");
       const root = document.getElementById("site-mobile-nav-root");
       const drill = document.getElementById("site-mobile-nav-drill");
       const back = document.getElementById("site-mobile-nav-back");
-      if (!nav || !root || !drill) return;
-      nav.classList.remove("site-mobile-nav--drill-open");
-      drill.classList.remove("is-active");
+      if (!root || !drill) return;
       shell?.classList.remove("site-mobile-shell--submenu");
-      document.body.classList.remove("collection-ui--mobile-nav-drill");
-      if (back instanceof HTMLElement) back.hidden = true;
-      const drillTitle = document.getElementById("site-mobile-nav-drill-title");
-      if (drillTitle instanceof HTMLElement) drillTitle.hidden = true;
+      restoreMobileNavDrillToNav();
+      setMobileNavDrillChromeVisible(false);
       root.removeAttribute("aria-hidden");
       drill.setAttribute("aria-hidden", "true");
       if (focusMain) {
@@ -24626,14 +24760,44 @@
       }
     }
 
+    function resetMobileNavDrill({ focusMain = false } = {}) {
+      const nav = document.getElementById("site-mobile-nav");
+      const root = document.getElementById("site-mobile-nav-root");
+      const drill = document.getElementById("site-mobile-nav-drill");
+      const portal = document.getElementById(MOBILE_NAV_DRILL_PORTAL_ID);
+      if (!nav || !drill) return;
+
+      /* Masthead + drawer stay put; portal stays visible until slide-out finishes. */
+      document.body.classList.remove("collection-ui--mobile-nav-drill");
+      nav.classList.remove("site-mobile-nav--drill-open");
+      root?.removeAttribute("aria-hidden");
+      setMobileNavDrillChromeVisible(false);
+
+      const reduceMotion = Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      if (!portal?.classList.contains("is-open") || reduceMotion) {
+        drill.classList.remove("is-active", "is-closing");
+        portal?.classList.remove("is-open", "is-closing");
+        finalizeMobileNavDrillReset({ focusMain });
+        return;
+      }
+
+      drill.classList.remove("is-active");
+      portal.classList.remove("is-open");
+      portal.classList.add("is-closing");
+      twAfterMotion(portal, MOBILE_NAV_DRILL_MOTION_MS, () => {
+        drill.classList.remove("is-closing");
+        portal.classList.remove("is-closing");
+        finalizeMobileNavDrillReset({ focusMain });
+      }, ["transform"]);
+    }
+
     function openMobileNavDrill(slot) {
       const shell = document.getElementById("site-mobile-shell");
       const nav = document.getElementById("site-mobile-nav");
       const root = document.getElementById("site-mobile-nav-root");
       const drill = document.getElementById("site-mobile-nav-drill");
-      const title = document.getElementById("site-mobile-nav-drill-title");
       const list = document.getElementById("site-mobile-nav-drill-list");
-      const back = ensureMobileNavHeaderBack();
+      const { back, title } = ensureMobileNavDrillChrome();
       if (!nav || !root || !drill || !title || !list) return;
       const pool = poolItemsForDrillSubcategories({ respectCategory: false });
       const entries = mobileNavSubcategoryEntriesForSlot(slot, pool);
@@ -24656,17 +24820,37 @@
         li.appendChild(a);
         list.appendChild(li);
       }
-      drill.classList.remove("is-active");
-      document.body.classList.add("collection-ui--mobile-nav-drill");
-      if (back instanceof HTMLElement) back.hidden = false;
-      title.hidden = false;
-      root.setAttribute("aria-hidden", "true");
-      drill.setAttribute("aria-hidden", "false");
-      requestAnimationFrame(() => {
+      syncMobileShellTop();
+      const portal = mountMobileNavDrillInPortal();
+      ensureMobileNavDrillChrome();
+
+      drill.classList.remove("is-active", "is-closing");
+      nav.classList.remove("site-mobile-nav--drill-open");
+      document.body.classList.remove("collection-ui--mobile-nav-drill");
+      portal.classList.remove("is-open", "is-closing");
+      portal.removeAttribute("hidden");
+      setMobileNavDrillChromeVisible(true);
+
+      const reduceMotion = Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      const revealDrill = () => {
+        if (!document.body.classList.contains("collection-ui--mobile-nav-open")) return;
+        document.body.classList.add("collection-ui--mobile-nav-drill");
+        root.setAttribute("aria-hidden", "true");
+        drill.setAttribute("aria-hidden", "false");
         nav.classList.add("site-mobile-nav--drill-open");
         drill.classList.add("is-active");
+        portal.classList.add("is-open");
+        portal.removeAttribute("aria-hidden");
         back?.focus();
-      });
+      };
+
+      if (reduceMotion) {
+        revealDrill();
+        return;
+      }
+
+      void portal.offsetWidth;
+      requestAnimationFrame(revealDrill);
     }
 
     function handleMobileCategoryNavigation(jump, sub, { season } = {}) {
@@ -25350,6 +25534,9 @@
     });
     document.getElementById("site-mobile-nav-back")?.addEventListener("click", () => {
       resetMobileNavDrill({ focusMain: true });
+    });
+    document.getElementById("site-mobile-nav-drill-close")?.addEventListener("click", () => {
+      closeMobileCategoryPanel();
     });
     document.getElementById("site-mobile-nav")?.addEventListener("click", (e) => {
       const seasonBtn = /** @type {HTMLElement | null} */ (
