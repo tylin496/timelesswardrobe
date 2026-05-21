@@ -54,7 +54,7 @@
     <div class="site-header-shell">
     <div class="site-utility-bar" role="note" aria-label="Brand masthead">
       <div class="site-utility-bar__inner">
-        <span class="site-utility-bar__left">IVDICIO ET CONSTANTIA</span>
+        <span class="site-utility-bar__left">INDICIO ET CONSTANTIA</span>
         <span class="site-utility-bar__center">Only What Endures</span>
         <span class="site-utility-bar__right">Since 2020</span>
       </div>
@@ -278,21 +278,23 @@
                     hidden
                     aria-label="Recent searches"
                   >
-                    <p class="site-header__search-trending-heading site-header__search-recent-heading">Recent Searches</p>
+                    <p class="site-header__search-recent-heading">Recent Searches</p>
                     <nav
                       id="site-header-search-recent-nav"
-                      class="site-header__search-trending-aside-nav site-header__search-recent-nav"
+                      class="site-header__search-recent-nav"
                       aria-label="Recent searches"
                     ></nav>
                   </section>
                   <section class="site-header__search-dropdown-main" aria-label="Popular categories">
                     <p class="site-header__search-main-heading">Popular Categories</p>
-                    <div
-                      id="site-header-search-featured-subcats"
-                      class="site-header__search-category-grid"
-                      role="list"
-                      aria-label="Featured subcategories"
-                    ></div>
+                    <div class="site-header__search-category-scroller-wrap">
+                      <div
+                        id="site-header-search-featured-subcats"
+                        class="site-header__search-category-grid"
+                        role="list"
+                        aria-label="Featured subcategories"
+                      ></div>
+                    </div>
                   </section>
                 </div>
               </div>
@@ -603,7 +605,18 @@
             <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
           </section>
           <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
-            <h3 id="styling-board-current-heading" class="styling-board__section-title">Current outfit</h3>
+            <div class="styling-board__current-head">
+              <h3 id="styling-board-current-heading" class="styling-board__section-title">Current outfit</h3>
+              <button
+                type="button"
+                class="btn btn--ghost styling-board__clear-link styling-board__clear-link--head"
+                id="outfit-clear"
+                hidden
+                aria-label="Clear All pieces from Outfits"
+              >
+                Clear All
+              </button>
+            </div>
             <div class="styling-board__board-row">
               <div class="styling-board__board-stack">
                 <div
@@ -612,15 +625,6 @@
                   role="list"
                   aria-label="Pieces on outfits"
                 ></div>
-                <button
-                  type="button"
-                  class="btn btn--ghost styling-board__clear-link"
-                  id="outfit-clear"
-                  hidden
-                  aria-label="Clear All pieces from Outfits"
-                >
-                  Clear All
-                </button>
               </div>
             </div>
             <p id="outfit-empty" class="styling-board__empty" hidden>

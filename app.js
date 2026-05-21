@@ -2081,10 +2081,12 @@
     function applyVariantHero(colourKey) {
       if (!heroImg || !heroHost) return;
       const projected = itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: String(colourKey) });
+      const inCollectionGrid = Boolean(heroHost.closest("#grid"));
       const heroRender =
         heroHost.classList.contains("item-detail__media") ? ITEM_DETAIL_GALLERY_RENDER : COLLECTION_GRID_CARD_RENDER;
       wireCoverImageWithFallbacks(heroImg, projected, {
         host: heroHost,
+        coverCandidates: inCollectionGrid ? buildCollectionGridCoverCandidates(projected) : undefined,
         coverRenderWidth: heroRender.width,
         coverRenderHeight: heroRender.height,
         coverRenderQuality: heroRender.quality,
@@ -2099,7 +2101,7 @@
             const ti = heroHost.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
             if (ti) ti.src = url;
           }
-          if (heroHost.closest("#grid")) {
+          if (inCollectionGrid) {
             heroHost.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
           }
         },
@@ -2523,13 +2525,24 @@
   function twLoginNextUrl() {
     try {
       const raw = String(new URLSearchParams(globalThis.location.search).get("next") ?? "").trim();
-      if (!raw) return "/collection.html";
-      const u = new URL(raw, globalThis.location.origin);
-      if (u.origin !== globalThis.location.origin) return "/collection.html";
-      if (!u.pathname.startsWith("/")) return "/collection.html";
-      return `${u.pathname}${u.search}${u.hash}`;
+      if (raw) {
+        const u = new URL(raw, globalThis.location.origin);
+        if (u.origin === globalThis.location.origin && u.pathname.startsWith("/")) {
+          return `${u.pathname}${u.search}${u.hash}`;
+        }
+      }
+
+      // Fallback route intent from pathname rewrite:
+      // `/login` -> home, `/collection/login` -> `/collection`.
+      const pathname = String(globalThis.location.pathname || "").trim() || "/login";
+      if (pathname === "/login" || pathname === "/login.html") return "/";
+      if (pathname.endsWith("/login")) {
+        const base = pathname.slice(0, -"/login".length).trim();
+        return base ? base : "/";
+      }
+      return "/";
     } catch {
-      return "/collection.html";
+      return "/";
     }
   }
 
@@ -2546,6 +2559,35 @@
           void handleTwLoginPage();
         });
       }
+    }
+  }
+
+  const TW_LOGIN_OAUTH_PENDING_KEY = "tw-login-oauth-pending-v1";
+
+  function markTwLoginOAuthPending() {
+    try {
+      globalThis.sessionStorage?.setItem(TW_LOGIN_OAUTH_PENDING_KEY, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function clearTwLoginOAuthPending() {
+    try {
+      globalThis.sessionStorage?.removeItem(TW_LOGIN_OAUTH_PENDING_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function hasRecentTwLoginOAuthPending(maxAgeMs = 180000) {
+    try {
+      const raw = String(globalThis.sessionStorage?.getItem(TW_LOGIN_OAUTH_PENDING_KEY) ?? "").trim();
+      const ts = Number(raw);
+      if (!Number.isFinite(ts) || ts <= 0) return false;
+      return Date.now() - ts <= Math.max(1000, Math.floor(maxAgeMs));
+    } catch {
+      return false;
     }
   }
 
@@ -2570,17 +2612,20 @@
   function waitForTwLoginSessionResolution(attempt = 0) {
     if (!isTwLoginPage()) return;
     if (isTwEditorUser()) {
+      clearTwLoginOAuthPending();
       updateLoginPageStatus("Signed in. Redirecting…");
       applyTwAdminModeUi();
       completeTwLoginPageRedirect();
       return;
     }
     if (twEditorSession?.denied) {
+      clearTwLoginOAuthPending();
       updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
       twLoginOAuthKickoff = false;
       return;
     }
     if (attempt >= 40) {
+      clearTwLoginOAuthPending();
       updateLoginPageStatus("Sign-in timed out. Please try again.", { showRetry: true });
       twLoginOAuthKickoff = false;
       return;
@@ -2601,7 +2646,11 @@
     if (!isTwLoginPage()) return;
     if (isTwLocalDevHost()) {
       updateLoginPageStatus("Local dev does not require sign-in. Redirecting…");
-      globalThis.location.replace("/collection.html");
+      try {
+        globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
+      } catch {
+        globalThis.location.replace("/");
+      }
       return;
     }
     if (!isSupabaseReady()) {
@@ -2618,9 +2667,9 @@
       updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
       return;
     }
-    if (hasTwAuthCallbackPayload()) {
+    if (hasTwAuthCallbackPayload() || hasRecentTwLoginOAuthPending()) {
       // OAuth callback is back on /login; wait for session hydration instead of re-opening Google.
-      updateLoginPageStatus("Signed in. Redirecting…");
+      updateLoginPageStatus("Completing sign-in…");
       twLoginOAuthKickoff = true;
       waitForTwLoginSessionResolution();
       return;
@@ -2676,6 +2725,7 @@
     }
     if (itemIdForEditAfter) twPendingItemEditId = String(itemIdForEditAfter).trim();
     const redirectTo = twOAuthRedirectUrl();
+    markTwLoginOAuthPending();
     /** Force Google account picker when there is no editor session. */
     const oauthOptions = { redirectTo };
     if (!isTwEditorUser()) {
@@ -2686,6 +2736,7 @@
       options: oauthOptions,
     });
     if (error) {
+      clearTwLoginOAuthPending();
       console.warn("Google sign-in failed:", error);
       showToast(formatSupabaseUserMessage(error) || "Google sign-in failed.");
     }
@@ -2717,6 +2768,7 @@
     }
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       twEditorSession = resolveTwEditorSession(session);
+      if (isTwEditorUser() || twEditorSession?.denied) clearTwLoginOAuthPending();
       applyTwAdminModeUi();
       installTwEditorAuthUi();
       if (isTwLoginPage() && isTwEditorUser()) {
@@ -3090,6 +3142,7 @@
         media.insertAdjacentElement("afterend", body);
       }
       syncCollectionCardBoardAddPlacement(article, compact);
+      media.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
     });
   }
 
@@ -7498,8 +7551,13 @@
     const key = buildCollectionSortedCacheKey();
     if (key === collectionSortedCacheKey && collectionSortedCache) return collectionSortedCache;
     const filtered = applyFilters(items);
-    collectionSortedCache =
-      collectionSortMode === "default" ? sortItemsEditorialArchive(filtered) : [...filtered].sort(compareGridItems);
+    const searchQ = String(collectionSubmittedSearchNorm ?? "").trim();
+    if (searchQ) {
+      collectionSortedCache = orderSearchResultItems(filtered, searchQ);
+    } else {
+      collectionSortedCache =
+        collectionSortMode === "default" ? sortItemsEditorialArchive(filtered) : [...filtered].sort(compareGridItems);
+    }
     collectionSortedCacheKey = key;
     return collectionSortedCache;
   }
@@ -7632,9 +7690,46 @@
       btn.type = "button";
       btn.className = "site-header__search-recent-row";
       btn.setAttribute("data-recent-search", q);
-      btn.textContent = q;
+
+      const icon = document.createElement("span");
+      icon.className = "site-header__search-recent-chip-icon";
+      icon.setAttribute("aria-hidden", "true");
+
+      const label = document.createElement("span");
+      label.className = "site-header__search-recent-row__label";
+      label.textContent = q;
+
+      btn.append(icon, label);
       nav.appendChild(btn);
     }
+  }
+
+  /** Search overlay rails: native horizontal momentum only (no custom pointer-drag scroll). */
+  function wireHeaderSearchOverlayRail(scroller) {
+    if (!(scroller instanceof HTMLElement)) return;
+    prepareHomeHorizontalRailScroller(scroller);
+  }
+
+  /** Popular Categories mobile rail: native horizontal momentum (no custom drag / edge bump). */
+  function wireHeaderSearchCategoryRail() {
+    const grid = document.getElementById("site-header-search-featured-subcats");
+    const wrap = document.querySelector(".site-header__search-category-scroller-wrap");
+    if (!(grid instanceof HTMLElement)) return;
+    const useWrapScroller =
+      (globalThis.matchMedia?.("(max-width: 1024px)")?.matches ?? false) && wrap instanceof HTMLElement;
+    const scrollEl = useWrapScroller ? wrap : grid;
+    wireHeaderSearchOverlayRail(scrollEl);
+    grid.querySelectorAll("img").forEach((img) => {
+      if (img.complete) return;
+      img.addEventListener("load", () => prepareHomeHorizontalRailScroller(scrollEl), { once: true });
+    });
+  }
+
+  /** Mobile search: trending pills stay on one horizontal rail (swipe, no wrap). */
+  function wireHeaderSearchTrendingRail() {
+    const nav = document.querySelector(".site-header__search-trending-aside-nav");
+    if (!nav || !(nav instanceof HTMLElement)) return;
+    wireHeaderSearchOverlayRail(nav);
   }
 
   /**
@@ -7737,12 +7832,8 @@
       a.appendChild(copy);
       gridHost.appendChild(a);
     }
-    gridHost.dataset.horizontalRailTouchScroll = "1";
-    wireHomeHorizontalRailScroller(gridHost);
-    gridHost.querySelectorAll("img").forEach((img) => {
-      if (img.complete) return;
-      img.addEventListener("load", () => refreshHomeHorizontalRailScroller(gridHost), { once: true });
-    });
+    wireHeaderSearchCategoryRail();
+    wireHeaderSearchTrendingRail();
     syncCategoryTabUI();
   }
 
@@ -9463,9 +9554,36 @@
     initHomeHeroHeader();
   }
 
+  function wireEditorialQuoteReveal() {
+    const quote = document.querySelector(".editorial-quote");
+    if (!(quote instanceof HTMLElement)) return;
+    if (quote.classList.contains("is-in-view")) return;
+
+    const reveal = () => quote.classList.add("is-in-view");
+    const prefersReducedMotion =
+      typeof globalThis.matchMedia === "function" &&
+      globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion || typeof IntersectionObserver !== "function") {
+      reveal();
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        reveal();
+        io.disconnect();
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+    );
+    io.observe(quote);
+  }
+
   function renderEditorialLandingPage() {
     if (!document.body.classList.contains("home-page")) return;
     mountHomePageHero();
+    wireEditorialQuoteReveal();
     const root = document.getElementById("main");
     if (!root?.classList.contains("ed-lp")) return;
 
@@ -10009,6 +10127,8 @@
   function openItemImageZoomLightbox(opts) {
     const src = String(opts?.src ?? "").trim();
     if (!src) return;
+    /* Desktop PDP: in-frame hover zoom only — no full-screen viewer. */
+    if (isItemPageDesktopHoverZoom() && !isItemPageCoarsePointer()) return;
     const dlg = ensureItemImageZoomDialog();
     dlg.__twOpen?.({ src, alt: String(opts?.alt ?? "") });
   }
@@ -10022,14 +10142,14 @@
    */
   function wireItemPageHeroView(media, heroImg, item, galleryApi) {
     if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
+    /* Desktop: hover zoom + pan only (wired separately); no tap/click lightbox. */
+    if (!isItemPageCoarsePointer()) return;
     if (media.dataset.twHeroViewWired === "1") return;
     media.dataset.twHeroViewWired = "1";
 
     media.classList.add("item-detail__media--hero-view");
     heroImg.classList.add("item-detail__hero-img--enlarge");
-    heroImg.title = isItemPageDesktopHoverZoom()
-      ? "Move the mouse to explore detail · click for full screen"
-      : "Click to enlarge";
+    heroImg.title = "Click to enlarge";
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -10754,6 +10874,226 @@
     return searchTokenFuzzyMatchesHaystackNorm(hay, t);
   }
 
+  /** Minimum total score for a row to count as a search hit (blocks fuzzy-only noise). */
+  const SEARCH_MATCH_MIN_SCORE = 100;
+  /** Strong title / category / tag signal — prefer these when enough exist. */
+  const SEARCH_DIRECT_MATCH_MIN_SCORE = 500;
+
+  const SEARCH_DEPRIORITIZED_RECORD_CATS = new Set([
+    "outerwear",
+    "jackets",
+    "tailoring",
+    "mid layer",
+    "inner layer",
+    "layering",
+    "knitwear",
+    "bottoms",
+    "trousers",
+    "footwear",
+  ]);
+
+  const SEARCH_TOP_RECORD_CATS = new Set(["shirts", "tops"]);
+
+  /** @param {unknown} item */
+  function itemSearchFieldBundle(item) {
+    if (!item || typeof item !== "object") return null;
+    const slot = itemSlot(/** @type {any} */ (item));
+    const recRaw = String(recordCategoryForDrill(/** @type {any} */ (item), slot) ?? "").trim();
+    const recLabel = friendlyRecordCategory(recRaw) || recRaw;
+    const id = item.id != null ? String(item.id) : "";
+    return {
+      nameNorm: normalizeSearch(displayNameWithoutLeadingColour(/** @type {any} */ (item))),
+      brandNorm: normalizeSearch(String(/** @type {any} */ (item).brand ?? "")),
+      tagsNorm: normalizeSearch(formatItemTagsForSearch(item)),
+      keywordsNorm: normalizeSearch(formatItemKeywordsForSearch(item)),
+      subNorm: normalizeSearch(String(/** @type {any} */ (item).subcategory ?? "")),
+      secNorm: normalizeSearch(String(/** @type {any} */ (item).section ?? "")),
+      recNorm: normalizeSearch(recLabel),
+      recRawNorm: normalizeSearch(recRaw),
+      slotNorm: normalizeSearch(categoryDisplayLabel(slot)),
+      metaNorm: normalizeSearch(
+        [
+          /** @type {any} */ (item).description,
+          /** @type {any} */ (item).notes,
+          /** @type {any} */ (item).fabric,
+          /** @type {any} */ (item).pillar,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      ),
+      hayFull: (id && wardrobeSearchIndex.get(id)) || buildItemSearchHaystackNorm(item),
+      recRaw,
+      recLabel,
+    };
+  }
+
+  /** @param {string} hay */
+  function haystackHasExactWord(hay, token) {
+    const t = normalizeSearch(token);
+    if (!t) return false;
+    return haystackWordTokens(hay).includes(t);
+  }
+
+  /** @param {string} nameNorm */
+  function titleHasPhrase(nameNorm, phrase) {
+    const p = normalizeSearch(phrase);
+    return Boolean(p && nameNorm.includes(p));
+  }
+
+  /** @param {string[]} tokens */
+  function searchQueryIntentForTokens(tokens) {
+    const joined = tokens.join(" ");
+    const poloFamily = tokens.includes("polo") || joined.includes("polo");
+    const shirtFamily =
+      tokens.includes("shirt") ||
+      tokens.includes("shirts") ||
+      joined.includes("shirt");
+    const topBias =
+      poloFamily ||
+      shirtFamily ||
+      tokens.some((t) => ["top", "tops", "tee", "blouse"].includes(t));
+    return { poloFamily, shirtFamily, topBias };
+  }
+
+  /**
+   * @param {ReturnType<typeof itemSearchFieldBundle>} bundle
+   * @param {{ poloFamily: boolean, shirtFamily: boolean, topBias: boolean }} intent
+   */
+  function searchCategoryAffinityAdjustment(bundle, intent) {
+    if (!bundle || !intent.topBias) return 0;
+    let adj = 0;
+    const rec = normalizeSearch(bundle.recRaw);
+    const recLabel = normalizeSearch(bundle.recLabel);
+    const blob = `${bundle.nameNorm} ${bundle.subNorm} ${bundle.secNorm} ${rec} ${recLabel}`;
+
+    if (SEARCH_TOP_RECORD_CATS.has(rec) || SEARCH_TOP_RECORD_CATS.has(recLabel)) adj += 480;
+    if (bundle.subNorm.includes("polo") || bundle.nameNorm.includes("polo")) adj += 620;
+    if (
+      bundle.subNorm.includes("shirt") ||
+      bundle.nameNorm.includes("shirt") ||
+      bundle.nameNorm.includes("shirting")
+    ) {
+      adj += 360;
+    }
+
+    if (SEARCH_DEPRIORITIZED_RECORD_CATS.has(rec) || SEARCH_DEPRIORITIZED_RECORD_CATS.has(recLabel)) {
+      adj -= 520;
+    }
+    if (
+      /\b(knit|knitwear|jumper|sweater|roll neck|roll-neck|crew neck|turtleneck)\b/.test(blob) &&
+      !bundle.nameNorm.includes("polo")
+    ) {
+      adj -= 460;
+    }
+    if (bundle.nameNorm.includes("coat") && intent.poloFamily && !intent.shirtFamily) adj -= 280;
+    if (bundle.nameNorm.includes("jacket") && intent.shirtFamily) adj -= 340;
+
+    return adj;
+  }
+
+  /**
+   * Weighted relevance: exact title/tags/category first; fuzzy haystack match last.
+   * @param {unknown} item
+   * @param {string} q
+   */
+  function scoreItemSearchRelevance(item, q) {
+    const raw = normalizeSearch(String(q ?? ""));
+    if (!raw) return 0;
+    const tokens = splitSearchQueryTokens(raw);
+    if (!tokens.length) return 0;
+    const bundle = itemSearchFieldBundle(item);
+    if (!bundle) return 0;
+
+    let score = 0;
+
+    if (tokens.length >= 2 && titleHasPhrase(bundle.nameNorm, raw)) {
+      score += 10000;
+    } else if (tokens.length === 1 && titleHasPhrase(bundle.nameNorm, tokens[0])) {
+      score += 6500;
+    }
+
+    let allTokensInTitle = true;
+
+    for (const tok of tokens) {
+      let matched = false;
+
+      if (haystackHasExactWord(bundle.nameNorm, tok)) {
+        score += 2500;
+        if (tok === "polo") score += 700;
+        if (tok === "shirt" || tok === "shirts") score += 420;
+        matched = true;
+      } else if (tok.length >= 5 && bundle.nameNorm.includes(tok)) {
+        score += 900;
+        matched = true;
+        allTokensInTitle = false;
+      } else if (haystackHasExactWord(bundle.tagsNorm, tok)) {
+        score += 920;
+        matched = true;
+        allTokensInTitle = false;
+      } else if (haystackHasExactWord(bundle.keywordsNorm, tok)) {
+        score += 820;
+        matched = true;
+        allTokensInTitle = false;
+      } else if (
+        haystackHasExactWord(bundle.recNorm, tok) ||
+        haystackHasExactWord(bundle.recRawNorm, tok) ||
+        haystackHasExactWord(bundle.subNorm, tok) ||
+        haystackHasExactWord(bundle.secNorm, tok)
+      ) {
+        score += 700;
+        matched = true;
+        allTokensInTitle = false;
+      } else if (haystackHasExactWord(bundle.brandNorm, tok)) {
+        score += 520;
+        matched = true;
+        allTokensInTitle = false;
+      } else if (haystackHasExactWord(bundle.metaNorm, tok)) {
+        score += 220;
+        matched = true;
+        allTokensInTitle = false;
+      } else {
+        const titleWords = haystackWordTokens(bundle.nameNorm);
+        if (tok.length >= 4 && titleWords.some((w) => w.startsWith(tok))) {
+          score += 380;
+          matched = true;
+          allTokensInTitle = false;
+        } else if (searchTokenMatchesHaystackNorm(bundle.hayFull, tok)) {
+          score += 45;
+          matched = true;
+          allTokensInTitle = false;
+        }
+      }
+
+      if (!matched) return 0;
+    }
+
+    if (allTokensInTitle && tokens.length > 0) score += 1400;
+
+    score += searchCategoryAffinityAdjustment(bundle, searchQueryIntentForTokens(tokens));
+
+    return Math.max(0, score);
+  }
+
+  /**
+   * @param {object[]} hits
+   * @param {string} q
+   */
+  function orderSearchResultItems(hits, q) {
+    const query = normalizeSearch(String(q ?? ""));
+    if (!query || !hits.length) return hits;
+    const scored = hits.map((it) => ({ it, score: scoreItemSearchRelevance(it, query) }));
+    const direct = scored.filter((x) => x.score >= SEARCH_DIRECT_MATCH_MIN_SCORE);
+    const pool =
+      direct.length >= 2
+        ? direct
+        : scored.filter((x) => x.score >= SEARCH_MATCH_MIN_SCORE);
+    pool.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return compareCollectionGridItems(a.it, b.it);
+    });
+    return pool.map((x) => x.it);
+  }
+
   /** @param {unknown} item */
   function buildItemSearchHaystackNorm(item) {
     if (!item || typeof item !== "object") return "";
@@ -10798,14 +11138,7 @@
   function itemMatchesSearch(item, q) {
     const raw = normalizeSearch(String(q ?? ""));
     if (!raw) return true;
-    const id = item && typeof item === "object" && item.id != null ? String(item.id) : "";
-    const hay = (id && wardrobeSearchIndex.get(id)) || buildItemSearchHaystackNorm(item);
-    const tokens = splitSearchQueryTokens(raw);
-    if (!tokens.length) return true;
-    for (const tok of tokens) {
-      if (!searchTokenMatchesHaystackNorm(hay, tok)) return false;
-    }
-    return true;
+    return scoreItemSearchRelevance(item, raw) >= SEARCH_MATCH_MIN_SCORE;
   }
 
   /**
@@ -11218,14 +11551,33 @@
     }
   }
 
-  /** COLLECTION PLP: count/spend meta inline after the serif title (same row). */
+  /** @returns {boolean} */
+  function isCollectionBrowseToolbarMobile() {
+    return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
+  }
+
+  /** COLLECTION PLP: desktop — meta inline after title; mobile — meta left of Filter & Sort. */
   function syncCollectionCountLinePlacement() {
-    const heading = document.getElementById("collection-heading");
-    const titleRow = document.querySelector(".collection-heading__title-row");
     const title = document.getElementById("items-toolbar-page-title");
     const summary = document.querySelector(".items-toolbar__collection-summary--under-title");
-    if (!heading || !titleRow || !title || !summary || !document.body.classList.contains("collection-page")) return;
-    if (summary.parentElement !== titleRow || summary.previousElementSibling !== title) {
+    if (!title || !summary || !document.body.classList.contains("collection-page")) return;
+    if (document.body.classList.contains("collection-ui--search-results-plp")) return;
+
+    const controlBar = document.querySelector(
+      ".items-toolbar > .items-toolbar__actions > .items-toolbar__control-bar"
+    );
+    const controlBarEnd = controlBar?.querySelector(":scope > .items-toolbar__control-bar-end");
+
+    if (isCollectionBrowseToolbarMobile() && controlBar && controlBarEnd) {
+      if (summary.parentElement !== controlBar || summary.nextElementSibling !== controlBarEnd) {
+        controlBar.insertBefore(summary, controlBarEnd);
+      }
+      return;
+    }
+
+    const titleCluster = document.querySelector(".collection-heading__title-cluster");
+    if (!titleCluster || title.parentElement !== titleCluster) return;
+    if (summary.parentElement !== titleCluster || summary.previousElementSibling !== title) {
       title.insertAdjacentElement("afterend", summary);
     }
   }
@@ -11284,7 +11636,7 @@
     for (const it of items) {
       if (itemMatchesSearch(it, q)) out.push(it);
     }
-    return out.sort(compareGridItems);
+    return orderSearchResultItems(out, q);
   }
 
   function createHeaderSearchOverlayResultLink(item) {
@@ -12763,6 +13115,87 @@
     return out.map((u) => withWardrobeImageCacheBust(u, item));
   }
 
+  /**
+   * Collection PLP cover load order — primary / variant covers only (never `item.gallery` extras).
+   * @param {object} item
+   * @returns {string[]}
+   */
+  function buildCollectionGridCoverCandidates(item) {
+    const out = [];
+    const seen = new Set();
+    function add(u) {
+      const x = String(u ?? "").trim();
+      if (!x || seen.has(x)) return;
+      seen.add(x);
+      out.push(x);
+    }
+    const coverRaw = collectionGridCoverFrameRaw(item);
+    if (coverRaw) add(coverRaw);
+    const vars = getItemColourVariants(item);
+    if (vars) {
+      for (const v of vars) {
+        const u = String(v?.image ?? "").trim();
+        if (isDisplayableCloudImageUrl(u)) add(u);
+      }
+    }
+    const primary = String(item?.image ?? "").trim();
+    if (
+      primary &&
+      isDisplayableCloudImageUrl(primary) &&
+      !primaryCoverUrlBelongsToItem(item, primary)
+    ) {
+      add(primary);
+    }
+    return out.map((u) => withWardrobeImageCacheBust(u, item));
+  }
+
+  /**
+   * Raw cover URL for collection grid frame 0 (not gallery extras or stale unowned primary).
+   * @param {object} item
+   * @returns {string}
+   */
+  function collectionGridCoverFrameRaw(item) {
+    const primary = String(item?.image ?? "").trim();
+    if (
+      primary &&
+      isDisplayableCloudImageUrl(primary) &&
+      primaryCoverUrlBelongsToItem(item, primary)
+    ) {
+      return primary;
+    }
+    const vars = getItemColourVariants(item);
+    if (vars) {
+      for (const v of vars) {
+        const u = String(v?.image ?? "").trim();
+        if (isDisplayableCloudImageUrl(u)) return u;
+      }
+    }
+    if (primary && isDisplayableCloudImageUrl(primary)) return primary;
+    return "";
+  }
+
+  /**
+   * Editorial gallery URLs for collection carousel (excludes cutouts / cover duplicate).
+   * @param {object} item
+   * @returns {string[]}
+   */
+  function collectionGridEditorialGalleryRaws(item) {
+    const coverKey = collectionGridCoverFrameRaw(item).split("?")[0];
+    const seen = new Set();
+    /** @type {string[]} */
+    const out = [];
+    for (const raw of itemGalleryList(item)) {
+      const x = String(raw ?? "").trim();
+      if (!x || !isDisplayableCloudImageUrl(x)) continue;
+      const key = x.split("?")[0];
+      if (!key || seen.has(key) || key === coverKey) continue;
+      if (imageSourceLooksAlphaCapable(null, x)) continue;
+      seen.add(key);
+      out.push(x);
+    }
+    return out;
+  }
+
   /** Header search category tiles: pick a random visible cover (not always collection sort order). */
   function pickRandomHeaderSearchPreviewItem(pool) {
     if (!Array.isArray(pool) || pool.length === 0) return null;
@@ -12811,6 +13244,21 @@
     quality: 88,
     resize: "contain",
   });
+
+  /** Collection card carousel / chevron frames — edge-to-edge crop (not cut-out contain). */
+  const COLLECTION_GRID_GALLERY_RENDER = Object.freeze({
+    width: 1200,
+    height: 1600,
+    quality: 88,
+    resize: "cover",
+  });
+
+  /** @param {HTMLImageElement} img @param {"cover" | "gallery"} mode */
+  function syncCardMediaImgFitClass(img, mode) {
+    const gallery = mode === "gallery";
+    img.classList.toggle("card__media-img--cover", !gallery);
+    img.classList.toggle("card__gallery-frame-img", gallery);
+  }
 
   /** Homepage editorial cards — smaller than PLP grid (faster loads on 2-col gallery highlights). */
   const HOME_EDITORIAL_CARD_RENDER = Object.freeze({
@@ -12876,7 +13324,7 @@
 
   /**
    * Try `buildCoverCandidates` in order until one loads. Optionally cache working URL on `item.id`.
-   * @param {{ host?: HTMLElement, missingClass?: string | null, onResolved?: (url: string) => void, onExhausted?: () => void, preferredUrl?: string, coverRenderWidth?: number, coverRenderHeight?: number, coverRenderZoom?: number, coverRenderQuality?: number, coverRenderResize?: "cover" | "contain" }} [opts]
+   * @param {{ host?: HTMLElement, missingClass?: string | null, onResolved?: (url: string) => void, onExhausted?: () => void, preferredUrl?: string, coverCandidates?: string[], coverRenderWidth?: number, coverRenderHeight?: number, coverRenderZoom?: number, coverRenderQuality?: number, coverRenderResize?: "cover" | "contain" }} [opts]
    */
   function wireCoverImageWithFallbacks(img, item, opts) {
     const prevAbort = /** @type {(() => void) | undefined} */ (/** @type {any} */ (img).__twCoverWireAbort);
@@ -12892,7 +13340,10 @@
     const missingClass = opts?.missingClass !== undefined ? opts.missingClass : "card__media--missing";
     const onResolved = opts?.onResolved;
     const onExhausted = opts?.onExhausted;
-    let candidates = buildCoverCandidates(item);
+    let candidates =
+      Array.isArray(opts?.coverCandidates) && opts.coverCandidates.length
+        ? opts.coverCandidates.map((u) => String(u ?? "").trim()).filter(Boolean)
+        : buildCoverCandidates(item);
     const preferredRaw = String(opts?.preferredUrl ?? "").trim();
     if (preferredRaw && isDisplayableCloudImageUrl(preferredRaw)) {
       const bust = withWardrobeImageCacheBust(preferredRaw, item);
@@ -13057,12 +13508,92 @@
     return frames;
   }
 
+  const PDP_GALLERY_THUMB_HINT_KEY = "tw-pdp-gallery-thumb-hint-v1";
+
+  /** Mobile PDP: hint + first-thumb nudge when multiple gallery photos. */
+  function wireItemDetailGalleryThumbHint(galleryEl, thumbsEl) {
+    if (!(galleryEl instanceof HTMLElement) || !(thumbsEl instanceof HTMLElement)) return;
+    if (thumbsEl.hidden) return;
+    if (!isItemPageCoarsePointer()) return;
+
+    galleryEl.querySelector(".item-detail__gallery-thumb-hint")?.remove();
+    thumbsEl.classList.remove("is-thumb-hint-active");
+
+    let hintSeen = false;
+    try {
+      hintSeen = sessionStorage.getItem(PDP_GALLERY_THUMB_HINT_KEY) === "1";
+    } catch {
+      /* ignore */
+    }
+
+    const hint = document.createElement("p");
+    hint.className = "item-detail__gallery-thumb-hint";
+    hint.textContent = "滑动缩图换图";
+    hint.hidden = hintSeen;
+    galleryEl.appendChild(hint);
+
+    const dismiss = () => {
+      hint.hidden = true;
+      thumbsEl.classList.remove("is-thumb-hint-active");
+      try {
+        sessionStorage.setItem(PDP_GALLERY_THUMB_HINT_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+    };
+
+    if (hintSeen) return;
+
+    const prefersReducedMotion =
+      typeof globalThis.matchMedia === "function" &&
+      globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const playNudge = () => {
+      if (prefersReducedMotion) return;
+      thumbsEl.classList.add("is-thumb-hint-active");
+      if (thumbsEl.scrollWidth > thumbsEl.clientWidth + 2) {
+        thumbsEl.scrollTo({ left: 0, behavior: "auto" });
+        requestAnimationFrame(() => {
+          thumbsEl.scrollTo({ left: 18, behavior: "smooth" });
+          setTimeout(() => thumbsEl.scrollTo({ left: 0, behavior: "smooth" }), 720);
+        });
+      }
+      setTimeout(() => thumbsEl.classList.remove("is-thumb-hint-active"), 1500);
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(playNudge));
+
+    let dismissed = false;
+    const dismissOnce = () => {
+      if (dismissed) return;
+      dismissed = true;
+      dismiss();
+    };
+
+    thumbsEl.addEventListener("click", dismissOnce, { once: true });
+    thumbsEl.addEventListener(
+      "touchstart",
+      () => dismissOnce(),
+      { once: true, passive: true }
+    );
+    thumbsEl.addEventListener(
+      "scroll",
+      () => {
+        if (thumbsEl.scrollLeft > 10) dismissOnce();
+      },
+      { passive: true }
+    );
+    setTimeout(dismissOnce, 5200);
+  }
+
   /**
    * Item PDP / edit preview: vertical thumbs (left) + hero stage with prev / next.
    * @param {{ frames?: { url: string, label: string }[], initialIndex?: number }} [opts]
    */
   function mountItemDetailPageGallery(galleryEl, thumbsEl, stageEl, heroImgEl, item, opts = {}) {
     if (!galleryEl || !thumbsEl || !stageEl || !heroImgEl) return;
+    galleryEl.querySelector(".item-detail__gallery-thumb-hint")?.remove();
+    thumbsEl.classList.remove("is-thumb-hint-active");
     delete stageEl.dataset.twHeroViewWired;
     if (typeof stageEl.__twDesktopZoomCleanup === "function") {
       stageEl.__twDesktopZoomCleanup();
@@ -13100,6 +13631,11 @@
 
     const syncGalleryThumbRailHeight = () => {
       if (thumbsEl.hidden) {
+        galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
+        thumbsEl.style.removeProperty("max-height");
+        return;
+      }
+      if (isItemPageCoarsePointer()) {
         galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
         thumbsEl.style.removeProperty("max-height");
         return;
@@ -13142,8 +13678,12 @@
           btn.removeAttribute("aria-current");
         }
       });
-      if (activeBtn && thumbsEl.scrollHeight > thumbsEl.clientHeight + 2) {
-        activeBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      if (!activeBtn) return;
+      const scrollOpts = { block: "nearest", inline: "nearest", behavior: "smooth" };
+      if (thumbsEl.scrollWidth > thumbsEl.clientWidth + 2) {
+        activeBtn.scrollIntoView(scrollOpts);
+      } else if (thumbsEl.scrollHeight > thumbsEl.clientHeight + 2) {
+        activeBtn.scrollIntoView(scrollOpts);
       }
     };
 
@@ -13164,6 +13704,7 @@
         currentIndex === 0
           ? imageAltForItem(item)
           : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${currentIndex + 1})`;
+      syncCardMediaImgFitClass(heroImgEl, currentIndex === 0 ? "cover" : "gallery");
       syncActiveThumb();
       stageEl.dataset.galleryIndex = String(currentIndex);
     };
@@ -13211,6 +13752,7 @@
         ? opts.initialIndex
         : 0;
     showFrame(start);
+    syncCardMediaImgFitClass(heroImgEl, "cover");
 
     if (multi) {
       if (typeof ResizeObserver !== "undefined") {
@@ -13224,12 +13766,13 @@
         syncGalleryThumbRailHeight();
         requestAnimationFrame(syncGalleryThumbRailHeight);
       });
+      wireItemDetailGalleryThumbHint(galleryEl, thumbsEl);
     } else {
       galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
       thumbsEl.style.removeProperty("max-height");
     }
 
-    if (opts.heroInteractions) {
+    if (opts.heroInteractions && isItemPageCoarsePointer()) {
       stageEl.__twPdpGallery = {
         frameCount: frames.length,
         frameUrlAt(i) {
@@ -13268,15 +13811,19 @@
 
   /** Thumbnail strip to swap the hero `img` (grid card or detail dialog). */
   function mountHeroGalleryStrip(mediaEl, heroImgEl, item, opts = {}) {
-    const extras = itemGalleryList(item).filter(isDisplayableCloudImageUrl);
+    const inCollectionGrid = Boolean(mediaEl.closest("#grid"));
+    const extras = inCollectionGrid
+      ? collectionGridEditorialGalleryRaws(item)
+      : itemGalleryList(item).filter(isDisplayableCloudImageUrl);
     if (!extras.length) return;
 
-    const inCollectionGrid = Boolean(mediaEl.closest("#grid"));
-    const frame =
+    const coverFrame =
       opts.coverFrame ??
       (inCollectionGrid ? COLLECTION_GRID_CARD_RENDER : ITEM_DETAIL_GALLERY_RENDER);
+    const galleryFrame = inCollectionGrid ? COLLECTION_GRID_GALLERY_RENDER : coverFrame;
 
-    function heroFrameSrc(url) {
+    function heroFrameSrc(url, mode = "cover") {
+      const frame = mode === "gallery" ? galleryFrame : coverFrame;
       return wardrobeImageForFrame(url, item, frame) || withWardrobeImageCacheBust(url, item);
     }
 
@@ -13295,17 +13842,19 @@
     mainBtn.className = "card__gallery-thumb is-active";
     mainBtn.title = "Cover";
     const mainTi = document.createElement("img");
-    const firstCover = buildCoverCandidates(item)[0] ?? "";
-    if (firstCover) mainTi.src = heroFrameSrc(firstCover);
+    const firstCover = (inCollectionGrid ? buildCollectionGridCoverCandidates(item) : buildCoverCandidates(item))[0] ?? "";
+    if (firstCover) mainTi.src = heroFrameSrc(firstCover, "cover");
     mainTi.alt = "";
     mainTi.draggable = false;
     mainBtn.appendChild(mainTi);
     mainBtn.addEventListener("click", () => {
       const cached = String(heroImgEl.dataset.coverSrc ?? "").trim();
-      const src = cached || heroFrameSrc(effectiveCoverSrc(item) || firstCover);
+      const coverRaw = inCollectionGrid ? collectionGridCoverFrameRaw(item) : effectiveCoverSrc(item);
+      const src = cached || heroFrameSrc(coverRaw || firstCover, "cover");
       if (src) heroImgEl.src = src;
       else heroImgEl.removeAttribute("src");
       heroImgEl.alt = imageAltForItem(item);
+      syncCardMediaImgFitClass(heroImgEl, "cover");
       setActive(mainBtn);
     });
     strip.appendChild(mainBtn);
@@ -13316,13 +13865,14 @@
       btn.className = "card__gallery-thumb";
       btn.title = `Photo ${i + 2}`;
       const ti = document.createElement("img");
-      ti.src = heroFrameSrc(url);
+      ti.src = heroFrameSrc(url, "gallery");
       ti.alt = "";
       ti.draggable = false;
       btn.appendChild(ti);
       btn.addEventListener("click", () => {
-        heroImgEl.src = heroFrameSrc(url);
+        heroImgEl.src = heroFrameSrc(url, "gallery");
         heroImgEl.alt = `${item.brand} — ${displayNameWithoutLeadingColour(item)} (detail)`;
+        syncCardMediaImgFitClass(heroImgEl, "gallery");
         setActive(btn);
       });
       strip.appendChild(btn);
@@ -13833,6 +14383,7 @@
     const next = [...currentOutfitSlots];
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
+    captureOutfitStripFlipRects();
     currentOutfitSlots = next;
     onOutfitChange();
   }
@@ -14565,7 +15116,7 @@
   /**
    * Crop an image file to the wardrobe 3×4 frame.
    * @param {File} file
-   * @param {{ label?: string, autoExportIfAligned?: boolean, forceCropUi?: boolean }} [opts]
+   * @param {{ label?: string, autoExportIfAligned?: boolean, forceCropUi?: boolean, cropMode?: "cover" | "gallery" }} [opts]
    * @returns {Promise<File | null>} `null` when cancelled.
    */
   function openItemPhotoCropDialog(file, opts = {}) {
@@ -14625,8 +15176,10 @@
       let dragPanX = 0;
       let dragPanY = 0;
       let aspectMatched = false;
-      /** PNG / cutout — free pan & zoom inside frame (no cover lock). */
-      let cutoutFreeCrop = imageSourceLooksAlphaCapable(file);
+      const cropSlotMode = opts.cropMode === "gallery" ? "gallery" : "cover";
+      /** Cover + PNG/cutout only — free pan & zoom inside frame. Gallery always fills the frame. */
+      let cutoutFreeCrop =
+        cropSlotMode === "cover" && imageSourceLooksAlphaCapable(file);
 
       function endDrag() {
         if (onPointerMove) {
@@ -14796,7 +15349,8 @@
 
       const resetView = () => {
         if (!naturalW || !naturalH) return;
-        cutoutFreeCrop = imageSourceLooksAlphaCapable(file);
+        cutoutFreeCrop =
+          cropSlotMode === "cover" && imageSourceLooksAlphaCapable(file);
         aspectMatched = imageAspectRatioMatchesCrop(naturalW, naturalH);
         zoomFactor = 1;
         zoomInput.value = "1";
@@ -14808,6 +15362,13 @@
           meta.textContent = opts.label
             ? `${opts.label} · 3×4 frame · cutout — drag, arrows, or position pad`
             : "3×4 frame · cutout — drag, arrows, or position pad · zoom to size";
+        } else if (cropSlotMode === "gallery") {
+          zoomInput.min = "1";
+          zoomInput.max = "3";
+          baseScale = coverScaleMin() * CROP_COVER_OVERSCAN;
+          meta.textContent = opts.label
+            ? `${opts.label} · 3×4 frame · gallery — drag or zoom in · frame must stay filled`
+            : "3×4 frame · gallery — drag or zoom in · frame must stay filled";
         } else {
           zoomInput.min = "1";
           zoomInput.max = aspectMatched ? "2" : "3";
@@ -15245,6 +15806,7 @@
               const cropped = await openItemPhotoCropDialog(fileForCrop, {
                 label: cropLabel,
                 autoExportIfAligned: false,
+                cropMode: index === 0 ? "cover" : "gallery",
               });
               if (!cropped) return;
 
@@ -15432,8 +15994,13 @@
 
     uploadBtn.addEventListener("click", () => fileInput.click());
 
-    async function appendCroppedFile(file, label) {
-      const cropped = await openItemPhotoCropDialog(file, { label });
+    /**
+     * @param {File} file
+     * @param {string} label
+     * @param {"cover" | "gallery"} cropMode
+     */
+    async function appendCroppedFile(file, label, cropMode) {
+      const cropped = await openItemPhotoCropDialog(file, { label, cropMode });
       if (!cropped) return false;
       const id =
         typeof crypto !== "undefined" && crypto.randomUUID
@@ -15471,7 +16038,8 @@
               : slot === 1
                 ? "Cover"
                 : `Photo ${slot}`;
-          const added = await appendCroppedFile(file, label);
+          const cropMode = entries.length === 0 ? "cover" : "gallery";
+          const added = await appendCroppedFile(file, label, cropMode);
           if (!added) cancelled += 1;
         }
 
@@ -16465,21 +17033,578 @@
     return document.body.classList.contains("collection-page") && !!document.getElementById("grid");
   }
 
-  /** Rendered frame URLs for collection card gallery nav (cover first, then extras). */
-  function collectionCardGalleryFrames(item) {
+  function isCollectionCompactQuickFindView() {
+    return (
+      isCollectionGridCardContext() &&
+      document.body.classList.contains("collection-view--compact")
+    );
+  }
+
+  /**
+   * Collection card gallery frames: frame 0 = product cover (contain + plate); extras = editorial
+   * gallery only (`item.gallery`, non-cutout, cover CDN preset). No gallery → cover frame only.
+   * @returns {{ url: string, cutout: boolean }[]}
+   */
+  function collectionCardGalleryFrameEntries(item) {
     if (!item || typeof item !== "object") return [];
+    const coverRaw = collectionGridCoverFrameRaw(item);
+    if (!coverRaw) return [];
+
+    /** @type {{ url: string, cutout: boolean }[]} */
     const out = [];
     const seen = new Set();
-    for (const raw of buildCoverCandidates(item)) {
+    const coverUrl =
+      wardrobeImageForFrame(coverRaw, item, COLLECTION_GRID_CARD_RENDER) ||
+      withWardrobeImageCacheBust(coverRaw, item);
+    const coverKey = String(coverUrl).split("?")[0];
+    if (coverUrl && coverKey) {
+      seen.add(coverKey);
+      out.push({ url: coverUrl, cutout: true });
+    }
+
+    for (const raw of collectionGridEditorialGalleryRaws(item)) {
       const url =
-        wardrobeImageForFrame(raw, item, COLLECTION_GRID_CARD_RENDER) ||
+        wardrobeImageForFrame(raw, item, COLLECTION_GRID_GALLERY_RENDER) ||
         withWardrobeImageCacheBust(raw, item);
       const key = String(url).split("?")[0];
-      if (!url || seen.has(key)) continue;
+      if (!url || !key || seen.has(key)) continue;
       seen.add(key);
-      out.push(url);
+      out.push({ url, cutout: false });
     }
     return out;
+  }
+
+  /** @param {object} item */
+  function collectionCardGalleryFrames(item) {
+    return collectionCardGalleryFrameEntries(item).map((entry) => entry.url);
+  }
+
+  /** @param {{ url: string, cutout: boolean }[]} entries */
+  function collectionCardGalleryFrameSig(entries) {
+    return entries.map((entry) => `${entry.cutout ? "1" : "0"}\u0001${entry.url}`).join("\u0002");
+  }
+
+  function getMobileGalleryCarousel(media) {
+    const el = media.querySelector(".card__gallery-carousel");
+    return el instanceof HTMLElement ? el : null;
+  }
+
+  function teardownMobileGalleryCarousel(media, img) {
+    getMobileGalleryCarousel(media)?.remove();
+    img.hidden = false;
+    img.removeAttribute("aria-hidden");
+  }
+
+  /** @param {HTMLElement} media */
+  function readMobileGalleryFrameIndex(media) {
+    const idx = Number(media.dataset.galleryFrameIndex ?? 0);
+    return Number.isFinite(idx) ? Math.max(0, Math.floor(idx)) : 0;
+  }
+
+  /**
+   * Index-locked mobile gallery frame (transform track — no scroll-snap drift).
+   * @param {HTMLElement} media
+   * @param {HTMLElement} carousel
+   * @param {number} index
+   * @param {boolean} [animate]
+   */
+  function applyMobileGalleryFrameIndex(media, carousel, index, animate = true) {
+    const track = carousel.querySelector(".card__gallery-carousel-track");
+    if (!(track instanceof HTMLElement) || !track.children.length) return 0;
+    const max = track.children.length - 1;
+    const idx = Math.max(0, Math.min(max, Math.floor(index)));
+    track.classList.remove("is-dragging");
+    track.style.transition = animate ? "" : "none";
+    if (isCollectionCompactQuickFindView()) {
+      track.style.transform = "none";
+      carousel.classList.add("card__gallery-carousel--compact-stack");
+      [...track.children].forEach((slide, i) => {
+        if (!(slide instanceof HTMLElement)) return;
+        slide.classList.toggle("is-active", i === idx);
+      });
+    } else {
+      carousel.classList.remove("card__gallery-carousel--compact-stack");
+      track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+      [...track.children].forEach((slide, i) => {
+        if (!(slide instanceof HTMLElement)) return;
+        slide.classList.toggle("is-active", i === idx);
+      });
+    }
+    media.dataset.galleryFrameIndex = String(idx);
+    carousel.dataset.galleryIndex = String(idx);
+    return idx;
+  }
+
+  function scrollMobileGalleryToIndex(carousel, index, smooth) {
+    const media = carousel.closest(".card__media");
+    if (!(media instanceof HTMLElement)) return;
+    applyMobileGalleryFrameIndex(media, carousel, index, smooth);
+  }
+
+  const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-v1";
+  let collectionGallerySwipeHintToken = 0;
+
+  /** First grid card when it has 2+ gallery frames (mobile swipe). */
+  function firstCollectionGridSwipeGalleryMedia() {
+    if (!els.grid) return null;
+    const card = els.grid.querySelector(":scope > .card");
+    if (!card) return null;
+    const media = card.querySelector(".card__media--gallery-swipe");
+    if (!(media instanceof HTMLElement)) return null;
+    const carousel = getMobileGalleryCarousel(media);
+    const track = carousel?.querySelector(".card__gallery-carousel-track");
+    if (track instanceof HTMLElement && track.children.length > 1) return media;
+    return null;
+  }
+
+  /**
+   * Mobile PLP: peek second photo on the first multi-frame card, then settle back.
+   * @param {HTMLElement} media
+   * @param {HTMLElement} carousel
+   */
+  function playCollectionGallerySwipeHint(media, carousel) {
+    const track = carousel.querySelector(".card__gallery-carousel-track");
+    if (!(track instanceof HTMLElement) || track.children.length < 2) return;
+
+    const prefersReducedMotion = Boolean(
+      globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+    );
+    if (prefersReducedMotion) return;
+
+    const token = collectionGallerySwipeHintToken;
+    const ease = "cubic-bezier(0.44, 0, 0.22, 1)";
+    const peekMs = 420;
+    const returnMs = 480;
+
+    const finish = () => {
+      if (token !== collectionGallerySwipeHintToken) return;
+      applyMobileGalleryFrameIndex(media, carousel, 0, false);
+      media.classList.remove("card__media--gallery-hint-active");
+      carousel.classList.remove("card__gallery-carousel--hint-active");
+    };
+
+    const dismissHint = () => {
+      collectionGallerySwipeHintToken++;
+      try {
+        sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      finish();
+    };
+
+    media.addEventListener("touchstart", dismissHint, { once: true, passive: true });
+    carousel.addEventListener("touchstart", dismissHint, { once: true, passive: true });
+
+    const run = () => {
+      if (token !== collectionGallerySwipeHintToken) return;
+      const w = carousel.clientWidth;
+      if (w < 40) return;
+      media.classList.add("card__media--gallery-hint-active");
+      carousel.classList.add("card__gallery-carousel--hint-active");
+      track.classList.add("is-dragging");
+      track.style.transition = `transform ${peekMs}ms ${ease}`;
+      track.style.transform = "translate3d(-50%, 0, 0)";
+      window.setTimeout(() => {
+        if (token !== collectionGallerySwipeHintToken) return;
+        track.style.transition = `transform ${returnMs}ms ${ease}`;
+        track.style.transform = "translate3d(0, 0, 0)";
+        window.setTimeout(() => {
+          try {
+            sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
+          } catch {
+            /* ignore */
+          }
+          finish();
+        }, returnMs + 40);
+      }, peekMs + 30);
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }
+
+  /** Once per session on collection PLP (mobile): nudge first swipeable card. */
+  function scheduleCollectionGallerySwipeHint() {
+    if (!document.body.classList.contains("collection-page")) return;
+    if (!isCollectionCardCoarsePointer()) return;
+    if (document.body.classList.contains("collection-ui--search-results-plp")) return;
+    try {
+      if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1") return;
+    } catch {
+      /* ignore */
+    }
+
+    const token = ++collectionGallerySwipeHintToken;
+
+    const attempt = (triesLeft = 8) => {
+      if (token !== collectionGallerySwipeHintToken) return;
+      const media = firstCollectionGridSwipeGalleryMedia();
+      if (!media) {
+        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), 120);
+        return;
+      }
+      const carousel = getMobileGalleryCarousel(media);
+      if (!carousel) {
+        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), 120);
+        return;
+      }
+      playCollectionGallerySwipeHint(media, carousel);
+    };
+
+    requestAnimationFrame(() => {
+      window.setTimeout(() => attempt(), 520);
+    });
+  }
+
+  /**
+   * @param {HTMLElement} carousel
+   * @param {HTMLElement} media
+   */
+  function wireMobileGalleryStrictSnap(carousel, media) {
+    if (carousel.dataset.twStrictSnapWired === "1") return;
+    carousel.dataset.twStrictSnapWired = "1";
+
+    const track = carousel.querySelector(".card__gallery-carousel-track");
+    if (!(track instanceof HTMLElement)) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartIndex = 0;
+    let touchActive = false;
+    let suppressTimer = 0;
+
+    const frameCount = () => track.children.length;
+
+    const markSwiping = () => {
+      media.dataset.galleryCarouselSwiping = "1";
+      if (suppressTimer) window.clearTimeout(suppressTimer);
+      suppressTimer = window.setTimeout(() => {
+        media.dataset.galleryCarouselSwiping = "0";
+        suppressTimer = 0;
+      }, 320);
+    };
+
+    const setTrackDragOffset = (index, dragPx) => {
+      const w = carousel.clientWidth;
+      if (!w) return;
+      const ratio = Math.max(-1, Math.min(1, dragPx / w));
+      track.classList.add("is-dragging");
+      track.style.transition = "none";
+      track.style.transform = `translate3d(calc(-${index * 100}% + ${ratio * 100}%), 0, 0)`;
+    };
+
+    const settleFromTouch = (dx, dy) => {
+      const w = carousel.clientWidth || 1;
+      const threshold = Math.min(44, w * 0.14);
+      let target = touchStartIndex;
+      if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
+        target = touchStartIndex + (dx < 0 ? 1 : -1);
+      }
+      target = Math.max(0, Math.min(frameCount() - 1, target));
+      applyMobileGalleryFrameIndex(media, carousel, target, true);
+      markSwiping();
+    };
+
+    carousel.addEventListener(
+      "touchstart",
+      (e) => {
+        if (frameCount() < 2) return;
+        if (carousel.classList.contains("card__gallery-carousel--hint-active")) return;
+        const t = e.touches?.[0];
+        if (!t) return;
+        touchActive = true;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchStartIndex = readMobileGalleryFrameIndex(media);
+        track.classList.add("is-dragging");
+        track.style.transition = "none";
+      },
+      { passive: true }
+    );
+
+    carousel.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!touchActive || frameCount() < 2) return;
+        const t = e.touches?.[0];
+        if (!t) return;
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
+          touchActive = false;
+          applyMobileGalleryFrameIndex(media, carousel, touchStartIndex, true);
+          return;
+        }
+        const atStart = touchStartIndex <= 0;
+        const atEnd = touchStartIndex >= frameCount() - 1;
+        let clampedDx = dx;
+        if (atStart && clampedDx > 0) clampedDx *= 0.22;
+        if (atEnd && clampedDx < 0) clampedDx *= 0.22;
+        const maxDrag = carousel.clientWidth * 0.92;
+        clampedDx = Math.max(-maxDrag, Math.min(maxDrag, clampedDx));
+        setTrackDragOffset(touchStartIndex, clampedDx);
+        if (Math.abs(dx) > 8) markSwiping();
+      },
+      { passive: true }
+    );
+
+    const endTouch = (/** @type {TouchEvent} */ e) => {
+      if (!touchActive) return;
+      touchActive = false;
+      const t = e.changedTouches?.[0];
+      if (!t) {
+        applyMobileGalleryFrameIndex(media, carousel, touchStartIndex, true);
+        return;
+      }
+      settleFromTouch(t.clientX - touchStartX, t.clientY - touchStartY);
+    };
+
+    carousel.addEventListener("touchend", endTouch, { passive: true });
+    carousel.addEventListener("touchcancel", endTouch, { passive: true });
+
+    carousel.addEventListener(
+      "wheel",
+      (e) => {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) e.preventDefault();
+      },
+      { passive: false }
+    );
+  }
+
+  const COLLECTION_CARD_GALLERY_FRAME_MS = 280;
+
+  /** @param {HTMLElement} media @param {HTMLImageElement} fallback */
+  function collectionCardActiveImg(media, fallback) {
+    const framed = media.querySelector(
+      ".card__gallery-desktop-slide.is-active .card__gallery-frame-img, .card__gallery-desktop-slide.is-active .card__media-img, .card__gallery-carousel-slide.is-active .card__gallery-frame-img, .card__gallery-carousel-slide.is-active .card__media-img"
+    );
+    return framed instanceof HTMLImageElement ? framed : fallback;
+  }
+
+  /** @param {HTMLElement} media */
+  function getDesktopGalleryStage(media) {
+    const el = media.querySelector(".card__gallery-desktop-stage");
+    return el instanceof HTMLElement ? el : null;
+  }
+
+  /**
+   * Desktop PLP: index-locked horizontal track (chevron steps the track, no stacked layers).
+   * @param {HTMLElement} stage
+   * @param {number} index
+   * @param {boolean} [animate]
+   */
+  function applyDesktopGalleryFrameIndex(stage, index, animate = true) {
+    const track = stage.querySelector(".card__gallery-desktop-track");
+    if (!(track instanceof HTMLElement) || !track.children.length) return 0;
+    const max = track.children.length - 1;
+    const idx = Math.max(0, Math.min(max, Math.floor(index)));
+    track.classList.remove("is-dragging");
+    track.style.transition = animate ? "" : "none";
+    if (isCollectionCompactQuickFindView()) {
+      track.style.transform = "none";
+      [...track.children].forEach((slide, i) => {
+        if (!(slide instanceof HTMLElement)) return;
+        slide.classList.toggle("is-active", i === idx);
+      });
+      return idx;
+    }
+    track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+    [...track.children].forEach((slide, i) => {
+      if (!(slide instanceof HTMLElement)) return;
+      slide.classList.toggle("is-active", i === idx);
+    });
+    return idx;
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} img
+   * @param {{ url: string, cutout: boolean }[]} frameEntries
+   */
+  function syncDesktopGalleryTrack(media, img, frameEntries) {
+    const sig = collectionCardGalleryFrameSig(frameEntries);
+    let stage = getDesktopGalleryStage(media);
+    const rebuild =
+      !stage ||
+      stage.dataset.galleryFrameSig !== sig ||
+      Number(stage.dataset.galleryFrameCount ?? 0) !== frameEntries.length;
+
+    if (rebuild) {
+      stage?.remove();
+      stage = document.createElement("div");
+      stage.className = "card__gallery-desktop-stage";
+      if (isCollectionCompactQuickFindView()) {
+        stage.classList.add("card__gallery-desktop-stage--compact-stack");
+      }
+      stage.dataset.galleryFrameSig = sig;
+      stage.dataset.galleryFrameCount = String(frameEntries.length);
+      stage.setAttribute("role", "group");
+      stage.setAttribute("aria-roledescription", "carousel");
+      stage.setAttribute("aria-label", "Piece photos");
+
+      const track = document.createElement("div");
+      track.className = "card__gallery-desktop-track";
+      const alt = String(img.alt ?? "").trim();
+      frameEntries.forEach((entry, i) => {
+        const slide = document.createElement("div");
+        const useCoverPlate = entry.cutout;
+        slide.className = `card__gallery-desktop-slide card__gallery-desktop-slide--${useCoverPlate ? "cover" : "gallery"}${i === 0 ? " is-active" : ""}`;
+        const simg = document.createElement("img");
+        simg.className = useCoverPlate
+          ? "card__media-img card__media-img--cover"
+          : "card__gallery-frame-img";
+        simg.alt = i === 0 ? alt : "";
+        simg.loading = "lazy";
+        simg.decoding = "async";
+        simg.draggable = false;
+        if (img.sizes) simg.sizes = img.sizes;
+        simg.src = entry.url;
+        slide.appendChild(simg);
+        track.appendChild(slide);
+      });
+      stage.appendChild(track);
+      media.insertBefore(stage, media.firstChild);
+      media.classList.add("card__media--has-desktop-gallery");
+    }
+
+    stage = getDesktopGalleryStage(media);
+    if (stage instanceof HTMLElement) {
+      stage.classList.toggle("card__gallery-desktop-stage--compact-stack", isCollectionCompactQuickFindView());
+    }
+
+    img.hidden = true;
+    img.setAttribute("aria-hidden", "true");
+    return stage;
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {boolean} [preview]
+   */
+  function setDesktopGalleryHoverPreview(media, preview) {
+    const stage = getDesktopGalleryStage(media);
+    if (!(stage instanceof HTMLElement)) return false;
+    const track = stage.querySelector(".card__gallery-desktop-track");
+    if (!(track instanceof HTMLElement) || track.children.length < 2) return false;
+
+    if (preview) {
+      const idx = Number(media.dataset.galleryFrameIndex ?? 0);
+      applyDesktopGalleryFrameIndex(stage, idx, false);
+      /* Hover peek shows frame 1 while index is still 0 — align before chevron step. */
+      if (track.children.length >= 2 && idx === 0) {
+        media.dataset.galleryFrameIndex = "1";
+      }
+      media.classList.add("card__media--hover-gallery-fade");
+      stage.classList.add("card__gallery-desktop-stage--hover-fade");
+      requestAnimationFrame(() => {
+        media.classList.add("is-hover-preview");
+        stage.classList.add("is-hover-preview");
+      });
+      return true;
+    }
+
+    media.classList.remove("is-hover-preview");
+    stage.classList.remove("is-hover-preview");
+    window.setTimeout(() => {
+      if (!media.classList.contains("is-hover-preview")) {
+        media.classList.remove("card__media--hover-gallery-fade");
+        stage.classList.remove("card__gallery-desktop-stage--hover-fade");
+      }
+    }, COLLECTION_CARD_GALLERY_FRAME_MS + 40);
+    return true;
+  }
+
+  /** @param {HTMLElement} media */
+  function clearDesktopGalleryHoverPreview(media) {
+    const stage = getDesktopGalleryStage(media);
+    media.classList.remove(
+      "is-hover-preview",
+      "card__media--hover-gallery-fade",
+      "card__gallery-desktop-stage--hover-fade"
+    );
+    if (stage instanceof HTMLElement) {
+      stage.classList.remove("is-hover-preview", "card__gallery-desktop-stage--hover-fade");
+    }
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} img
+   */
+  function teardownDesktopGalleryStage(media, img) {
+    getDesktopGalleryStage(media)?.remove();
+    media.classList.remove(
+      "card__media--has-desktop-gallery",
+      "card__media--hover-gallery-fade",
+      "is-hover-preview"
+    );
+    img.hidden = false;
+    img.removeAttribute("aria-hidden");
+    syncCardMediaImgFitClass(img, "cover");
+    const navAnchor = media.querySelector(".card__gallery-nav");
+    if (!media.contains(img)) {
+      media.insertBefore(img, navAnchor ?? media.firstChild);
+    }
+    media.dataset.galleryTransitioning = "0";
+  }
+
+  /**
+   * Mobile collection grid: horizontal snap carousel with partial next-frame peek.
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} img
+   * @param {{ url: string, cutout: boolean }[]} frameEntries
+   */
+  function syncMobileGalleryCarousel(media, img, frameEntries) {
+    const sig = collectionCardGalleryFrameSig(frameEntries);
+    let carousel = getMobileGalleryCarousel(media);
+    const rebuild =
+      !carousel ||
+      carousel.dataset.galleryFrameSig !== sig ||
+      Number(carousel.dataset.galleryFrameCount ?? 0) !== frameEntries.length;
+
+    if (rebuild) {
+      carousel?.remove();
+      carousel = document.createElement("div");
+      carousel.className = "card__gallery-carousel";
+      if (isCollectionCompactQuickFindView()) {
+        carousel.classList.add("card__gallery-carousel--compact-stack");
+      }
+      carousel.dataset.galleryFrameSig = sig;
+      carousel.dataset.galleryFrameCount = String(frameEntries.length);
+      carousel.setAttribute("role", "region");
+      carousel.setAttribute("aria-roledescription", "carousel");
+      carousel.setAttribute("aria-label", "Piece photos");
+
+      const track = document.createElement("div");
+      track.className = "card__gallery-carousel-track";
+      const alt = String(img.alt ?? "").trim();
+      frameEntries.forEach((entry, i) => {
+        const slide = document.createElement("div");
+        const useCoverPlate = entry.cutout;
+        slide.className = `card__gallery-carousel-slide card__gallery-carousel-slide--${useCoverPlate ? "cover" : "gallery"}${i === 0 ? " is-active" : ""}`;
+        const simg = document.createElement("img");
+        simg.className = useCoverPlate
+          ? "card__media-img card__media-img--cover"
+          : "card__gallery-carousel-img card__gallery-frame-img";
+        simg.alt = i === 0 ? alt : "";
+        simg.loading = "lazy";
+        simg.decoding = "async";
+        simg.draggable = false;
+        simg.src = entry.url;
+        slide.appendChild(simg);
+        track.appendChild(slide);
+      });
+      carousel.appendChild(track);
+      media.insertBefore(carousel, img);
+      wireMobileGalleryStrictSnap(carousel, media);
+    }
+
+    const startIdx = readMobileGalleryFrameIndex(media);
+    applyMobileGalleryFrameIndex(media, carousel, startIdx, false);
+
+    img.hidden = true;
+    img.setAttribute("aria-hidden", "true");
+    return carousel;
   }
 
   /**
@@ -16492,123 +17617,54 @@
     if (!isCollectionGridCardContext()) return;
 
     const coarsePointer = isCollectionCardCoarsePointer();
-    /** @type {HTMLButtonElement | null} */
-    let prev = null;
-    /** @type {HTMLButtonElement | null} */
-    let next = null;
 
-    if (!coarsePointer) {
-      prev = document.createElement("button");
-      prev.type = "button";
-      prev.className = "card__gallery-nav card__gallery-nav--prev";
-      prev.setAttribute("aria-label", "Previous photo");
-      prev.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true"></span>';
-
-      next = document.createElement("button");
-      next.type = "button";
-      next.className = "card__gallery-nav card__gallery-nav--next";
-      next.setAttribute("aria-label", "Next photo");
-      next.innerHTML = '<span class="card__gallery-nav__glyph" aria-hidden="true"></span>';
-    }
-
-    function frameList() {
-      return collectionCardGalleryFrames(resolveItem());
+    function frameEntryList() {
+      return collectionCardGalleryFrameEntries(resolveItem());
     }
 
     function syncNav() {
-      const frames = frameList();
-      const on = frames.length > 1;
-      if (prev) prev.hidden = !on;
-      if (next) next.hidden = !on;
+      const frameEntries = frameEntryList();
+      const frames = frameEntries.map((entry) => entry.url);
+      const on = frameEntries.length > 1;
       media.classList.toggle("card__media--gallery-nav", on);
       media.classList.toggle("card__media--gallery-swipe", on && coarsePointer);
+      const cover = String(img.dataset.coverSrc ?? frames[0] ?? "").trim();
+      if (cover) img.dataset.coverSrc = cover;
+
       if (!on) {
         media.dataset.galleryFrameIndex = "0";
+        teardownMobileGalleryCarousel(media, img);
+        teardownDesktopGalleryStage(media, img);
+        if (frames[0]) collectionCardActiveImg(media, img).src = frames[0];
         return;
       }
+
       const max = frames.length - 1;
       let idx = Number(media.dataset.galleryFrameIndex ?? 0);
       if (!Number.isFinite(idx)) idx = 0;
       idx = Math.max(0, Math.min(max, Math.floor(idx)));
       media.dataset.galleryFrameIndex = String(idx);
-      const url = frames[idx];
-      if (url) img.src = url;
-      const cover = String(img.dataset.coverSrc ?? frames[0] ?? "").trim();
-      if (cover) img.dataset.coverSrc = cover;
-    }
 
-    function step(delta) {
-      const frames = frameList();
-      if (frames.length < 2) return;
-      let idx = Number(media.dataset.galleryFrameIndex ?? 0);
-      if (!Number.isFinite(idx)) idx = 0;
-      idx = ((idx + delta) % frames.length + frames.length) % frames.length;
-      media.dataset.galleryFrameIndex = String(idx);
-      const nextSrc = frames[idx];
-      if (nextSrc) {
-        if (img.src === nextSrc) {
-          img.removeAttribute("src");
-          void img.offsetWidth;
-        }
-        img.src = nextSrc;
+      if (coarsePointer) {
+        teardownDesktopGalleryStage(media, img);
+        const carousel = syncMobileGalleryCarousel(media, img, frameEntries);
+        applyMobileGalleryFrameIndex(media, carousel, idx, false);
+        return;
       }
+
+      teardownMobileGalleryCarousel(media, img);
+      const stage = syncDesktopGalleryTrack(media, img, frameEntries);
+      const settled = applyDesktopGalleryFrameIndex(stage, idx, false);
+      media.dataset.galleryFrameIndex = String(settled);
     }
 
-    if (prev && next) {
-      prev.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        step(-1);
-      });
-      next.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        step(1);
-      });
-      media.appendChild(prev);
-      media.appendChild(next);
-    }
-
-    if (coarsePointer) {
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let suppressMediaClick = false;
-
-      media.addEventListener(
-        "touchstart",
-        (e) => {
-          const t = e.touches?.[0];
-          if (!t) return;
-          touchStartX = t.clientX;
-          touchStartY = t.clientY;
-          suppressMediaClick = false;
-        },
-        { passive: true }
-      );
-
-      media.addEventListener(
-        "touchend",
-        (e) => {
-          const frames = frameList();
-          if (frames.length < 2) return;
-          const t = e.changedTouches?.[0];
-          if (!t) return;
-          const dx = t.clientX - touchStartX;
-          const dy = t.clientY - touchStartY;
-          if (Math.abs(dx) < 48) return;
-          if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
-          suppressMediaClick = true;
-          step(dx < 0 ? 1 : -1);
-          e.preventDefault();
-        },
-        { passive: false }
-      );
-
+    if (coarsePointer && media.dataset.mobileGalleryClickGuard !== "1") {
+      media.dataset.mobileGalleryClickGuard = "1";
       media.addEventListener(
         "click",
         (e) => {
-          if (!suppressMediaClick) return;
-          suppressMediaClick = false;
+          if (media.dataset.galleryCarouselSwiping !== "1") return;
+          if (!(e.target instanceof Element) || !e.target.closest(".card__gallery-carousel")) return;
           e.preventDefault();
           e.stopPropagation();
         },
@@ -16637,6 +17693,7 @@
     if (isCollectionCardCoarsePointer()) return;
 
     const restoreCover = () => {
+      if (media.dataset.galleryTransitioning === "1") return;
       const frames = collectionCardGalleryFrames(resolveCoverItem());
       const cover = String(
         img.dataset.coverSrc ??
@@ -16645,21 +17702,45 @@
           ""
       ).trim();
       media.dataset.galleryFrameIndex = "0";
-      if (cover) {
-        img.dataset.coverSrc = cover;
-        img.src = cover;
+      if (setDesktopGalleryHoverPreview(media, false)) {
+        const active = collectionCardActiveImg(media, img);
+        if (cover) active.dataset.coverSrc = cover;
+        syncCardMediaImgFitClass(active, "cover");
+        return;
       }
+      media.classList.remove("is-hover-preview");
+      window.setTimeout(() => {
+        if (!media.classList.contains("is-hover-preview")) {
+          media.classList.remove("card__media--hover-gallery-fade");
+        }
+      }, COLLECTION_CARD_GALLERY_FRAME_MS + 40);
+      const active = collectionCardActiveImg(media, img);
+      if (cover) {
+        active.dataset.coverSrc = cover;
+        active.src = cover;
+      }
+      syncCardMediaImgFitClass(active, "cover");
     };
 
     const showHoverGallery = () => {
-      const frames = collectionCardGalleryFrames(resolveCoverItem());
-      if (frames.length < 2) return;
+      if (media.dataset.galleryTransitioning === "1") return;
+      const frameEntries = collectionCardGalleryFrameEntries(resolveCoverItem());
+      if (frameEntries.length < 2) return;
+      const frames = frameEntries.map((entry) => entry.url);
       const cover = String(img.dataset.coverSrc ?? frames[0] ?? "").trim();
       if (!cover) return;
-      const hoverUrl = frames[1];
+      const hoverEntry = frameEntries[1];
+      const hoverUrl = hoverEntry?.url ?? "";
       if (!hoverUrl || hoverUrl === cover) return;
+      if (setDesktopGalleryHoverPreview(media, true)) {
+        return;
+      }
+      media.classList.add("card__media--hover-gallery-fade");
+      requestAnimationFrame(() => media.classList.add("is-hover-preview"));
       media.dataset.galleryFrameIndex = "1";
-      img.src = hoverUrl;
+      const active = collectionCardActiveImg(media, img);
+      active.src = hoverUrl;
+      syncCardMediaImgFitClass(active, hoverEntry?.cutout ? "cover" : "gallery");
     };
 
     article.addEventListener("mouseenter", showHoverGallery);
@@ -16832,7 +17913,7 @@
     if (gridSwatchVariants?.length) media.classList.add("card__media--variant-colours");
 
     const img = document.createElement("img");
-    img.className = "card__media-img";
+    img.className = "card__media-img card__media-img--cover";
     img.alt = imageAltForItem(cardCoverItem);
     img.loading = "lazy";
     img.decoding = "async";
@@ -16841,6 +17922,7 @@
     if (cardOpts.fetchPriority === "high") img.fetchPriority = "high";
     wireCoverImageWithFallbacks(img, cardCoverItem, {
       host: media,
+      coverCandidates: buildCollectionGridCoverCandidates(cardCoverItem),
       coverRenderWidth: COLLECTION_GRID_CARD_RENDER.width,
       coverRenderHeight: COLLECTION_GRID_CARD_RENDER.height,
       coverRenderQuality: COLLECTION_GRID_CARD_RENDER.quality,
@@ -17543,6 +18625,7 @@
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
     syncToolbarActiveFilterChips();
+    scheduleCollectionGallerySwipeHint();
   }
 
   function getCollectionCountLineLayout(visible, total, searchNorm) {
@@ -17638,8 +18721,525 @@
   }
 
   let dragFromIndex = null;
+  let outfitSlotAnimKeySeed = 1;
+  /** @type {Map<string, { left: number, top: number }> | null} */
+  let outfitStripFlipRects = null;
+
+  function isOutfitDragMobileUi() {
+    return globalThis.matchMedia?.("(max-width: 1024px)")?.matches ?? false;
+  }
+
+  function outfitDragHoldMs() {
+    return isOutfitDragMobileUi() ? 95 : 140;
+  }
+
+  function outfitDragLayoutFlipMs() {
+    return isOutfitDragMobileUi() ? 160 : 220;
+  }
+  /** @type {{ active: boolean, pointerId: number | null, sourceIndex: number, sourceEl: HTMLElement | null, placeholderEl: HTMLElement | null, avatarEl: HTMLElement | null, started: boolean, canceled: boolean, startX: number, startY: number, offsetX: number, offsetY: number, lastClientX: number, lastClientY: number, holdTimer: number, autoScrollRaf: number }} */
+  const outfitPointerDrag = {
+    active: false,
+    pointerId: null,
+    sourceIndex: -1,
+    sourceEl: null,
+    placeholderEl: null,
+    avatarEl: null,
+    started: false,
+    canceled: false,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0,
+    lastClientX: 0,
+    lastClientY: 0,
+    holdTimer: 0,
+    autoScrollRaf: 0,
+  };
+
+  function getOutfitDragOverlayRoot() {
+    let root = document.getElementById("outfit-drag-overlay");
+    if (!(root instanceof HTMLElement)) {
+      root = document.createElement("div");
+      root.id = "outfit-drag-overlay";
+      root.className = "outfit-drag-overlay";
+      root.setAttribute("aria-hidden", "true");
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+
+  function createOutfitDragOverlayFromSlot(slot, rect) {
+    const avatar = slot.cloneNode(true);
+    if (!(avatar instanceof HTMLElement)) return null;
+    avatar.classList.remove(
+      "outfit-slot--dragging",
+      "outfit-slot--placeholder",
+      "outfit-slot--enter",
+      "outfit-slot--just-added",
+      "outfit-slot--dismissing"
+    );
+    avatar.classList.add("outfit-slot--drag-avatar", "outfit-slot--drag-avatar--live");
+    avatar.style.setProperty("transition", "none", "important");
+    avatar.style.width = `${Math.round(rect.width)}px`;
+    avatar.style.height = `${Math.round(rect.height)}px`;
+    avatar.style.margin = "0";
+    avatar.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    avatar.querySelectorAll("button, a, input, textarea, select").forEach((node) => {
+      if (node instanceof HTMLElement) node.setAttribute("tabindex", "-1");
+    });
+    avatar.querySelector(".outfit-slot__brand")?.remove();
+    return avatar;
+  }
+
+  function handleOutfitDragPointerMove(e) {
+    const state = outfitPointerDrag;
+    if (!state.active || state.pointerId !== e.pointerId) return;
+    state.lastClientX = e.clientX;
+    state.lastClientY = e.clientY;
+    if (!state.started) {
+      const dx = Math.abs(e.clientX - state.startX);
+      const dy = Math.abs(e.clientY - state.startY);
+      if (isOutfitDragMobileUi()) {
+        if ((dy > 52 && dy > dx * 1.35) || (dx > 58 && dx > dy * 1.1)) {
+          state.canceled = true;
+          clearOutfitPointerDragState();
+          return;
+        }
+        e.preventDefault();
+      } else if (dx > 28 || dy > 28) {
+        state.canceled = true;
+        clearOutfitPointerDragState();
+      }
+      return;
+    }
+    e.preventDefault();
+    updateOutfitDragAvatarPosition(e.clientX, e.clientY);
+    const strip = els.outfitStrip;
+    const placeholder = state.placeholderEl;
+    if (!(strip instanceof HTMLElement) || !(placeholder instanceof HTMLElement)) return;
+    const beforeEl = findOutfitPlaceholderInsertBefore(strip, placeholder, e.clientX, e.clientY);
+    moveOutfitPlaceholderTo(strip, placeholder, beforeEl);
+    scheduleOutfitAutoScroll(strip, e.clientX);
+  }
+
+  function handleOutfitDragPointerEnd(e) {
+    const state = outfitPointerDrag;
+    if (!state.active || state.pointerId !== e.pointerId) return;
+    const sourceEl = state.sourceEl;
+    finishOutfitPointerDrag(true);
+    if (sourceEl instanceof HTMLElement) {
+      try {
+        sourceEl.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  function setOutfitDragSelectLock(locked) {
+    document.body.classList.toggle("tw-outfit-drag-active", locked);
+  }
+
+  function clearOutfitSlotActiveStates() {
+    els.outfitStrip?.querySelectorAll(".outfit-slot--active").forEach((el) => {
+      el.classList.remove("outfit-slot--active");
+    });
+  }
+
+  function wireOutfitSlotActiveDismiss() {
+    if (document.body.dataset.outfitSlotActiveWired === "1") return;
+    document.body.dataset.outfitSlotActiveWired = "1";
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        const strip = els.outfitStrip;
+        if (!(strip instanceof HTMLElement)) return;
+        const t = e.target;
+        if (t instanceof Element && t.closest(".outfit-slot", strip)) return;
+        clearOutfitSlotActiveStates();
+      },
+      true
+    );
+  }
+
+  function wireOutfitDragDocumentListeners() {
+    if (document.body.dataset.outfitDragDocWired === "1") return;
+    document.body.dataset.outfitDragDocWired = "1";
+    wireOutfitSlotActiveDismiss();
+    document.addEventListener("pointermove", handleOutfitDragPointerMove, { passive: false });
+    document.addEventListener("pointerup", handleOutfitDragPointerEnd, { passive: true });
+    document.addEventListener("pointercancel", handleOutfitDragPointerEnd, { passive: true });
+    document.addEventListener(
+      "selectstart",
+      (e) => {
+        if (outfitPointerDrag.started) e.preventDefault();
+      },
+      { capture: true }
+    );
+  }
 
   const OUTFIT_SLOT_DISMISS_MS = 320;
+
+  function outfitSlotAnimKey(slot) {
+    if (!slot || typeof slot !== "object") return "";
+    const existing = String(slot.__twAnimKey ?? "").trim();
+    if (existing) return existing;
+    const next = `ofs-${outfitSlotAnimKeySeed++}`;
+    slot.__twAnimKey = next;
+    return next;
+  }
+
+  function captureOutfitStripFlipRects() {
+    if (!els.outfitStrip) return;
+    const map = new Map();
+    els.outfitStrip.querySelectorAll(".outfit-slot[data-outfit-anim-key]").forEach((el) => {
+      const key = String(el.getAttribute("data-outfit-anim-key") ?? "").trim();
+      if (!key) return;
+      const r = el.getBoundingClientRect();
+      map.set(key, { left: r.left, top: r.top });
+    });
+    outfitStripFlipRects = map.size ? map : null;
+  }
+
+  function playOutfitStripFlipAnimation() {
+    const prev = outfitStripFlipRects;
+    outfitStripFlipRects = null;
+    if (!prev || !els.outfitStrip) return;
+    const animated = [];
+    els.outfitStrip.querySelectorAll(".outfit-slot[data-outfit-anim-key]").forEach((el) => {
+      const key = String(el.getAttribute("data-outfit-anim-key") ?? "").trim();
+      const from = key ? prev.get(key) : null;
+      if (!from) return;
+      const to = el.getBoundingClientRect();
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+      el.style.transition = "none";
+      el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      animated.push(el);
+    });
+    if (!animated.length) return;
+    requestAnimationFrame(() => {
+      animated.forEach((el) => {
+        el.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
+        el.style.transform = "";
+        const clear = () => {
+          el.style.removeProperty("transition");
+          el.removeEventListener("transitionend", clear);
+        };
+        el.addEventListener("transitionend", clear);
+      });
+    });
+  }
+
+  function captureOutfitStripLayoutRects(strip) {
+    /** @type {Map<HTMLElement, { left: number, top: number }>} */
+    const map = new Map();
+    strip.querySelectorAll(".outfit-slot").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      const r = el.getBoundingClientRect();
+      map.set(el, { left: r.left, top: r.top });
+    });
+    return map;
+  }
+
+  function playOutfitStripLayoutFlip(strip, beforeRects, durationMs = 220) {
+    if (!(strip instanceof HTMLElement) || !beforeRects?.size) return;
+    /** @type {HTMLElement[]} */
+    const animated = [];
+    strip.querySelectorAll(".outfit-slot").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      const from = beforeRects.get(el);
+      if (!from) return;
+      const to = el.getBoundingClientRect();
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+      el.style.transition = "none";
+      el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      animated.push(el);
+    });
+    if (!animated.length) return;
+    requestAnimationFrame(() => {
+      animated.forEach((el) => {
+        el.style.transition = `transform ${durationMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+        el.style.transform = "";
+        const clear = () => {
+          el.style.removeProperty("transition");
+          el.removeEventListener("transitionend", clear);
+        };
+        el.addEventListener("transitionend", clear);
+      });
+    });
+  }
+
+  function clearOutfitPointerDragState() {
+    const state = outfitPointerDrag;
+    if (state.holdTimer) {
+      window.clearTimeout(state.holdTimer);
+      state.holdTimer = 0;
+    }
+    if (state.autoScrollRaf) {
+      cancelAnimationFrame(state.autoScrollRaf);
+      state.autoScrollRaf = 0;
+    }
+    els.outfitStrip?.classList.remove("outfit-strip--drag-active", "outfit-strip--drag-pending");
+    clearOutfitSlotActiveStates();
+    setOutfitDragSelectLock(false);
+    state.active = false;
+    state.pointerId = null;
+    state.sourceIndex = -1;
+    state.started = false;
+    state.canceled = false;
+    state.startX = 0;
+    state.startY = 0;
+    state.offsetX = 0;
+    state.offsetY = 0;
+    state.lastClientX = 0;
+    state.lastClientY = 0;
+    if (state.sourceEl instanceof HTMLElement) {
+      state.sourceEl.classList.remove("outfit-slot--dragging", "outfit-slot--drag-pending");
+      state.sourceEl.style.removeProperty("visibility");
+    }
+    if (state.avatarEl instanceof HTMLElement) state.avatarEl.remove();
+    const overlay = document.getElementById("outfit-drag-overlay");
+    if (overlay instanceof HTMLElement) overlay.replaceChildren();
+    if (state.placeholderEl instanceof HTMLElement) state.placeholderEl.remove();
+    state.sourceEl = null;
+    state.avatarEl = null;
+    state.placeholderEl = null;
+  }
+
+  function moveOutfitPlaceholderTo(strip, placeholder, beforeEl) {
+    if (!(strip instanceof HTMLElement) || !(placeholder instanceof HTMLElement)) return;
+    const currentBefore = placeholder.nextElementSibling;
+    if (beforeEl) {
+      if (beforeEl === placeholder || currentBefore === beforeEl) return;
+    } else if (!placeholder.nextElementSibling) {
+      return;
+    }
+    const beforeRects = captureOutfitStripLayoutRects(strip);
+    if (beforeEl) strip.insertBefore(placeholder, beforeEl);
+    else strip.appendChild(placeholder);
+    playOutfitStripLayoutFlip(strip, beforeRects, outfitDragLayoutFlipMs());
+  }
+
+  function nextInsertSiblingForOutfit(el, placeholder) {
+    if (!(el instanceof HTMLElement)) return null;
+    let next = el.nextElementSibling;
+    if (next === placeholder) next = next?.nextElementSibling ?? null;
+    return next instanceof HTMLElement ? next : null;
+  }
+
+  function findOutfitPlaceholderInsertBefore(strip, placeholder, clientX, clientY) {
+    const cards = [...strip.querySelectorAll(".outfit-slot")].filter(
+      (el) => el !== placeholder && !(el instanceof HTMLElement && el.classList.contains("outfit-slot--dragging"))
+    );
+    if (!cards.length) return null;
+    /** @type {HTMLElement | null} */
+    let nearest = null;
+    let nearestDist = Infinity;
+    for (const el of cards) {
+      if (!(el instanceof HTMLElement)) continue;
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = el;
+      }
+    }
+    if (!(nearest instanceof HTMLElement)) return null;
+    const r = nearest.getBoundingClientRect();
+    const insertAfter = isOutfitDragMobileUi()
+      ? clientX > r.left + r.width * 0.52
+      : clientX > r.left + r.width * 0.56 || clientY > r.top + r.height * 0.62;
+    return insertAfter ? nextInsertSiblingForOutfit(nearest, placeholder) : nearest;
+  }
+
+  function updateOutfitDragAvatarPosition(clientX, clientY) {
+    const state = outfitPointerDrag;
+    const avatar = state.avatarEl;
+    if (!(avatar instanceof HTMLElement)) return;
+    const x = Math.round(clientX - state.offsetX);
+    const y = Math.round(clientY - state.offsetY);
+    avatar.style.left = `${x}px`;
+    avatar.style.top = `${y}px`;
+    avatar.style.transform = isOutfitDragMobileUi()
+      ? "rotate(0.5deg) scale(1.07)"
+      : "rotate(1deg) scale(1.04)";
+  }
+
+  function scheduleOutfitAutoScroll(strip, clientX) {
+    const state = outfitPointerDrag;
+    if (!(strip instanceof HTMLElement) || !state.started) return;
+    const rect = strip.getBoundingClientRect();
+    const mobile = isOutfitDragMobileUi();
+    const edge = mobile ? 56 : 44;
+    const maxSpeed = mobile ? 26 : 18;
+    const speedGain = mobile ? 0.42 : 0.32;
+    let speed = 0;
+    if (clientX < rect.left + edge) {
+      speed = -Math.min(maxSpeed, Math.max(4, rect.left + edge - clientX) * speedGain);
+    } else if (clientX > rect.right - edge) {
+      speed = Math.min(maxSpeed, Math.max(4, clientX - (rect.right - edge)) * speedGain);
+    }
+    if (!speed) {
+      if (state.autoScrollRaf) {
+        cancelAnimationFrame(state.autoScrollRaf);
+        state.autoScrollRaf = 0;
+      }
+      return;
+    }
+    if (state.autoScrollRaf) return;
+    const tick = () => {
+      if (!state.active || !state.started || !(els.outfitStrip instanceof HTMLElement)) {
+        state.autoScrollRaf = 0;
+        return;
+      }
+      els.outfitStrip.scrollLeft += speed;
+      state.autoScrollRaf = requestAnimationFrame(tick);
+    };
+    state.autoScrollRaf = requestAnimationFrame(tick);
+  }
+
+  function beginOutfitPointerDrag(strip, slot, pointerEvent, index) {
+    if (!(strip instanceof HTMLElement) || !(slot instanceof HTMLElement)) return;
+    wireOutfitDragDocumentListeners();
+    const state = outfitPointerDrag;
+    clearOutfitPointerDragState();
+    state.active = true;
+    state.pointerId = pointerEvent.pointerId;
+    state.sourceIndex = index;
+    state.sourceEl = slot;
+    state.startX = pointerEvent.clientX;
+    state.startY = pointerEvent.clientY;
+    state.lastClientX = pointerEvent.clientX;
+    state.lastClientY = pointerEvent.clientY;
+    try {
+      slot.setPointerCapture(pointerEvent.pointerId);
+    } catch {
+      /* ignore */
+    }
+    slot.classList.add("outfit-slot--drag-pending");
+    els.outfitStrip?.classList.add("outfit-strip--drag-pending");
+    state.holdTimer = window.setTimeout(() => {
+      state.holdTimer = 0;
+      if (!state.active || state.canceled || state.pointerId !== pointerEvent.pointerId) return;
+      startOutfitPointerDragVisual(strip);
+    }, outfitDragHoldMs());
+  }
+
+  function startOutfitPointerDragVisual(strip) {
+    const state = outfitPointerDrag;
+    if (!state.active || state.started) return;
+    const slot = state.sourceEl;
+    if (!(slot instanceof HTMLElement)) return;
+    state.started = true;
+    slot.classList.remove("outfit-slot--drag-pending");
+    els.outfitStrip?.classList.remove("outfit-strip--drag-pending");
+    els.outfitStrip?.classList.add("outfit-strip--drag-active");
+    setOutfitDragSelectLock(true);
+    slot.classList.add("outfit-slot--dragging");
+    const rect = slot.getBoundingClientRect();
+    if (isOutfitDragMobileUi()) {
+      state.offsetX = rect.width * 0.5;
+      state.offsetY = Math.min(rect.height * 0.42, Math.max(0, state.lastClientY - rect.top));
+      globalThis.navigator?.vibrate?.(10);
+    } else {
+      state.offsetX = Math.max(0, state.lastClientX - rect.left);
+      state.offsetY = Math.max(0, state.lastClientY - rect.top);
+    }
+    const placeholder = document.createElement("div");
+    placeholder.className = "outfit-slot outfit-slot--placeholder";
+    placeholder.style.width = `${rect.width}px`;
+    placeholder.style.height = `${rect.height}px`;
+    placeholder.setAttribute("aria-hidden", "true");
+    state.placeholderEl = placeholder;
+    strip.insertBefore(placeholder, slot);
+
+    const overlayRoot = getOutfitDragOverlayRoot();
+    overlayRoot.replaceChildren();
+    const avatar = createOutfitDragOverlayFromSlot(slot, rect);
+    if (avatar instanceof HTMLElement) {
+      state.avatarEl = avatar;
+      overlayRoot.appendChild(avatar);
+      updateOutfitDragAvatarPosition(state.lastClientX, state.lastClientY);
+    }
+  }
+
+  function finishOutfitPointerDrag(commitMove = true) {
+    const state = outfitPointerDrag;
+    const strip = els.outfitStrip;
+    if (!state.active) return;
+    const started = state.started;
+    const from = state.sourceIndex;
+    const avatar = state.avatarEl instanceof HTMLElement ? state.avatarEl : null;
+    const sourceEl = state.sourceEl instanceof HTMLElement ? state.sourceEl : null;
+    const dropClientX = state.lastClientX;
+    const dropClientY = state.lastClientY;
+    let dropTargetRect = null;
+    if (sourceEl instanceof HTMLElement) {
+      try {
+        dropTargetRect = sourceEl.getBoundingClientRect();
+      } catch {
+        dropTargetRect = null;
+      }
+    }
+    let to = from;
+    if (
+      commitMove &&
+      started &&
+      strip instanceof HTMLElement &&
+      state.placeholderEl instanceof HTMLElement &&
+      from >= 0
+    ) {
+      const siblings = [...strip.querySelectorAll(".outfit-slot")].filter((el) => el !== sourceEl);
+      to = siblings.indexOf(state.placeholderEl);
+      if (to < 0) to = from;
+      try {
+        dropTargetRect = state.placeholderEl.getBoundingClientRect();
+      } catch {
+        /* ignore */
+      }
+    }
+    const sameSpot = to === from || from < 0 || to < 0;
+    const shouldAnimateDrop =
+      started &&
+      avatar instanceof HTMLElement &&
+      dropTargetRect &&
+      Number.isFinite(dropTargetRect.left) &&
+      Number.isFinite(dropTargetRect.top);
+
+    if (shouldAnimateDrop) {
+      avatar.classList.remove("outfit-slot--drag-avatar--live");
+      avatar.classList.add("outfit-slot--drag-avatar-dropping");
+      const toLeft = Math.round(dropTargetRect.left);
+      const toTop = Math.round(dropTargetRect.top);
+      const toScale = sameSpot ? 1 : 0.98;
+      avatar.style.left = `${toLeft}px`;
+      avatar.style.top = `${toTop}px`;
+      avatar.style.transform = `rotate(0deg) scale(${toScale})`;
+      avatar.style.opacity = "0.96";
+      state.avatarEl = null;
+    }
+
+    clearOutfitPointerDragState();
+    if (!started) return;
+    if (shouldAnimateDrop && avatar) {
+      const cleanupDropAvatar = () => avatar.remove();
+      avatar.addEventListener("transitionend", cleanupDropAvatar, { once: true });
+      setTimeout(cleanupDropAvatar, 340);
+    }
+    if (to !== from && from >= 0 && to >= 0) {
+      reorderOutfit(from, to);
+    } else {
+      renderOutfitStrip();
+    }
+  }
 
   function dismissOutfitSlotElement(slot, index) {
     if (!(slot instanceof HTMLElement)) return;
@@ -17763,6 +19363,26 @@
     if (menuBtn?.getAttribute("aria-expanded") === "true") menuBtn.click();
   }
 
+  /** Mobile drawer: faint scrollbar thumb only while the main panel is scrolling. */
+  function wireStylingBoardDrawerScrollChrome() {
+    const scroll = document.querySelector(".styling-board-drawer__scroll");
+    if (!(scroll instanceof HTMLElement) || scroll.dataset.scrollChromeWired === "1") return;
+    scroll.dataset.scrollChromeWired = "1";
+    let hideTimer = 0;
+    scroll.addEventListener(
+      "scroll",
+      () => {
+        scroll.classList.add("is-scrolling");
+        if (hideTimer) window.clearTimeout(hideTimer);
+        hideTimer = window.setTimeout(() => {
+          scroll.classList.remove("is-scrolling");
+          hideTimer = 0;
+        }, 720);
+      },
+      { passive: true }
+    );
+  }
+
   function openStylingBoardDrawer(options = {}) {
     const root = document.getElementById("styling-board-drawer");
     if (!root) return;
@@ -17781,14 +19401,20 @@
       stylingBoardDrawerFocusReturn = document.activeElement;
       root.removeAttribute("hidden");
       root.setAttribute("aria-hidden", "false");
+      const sheet = root.querySelector(".styling-board-drawer__sheet");
+      if (sheet instanceof HTMLElement) {
+        sheet.style.removeProperty("transition");
+        sheet.style.removeProperty("transform");
+      }
+      /* Lock before sheet motion — same as mobile search; avoids page jumping at the top. */
+      lockCollectionPageScroll();
       const revealDrawer = () => {
         if (root.hasAttribute("hidden")) return;
         root.classList.add("styling-board-drawer--visible");
         document.body.classList.add("collection-ui--styling-board");
-        lockCollectionPageScroll();
         syncStylingBoardUi();
         renderOutfitStrip();
-        document.getElementById("styling-board-drawer-close")?.focus();
+        document.getElementById("styling-board-drawer-close")?.focus({ preventScroll: true });
       };
       if (isHeaderCompactViewport() && !twPrefersReducedMotion()) {
         stylingBoardDrawerOpenRaf = requestAnimationFrame(() => {
@@ -17875,6 +19501,7 @@
       els.outfitEmpty.hidden = !boardEmpty;
     }
     if (boardEmpty) {
+      clearOutfitPointerDragState();
       syncOutfitBuilderPanel();
       return;
     }
@@ -17887,55 +19514,37 @@
 
       const slot = document.createElement("div");
       slot.className = "outfit-slot";
+      slot.dataset.outfitAnimKey = outfitSlotAnimKey(pieceSlot);
       slot.style.setProperty("--outfit-slot-stagger", String(index));
       const isJustAdded =
         stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey;
       if (isJustAdded) slot.classList.add("outfit-slot--just-added");
       else if (animateEntrance) slot.classList.add("outfit-slot--enter");
       slot.setAttribute("role", "listitem");
-      slot.draggable = true;
       slot.dataset.dragIndex = String(index);
-      slot.title = "Drag to reorder";
+      slot.title = isOutfitDragMobileUi() ? displayNameWithoutLeadingColour(item) : "Drag to reorder";
       slot.setAttribute("aria-label", displayNameWithoutLeadingColour(item));
 
-      slot.addEventListener("dragstart", (e) => {
-        dragFromIndex = index;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(index));
-        slot.classList.add("outfit-slot--dragging");
-        if (typeof e.dataTransfer.setDragImage === "function") {
-          try {
-            const rect = slot.getBoundingClientRect();
-            e.dataTransfer.setDragImage(
-              slot,
-              Math.max(0, e.clientX - rect.left),
-              Math.max(0, e.clientY - rect.top)
-            );
-          } catch {
-            e.dataTransfer.setDragImage(slot, 20, 20);
-          }
-        }
-      });
+      slot.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!e.isPrimary || e.button !== 0) return;
+          if (isOutfitDragMobileUi()) return;
+          const t = e.target;
+          if (t instanceof Element && t.closest(".outfit-slot__dismiss, button, a, input, textarea, select")) return;
+          beginOutfitPointerDrag(els.outfitStrip, slot, e, index);
+        },
+        { passive: true }
+      );
 
-      slot.addEventListener("dragend", () => {
-        dragFromIndex = null;
-        slot.classList.remove("outfit-slot--dragging");
-      });
-
-      slot.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      });
-
-      slot.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const from =
-          dragFromIndex != null
-            ? dragFromIndex
-            : parseInt(e.dataTransfer.getData("text/plain"), 10);
-        const to = index;
-        if (!Number.isFinite(from)) return;
-        reorderOutfit(from, to);
+      slot.addEventListener("click", (e) => {
+        if (outfitPointerDrag.active) return;
+        const t = e.target;
+        if (t instanceof Element && t.closest(".outfit-slot__dismiss")) return;
+        els.outfitStrip?.querySelectorAll(".outfit-slot--active").forEach((el) => {
+          if (el !== slot) el.classList.remove("outfit-slot--active");
+        });
+        slot.classList.add("outfit-slot--active");
       });
 
       const dismissBtn = document.createElement("button");
@@ -17991,6 +19600,7 @@
       slot.appendChild(meta);
       els.outfitStrip.appendChild(slot);
     });
+    playOutfitStripFlipAnimation();
     syncOutfitBuilderPanel();
   }
 
@@ -18011,13 +19621,12 @@
     els.savedEmpty.hidden = !empty;
     if (empty) return;
 
-    for (const outfit of savedOutfits) {
+    savedOutfits.forEach((outfit, savedIndex) => {
       const li = document.createElement("li");
       const card = document.createElement("div");
-      card.className = "saved-card";
+      card.className = "saved-card saved-card--enter";
+      card.style.setProperty("--saved-card-stagger", String(savedIndex));
 
-      const body = document.createElement("div");
-      body.className = "saved-card__body";
       const title = document.createElement("p");
       title.className = "saved-card__name";
       title.textContent = outfit.name;
@@ -18028,9 +19637,8 @@
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
       meta.textContent = `${n} piece${n === 1 ? "" : "s"}${dateStr ? ` · ${dateStr}` : ""}${
-        notes ? ` · ${notes.length > 48 ? `${notes.slice(0, 45)}…` : notes}` : ""
+        notes ? ` · ${notes.length > 40 ? `${notes.slice(0, 37)}…` : notes}` : ""
       }`;
-      body.appendChild(meta);
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
@@ -18049,8 +19657,12 @@
         flatlay.appendChild(pieceWrap);
       }
 
+      const footer = document.createElement("div");
+      footer.className = "saved-card__footer";
       const act = document.createElement("div");
       act.className = "saved-card__actions";
+      act.setAttribute("role", "group");
+      act.setAttribute("aria-label", `Actions for ${outfit.name}`);
       const viewBtn = document.createElement("button");
       viewBtn.type = "button";
       viewBtn.className = "saved-card__ctrl";
@@ -18068,17 +19680,12 @@
       delBtn.className = "saved-card__ctrl saved-card__ctrl--danger";
       delBtn.textContent = "Delete";
       delBtn.dataset.outfitDelete = outfit.id;
-      act.appendChild(viewBtn);
-      act.appendChild(editBtn);
-      act.appendChild(delBtn);
-
-      body.appendChild(act);
-      card.appendChild(title);
-      card.appendChild(flatlay);
-      card.appendChild(body);
+      act.append(viewBtn, editBtn, delBtn);
+      footer.append(meta, act);
+      card.append(title, flatlay, footer);
       li.appendChild(card);
       els.savedList.appendChild(li);
-    }
+    });
   }
 
   function onOutfitChange() {
@@ -19410,7 +21017,7 @@
     }
 
     const img = document.createElement("img");
-    img.className = "card__media-img";
+    img.className = "card__media-img card__media-img--cover";
     img.alt = imageAltForItem(itemForMedia);
     img.decoding = "async";
     img.draggable = false;
@@ -21278,6 +22885,7 @@
       globalThis.__twCollectionViewResizeWired = true;
       globalThis.addEventListener("resize", () => {
         if (!document.getElementById("grid")) return;
+        syncCollectionCountLinePlacement();
         syncCollectionQuickFindCardDom();
         syncCollectionBoardAddButtonLabels();
       });
@@ -21413,6 +23021,21 @@
   function measureUtilityBarBottom() {
     const util = document.querySelector(".site-utility-bar");
     return util ? Math.ceil(util.getBoundingClientRect().bottom) : 0;
+  }
+
+  /** Desktop collection PLP: keep `--site-header-chrome-bottom` in sync for `#main` top inset. */
+  function syncCollectionPageChromeInset() {
+    if (!document.body.classList.contains("collection-page")) return;
+    if (!globalThis.matchMedia?.("(min-width: 901px)")?.matches) return;
+    syncBrandSignatureBarHeight();
+    try {
+      const chromeBottom = measureHeaderChromeBottom();
+      if (chromeBottom > 0) {
+        document.documentElement.style.setProperty("--site-header-chrome-bottom", `${chromeBottom}px`);
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   /** Viewport Y below utility + header chrome (flyout panels sit below this line). */
@@ -21861,7 +23484,11 @@
     else document.body.classList.remove("collection-ui--nav-folded");
     requestAnimationFrame(() => {
       syncCollectionNavScrollFoldAnchor();
-      requestAnimationFrame(syncCollectionNavScrollFoldAnchor);
+      syncCollectionPageChromeInset();
+      requestAnimationFrame(() => {
+        syncCollectionNavScrollFoldAnchor();
+        syncCollectionPageChromeInset();
+      });
     });
   }
 
@@ -23275,6 +24902,7 @@
         document.body.classList.remove("collection-ui--nav-folded", "collection-ui--header-search-closing");
         syncHeaderSearchFeaturedSubcategoryCards();
         syncHeaderSearchRecentNav();
+        wireHeaderSearchTrendingRail();
         headerSearchBtn.setAttribute("aria-expanded", "true");
         headerSearchBtn.setAttribute("aria-label", "Close search");
         if (isHeaderCompactLayout()) {
@@ -23570,6 +25198,7 @@
       "resize",
       () => {
         syncHeaderMegaMenuNavInset();
+        syncCollectionPageChromeInset();
         if (
           document.body.classList.contains("collection-ui--header-submenu-open") ||
           document.body.classList.contains("collection-ui--header-submenu-closing")
@@ -23629,6 +25258,7 @@
       shouldHandle: () => isHeaderCompactLayout() && stylingBoardDrawerOpen,
       axis: "down",
     });
+    wireStylingBoardDrawerScrollChrome();
 
     const mobileSearchSheet = /** @type {HTMLElement | null} */ (
       headerSearchWrap?.querySelector(".desktop-search-flyout-inner, .site-header__search-megamenu-inner")
@@ -23752,7 +25382,58 @@
     }
 
     if (els.savedList) {
+      let savedListPointerId = null;
+      let savedListStartX = 0;
+      let savedListStartY = 0;
+      let savedListDragging = false;
+      let savedListSuppressClickUntil = 0;
+      const SAVED_LIST_DRAG_THRESHOLD_PX = 8;
+      const SAVED_LIST_CLICK_SUPPRESS_MS = 420;
+
+      els.savedList.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!e.isPrimary) return;
+          savedListPointerId = e.pointerId;
+          savedListStartX = e.clientX;
+          savedListStartY = e.clientY;
+          savedListDragging = false;
+        },
+        { passive: true }
+      );
+
+      els.savedList.addEventListener(
+        "pointermove",
+        (e) => {
+          if (savedListPointerId == null || e.pointerId !== savedListPointerId) return;
+          if (savedListDragging) return;
+          const dx = Math.abs(e.clientX - savedListStartX);
+          const dy = Math.abs(e.clientY - savedListStartY);
+          if (dx >= SAVED_LIST_DRAG_THRESHOLD_PX || dy >= SAVED_LIST_DRAG_THRESHOLD_PX) {
+            savedListDragging = true;
+          }
+        },
+        { passive: true }
+      );
+
+      const finishSavedListPointer = (e) => {
+        if (savedListPointerId == null || e.pointerId !== savedListPointerId) return;
+        if (savedListDragging) {
+          savedListSuppressClickUntil = performance.now() + SAVED_LIST_CLICK_SUPPRESS_MS;
+        }
+        savedListPointerId = null;
+        savedListDragging = false;
+      };
+
+      els.savedList.addEventListener("pointerup", finishSavedListPointer, { passive: true });
+      els.savedList.addEventListener("pointercancel", finishSavedListPointer, { passive: true });
+
       els.savedList.addEventListener("click", (e) => {
+        if (performance.now() < savedListSuppressClickUntil) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         const loadBtn = e.target.closest("[data-outfit-load]");
         if (loadBtn) {
           loadSavedIntoBuilder(loadBtn.dataset.outfitLoad);
@@ -23848,6 +25529,7 @@
     installTextareaAutosizeFields();
 
     initSiteHeaderEnterMotion();
+    syncCollectionPageChromeInset();
     initCollectionNavScrollFold();
 
     globalThis.addEventListener("pageshow", (e) => {
