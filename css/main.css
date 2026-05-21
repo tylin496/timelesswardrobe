@@ -8708,25 +8708,25 @@ body.collection-ui--styling-board .styling-board-drawer {
   }
 
   .styling-board-drawer .saved-card__piece {
-    width: 50px;
-    height: 64px;
-    margin-left: -11px;
+    width: 2.85rem;
+    height: 3.65rem;
+    margin-left: -2.05rem;
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(2) {
-    transform: translate(9px, 7px);
+    transform: rotate(4deg) translateY(2px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(3) {
-    transform: translate(18px, 14px);
+    transform: rotate(-3deg) translateY(-2px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(4) {
-    transform: translate(27px, 21px);
+    transform: rotate(5deg) translateY(3px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(5) {
-    transform: translate(36px, 28px);
+    transform: rotate(-2deg) translateY(1px);
   }
 
   .styling-board-drawer .saved-card__meta {
@@ -9764,20 +9764,11 @@ body.collection-ui--styling-board .styling-board-drawer {
 }
 
 .styling-board-drawer .outfit-slot--drag-pending {
-  touch-action: none;
-  scroll-snap-align: none;
   transform: translateY(2px) scale(0.985);
   opacity: 0.94;
   transition:
     transform 100ms var(--ease-out),
     opacity 100ms var(--ease-out);
-}
-
-.styling-board-drawer .styling-board__pieces.outfit-strip.outfit-strip--drag-pending,
-.styling-board-drawer .styling-board__pieces.outfit-strip.outfit-strip--drag-active {
-  overflow-x: hidden;
-  touch-action: none;
-  scroll-snap-type: none;
 }
 
 @media (max-width: 1024px) {
@@ -10143,15 +10134,16 @@ body.tw-outfit-drag-active * {
 
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   width: fit-content;
-  max-width: 100%;
-  min-height: unset;
-  margin: 0 auto 0.12rem;
-  padding: 0.05rem 0.35rem 0;
+  max-width: calc(100% - 0.5rem);
+  min-height: 4.35rem;
+  margin: 0 auto 0.2rem;
+  padding: 0.15rem 0.5rem 0.05rem;
   overflow: visible;
   background: transparent;
+  isolation: isolate;
 }
 
 .styling-board-drawer .saved-card__footer {
@@ -10161,40 +10153,41 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 3.35rem;
-  height: 4.25rem;
-  margin-left: -0.72rem;
+  width: 3.15rem;
+  height: 4rem;
+  margin-left: -2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
+  transform-origin: center bottom;
   transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .styling-board-drawer .saved-card__piece:first-child {
   margin-left: 0;
   z-index: 1;
-  transform: translate(0, 0);
+  transform: rotate(-5deg) translateY(2px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(2) {
   z-index: 2;
-  transform: translate(8px, 6px);
+  transform: rotate(4deg) translateY(-1px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(3) {
   z-index: 3;
-  transform: translate(16px, 12px);
+  transform: rotate(-3deg) translateY(3px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(4) {
   z-index: 4;
-  transform: translate(24px, 18px);
+  transform: rotate(5deg) translateY(0);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(5) {
   z-index: 5;
-  transform: translate(32px, 24px);
+  transform: rotate(-2deg) translateY(2px);
 }
 
 .styling-board-drawer .saved-card__piece img {
@@ -10214,12 +10207,21 @@ body.tw-outfit-drag-active * {
   .styling-board-drawer .saved-outfits__list > li,
   .styling-board-drawer .saved-card,
   .styling-board-drawer .saved-card__footer,
-  .styling-board-drawer .saved-card__body,
-  .styling-board-drawer .saved-card__flatlay {
+  .styling-board-drawer .saved-card__body {
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    overflow: visible;
+  }
+
+  .styling-board-drawer .saved-card__flatlay {
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
     overflow: visible;
   }
 }
