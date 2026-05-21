@@ -17325,21 +17325,13 @@
     const idx = Math.max(0, Math.min(max, Math.floor(index)));
     track.classList.remove("is-dragging");
     track.style.transition = animate ? "" : "none";
-    if (isCollectionCompactQuickFindView()) {
-      track.style.transform = "none";
-      carousel.classList.add("card__gallery-carousel--compact-stack");
-      [...track.children].forEach((slide, i) => {
-        if (!(slide instanceof HTMLElement)) return;
-        slide.classList.toggle("is-active", i === idx);
-      });
-    } else {
-      carousel.classList.remove("card__gallery-carousel--compact-stack");
-      track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
-      [...track.children].forEach((slide, i) => {
-        if (!(slide instanceof HTMLElement)) return;
-        slide.classList.toggle("is-active", i === idx);
-      });
-    }
+    /* Touch carousel: always index-locked translate (compact + browse share one motion). */
+    carousel.classList.remove("card__gallery-carousel--compact-stack");
+    track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+    [...track.children].forEach((slide, i) => {
+      if (!(slide instanceof HTMLElement)) return;
+      slide.classList.toggle("is-active", i === idx);
+    });
     media.dataset.galleryFrameIndex = String(idx);
     carousel.dataset.galleryIndex = String(idx);
     return idx;
@@ -17704,7 +17696,7 @@
     const track = stage.querySelector(".card__gallery-desktop-track");
     if (!(track instanceof HTMLElement) || track.children.length < 2) return false;
 
-    /* Quick-find compact grid: instant is-active swap (opacity crossfade flashes page white). */
+    /* Quick-find desktop: stacked frames (no track translate — avoids hover crossfade flash). */
     if (isCollectionCompactQuickFindView()) {
       const idx = Number(media.dataset.galleryFrameIndex ?? 0);
       if (preview) {
@@ -17807,9 +17799,6 @@
       carousel?.remove();
       carousel = document.createElement("div");
       carousel.className = "card__gallery-carousel";
-      if (isCollectionCompactQuickFindView()) {
-        carousel.classList.add("card__gallery-carousel--compact-stack");
-      }
       carousel.dataset.galleryFrameSig = sig;
       carousel.dataset.galleryFrameCount = String(frameEntries.length);
       carousel.setAttribute("role", "region");
@@ -24104,7 +24093,7 @@
       const nav = document.createElement("nav");
       nav.id = "site-mobile-nav";
       nav.className = "site-mobile-nav";
-      nav.setAttribute("aria-label", "Shop categories");
+      nav.setAttribute("aria-label", "Browse categories");
 
       const rootLevel = document.createElement("div");
       rootLevel.id = "site-mobile-nav-root";
