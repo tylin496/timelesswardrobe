@@ -8291,6 +8291,11 @@
         const on = i === index;
         slide.setAttribute("aria-hidden", on ? "false" : "true");
       });
+      const counterEl = dotsHost?.querySelector(".ed-lp__hero-counter");
+      if (counterEl) {
+        counterEl.textContent = `${index + 1} / ${n}`;
+        counterEl.setAttribute("aria-label", `Photograph ${index + 1} of ${n}`);
+      }
       dotsHost?.querySelectorAll(".ed-lp__hero-dot").forEach((dot, i) => {
         const on = i === index;
         dot.classList.toggle("is-active", on);
@@ -8429,18 +8434,25 @@
 
     if (dotsHost) {
       dotsHost.replaceChildren();
-      slides.forEach((_, i) => {
-        const dot = document.createElement("button");
-        dot.type = "button";
-        dot.className = "ed-lp__hero-dot";
-        dot.setAttribute("role", "tab");
-        dot.setAttribute("aria-label", `View photograph ${i + 1} of ${n}`);
-        dot.addEventListener("click", () => {
-          goTo(i, directionFor(index, i));
-          scheduleAutoplay();
-        });
-        dotsHost.appendChild(dot);
-      });
+      if (n > 5) {
+        const counter = document.createElement("p");
+        counter.className = "ed-lp__hero-counter";
+        counter.setAttribute("aria-live", "polite");
+        dotsHost.appendChild(counter);
+      } else {
+        for (let i = 0; i < n; i += 1) {
+          const dot = document.createElement("button");
+          dot.type = "button";
+          dot.className = "ed-lp__hero-dot";
+          dot.setAttribute("role", "tab");
+          dot.setAttribute("aria-label", `View photograph ${i + 1} of ${n}`);
+          dot.addEventListener("click", () => {
+            goTo(i, directionFor(index, i));
+            scheduleAutoplay();
+          });
+          dotsHost.appendChild(dot);
+        }
+      }
     }
 
     const carouselUiHost = document.getElementById("ed-lp-hero-carousel");
@@ -17489,10 +17501,15 @@
 
     if (preview) {
       const idx = Number(media.dataset.galleryFrameIndex ?? 0);
-      applyDesktopGalleryFrameIndex(stage, idx, false);
-      /* Hover peek shows frame 1 while index is still 0 — align before chevron step. */
-      if (track.children.length >= 2 && idx === 0) {
-        media.dataset.galleryFrameIndex = "1";
+      const hoverIdx = track.children.length >= 2 && idx === 0 ? 1 : idx;
+      if (isCollectionCompactQuickFindView()) {
+        applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
+        media.dataset.galleryFrameIndex = String(hoverIdx);
+      } else {
+        applyDesktopGalleryFrameIndex(stage, idx, false);
+        if (track.children.length >= 2 && idx === 0) {
+          media.dataset.galleryFrameIndex = "1";
+        }
       }
       media.classList.add("card__media--hover-gallery-fade");
       stage.classList.add("card__gallery-desktop-stage--hover-fade");
@@ -17501,6 +17518,11 @@
         stage.classList.add("is-hover-preview");
       });
       return true;
+    }
+
+    if (isCollectionCompactQuickFindView()) {
+      media.dataset.galleryFrameIndex = "0";
+      applyDesktopGalleryFrameIndex(stage, 0, false);
     }
 
     media.classList.remove("is-hover-preview");
