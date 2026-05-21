@@ -18779,7 +18779,7 @@
   function outfitDragLayoutFlipMs() {
     return isOutfitDragMobileUi() ? 160 : 220;
   }
-  /** @type {{ active: boolean, pointerId: number | null, sourceIndex: number, sourceEl: HTMLElement | null, placeholderEl: HTMLElement | null, avatarEl: HTMLElement | null, started: boolean, canceled: boolean, startX: number, startY: number, offsetX: number, offsetY: number, lastClientX: number, lastClientY: number, holdTimer: number, autoScrollRaf: number }} */
+  /** @type {{ active: boolean, pointerId: number | null, sourceIndex: number, sourceEl: HTMLElement | null, placeholderEl: HTMLElement | null, avatarEl: HTMLElement | null, started: boolean, canceled: boolean, suppressSlotClick: boolean, startX: number, startY: number, offsetX: number, offsetY: number, lastClientX: number, lastClientY: number, holdTimer: number, autoScrollRaf: number }} */
   const outfitPointerDrag = {
     active: false,
     pointerId: null,
@@ -18789,6 +18789,7 @@
     avatarEl: null,
     started: false,
     canceled: false,
+    suppressSlotClick: false,
     startX: 0,
     startY: 0,
     offsetX: 0,
@@ -19270,7 +19271,9 @@
       state.avatarEl = null;
     }
 
+    const didDrag = started;
     clearOutfitPointerDragState();
+    if (didDrag) outfitPointerDrag.suppressSlotClick = true;
     if (!started) return;
     if (shouldAnimateDrop && avatar) {
       const cleanupDropAvatar = () => avatar.remove();
@@ -19565,14 +19568,17 @@
       else if (animateEntrance) slot.classList.add("outfit-slot--enter");
       slot.setAttribute("role", "listitem");
       slot.dataset.dragIndex = String(index);
-      slot.title = isOutfitDragMobileUi() ? displayNameWithoutLeadingColour(item) : "Drag to reorder";
-      slot.setAttribute("aria-label", displayNameWithoutLeadingColour(item));
+      const reorderHint = isOutfitDragMobileUi() ? "Hold to reorder" : "Drag to reorder";
+      slot.title = reorderHint;
+      slot.setAttribute(
+        "aria-label",
+        `${displayNameWithoutLeadingColour(item)}. ${reorderHint}`
+      );
 
       slot.addEventListener(
         "pointerdown",
         (e) => {
           if (!e.isPrimary || e.button !== 0) return;
-          if (isOutfitDragMobileUi()) return;
           const t = e.target;
           if (t instanceof Element && t.closest(".outfit-slot__dismiss, button, a, input, textarea, select")) return;
           beginOutfitPointerDrag(els.outfitStrip, slot, e, index);
@@ -19582,6 +19588,10 @@
 
       slot.addEventListener("click", (e) => {
         if (outfitPointerDrag.active) return;
+        if (outfitPointerDrag.suppressSlotClick) {
+          outfitPointerDrag.suppressSlotClick = false;
+          return;
+        }
         const t = e.target;
         if (t instanceof Element && t.closest(".outfit-slot__dismiss")) return;
         els.outfitStrip?.querySelectorAll(".outfit-slot--active").forEach((el) => {
