@@ -9744,11 +9744,32 @@ body.collection-ui--styling-board .styling-board-drawer {
   .styling-board-drawer .styling-board__board-stack > #outfit-strip,
   .styling-board-drawer .styling-board__pieces.outfit-strip {
     padding-top: 0.4rem;
-    padding-bottom: 0.35rem;
+    padding-bottom: 0.55rem;
     padding-left: 0;
     padding-right: calc(var(--styling-board-scroll-inline, 1.35rem) + 0.5rem);
     scroll-padding-inline-start: 0;
     scroll-padding-inline-end: calc(var(--styling-board-scroll-inline, 1.35rem) + 0.5rem);
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--sb-ink) 26%, transparent) transparent;
+    touch-action: auto;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+    display: block;
+    height: 5px;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-track,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--sb-ink) 8%, transparent);
+    border-radius: 999px;
+  }
+
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-thumb,
+  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--sb-ink) 28%, transparent);
+    border-radius: 999px;
   }
 }
 
@@ -20607,17 +20628,6 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
     visibility: visible;
     z-index: 1;
     pointer-events: auto;
-  }
-
-  /* Desktop compact hover preview — match standard grid crossfade timing on stacked slides. */
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__media--has-desktop-gallery.card__media--gallery-nav:not(.card__media--gallery-swipe)
-    .card__gallery-desktop-stage--compact-stack
-    .card__gallery-desktop-slide {
-    transition: opacity var(--tw-card-gallery-frame-duration, 0.28s)
-      var(--tw-card-gallery-frame-ease, cubic-bezier(0.44, 0, 0.22, 1));
   }
 }
 
