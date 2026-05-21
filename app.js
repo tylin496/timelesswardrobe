@@ -7675,11 +7675,16 @@
   }
 
   function syncHeaderSearchRecentNav() {
+    wireHeaderSearchRecentViewportSync();
     const block = document.getElementById("site-header-search-recent-block");
     const nav = document.getElementById("site-header-search-recent-nav");
     if (!block || !nav) return;
     const list = readHeaderRecentSearches();
     nav.replaceChildren();
+    if (globalThis.matchMedia?.("(max-width: 900px)")?.matches) {
+      block.hidden = true;
+      return;
+    }
     if (!list.length) {
       block.hidden = true;
       return;
@@ -7702,6 +7707,14 @@
       btn.append(icon, label);
       nav.appendChild(btn);
     }
+  }
+
+  function wireHeaderSearchRecentViewportSync() {
+    if (document.body.dataset.headerRecentViewportWired === "1") return;
+    document.body.dataset.headerRecentViewportWired = "1";
+    globalThis.matchMedia?.("(max-width: 900px)")?.addEventListener?.("change", () => {
+      syncHeaderSearchRecentNav();
+    });
   }
 
   /** Search overlay rails: native horizontal momentum only (no custom pointer-drag scroll). */

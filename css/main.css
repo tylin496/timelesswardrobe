@@ -5606,11 +5606,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     min-height: 0;
   }
 
-  .site-header__search-dropdown-aside--trending,
-  .site-header__search-dropdown-aside--recent {
+  .site-header__search-dropdown-aside--trending {
     margin-bottom: 0;
     padding-left: var(--chrome-content-inset-left);
     padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .site-header__search-dropdown-aside--recent {
+    display: none !important;
   }
 
   .site-header__search-dropdown-body {
@@ -8708,25 +8711,25 @@ body.collection-ui--styling-board .styling-board-drawer {
   }
 
   .styling-board-drawer .saved-card__piece {
-    width: 2.85rem;
-    height: 3.65rem;
-    margin-left: -2.05rem;
+    width: 50px;
+    height: 64px;
+    margin-left: -11px;
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(2) {
-    transform: rotate(4deg) translateY(2px);
+    transform: translate(9px, 7px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(3) {
-    transform: rotate(-3deg) translateY(-2px);
+    transform: translate(18px, 14px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(4) {
-    transform: rotate(5deg) translateY(3px);
+    transform: translate(27px, 21px);
   }
 
   .styling-board-drawer .saved-card__piece:nth-child(5) {
-    transform: rotate(-2deg) translateY(1px);
+    transform: translate(36px, 28px);
   }
 
   .styling-board-drawer .saved-card__meta {
@@ -10134,16 +10137,15 @@ body.tw-outfit-drag-active * {
 
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   width: fit-content;
-  max-width: calc(100% - 0.5rem);
-  min-height: 4.35rem;
-  margin: 0 auto 0.2rem;
-  padding: 0.15rem 0.5rem 0.05rem;
+  max-width: 100%;
+  min-height: unset;
+  margin: 0 auto 0.12rem;
+  padding: 0.05rem 0.35rem 0;
   overflow: visible;
   background: transparent;
-  isolation: isolate;
 }
 
 .styling-board-drawer .saved-card__footer {
@@ -10153,41 +10155,40 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 3.15rem;
-  height: 4rem;
-  margin-left: -2.25rem;
+  width: 3.35rem;
+  height: 4.25rem;
+  margin-left: -0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  transform-origin: center bottom;
   transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .styling-board-drawer .saved-card__piece:first-child {
   margin-left: 0;
   z-index: 1;
-  transform: rotate(-5deg) translateY(2px);
+  transform: translate(0, 0);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(2) {
   z-index: 2;
-  transform: rotate(4deg) translateY(-1px);
+  transform: translate(8px, 6px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(3) {
   z-index: 3;
-  transform: rotate(-3deg) translateY(3px);
+  transform: translate(16px, 12px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(4) {
   z-index: 4;
-  transform: rotate(5deg) translateY(0);
+  transform: translate(24px, 18px);
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(5) {
   z-index: 5;
-  transform: rotate(-2deg) translateY(2px);
+  transform: translate(32px, 24px);
 }
 
 .styling-board-drawer .saved-card__piece img {
@@ -10207,21 +10208,12 @@ body.tw-outfit-drag-active * {
   .styling-board-drawer .saved-outfits__list > li,
   .styling-board-drawer .saved-card,
   .styling-board-drawer .saved-card__footer,
-  .styling-board-drawer .saved-card__body {
+  .styling-board-drawer .saved-card__body,
+  .styling-board-drawer .saved-card__flatlay {
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow: visible;
-  }
-
-  .styling-board-drawer .saved-card__flatlay {
-    box-sizing: border-box;
-    width: fit-content;
-    max-width: 100%;
-    min-width: 0;
-    margin-left: auto;
-    margin-right: auto;
     overflow: visible;
   }
 }
