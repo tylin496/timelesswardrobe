@@ -73,7 +73,6 @@
   --space-page-inline: clamp(1.75rem, 4.5vw, 2.75rem);
   /* Header horizontal inset scale (+~10.25% vs page gutter; utility bar + main nav share `--header-x`). */
   --header-margin-scale: 1.1025;
-  --home-header-margin-scale: 1.18;
   /* Desktop: shared retail horizontal inset (header + collection PLP). */
   --space-header-inline: clamp(1.2075rem, 5.25vw, 3.15rem);
   --space-collection-inline: clamp(2.85rem, 9vw, 6.5rem);
@@ -130,7 +129,7 @@
   --header-tools-gap: 1.5rem;
   /* Magnifier: circle + handle share a tangent (used by header/search icon masks). */
   --site-header-tool-icon-size: 15px;
-  --site-header-tool-glyph-stroke: 1.48;
+  --site-header-tool-glyph-stroke: 1.4;
   --site-header-tool-glyph-opacity: 0.72;
   /* Active filter chips row — chip ↔ chip ↔ Clear All. */
   --collection-active-chips-gap: 10px;
@@ -702,22 +701,11 @@ body {
   }
 
   body.home-page {
-    --header-margin-scale: var(--home-header-margin-scale, 1.18);
     --header-x: clamp(
       calc(32px * var(--header-margin-scale)),
       calc(2.8vw * var(--header-margin-scale)),
       calc(58px * var(--header-margin-scale))
     );
-    --header-chrome-pad-left: max(
-      clamp(1.05rem, calc(var(--header-x) * var(--header-chrome-margin-scale)), 4.5rem),
-      env(safe-area-inset-left, 0px)
-    );
-    --header-chrome-pad-right: max(
-      clamp(1.05rem, calc(var(--header-x) * var(--header-chrome-margin-scale)), 4.5rem),
-      env(safe-area-inset-right, 0px)
-    );
-    --chrome-content-inset-left: var(--header-chrome-pad-left);
-    --chrome-content-inset-right: var(--header-chrome-pad-right);
   }
 }
 
@@ -897,9 +885,9 @@ body {
 .site-title__wordmark-line,
 .site-brand-wordmark .site-title__wordmark-line {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 600;
   font-size: clamp(1.2rem, 2.91vw, 1.8rem);
-  letter-spacing: 0.035em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 0.92;
   color: inherit;
@@ -6109,7 +6097,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
     font-size: clamp(0.72rem, 2.8vw, 0.88rem);
     font-weight: 500;
-    letter-spacing: 0.125em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     line-height: 1.1;
     white-space: nowrap;
@@ -8965,27 +8953,14 @@ body.collection-ui--styling-board .styling-board-drawer {
 
 .styling-board-drawer__scroll {
   --styling-board-scroll-inline: 1.35rem;
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding: 1.15rem var(--styling-board-scroll-inline) 0.25rem;
+  padding: 1.15rem var(--styling-board-scroll-inline) 0.55rem;
   -webkit-overflow-scrolling: touch;
   background: var(--sb-surface);
-}
-
-@media (min-width: 1025px) {
-  .styling-board-drawer__sheet {
-    top: 1.15rem;
-    bottom: 1.15rem;
-    height: auto;
-    max-height: calc(100dvh - 2.3rem);
-  }
-
-  .styling-board-drawer__scroll {
-    flex: 0 1 auto;
-  }
 }
 
 /* Inner sections grow naturally — only `.styling-board-drawer__scroll` scrolls vertically. */
@@ -9011,8 +8986,8 @@ body.collection-ui--styling-board .styling-board-drawer {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
-  padding: 0.55rem 1.35rem max(0.72rem, calc(env(safe-area-inset-bottom, 0px) + 0.45rem));
+  gap: 0.5rem;
+  padding: 0.72rem 1.35rem max(0.95rem, calc(env(safe-area-inset-bottom, 0px) + 0.55rem));
   border-top: 1px solid color-mix(in srgb, var(--sb-line) 48%, transparent);
   background: var(--sb-surface);
 }
@@ -9022,12 +8997,12 @@ body.collection-ui--styling-board .styling-board-drawer {
   appearance: none;
   display: block;
   width: 100%;
-  padding: 0.66rem 1rem;
+  padding: 0.82rem 1rem;
   border-radius: 0;
   font-family: var(--font-sans);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.11em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
@@ -9038,7 +9013,7 @@ body.collection-ui--styling-board .styling-board-drawer {
 }
 
 .styling-board-drawer__cta--primary {
-  border: 0.5px solid var(--tw-brand-signature-navy, #163229);
+  border: 1px solid var(--tw-brand-signature-navy, #163229);
   background: var(--tw-brand-signature-navy, #163229);
   color: #fff;
 }
@@ -9048,13 +9023,13 @@ body.collection-ui--styling-board .styling-board-drawer {
 }
 
 .styling-board-drawer__cta--secondary {
-  border: 0.5px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 42%, transparent);
-  background: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
+  border: 1px solid var(--tw-brand-signature-navy, #163229);
+  background: var(--sb-surface);
   color: var(--tw-brand-signature-navy, #163229);
 }
 
 .styling-board-drawer__cta--secondary:hover {
-  background: color-mix(in srgb, var(--wardrobe-card-bg, #f8f6f1) 88%, var(--tw-brand-signature-navy, #163229));
+  background: rgba(8, 41, 74, 0.04);
 }
 
 .styling-board-drawer__cta:focus-visible {
@@ -9252,7 +9227,7 @@ body.collection-ui--styling-board .styling-board-drawer {
 @media (min-width: 901px) {
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
-    --outfit-slot-h: 7.55rem;
+    --outfit-slot-h: 8.85rem;
     flex: 0 0 var(--outfit-card-max-w);
     width: var(--outfit-card-max-w);
     min-width: var(--outfit-card-max-w);
@@ -9283,8 +9258,8 @@ body.collection-ui--styling-board .styling-board-drawer {
   --outfit-card-radius: var(--wardrobe-card-radius, 12px);
   --outfit-card-shadow: var(--wardrobe-card-shadow);
   --outfit-stagger-y: 0px;
-  --outfit-slot-h: 7.35rem;
-  --outfit-thumb-h: 4.95rem;
+  --outfit-slot-h: 8.55rem;
+  --outfit-thumb-h: 5.75rem;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -9298,7 +9273,7 @@ body.collection-ui--styling-board .styling-board-drawer {
   height: var(--outfit-slot-h);
   min-height: var(--outfit-slot-h);
   max-height: var(--outfit-slot-h);
-  padding: 0.14rem 0.18rem 0.1rem;
+  padding: 0.2rem 0.22rem 0.12rem;
   cursor: grab;
   touch-action: pan-x;
   background: var(--outfit-card-bg);
@@ -9617,10 +9592,10 @@ body.collection-ui--styling-board .styling-board-drawer {
 .styling-board-drawer .outfit-slot__name {
   width: 100%;
   color: color-mix(in srgb, var(--sb-ink) 92%, var(--sb-ink-muted));
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-weight: 400;
-  letter-spacing: 0.012em;
-  line-height: 1.12;
+  letter-spacing: 0.015em;
+  line-height: 1.2;
   text-align: center;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -9633,30 +9608,12 @@ body.collection-ui--styling-board .styling-board-drawer {
 @media (min-width: 1025px) {
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
-    --outfit-slot-h: 7.55rem;
+    --outfit-slot-h: 8.85rem;
   }
 
   .styling-board-drawer .outfit-slot {
-    --outfit-slot-h: 7.55rem;
-    --outfit-thumb-h: 5rem;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .styling-board-drawer .outfit-slot:hover:not(.outfit-slot--dragging):not(.outfit-slot--dismissing):not(
-        .outfit-slot--placeholder
-      ) {
-      transform: translateY(calc(var(--outfit-stagger-y, 0px) - 2px));
-      box-shadow: var(--wardrobe-card-shadow-lift);
-    }
-
-    .styling-board-drawer .outfit-slot:hover:not(.outfit-slot--dragging) .outfit-slot__thumb img {
-      transform: scale(1.02);
-      transition: transform 0.35s var(--ease-out);
-    }
-
-    .styling-board-drawer .outfit-slot .outfit-slot__thumb img {
-      transition: transform 0.35s var(--ease-out);
-    }
+    --outfit-slot-h: 8.85rem;
+    --outfit-thumb-h: 5.85rem;
   }
 
   .styling-board-drawer--added .styling-board__pieces.outfit-strip > .outfit-slot {
@@ -9706,13 +9663,12 @@ body.collection-ui--styling-board .styling-board-drawer {
 
 .styling-board-drawer .styling-board__current-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.75rem;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  margin-bottom: 0.15rem;
 }
 
 .styling-board-drawer .styling-board__current-head > .styling-board__section-title {
@@ -9891,9 +9847,8 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .field__label {
-  color: color-mix(in srgb, var(--sb-ink) 88%, var(--sb-ink-muted));
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  color: var(--sb-ink);
+  font-weight: 600;
 }
 
 .styling-board-drawer .field--notes .field__label-optional {
@@ -9904,14 +9859,13 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .field--inline input[type="text"],
 .styling-board-drawer .styling-board__notes {
   color: var(--sb-ink);
-  background: color-mix(in srgb, var(--sb-surface) 92%, var(--wardrobe-card-bg, #f8f6f1));
-  border: 0.5px solid color-mix(in srgb, var(--sb-line-strong) 72%, transparent);
-  border-radius: 2px;
-  padding: 0.45rem 0.6rem;
-  font-family: var(--font-serif);
-  font-size: 0.8rem;
-  font-weight: 400;
-  line-height: 1.4;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-line-strong);
+  border-radius: 3px;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.45;
 }
 
 .styling-board-drawer .field--inline input[type="text"]::placeholder,
@@ -9958,12 +9912,12 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
 .styling-board-drawer #styling-board-save-form .styling-board__notes {
   width: 100%;
-  min-height: 2.85rem;
+  min-height: 3.25rem;
   box-sizing: border-box;
 }
 
 .styling-board-drawer #styling-board-save-form .field--inline input[type="text"] {
-  height: 2.85rem;
+  height: 3.25rem;
 }
 
 @media (max-width: 520px) {
@@ -10046,12 +10000,6 @@ body.tw-outfit-drag-active * {
   background: var(--tw-brand-signature-navy, #163229);
   border-color: var(--tw-brand-signature-navy, #163229);
   color: #fff;
-  font-weight: 500;
-}
-
-.styling-board-drawer .styling-board-drawer__footer .styling-board-drawer__cta--secondary {
-  font-weight: 500;
-  color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 92%, transparent);
 }
 
 .styling-board-drawer .styling-board-drawer__footer .styling-board-drawer__cta--primary:hover {
@@ -10082,10 +10030,10 @@ body.tw-outfit-drag-active * {
 
 .styling-board__saved.saved-outfits {
   position: relative;
-  margin-top: 1rem;
+  margin-top: 1.35rem;
   margin-left: calc(-1 * var(--styling-board-scroll-inline, 1.35rem));
   margin-right: calc(-1 * var(--styling-board-scroll-inline, 1.35rem));
-  padding: 0.85rem var(--styling-board-scroll-inline, 1.35rem) 0.1rem;
+  padding: 1rem var(--styling-board-scroll-inline, 1.35rem) 0.2rem;
   border-top: none;
   box-sizing: border-box;
   overflow: visible;
@@ -10182,9 +10130,6 @@ body.tw-outfit-drag-active * {
   letter-spacing: 0.012em;
   line-height: 1.12;
   color: color-mix(in srgb, var(--sb-ink) 94%, var(--sb-ink-muted));
-  text-align: left;
-  align-self: flex-start;
-  width: 100%;
 }
 
 .styling-board-drawer .saved-card__flatlay {
@@ -10198,7 +10143,6 @@ body.tw-outfit-drag-active * {
   padding: 0.05rem 0.35rem 0;
   overflow: visible;
   background: transparent;
-  align-self: center;
 }
 
 .styling-board-drawer .saved-card__footer {
@@ -10208,9 +10152,9 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 3rem;
-  height: 3.82rem;
-  margin-left: -0.65rem;
+  width: 3.35rem;
+  height: 4.25rem;
+  margin-left: -0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10286,9 +10230,6 @@ body.tw-outfit-drag-active * {
   line-height: 1.35;
   letter-spacing: 0.02em;
   color: color-mix(in srgb, var(--sb-ink-muted) 92%, transparent);
-  text-align: left;
-  align-self: flex-start;
-  width: 100%;
 }
 
 .styling-board-drawer .saved-card__actions {
@@ -18506,7 +18447,7 @@ body.home-page .site-header-shell--home-overlay .site-header button {
 .ed-lp__hero {
   /* Full-bleed width: cover crops left/right; vertical focal point via --hero-img-position */
   --hero-img-position: center center;
-  --hero-content-bottom: clamp(28px, 1.5vh, 52px);
+  --hero-content-bottom: clamp(40px, 7vh, 88px);
   /* Carousel dots — anchored to hero bottom, not the copy/CTA stack. */
   --hero-dots-bottom: clamp(1.25rem, 4vh, 2rem);
   --tw-hero-scroll-peek: 0px;
@@ -18600,18 +18541,6 @@ body.home-page .site-header-shell--home-overlay .site-header button {
   pointer-events: auto;
 }
 
-.ed-lp__hero-counter {
-  @apply m-0;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.52);
-  pointer-events: none;
-  user-select: none;
-}
-
 .ed-lp__hero-arrow {
   position: absolute;
   top: 44%;
@@ -18670,12 +18599,12 @@ body.home-page .site-header-shell--home-overlay .site-header button {
 .ed-lp__hero-dot {
   @apply m-0;
   appearance: none;
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.38);
   cursor: pointer;
   transition:
     background 0.22s var(--ease-out),
@@ -18683,12 +18612,12 @@ body.home-page .site-header-shell--home-overlay .site-header button {
 }
 
 .ed-lp__hero-dot:hover {
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .ed-lp__hero-dot.is-active {
-  background: rgba(255, 255, 255, 0.58);
-  transform: scale(1);
+  background: #fff;
+  transform: scale(1.15);
 }
 
 .ed-lp__hero-dot:focus-visible {
@@ -18748,8 +18677,8 @@ video.ed-lp__hero-layer-video {
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.28)),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 38%, rgba(0, 0, 0, 0) 68%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 30%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.18) 35%, rgba(0, 0, 0, 0) 65%);
 }
 
 .ed-lp__hero-inner {
@@ -18807,7 +18736,7 @@ video.ed-lp__hero-layer-video {
 }
 
 .ed-lp__hero-line {
-  margin: 0 0 clamp(0.45rem, 1vh, 0.65rem);
+  margin: 0 0 clamp(1.15rem, 2.2vh, 1.35rem);
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1rem, 0.88rem + 0.45vw, 1.2rem);
   font-style: italic;
@@ -18822,7 +18751,6 @@ video.ed-lp__hero-layer-video {
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
   align-items: center;
-  margin-top: -1.75rem;
 }
 
 .ed-lp__hero-cta .ed-lp__btn {
@@ -20637,51 +20565,6 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
     height: 100%;
   }
 
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__media--hover-gallery-fade
-    > .card__media-img.card__media-img--cover:not([hidden]) {
-    transition: opacity var(--tw-card-gallery-frame-duration, 0.28s)
-      var(--tw-card-gallery-frame-ease, cubic-bezier(0.44, 0, 0.22, 1));
-  }
-
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__media--hover-gallery-fade.is-hover-preview
-    > .card__media-img.card__media-img--cover:not([hidden]) {
-    opacity: 0;
-  }
-
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__gallery-desktop-stage--compact-stack.card__gallery-desktop-stage--hover-fade
-    .card__gallery-desktop-slide {
-    transition: opacity var(--tw-card-gallery-frame-duration, 0.28s)
-      var(--tw-card-gallery-frame-ease, cubic-bezier(0.44, 0, 0.22, 1));
-  }
-
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__gallery-desktop-stage--compact-stack.card__gallery-desktop-stage--hover-fade.is-hover-preview
-    .card__gallery-desktop-slide.is-active {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  body.collection-view--compact.collection-page
-    #grid.grid--compact
-    > .card.card--quick-find
-    .card__gallery-desktop-stage--compact-stack.card__gallery-desktop-stage--hover-fade.is-hover-preview
-    .card__gallery-desktop-slide:nth-child(2) {
-    opacity: 1;
-    visibility: visible;
-    z-index: 2;
-  }
-
   /*
    * Quick-find desktop gallery: one frame at a time (track translate stacks every slide in a narrow cell).
    */
@@ -20724,6 +20607,17 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
     visibility: visible;
     z-index: 1;
     pointer-events: auto;
+  }
+
+  /* Desktop compact hover preview — match standard grid crossfade timing on stacked slides. */
+  body.collection-view--compact.collection-page
+    #grid.grid--compact
+    > .card.card--quick-find
+    .card__media--has-desktop-gallery.card__media--gallery-nav:not(.card__media--gallery-swipe)
+    .card__gallery-desktop-stage--compact-stack
+    .card__gallery-desktop-slide {
+    transition: opacity var(--tw-card-gallery-frame-duration, 0.28s)
+      var(--tw-card-gallery-frame-ease, cubic-bezier(0.44, 0, 0.22, 1));
   }
 }
 

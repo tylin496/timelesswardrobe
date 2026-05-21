@@ -17506,6 +17506,20 @@
     const track = stage.querySelector(".card__gallery-desktop-track");
     if (!(track instanceof HTMLElement) || track.children.length < 2) return false;
 
+    /* Quick-find compact grid: stacked slides use is-active (not hover-fade opacity layers). */
+    if (isCollectionCompactQuickFindView()) {
+      const idx = Number(media.dataset.galleryFrameIndex ?? 0);
+      if (preview) {
+        const hoverIdx = idx === 0 ? 1 : idx;
+        applyDesktopGalleryFrameIndex(stage, hoverIdx, true);
+        if (idx === 0) media.dataset.galleryFrameIndex = "1";
+      } else {
+        media.dataset.galleryFrameIndex = "0";
+        applyDesktopGalleryFrameIndex(stage, 0, true);
+      }
+      return true;
+    }
+
     if (preview) {
       const idx = Number(media.dataset.galleryFrameIndex ?? 0);
       const hoverIdx = track.children.length >= 2 && idx === 0 ? 1 : idx;
