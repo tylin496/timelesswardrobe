@@ -3064,6 +3064,8 @@
 
   const COLLECTION_SORT_MODE_KEY = "timeless-wardrobe-collection-sort-v1";
   const COLLECTION_VIEW_MODE_KEY = "timeless-wardrobe-collection-view-v1";
+  /** Set when the user clicks Standard grid / Quick find — without this, PLP always opens on default grid. */
+  const COLLECTION_VIEW_USER_SET_KEY = "timeless-wardrobe-collection-view-user-set-v1";
   const COLLECTION_VIEW_MODES = ["default", "compact"];
   const COLLECTION_DEFAULT_VIEW_MODE = "default";
   /** User hid the “browser-only storage” banner; clearing this key shows it again. */
@@ -3118,12 +3120,14 @@
 
   function loadPersistedCollectionViewMode() {
     try {
+      const userSet = localStorage.getItem(COLLECTION_VIEW_USER_SET_KEY) === "1";
+      if (!userSet) return COLLECTION_DEFAULT_VIEW_MODE;
       const v = String(localStorage.getItem(COLLECTION_VIEW_MODE_KEY) || "").trim();
       if (COLLECTION_VIEW_MODES.includes(v)) return v;
     } catch {
       /* */
     }
-    return persistCollectionViewMode(COLLECTION_DEFAULT_VIEW_MODE);
+    return COLLECTION_DEFAULT_VIEW_MODE;
   }
 
   function normalizeCollectionViewMode(mode) {
@@ -3135,6 +3139,7 @@
     const ok = COLLECTION_VIEW_MODES.includes(v) ? v : COLLECTION_DEFAULT_VIEW_MODE;
     try {
       localStorage.setItem(COLLECTION_VIEW_MODE_KEY, ok);
+      localStorage.setItem(COLLECTION_VIEW_USER_SET_KEY, "1");
     } catch {
       /* */
     }
@@ -6130,7 +6135,7 @@
       for (const u of itemGalleryList(cloudRow)) consider(u, false);
     }
 
-    return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
+    return sortGalleryUrlsBySlotIndex(orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean));
   }
 
   /** Gallery order diff (same paths in different sequence should count as user media edit). */
@@ -6151,7 +6156,7 @@
       seedSet.size === cloudSet.size &&
       [...seedSet].every((k) => cloudSet.has(k)) &&
       [...cloudSet].every((k) => seedSet.has(k));
-    if (!sameMembers) return false;
+    if (!sameMembers) return true;
     return seedKeys.join("|") !== cloudKeys.join("|");
   }
 
@@ -13955,6 +13960,18 @@
     return s;
   }
 
+  /** `main/gallery/NN` slot for stable PLP / edit order (missing index sorts last). */
+  function gallerySlotIndexFromUrl(url) {
+    const path = String(url ?? "").trim().split("?")[0];
+    const m = /\/gallery\/(\d{1,2})\.[a-z0-9]+$/i.exec(path);
+    return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+  }
+
+  /** Keep collection / carousel frames in numeric gallery slot order (01, 02, 03…). */
+  function sortGalleryUrlsBySlotIndex(urls) {
+    return [...urls].sort((a, b) => gallerySlotIndexFromUrl(a) - gallerySlotIndexFromUrl(b));
+  }
+
   /** Extra images only (not the main `image` URL). */
   function itemGalleryList(item) {
     const raw = item?.gallery;
@@ -14111,7 +14128,7 @@
       seen.add(key);
       out.push(x);
     }
-    return out;
+    return sortGalleryUrlsBySlotIndex(out);
   }
 
   /** Header search category tiles: pick a random visible cover (not always collection sort order). */
@@ -18889,11 +18906,10 @@
 
     /* Quick-find desktop: stacked frames (no track translate — avoids hover crossfade flash). */
     if (isCollectionCompactQuickFindView()) {
-      const idx = Number(media.dataset.galleryFrameIndex ?? 0);
       if (preview) {
-        const hoverIdx = idx === 0 ? 1 : idx;
+        const hoverIdx = Math.min(1, track.children.length - 1);
         applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
-        if (idx === 0) media.dataset.galleryFrameIndex = "1";
+        media.dataset.galleryFrameIndex = String(hoverIdx);
       } else {
         media.dataset.galleryFrameIndex = "0";
         applyDesktopGalleryFrameIndex(stage, 0, false);
@@ -18902,17 +18918,9 @@
     }
 
     if (preview) {
-      const idx = Number(media.dataset.galleryFrameIndex ?? 0);
-      const hoverIdx = track.children.length >= 2 && idx === 0 ? 1 : idx;
-      if (isCollectionCompactQuickFindView()) {
-        applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
-        media.dataset.galleryFrameIndex = String(hoverIdx);
-      } else {
-        applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
-        if (track.children.length >= 2 && idx === 0) {
-          media.dataset.galleryFrameIndex = "1";
-        }
-      }
+      const hoverIdx = Math.min(1, track.children.length - 1);
+      applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
+      media.dataset.galleryFrameIndex = String(hoverIdx);
       media.classList.add("card__media--hover-gallery-fade");
       stage.classList.add("card__gallery-desktop-stage--hover-fade");
       requestAnimationFrame(() => {
@@ -18922,10 +18930,8 @@
       return true;
     }
 
-    if (isCollectionCompactQuickFindView()) {
-      media.dataset.galleryFrameIndex = "0";
-      applyDesktopGalleryFrameIndex(stage, 0, false);
-    }
+    media.dataset.galleryFrameIndex = "0";
+    applyDesktopGalleryFrameIndex(stage, 0, false);
 
     media.classList.remove("is-hover-preview");
     stage.classList.remove("is-hover-preview");
