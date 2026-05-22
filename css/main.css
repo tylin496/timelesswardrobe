@@ -9226,18 +9226,18 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   --sb-ink: var(--ink, #181614);
   --sb-ink-soft: #4a4540;
   --sb-ink-muted: #5c5650;
-  --sb-header-bg: #f7f4ed;
-  --sb-drawer-bg: #eee9df;
-  --sb-surface: var(--sb-header-bg);
-  --sb-surface-muted: var(--sb-drawer-bg);
-  --sb-ivory: var(--sb-drawer-bg);
-  --sb-ivory-card: var(--sb-drawer-bg);
+  --sb-header-bg: var(--bg);
+  --sb-drawer-bg: var(--bg);
+  --sb-surface: var(--bg);
+  --sb-surface-muted: var(--bg);
+  --sb-ivory: var(--bg);
+  --sb-ivory-card: var(--bg);
   --sb-line: rgba(30, 26, 23, 0.1);
   --sb-line-strong: rgba(30, 26, 23, 0.18);
   --sb-danger: #8b4545;
   --sb-danger-line: rgba(139, 69, 69, 0.38);
-  /* Wardrobe cards match drawer panel (single sidebar tone). */
-  --wardrobe-card-bg: var(--sb-drawer-bg);
+  /* Wardrobe cards match drawer panel (site main background). */
+  --wardrobe-card-bg: var(--bg);
   --wardrobe-card-border: 1px solid rgba(24, 55, 47, 0.06);
   --wardrobe-card-radius: 12px;
   --wardrobe-card-shadow:
