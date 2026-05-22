@@ -2104,7 +2104,10 @@
             if (ti) ti.src = url;
           }
           if (inCollectionGrid) {
-            heroHost.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
+            heroHost.dataset.galleryFrameIndex = "0";
+            heroHost.dispatchEvent(
+              new CustomEvent("tw-collection-cover-change", { bubbles: true, detail: { resetToCover: true } })
+            );
           }
         },
       });
@@ -17299,6 +17302,16 @@
     return el instanceof HTMLElement ? el : null;
   }
 
+  /** @param {HTMLElement} media @param {string} url */
+  function syncMobileGalleryCoverSlideSrc(media, url) {
+    const carousel = getMobileGalleryCarousel(media);
+    if (!carousel || !url) return;
+    const coverImg = carousel.querySelector(
+      ".card__gallery-carousel-slide--cover .card__media-img--cover, .card__gallery-carousel-slide--cover img"
+    );
+    if (coverImg instanceof HTMLImageElement) coverImg.src = url;
+  }
+
   function teardownMobileGalleryCarousel(media, img) {
     getMobileGalleryCarousel(media)?.remove();
     img.hidden = false;
@@ -17902,7 +17915,23 @@
       );
     }
 
-    media.addEventListener("tw-collection-cover-change", () => {
+    media.addEventListener("tw-collection-cover-change", (e) => {
+      const forceCover = Boolean(
+        e instanceof CustomEvent && /** @type {{ resetToCover?: boolean }} */ (e.detail)?.resetToCover
+      );
+      const idx = readMobileGalleryFrameIndex(media);
+      const keepSwipedFrame =
+        !forceCover &&
+        isCollectionCardCoarsePointer() &&
+        media.classList.contains("card__media--gallery-swipe") &&
+        idx > 0;
+      if (keepSwipedFrame) {
+        const carousel = getMobileGalleryCarousel(media);
+        if (carousel) {
+          applyMobileGalleryFrameIndex(media, carousel, idx, false);
+          return;
+        }
+      }
       media.dataset.galleryFrameIndex = "0";
       syncNav();
     });
@@ -18161,7 +18190,11 @@
         img.dataset.coverSrc = url;
         const ti = media.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
         if (ti) ti.src = url;
-        media.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
+        syncMobileGalleryCoverSlideSrc(media, url);
+        if (readMobileGalleryFrameIndex(media) > 0 && isCollectionCardCoarsePointer()) return;
+        media.dispatchEvent(
+          new CustomEvent("tw-collection-cover-change", { bubbles: true, detail: { resetToCover: true } })
+        );
       },
     });
 
