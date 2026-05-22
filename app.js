@@ -6184,6 +6184,101 @@
     return mergeMissingFrozenSeedGalleryPaths(id, itemGalleryList(item));
   }
 
+  /** @param {string} url */
+  function gallerySlotIndexFromMediaUrl(url) {
+    const key = wardrobeMediaPathKey(url) || String(url ?? "").trim().split("?")[0];
+    const m = /\/gallery\/(\d{1,2})\./i.exec(key);
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  /**
+   * Frozen row: editor gallery differs from the last Supabase fetch (missing paths / order).
+   * @param {string} itemId
+   * @param {string[]} gallery
+   */
+  function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery) {
+    if (!isLocalCatalogueItemId(itemId)) return false;
+    const targetSig = galleryPathKeySignature(
+      dedupeGalleryUrls("", mergeMissingFrozenSeedGalleryPaths(itemId, gallery))
+    );
+    const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === itemId);
+    const cloudSig = galleryPathKeySignature(itemGalleryList(cloudRow || {}));
+    return targetSig !== cloudSig;
+  }
+
+  /**
+   * Upload a repo-local `/images/wardrobe/…` file to Supabase Storage (frozen catalogue save).
+   * @param {string} itemId
+   * @param {string} url
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number }} slot
+   * @param {(t: string, err?: boolean) => void} [setMsg]
+   */
+  async function uploadLocalWardrobeMediaUrlToCloud(itemId, url, slot, setMsg) {
+    const raw = String(url ?? "").trim();
+    if (!raw || /^https?:\/\//i.test(raw.split("?")[0])) return raw;
+    if (!isFileBackedLocalWardrobeUrl({ id: itemId }, raw) || !isSupabaseReady()) return raw;
+    try {
+      const res = await fetch(raw, { cache: "no-store" });
+      if (!res.ok) return raw;
+      const blob = await res.blob();
+      const pathOnly = raw.split("?")[0];
+      const base = pathOnly.split("/").pop() || "photo.jpg";
+      const file = new File([blob], base, { type: blob.type || "image/jpeg" });
+      return await uploadWardrobeImageFileToCloud(file, itemId, slot);
+    } catch (err) {
+      console.warn("uploadLocalWardrobeMediaUrlToCloud", err);
+      setMsg?.(messageForCloudUploadFailure("gallery photo", err), true);
+      return raw;
+    }
+  }
+
+  /**
+   * Before frozen catalogue cloud save: push any remaining local paths to Storage.
+   * @param {string} itemId
+   * @param {string} image
+   * @param {string[]} gallery
+   * @param {(t: string, err?: boolean) => void} [setMsg]
+   */
+  async function ensureFrozenCatalogueMediaUrlsOnCloud(itemId, image, gallery, setMsg) {
+    if (!isLocalCatalogueItemId(itemId) || !isSupabaseReady()) {
+      return { image, gallery: dedupeGalleryUrls(image, gallery) };
+    }
+    const item = { id: itemId };
+    let nextImage = String(image ?? "").trim();
+    if (
+      nextImage &&
+      isFileBackedLocalWardrobeUrl(item, nextImage) &&
+      !/^https?:\/\//i.test(nextImage.split("?")[0])
+    ) {
+      const uploaded = await uploadLocalWardrobeMediaUrlToCloud(
+        itemId,
+        nextImage,
+        { type: "main_cover" },
+        setMsg
+      );
+      if (uploaded) nextImage = uploaded;
+    }
+    /** @type {string[]} */
+    const nextGallery = [];
+    for (const raw of gallery) {
+      const u = String(raw ?? "").trim();
+      if (!u) continue;
+      if (isFileBackedLocalWardrobeUrl(item, u) && !/^https?:\/\//i.test(u.split("?")[0])) {
+        const idx = gallerySlotIndexFromMediaUrl(u) || nextGallery.length + 1;
+        const uploaded = await uploadLocalWardrobeMediaUrlToCloud(
+          itemId,
+          u,
+          { type: "main_gallery", index: Math.max(1, idx) },
+          setMsg
+        );
+        nextGallery.push(uploaded || u);
+      } else {
+        nextGallery.push(u);
+      }
+    }
+    return { image: nextImage, gallery: dedupeGalleryUrls(nextImage, nextGallery, 12) };
+  }
+
   /** Gallery order diff (same paths in different sequence should count as user media edit). */
   function cloudGalleryOrderDiffersFromSeed(cloudRow, seed) {
     const coverKeys = new Set(
@@ -6471,6 +6566,11 @@
         const hybridGallery = mergeHybridCatalogueGallery(row, { id, gallery: patchGallery });
         merged.gallery = hybridGallery.length ? hybridGallery : [...localGallery];
       }
+    }
+    if (allowRemoteMediaOverride && Array.isArray(patch.gallery)) {
+      merged.gallery = normalizeGalleryFromDb(
+        dedupeGalleryUrls(String(merged.image ?? "").trim(), patch.gallery)
+      );
     }
     return merged;
   }
@@ -7490,6 +7590,24 @@
   }
 
   /** @param {Record<string, unknown> | null | undefined} data */
+  function detectWardrobeAppStateColumnMode(data) {
+    if (!data || typeof data !== "object") return wardrobeAppStateUsesLegacyColumns;
+    if (
+      Object.prototype.hasOwnProperty.call(data, "collection_overrides") ||
+      Object.prototype.hasOwnProperty.call(data, "collection_hidden_ids")
+    ) {
+      return false;
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(data, "archive_overrides") ||
+      Object.prototype.hasOwnProperty.call(data, "archive_hidden_ids")
+    ) {
+      return true;
+    }
+    return wardrobeAppStateUsesLegacyColumns;
+  }
+
+  /** @param {Record<string, unknown> | null | undefined} data */
   function parseWardrobeAppStateRow(data) {
     if (!data || typeof data !== "object") return { overrides: {}, hidden: [] };
     const overrides =
@@ -7511,23 +7629,26 @@
   }
 
   async function fetchWardrobeAppStateFromCloud() {
-    const modernSelect = "collection_overrides, collection_hidden_ids";
-    const legacySelect = "archive_overrides, archive_hidden_ids";
     let res = await supabaseClient
       .from("wardrobe_app_state")
-      .select(modernSelect)
+      .select("*")
       .eq("id", "default")
       .maybeSingle();
-    if (res.error && wardrobeAppStateFetchShouldTryLegacy(res.error)) {
-      wardrobeAppStateUsesLegacyColumns = true;
-      res = await supabaseClient
-        .from("wardrobe_app_state")
-        .select(legacySelect)
-        .eq("id", "default")
-        .maybeSingle();
-    } else if (!res.error) {
-      wardrobeAppStateUsesLegacyColumns = false;
+    if (!res.error) {
+      wardrobeAppStateUsesLegacyColumns = detectWardrobeAppStateColumnMode(
+        /** @type {Record<string, unknown>} */ (res.data)
+      );
+      return res;
     }
+    if (!wardrobeAppStateFetchShouldTryLegacy(res.error)) return res;
+
+    wardrobeAppStateUsesLegacyColumns = true;
+    const legacyRes = await supabaseClient
+      .from("wardrobe_app_state")
+      .select("archive_overrides, archive_hidden_ids")
+      .eq("id", "default")
+      .maybeSingle();
+    if (!legacyRes.error) return legacyRes;
     return res;
   }
 
@@ -14480,11 +14601,12 @@
     const seen = new Set();
     if (cover) {
       frames.push({ url: cover, label: "Cover" });
-      seen.add(cover);
+      seen.add(wardrobeMediaPathKey(cover) || cover.split("?")[0]);
     }
     extras.forEach((url) => {
-      if (!url || seen.has(url)) return;
-      seen.add(url);
+      const key = wardrobeMediaPathKey(url) || String(url).split("?")[0];
+      if (!url || !key || seen.has(key)) return;
+      seen.add(key);
       frames.push({ url, label: `Photo ${frames.length + 1}` });
     });
     return frames;
@@ -14495,11 +14617,15 @@
     /** @type {{ url: string, label: string }[]} */
     const frames = [];
     if (!Array.isArray(entries)) return frames;
+    const seen = new Set();
     entries.forEach((e, i) => {
       let url = "";
       if (e?.kind === "url" && e.url) url = String(e.url).trim();
       else if (e?.kind === "file" && e.previewUrl) url = String(e.previewUrl).trim();
       if (!url) return;
+      const key = wardrobeMediaPathKey(url) || url.split("?")[0];
+      if (seen.has(key)) return;
+      seen.add(key);
       frames.push({ url, label: i === 0 ? "Cover" : `Photo ${i + 1}` });
     });
     return frames;
@@ -16818,11 +16944,15 @@
     /** @type {any[]} */
     const entries = [];
     const cover0 = String(opts.coverUrl ?? "").trim();
+    const coverKey = wardrobeMediaPathKey(cover0) || cover0.split("?")[0];
+    const seenKeys = new Set(coverKey ? [coverKey] : []);
     if (cover0) entries.push({ kind: "url", url: cover0 });
     for (const raw of opts.galleryUrls ?? []) {
       const url = String(raw ?? "").trim();
       if (!url) continue;
-      if (entries.some((e) => e.kind === "url" && e.url === url)) continue;
+      const key = wardrobeMediaPathKey(url) || url.split("?")[0];
+      if (!key || seenKeys.has(key)) continue;
+      seenKeys.add(key);
       if (entries.length >= maxPhotos) break;
       entries.push({ kind: "url", url });
     }
@@ -17595,12 +17725,15 @@
 
   function dedupeGalleryUrls(imageMain, galleryUrls, max = 12) {
     const main = String(imageMain ?? "").trim();
+    const mainKey = wardrobeMediaPathKey(main) || main.split("?")[0];
     const out = [];
     const seen = new Set();
     for (const u of galleryUrls) {
       const s = String(u ?? "").trim();
-      if (!s || s === main || seen.has(s)) continue;
-      seen.add(s);
+      if (!s) continue;
+      const key = wardrobeMediaPathKey(s) || s.split("?")[0];
+      if ((mainKey && key === mainKey) || seen.has(key)) continue;
+      seen.add(key);
       out.push(s);
       if (out.length >= max) break;
     }
@@ -21916,9 +22049,33 @@
       delete updated.priceCurrency;
     }
     const galleryBeforeFrozenHeal = gallery;
-    gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
+    const gallerySigAfterPhotos = gallery
+      .map((u) => String(u).split("?")[0])
+      .join("|");
+    const userEditedGalleryPhotos =
+      hadNewPhotoFiles || gallerySigAfterPhotos !== prevGallerySig;
+    if (!userEditedGalleryPhotos) {
+      gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
+    }
+    if (isLocalCatalogueItemId(id) && isSupabaseReady()) {
+      const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
+      const itemRef = { id };
+      const hasLocalOnlyMedia =
+        (image && isFileBackedLocalWardrobeUrl(itemRef, image) && !/^https?:\/\//i.test(image.split("?")[0])) ||
+        gallery.some(
+          (u) =>
+            isFileBackedLocalWardrobeUrl(itemRef, u) && !/^https?:\/\//i.test(String(u).split("?")[0])
+        );
+      if (needsCloudGallery || hasLocalOnlyMedia) {
+        setMsg("Syncing photos to cloud…", false);
+        const synced = await ensureFrozenCatalogueMediaUrlsOnCloud(id, image, gallery, setMsg);
+        image = synced.image;
+        gallery = synced.gallery;
+      }
+    }
     if (gallery.length) updated.gallery = gallery;
     else delete updated.gallery;
+    updated.image = image;
 
     if (variantsMode && colourVariantsBuilt?.length) {
       updated.colourVariants = colourVariantsBuilt;
@@ -21984,11 +22141,14 @@
     const frozenGalleryHealed =
       isLocalCatalogueItemId(id) &&
       galleryPathKeySignature(gallery) !== galleryPathKeySignature(galleryBeforeFrozenHeal);
+    const frozenGalleryNeedsCloudSync =
+      isLocalCatalogueItemId(id) && galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
     const mediaTouched =
       hadNewPhotoFiles ||
       String(image).split("?")[0] !== String(prevImage).split("?")[0] ||
       nextGallerySig !== prevGallerySig ||
-      frozenGalleryHealed;
+      frozenGalleryHealed ||
+      frozenGalleryNeedsCloudSync;
     if (mediaTouched) stampWardrobeItemMediaNonce(updated);
 
     /** When saving a custom piece, whether `data/custom-items.json` was updated (npm run dev). */

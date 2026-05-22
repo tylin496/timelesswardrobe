@@ -1363,8 +1363,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-16",
     "image": "/images/wardrobe/camel-hair-polo-coat/main/cover.png",
     "gallery": [
+      "/images/wardrobe/camel-hair-polo-coat/main/gallery/02.jpg",
       "/images/wardrobe/camel-hair-polo-coat/main/gallery/01.jpg",
-      "/images/wardrobe/camel-hair-polo-coat/main/gallery/02.jpg"
+      "/images/wardrobe/camel-hair-polo-coat/main/gallery/03.jpg"
     ],
     "metadata": {
       "price": 718.2,
