@@ -12,9 +12,16 @@ Production (Vercel): [timeless-wardrobe.vercel.app](https://timeless-wardrobe.ve
 
 See **[docs/SUPABASE.md](docs/SUPABASE.md)** for schema SQL, env vars, seed import, and security notes. Copy `.env.example` to `.env` for the Node import script; fill `js/tw-supabase-config.js` with the **public** URL and anon key for the browser.
 
+## CSS
+
+Edit **`css/main.css`**, then compile to **`styles.css`** (`npm run css:build`). HTML loads `styles.css` only. See **[docs/CSS.md](docs/CSS.md)** for cascade notes and debugging.
+
+`npm run dev` rebuilds CSS when files under `css/` change.
+
 ## Scripts
 
 | Command | Purpose |
 | --- | --- |
+| `npm run css:build` | Compile Tailwind + `main.css` → `styles.css` |
 | `npm run export:wardrobe-json` | Write `data/wardrobe.json` from `data/wardrobe.js` |
 | `npm run db:import-seed` | Upsert `wardrobe_items` via service role |

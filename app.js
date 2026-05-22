@@ -7252,7 +7252,25 @@
 
   function wardrobeAppStateColumnMissingError(err) {
     const msg = String(err?.message ?? err ?? "");
-    return /does not exist/i.test(msg) && /column/i.test(msg);
+    const code = String(err?.code ?? "");
+    return (
+      (code === "PGRST204" || code === "42703") &&
+      /column/i.test(msg)
+    ) ||
+      (/does not exist/i.test(msg) && /column/i.test(msg));
+  }
+
+  function wardrobeAppStateFetchShouldTryLegacy(err) {
+    if (!err) return false;
+    if (wardrobeAppStateColumnMissingError(err)) return true;
+    const code = String(err?.code ?? "");
+    const msg = String(err?.message ?? err ?? "").toLowerCase();
+    return (
+      code === "400" ||
+      code === "PGRST200" ||
+      /bad request/i.test(msg) ||
+      (/collection_overrides|collection_hidden_ids/.test(msg) && /column/.test(msg))
+    );
   }
 
   /** @param {Record<string, unknown> | null | undefined} data */
@@ -7284,7 +7302,7 @@
       .select(modernSelect)
       .eq("id", "default")
       .maybeSingle();
-    if (res.error && wardrobeAppStateColumnMissingError(res.error)) {
+    if (res.error && wardrobeAppStateFetchShouldTryLegacy(res.error)) {
       wardrobeAppStateUsesLegacyColumns = true;
       res = await supabaseClient
         .from("wardrobe_app_state")
@@ -8275,7 +8293,7 @@
     if (hero.dataset.twHeroCollectionTapWired === "1") return;
     hero.dataset.twHeroCollectionTapWired = "1";
 
-    const href = collectionHrefForBrowseState();
+    const href = appendCollectionFromHomeQuery(collectionHrefForBrowseState());
     const targets = [
       document.getElementById("ed-lp-hero-layers"),
       hero.querySelector(".ed-lp__hero-scrim"),
@@ -10149,7 +10167,7 @@
     closeBtn.type = "button";
     closeBtn.className = "item-image-zoom__close";
     closeBtn.setAttribute("aria-label", "Close enlarged photo");
-    closeBtn.textContent = "Close";
+    closeBtn.innerHTML = HEADER_DISMISS_ICON_HTML;
 
     const viewport = document.createElement("div");
     viewport.className = "item-image-zoom__viewport";
@@ -10160,9 +10178,45 @@
     img.decoding = "async";
     img.draggable = false;
 
+    const pager = document.createElement("nav");
+    pager.className = "item-image-zoom__pager";
+    pager.setAttribute("aria-label", "Photo gallery");
+    pager.hidden = true;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "item-image-zoom__pager-btn item-image-zoom__pager-btn--prev";
+    prevBtn.setAttribute("aria-label", "Previous photo");
+    const prevGlyph = document.createElement("span");
+    prevGlyph.className = "item-image-zoom__pager-glyph";
+    prevGlyph.setAttribute("aria-hidden", "true");
+    prevBtn.appendChild(prevGlyph);
+
+    const countEl = document.createElement("span");
+    countEl.className = "item-image-zoom__pager-count";
+    countEl.setAttribute("aria-live", "polite");
+
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "item-image-zoom__pager-btn item-image-zoom__pager-btn--next";
+    nextBtn.setAttribute("aria-label", "Next photo");
+    const nextGlyph = document.createElement("span");
+    nextGlyph.className = "item-image-zoom__pager-glyph";
+    nextGlyph.setAttribute("aria-hidden", "true");
+    nextBtn.appendChild(nextGlyph);
+
+    pager.append(prevBtn, countEl, nextBtn);
     viewport.appendChild(img);
-    dlg.append(closeBtn, viewport);
+    dlg.append(closeBtn, viewport, pager);
     document.body.appendChild(dlg);
+
+    /** @type {{ index: number, count: number, frameAt: ((i: number) => { src: string, alt: string }) | null, onIndexChange: ((i: number) => void) | null }} */
+    let pagerState = {
+      index: 0,
+      count: 1,
+      frameAt: null,
+      onIndexChange: null,
+    };
 
     const resetViewRef = { current: /** @type {null | (() => void)} */ (null) };
 
@@ -10184,6 +10238,51 @@
     dlg.addEventListener("cancel", (ev) => {
       ev.preventDefault();
       closeDialog();
+    });
+
+    const syncPagerUi = () => {
+      const max = Math.max(0, pagerState.count - 1);
+      const idx = Math.max(0, Math.min(max, pagerState.index));
+      pagerState.index = idx;
+      countEl.textContent = `${idx + 1} / ${pagerState.count}`;
+      prevBtn.disabled = idx <= 0;
+      nextBtn.disabled = idx >= max;
+    };
+
+    const showPagerFrame = (index, { syncHero = true } = {}) => {
+      if (!pagerState.frameAt || pagerState.count < 2) return;
+      const max = pagerState.count - 1;
+      const idx = Math.max(0, Math.min(max, Math.floor(index)));
+      pagerState.index = idx;
+      const frame = pagerState.frameAt(idx);
+      const src = String(frame?.src ?? "").trim();
+      if (!src) return;
+      resetViewRef.current?.();
+      resetViewRef.current = wirePanPinch();
+      img.alt = String(frame?.alt ?? "");
+      img.src = src;
+      syncPagerUi();
+      if (syncHero) pagerState.onIndexChange?.(idx);
+    };
+
+    prevBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showPagerFrame(pagerState.index - 1);
+    });
+    nextBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showPagerFrame(pagerState.index + 1);
+    });
+
+    dlg.addEventListener("keydown", (ev) => {
+      if (!dlg.open || pager.hidden) return;
+      if (ev.key === "ArrowLeft") {
+        ev.preventDefault();
+        showPagerFrame(pagerState.index - 1);
+      } else if (ev.key === "ArrowRight") {
+        ev.preventDefault();
+        showPagerFrame(pagerState.index + 1);
+      }
     });
 
     const wirePanPinch = () => {
@@ -10309,11 +10408,27 @@
       return resetView;
     };
 
-    dlg.__twOpen = ({ src, alt }) => {
-      resetViewRef.current?.();
-      resetViewRef.current = wirePanPinch();
-      img.alt = alt || "";
-      img.src = src;
+    dlg.__twOpen = ({ src, alt, pager: pagerOpts }) => {
+      const count = Math.max(1, Number(pagerOpts?.count) || 1);
+      const hasPager = count >= 2 && typeof pagerOpts?.frameAt === "function";
+      if (hasPager) {
+        pagerState = {
+          index: Math.max(0, Math.min(count - 1, Number(pagerOpts?.index) || 0)),
+          count,
+          frameAt: pagerOpts.frameAt,
+          onIndexChange:
+            typeof pagerOpts?.onIndexChange === "function" ? pagerOpts.onIndexChange : null,
+        };
+        pager.hidden = false;
+        showPagerFrame(pagerState.index, { syncHero: true });
+      } else {
+        pagerState = { index: 0, count: 1, frameAt: null, onIndexChange: null };
+        pager.hidden = true;
+        resetViewRef.current?.();
+        resetViewRef.current = wirePanPinch();
+        img.alt = alt || "";
+        img.src = src;
+      }
       try {
         dlg.showModal();
       } catch {
@@ -10327,16 +10442,181 @@
   }
 
   /**
-   * Mobile / touch: full-screen viewer with pinch-pan (inline scale zoom is desktop-only).
-   * @param {{ src: string, alt?: string }} opts
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} heroImg
+   * @param {object} item
+   * @param {{ frameUrlAt?: (index: number) => string } | null} galleryApi
+   */
+  function itemDetailActiveHeroImg(stageEl, heroImgEl) {
+    const slideImg = stageEl.querySelector(
+      ".item-detail__gallery-carousel-slide.is-active img"
+    );
+    return slideImg instanceof HTMLImageElement ? slideImg : heroImgEl;
+  }
+
+  function resolveItemHeroEnlargedAlt(item, index) {
+    return index === 0
+      ? imageAltForItem(item)
+      : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${index + 1})`;
+  }
+
+  function resolveItemHeroEnlargedSrcAtIndex(media, heroImg, item, galleryApi, index) {
+    const frameCount = Math.max(1, galleryApi?.frameCount ?? 1);
+    const safeIdx = Math.max(0, Math.min(frameCount - 1, Math.floor(index)));
+    const currentIdx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
+    if (safeIdx === currentIdx && Number.isFinite(currentIdx)) {
+      const activeImg = itemDetailActiveHeroImg(media, heroImg);
+      const displaySrc = String(activeImg.currentSrc || activeImg.src || "").trim();
+      const raw =
+        String(heroImg.dataset.frameRaw ?? "").trim() ||
+        galleryApi?.frameUrlAt?.(safeIdx) ||
+        String(heroImg.dataset.coverSrc ?? "").trim();
+      return displaySrc || wardrobeImageFullResolutionUrl(raw, item) || raw;
+    }
+    const raw =
+      galleryApi?.frameUrlAt?.(safeIdx) ||
+      (safeIdx === 0 ? String(heroImg.dataset.coverSrc ?? "").trim() : "") ||
+      String(heroImg.dataset.frameRaw ?? "").trim();
+    return wardrobeImageFullResolutionUrl(raw, item) || galleryApi?.frameUrlAt?.(safeIdx) || raw;
+  }
+
+  function resolveItemHeroEnlargedSrc(media, heroImg, item, galleryApi) {
+    const idx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
+    const safeIdx = Number.isFinite(idx) && idx >= 0 ? idx : 0;
+    return resolveItemHeroEnlargedSrcAtIndex(media, heroImg, item, galleryApi, safeIdx);
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} heroImg
+   * @param {object} item
+   * @param {{ frameCount?: number, frameUrlAt?: (i: number) => string, goTo?: (i: number) => void } | null} galleryApi
+   */
+  function buildItemHeroLightboxOpenOpts(media, heroImg, item, galleryApi) {
+    const frameCount = Math.max(1, galleryApi?.frameCount ?? 1);
+    const idx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
+    const safeIdx = Number.isFinite(idx) && idx >= 0 ? idx : 0;
+    const src = resolveItemHeroEnlargedSrcAtIndex(media, heroImg, item, galleryApi, safeIdx);
+    const alt = resolveItemHeroEnlargedAlt(item, safeIdx);
+    if (frameCount < 2) {
+      return { src, alt };
+    }
+    return {
+      src,
+      alt,
+      pager: {
+        index: safeIdx,
+        count: frameCount,
+        frameAt: (i) => ({
+          src: resolveItemHeroEnlargedSrcAtIndex(media, heroImg, item, galleryApi, i),
+          alt: resolveItemHeroEnlargedAlt(item, i),
+        }),
+        onIndexChange: (i) => {
+          if (typeof galleryApi?.goTo === "function") galleryApi.goTo(i);
+        },
+      },
+    };
+  }
+
+  /**
+   * Full-screen viewer with pinch-pan (mobile + desktop PDP click-to-enlarge).
+   * @param {{ src: string, alt?: string, pager?: { index: number, count: number, frameAt: (i: number) => { src: string, alt: string }, onIndexChange?: (i: number) => void } }} opts
    */
   function openItemImageZoomLightbox(opts) {
     const src = String(opts?.src ?? "").trim();
     if (!src) return;
-    /* Desktop PDP: in-frame hover zoom only — no full-screen viewer. */
-    if (isItemPageDesktopHoverZoom() && !isItemPageCoarsePointer()) return;
     const dlg = ensureItemImageZoomDialog();
-    dlg.__twOpen?.({ src, alt: String(opts?.alt ?? "") });
+    dlg.__twOpen?.({
+      src,
+      alt: String(opts?.alt ?? ""),
+      pager: opts?.pager,
+    });
+  }
+
+  /**
+   * Desktop PDP: circle + cursor on hover; click opens full-screen viewer (no in-frame hover zoom).
+   * @param {HTMLElement} media
+   * @param {HTMLImageElement} heroImg
+   * @param {object} item
+   * @param {{ frameUrlAt?: (index: number) => string } | null} galleryApi
+   */
+  function wireItemDetailHeroDesktopClickEnlarge(media, heroImg, item, galleryApi) {
+    if (!isItemPageDesktopHoverZoom()) return () => {};
+    if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return () => {};
+
+    media.classList.add("item-detail__media--hero-enlarge-desktop");
+    heroImg.classList.add("item-detail__hero-img--enlarge-desktop");
+
+    const useCustomCursor = !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    /** @type {HTMLElement | null} */
+    let cursorEl = null;
+    if (useCustomCursor) {
+      cursorEl = document.createElement("div");
+      cursorEl.className = "item-detail__hero-zoom-cursor";
+      cursorEl.setAttribute("aria-hidden", "true");
+      document.body.appendChild(cursorEl);
+    }
+
+    const positionCursor = (clientX, clientY) => {
+      if (!cursorEl) return;
+      cursorEl.style.left = `${clientX}px`;
+      cursorEl.style.top = `${clientY}px`;
+    };
+
+    const showCursor = () => cursorEl?.classList.add("is-visible");
+    const hideCursor = () => cursorEl?.classList.remove("is-visible");
+
+    const openEnlarged = () => {
+      const opts = buildItemHeroLightboxOpenOpts(media, heroImg, item, galleryApi);
+      if (!String(opts.src ?? "").trim()) return;
+      openItemImageZoomLightbox(opts);
+    };
+
+    const onMove = (ev) => {
+      positionCursor(ev.clientX, ev.clientY);
+    };
+
+    const onEnter = (ev) => {
+      showCursor();
+      positionCursor(ev.clientX, ev.clientY);
+    };
+
+    const onLeave = () => hideCursor();
+
+    const onClick = (e) => {
+      if (e.target.closest(".item-detail__gallery-nav")) return;
+      e.preventDefault();
+      openEnlarged();
+    };
+
+    const onKeydown = (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      if (e.target !== media && e.target !== heroImg) return;
+      e.preventDefault();
+      openEnlarged();
+    };
+
+    media.addEventListener("mouseenter", onEnter);
+    media.addEventListener("mousemove", onMove, { passive: true });
+    media.addEventListener("mouseleave", onLeave);
+    media.addEventListener("click", onClick);
+    media.addEventListener("keydown", onKeydown);
+    if (!media.hasAttribute("tabindex")) media.tabIndex = 0;
+    if (!media.getAttribute("role")) media.setAttribute("role", "button");
+    if (!media.getAttribute("aria-label")) media.setAttribute("aria-label", "Enlarge product photo");
+
+    return () => {
+      media.removeEventListener("mouseenter", onEnter);
+      media.removeEventListener("mousemove", onMove);
+      media.removeEventListener("mouseleave", onLeave);
+      media.removeEventListener("click", onClick);
+      media.removeEventListener("keydown", onKeydown);
+      cursorEl?.remove();
+      cursorEl = null;
+      media.classList.remove("item-detail__media--hero-enlarge-desktop");
+      heroImg.classList.remove("item-detail__hero-img--enlarge-desktop");
+      hideCursor();
+    };
   }
 
   /**
@@ -10357,69 +10637,29 @@
     heroImg.classList.add("item-detail__hero-img--enlarge");
     heroImg.title = "Click to enlarge";
 
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let suppressTap = false;
-
     const openEnlarged = () => {
-      const idx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
-      const safeIdx = Number.isFinite(idx) && idx >= 0 ? idx : 0;
-      const raw =
-        galleryApi?.frameUrlAt?.(safeIdx) ||
-        String(heroImg.dataset.coverSrc ?? "").trim() ||
-        String(heroImg.src ?? "").trim();
-      const src =
-        wardrobeImageFullResolutionUrl(raw, item) || heroImg.currentSrc || heroImg.src || raw;
-      if (!src) return;
-      openItemImageZoomLightbox({ src, alt: heroImg.alt });
+      const opts = buildItemHeroLightboxOpenOpts(media, heroImg, item, galleryApi);
+      if (!String(opts.src ?? "").trim()) return;
+      openItemImageZoomLightbox(opts);
     };
 
-    if (isItemPageCoarsePointer() && (galleryApi?.frameCount ?? 0) >= 2) {
-      media.addEventListener(
-        "touchstart",
-        (e) => {
-          const t = e.touches?.[0];
-          if (!t) return;
-          touchStartX = t.clientX;
-          touchStartY = t.clientY;
-          suppressTap = false;
-        },
-        { passive: true }
-      );
-
-      media.addEventListener(
-        "touchend",
-        (e) => {
-          const t = e.changedTouches?.[0];
-          if (!t) return;
-          const dx = t.clientX - touchStartX;
-          const dy = t.clientY - touchStartY;
-          if (Math.abs(dx) < 48) return;
-          if (Math.abs(dy) > 80 && Math.abs(dy) > Math.abs(dx)) return;
-          suppressTap = true;
-          galleryApi?.step?.(dx < 0 ? 1 : -1);
-          e.preventDefault();
-        },
-        { passive: false }
-      );
-    }
-
-    heroImg.addEventListener("click", (e) => {
+    const onHeroActivate = (e) => {
       if (e.target.closest(".item-detail__gallery-nav")) return;
-      if (suppressTap) {
-        suppressTap = false;
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
+      if (media.dataset.galleryCarouselSwiping === "1") return;
       e.preventDefault();
       openEnlarged();
-    });
-    heroImg.addEventListener("keydown", (e) => {
+    };
+
+    media.addEventListener("click", onHeroActivate);
+    media.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
+      if (e.target !== media && e.target !== heroImg) return;
       e.preventDefault();
       openEnlarged();
     });
+    if (!media.hasAttribute("tabindex")) media.tabIndex = 0;
+    if (!media.getAttribute("role")) media.setAttribute("role", "button");
+    if (!media.getAttribute("aria-label")) media.setAttribute("aria-label", "Enlarge product photo");
   }
 
   function itemDetailIsPageRoot(root) {
@@ -12377,7 +12617,9 @@
   }
 
   function navigateToCollectionSeason(seasonToken) {
-    const href = collectionSeasonHref(seasonToken);
+    if (isHomePageContext()) noteCollectionEntryFromHomePage();
+    let href = collectionSeasonHref(seasonToken);
+    if (isHomePageContext()) href = appendCollectionFromHomeQuery(href);
     try {
       globalThis.location.assign(href);
     } catch {
@@ -13460,6 +13702,14 @@
     resize: "cover",
   });
 
+  /** Mobile PLP carousel — smaller transform for faster hint + swipe frames. */
+  const COLLECTION_GRID_GALLERY_RENDER_MOBILE = Object.freeze({
+    width: 640,
+    height: 853,
+    quality: 82,
+    resize: "cover",
+  });
+
   /** @param {HTMLImageElement} img @param {"cover" | "gallery"} mode */
   function syncCardMediaImgFitClass(img, mode) {
     const gallery = mode === "gallery";
@@ -13735,7 +13985,7 @@
 
     const hint = document.createElement("p");
     hint.className = "item-detail__gallery-thumb-hint";
-    hint.textContent = "滑动缩图换图";
+    hint.textContent = "Swipe thumbnails to change photo";
     hint.hidden = hintSeen;
     galleryEl.appendChild(hint);
 
@@ -13793,6 +14043,93 @@
     setTimeout(dismissOnce, 5200);
   }
 
+  function getPdpMobileGalleryCarousel(stageEl) {
+    const el = stageEl.querySelector(".item-detail__gallery-carousel");
+    return el instanceof HTMLElement ? el : null;
+  }
+
+  function teardownPdpMobileGalleryCarousel(stageEl, heroImgEl) {
+    stageEl.querySelector(".item-detail__gallery-carousel")?.remove();
+    stageEl.classList.remove("item-detail__gallery-stage--swipe");
+    delete stageEl.dataset.galleryCarouselSwiping;
+    heroImgEl.hidden = false;
+    heroImgEl.removeAttribute("aria-hidden");
+  }
+
+  /**
+   * @param {HTMLElement} stageEl
+   * @param {HTMLElement} carousel
+   * @param {number} index
+   * @param {boolean} [animate]
+   */
+  function applyPdpMobileGalleryFrameIndex(stageEl, carousel, index, animate = true) {
+    const track = carousel.querySelector(".item-detail__gallery-carousel-track");
+    if (!(track instanceof HTMLElement) || !track.children.length) return 0;
+    const max = track.children.length - 1;
+    const idx = Math.max(0, Math.min(max, Math.floor(index)));
+    track.classList.remove("is-dragging");
+    track.style.transition = animate ? "" : "none";
+    track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+    [...track.children].forEach((slide, i) => {
+      if (!(slide instanceof HTMLElement)) return;
+      slide.classList.toggle("is-active", i === idx);
+    });
+    stageEl.dataset.galleryIndex = String(idx);
+    carousel.dataset.galleryIndex = String(idx);
+    return idx;
+  }
+
+  /**
+   * @param {HTMLElement} stageEl
+   * @param {HTMLImageElement} heroImgEl
+   * @param {{ url: string, label: string }[]} frames
+   * @param {(url: string) => string} heroFrameSrc
+   * @param {object} item
+   */
+  function buildPdpMobileGalleryCarousel(stageEl, heroImgEl, frames, heroFrameSrc) {
+    teardownPdpMobileGalleryCarousel(stageEl, heroImgEl);
+    if (frames.length < 2) return null;
+
+    const carousel = document.createElement("div");
+    carousel.className = "item-detail__gallery-carousel";
+    carousel.dataset.galleryFrameCount = String(frames.length);
+    carousel.setAttribute("role", "region");
+    carousel.setAttribute("aria-roledescription", "carousel");
+    carousel.setAttribute("aria-label", "Piece photos");
+
+    const track = document.createElement("div");
+    track.className = "item-detail__gallery-carousel-track";
+    const alt = String(heroImgEl.alt ?? "").trim();
+
+    frames.forEach((fr, i) => {
+      const slide = document.createElement("div");
+      const isCover = i === 0;
+      slide.className = `item-detail__gallery-carousel-slide item-detail__gallery-carousel-slide--${isCover ? "cover" : "gallery"}${i === 0 ? " is-active" : ""}`;
+      const simg = document.createElement("img");
+      simg.className = isCover
+        ? "card__media-img card__media-img--cover"
+        : "card__gallery-carousel-img card__gallery-frame-img";
+      simg.alt = i === 0 ? alt : "";
+      simg.loading = i <= 1 ? "eager" : "lazy";
+      if (i <= 1) simg.fetchPriority = "high";
+      simg.decoding = "async";
+      simg.draggable = false;
+      const url = heroFrameSrc(fr.url);
+      if (url) simg.src = url;
+      if (i === 0) simg.dataset.coverSrc = url;
+      simg.dataset.frameRaw = String(fr.url ?? "").trim();
+      slide.appendChild(simg);
+      track.appendChild(slide);
+    });
+
+    carousel.appendChild(track);
+    stageEl.insertBefore(carousel, heroImgEl);
+    stageEl.classList.add("item-detail__gallery-stage--swipe");
+    heroImgEl.hidden = true;
+    heroImgEl.setAttribute("aria-hidden", "true");
+    return carousel;
+  }
+
   /**
    * Item PDP / edit preview: vertical thumbs (left) + hero stage with prev / next.
    * @param {{ frames?: { url: string, label: string }[], initialIndex?: number }} [opts]
@@ -13801,6 +14138,7 @@
     if (!galleryEl || !thumbsEl || !stageEl || !heroImgEl) return;
     galleryEl.querySelector(".item-detail__gallery-thumb-hint")?.remove();
     thumbsEl.classList.remove("is-thumb-hint-active");
+    teardownPdpMobileGalleryCarousel(stageEl, heroImgEl);
     delete stageEl.dataset.twHeroViewWired;
     if (typeof stageEl.__twDesktopZoomCleanup === "function") {
       stageEl.__twDesktopZoomCleanup();
@@ -13809,14 +14147,17 @@
     stageEl.classList.remove(
       "item-detail__media--mobile-hero",
       "item-detail__media--hero-view",
+      "item-detail__media--hero-enlarge-desktop",
       "item-detail__media--zoomable",
       "item-detail__media--zoomed"
     );
     heroImgEl.classList.remove(
       "item-detail__hero-img--zoomable",
       "item-detail__hero-img--zoomed",
-      "item-detail__hero-img--enlarge"
+      "item-detail__hero-img--enlarge",
+      "item-detail__hero-img--enlarge-desktop"
     );
+    document.querySelectorAll(".item-detail__hero-zoom-cursor").forEach((el) => el.remove());
     heroImgEl.style.removeProperty("--hero-zoom-x");
     heroImgEl.style.removeProperty("--hero-zoom-y");
     heroImgEl.style.removeProperty("--hero-zoom-scale");
@@ -13894,23 +14235,59 @@
       }
     };
 
-    const showFrame = (index) => {
+    const pdpMobileCarousel =
+      multi && isItemPageCoarsePointer()
+        ? buildPdpMobileGalleryCarousel(stageEl, heroImgEl, frames, heroFrameSrc)
+        : null;
+
+    const syncHeroMetaFromIndex = (idx) => {
+      const carousel = getPdpMobileGalleryCarousel(stageEl);
+      const activeImg = itemDetailActiveHeroImg(stageEl, heroImgEl);
+      const url = heroFrameSrc(frames[idx].url);
+      if (url) {
+        if (idx === 0) heroImgEl.dataset.coverSrc = url;
+        heroImgEl.dataset.frameRaw = String(frames[idx].url ?? "").trim();
+        if (!carousel) heroImgEl.src = url;
+      }
+      heroImgEl.alt =
+        idx === 0
+          ? imageAltForItem(item)
+          : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${idx + 1})`;
+      if (carousel) {
+        const slideImg = carousel.querySelector(
+          `.item-detail__gallery-carousel-slide:nth-child(${idx + 1}) img`
+        );
+        if (slideImg instanceof HTMLImageElement) {
+          slideImg.alt = heroImgEl.alt;
+        }
+      } else {
+        syncCardMediaImgFitClass(heroImgEl, idx === 0 ? "cover" : "gallery");
+      }
+    };
+
+    const showFrame = (index, animate = true) => {
       currentIndex = ((index % frames.length) + frames.length) % frames.length;
       stageEl.classList.remove("item-detail__media--zoomed");
       heroImgEl.classList.remove("item-detail__hero-img--zoomed");
       heroImgEl.style.removeProperty("--hero-zoom-x");
       heroImgEl.style.removeProperty("--hero-zoom-y");
       heroImgEl.style.removeProperty("--hero-zoom-scale");
+
+      const carousel = getPdpMobileGalleryCarousel(stageEl);
+      if (carousel) {
+        currentIndex = applyPdpMobileGalleryFrameIndex(stageEl, carousel, currentIndex, animate);
+        syncHeroMetaFromIndex(currentIndex);
+        syncActiveThumb();
+        return;
+      }
+
       const url = heroFrameSrc(frames[currentIndex].url);
       if (url) {
         heroImgEl.src = url;
         if (currentIndex === 0) heroImgEl.dataset.coverSrc = url;
         heroImgEl.dataset.frameRaw = String(frames[currentIndex].url ?? "").trim();
       }
-      heroImgEl.alt =
-        currentIndex === 0
-          ? imageAltForItem(item)
-          : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${currentIndex + 1})`;
+      syncHeroMetaFromIndex(currentIndex);
       syncCardMediaImgFitClass(heroImgEl, currentIndex === 0 ? "cover" : "gallery");
       syncActiveThumb();
       stageEl.dataset.galleryIndex = String(currentIndex);
@@ -13924,11 +14301,10 @@
       const ti = document.createElement("img");
       ti.src = heroFrameSrc(fr.url);
       ti.alt = "";
-      ti.draggable = false;
       btn.appendChild(ti);
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        showFrame(i);
+        showFrame(i, true);
       });
       thumbsEl.appendChild(btn);
     });
@@ -13946,7 +14322,7 @@
         btn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          showFrame(currentIndex + (dir === "prev" ? -1 : 1));
+          showFrame(currentIndex + (dir === "prev" ? -1 : 1), true);
         });
         return btn;
       };
@@ -13954,12 +14330,20 @@
       stageEl.appendChild(makeNav("next"));
     }
 
+    if (pdpMobileCarousel) {
+      wireIndexLockedHorizontalGallerySnap(pdpMobileCarousel, stageEl, {
+        readIndex: () => currentIndex,
+        applyIndex: (idx, animate) => showFrame(idx, animate),
+        frameCount: () => frames.length,
+        swipeFlagHost: stageEl,
+      });
+    }
+
     const start =
       typeof opts.initialIndex === "number" && Number.isFinite(opts.initialIndex)
         ? opts.initialIndex
         : 0;
-    showFrame(start);
-    syncCardMediaImgFitClass(heroImgEl, "cover");
+    showFrame(start, false);
 
     if (multi) {
       if (typeof ResizeObserver !== "undefined") {
@@ -13979,21 +14363,37 @@
       thumbsEl.style.removeProperty("max-height");
     }
 
-    if (opts.heroInteractions && isItemPageCoarsePointer()) {
-      stageEl.__twPdpGallery = {
-        frameCount: frames.length,
-        frameUrlAt(i) {
-          const fr = frames[((i % frames.length) + frames.length) % frames.length];
-          return String(fr?.url ?? "").trim();
-        },
-        step(delta) {
-          showFrame(currentIndex + delta);
-        },
-      };
-      wireItemPageHeroView(stageEl, heroImgEl, item, stageEl.__twPdpGallery);
+    const pdpGalleryApi = {
+      frameCount: frames.length,
+      frameUrlAt(i) {
+        const fr = frames[((i % frames.length) + frames.length) % frames.length];
+        return heroFrameSrc(String(fr?.url ?? "").trim());
+      },
+      step(delta) {
+        showFrame(currentIndex + delta, true);
+      },
+      goTo(index) {
+        showFrame(index, false);
+      },
+    };
+
+    if (opts.heroInteractions) {
+      stageEl.__twPdpGallery = pdpGalleryApi;
+      if (isItemPageCoarsePointer()) {
+        wireItemPageHeroView(stageEl, heroImgEl, item, pdpGalleryApi);
+      }
     }
 
-    stageEl.__twDesktopZoomCleanup = wireItemDetailHeroDesktopZoomPan(stageEl, heroImgEl);
+    if (opts.heroInteractions && isItemPageDesktopHoverZoom()) {
+      stageEl.__twDesktopZoomCleanup = wireItemDetailHeroDesktopClickEnlarge(
+        stageEl,
+        heroImgEl,
+        item,
+        stageEl.__twPdpGallery
+      );
+    } else {
+      stageEl.__twDesktopZoomCleanup = wireItemDetailHeroDesktopZoomPan(stageEl, heroImgEl);
+    }
   }
 
   function remountItemDetailHeroGallery(heroHost, heroImg, item) {
@@ -16647,7 +17047,7 @@
 
   /** Shown after `QuotaExceededError` when shrinking and retry did not help. */
   const STORAGE_QUOTA_USER_HINT =
-    "不是 Chrome 不讓存：每個網站在瀏覽器裡的儲存上限大約只有 5MB。請少放幾張圖、刪掉較舊的自訂單品，或在網站設定裡清除本網站資料。若錯誤句子像舊版（例如 crop first），請強制重新整理（⌘⇧R 或 Ctrl+Shift+R）載入最新 app.js。";
+    "This isn't a Chrome block: each site has about 5MB of browser storage. Try fewer photos, remove older custom pieces, or clear this site's data in your browser settings. If the error still mentions an old message (e.g. crop first), hard-refresh (⌘⇧R or Ctrl+Shift+R) to load the latest app.js.";
 
   function dedupeGalleryUrls(imageMain, galleryUrls, max = 12) {
     const main = String(imageMain ?? "").trim();
@@ -17275,9 +17675,12 @@
       out.push({ url: coverUrl, cutout: true });
     }
 
+    const galleryRender = isCollectionCardCoarsePointer()
+      ? COLLECTION_GRID_GALLERY_RENDER_MOBILE
+      : COLLECTION_GRID_GALLERY_RENDER;
     for (const raw of collectionGridEditorialGalleryRaws(item)) {
       const url =
-        wardrobeImageForFrame(raw, item, COLLECTION_GRID_GALLERY_RENDER) ||
+        wardrobeImageForFrame(raw, item, galleryRender) ||
         withWardrobeImageCacheBust(raw, item);
       const key = String(url).split("?")[0];
       if (!url || !key || seen.has(key)) continue;
@@ -17356,8 +17759,129 @@
     applyMobileGalleryFrameIndex(media, carousel, index, smooth);
   }
 
-  const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-v1";
+  const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-v2";
+  const COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY = "tw-collection-from-home-entry";
+  const COLLECTION_SWIPE_HINT_FROM_HOME_QUERY = "from";
+  const COLLECTION_SWIPE_HINT_FROM_HOME_VALUE = "home";
   let collectionGallerySwipeHintToken = 0;
+  /** When true, mobile PLP always plays the first-card swipe nudge (home entry). */
+  let collectionGallerySwipeHintForceFromHome = false;
+
+  /** Mobile-only swipe hint (narrow viewport — not desktop coarse-pointer emulation). */
+  function isCollectionGallerySwipeHintViewport() {
+    return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
+  }
+
+  function isHomePageContext() {
+    return document.body.classList.contains("home-page");
+  }
+
+  function appendCollectionFromHomeQuery(href) {
+    try {
+      const u = new URL(href, globalThis.location.origin);
+      u.searchParams.set(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY, COLLECTION_SWIPE_HINT_FROM_HOME_VALUE);
+      return `${u.pathname}${u.search}${u.hash}`;
+    } catch {
+      const join = href.includes("?") ? "&" : "?";
+      return `${href}${join}${COLLECTION_SWIPE_HINT_FROM_HOME_QUERY}=${COLLECTION_SWIPE_HINT_FROM_HOME_VALUE}`;
+    }
+  }
+
+  function noteCollectionEntryFromHomePage() {
+    try {
+      sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** URL `?from=home` or session flag set before leaving the homepage. */
+  function consumeCollectionEntryFromHomePage() {
+    let fromHome = false;
+    try {
+      const u = new URL(globalThis.location.href);
+      if (u.searchParams.get(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY) === COLLECTION_SWIPE_HINT_FROM_HOME_VALUE) {
+        fromHome = true;
+        u.searchParams.delete(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY);
+        globalThis.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY) === "1") {
+        fromHome = true;
+        sessionStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+    return fromHome;
+  }
+
+  /** @param {HTMLElement} media */
+  function isFirstGridSwipeGalleryCard(media) {
+    const grid = document.getElementById("grid");
+    const card = media.closest("#grid > .card");
+    return Boolean(grid && card && grid.querySelector(":scope > .card") === card);
+  }
+
+  /**
+   * @param {HTMLElement} carousel
+   * @param {number} throughIndex
+   * @returns {HTMLImageElement[]}
+   */
+  function mobileGalleryCarouselFrameImages(carousel, throughIndex) {
+    const track = carousel.querySelector(".card__gallery-carousel-track");
+    if (!(track instanceof HTMLElement)) return [];
+    return [...track.children]
+      .slice(0, throughIndex + 1)
+      .map((slide) => slide.querySelector("img"))
+      .filter((img) => img instanceof HTMLImageElement);
+  }
+
+  /**
+   * @param {HTMLElement} carousel
+   * @param {number} throughIndex
+   * @param {(ready: boolean) => void} cb
+   * @param {number} [timeoutMs]
+   */
+  function whenMobileGalleryCarouselFramesReady(carousel, throughIndex, cb, timeoutMs = 2800) {
+    const imgs = mobileGalleryCarouselFrameImages(carousel, throughIndex);
+    if (!imgs.length) {
+      cb(false);
+      return;
+    }
+    let settled = false;
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
+    const finish = (/** @type {boolean} */ ready) => {
+      if (settled) return;
+      settled = true;
+      if (timer != null) globalThis.clearTimeout(timer);
+      imgs.forEach((img) => {
+        img.removeEventListener("load", onLoad);
+        img.removeEventListener("error", onLoad);
+      });
+      cb(ready);
+    };
+    const allReady = () => imgs.every((img) => img.complete && img.naturalWidth > 0);
+    const onLoad = () => {
+      if (allReady()) finish(true);
+    };
+    imgs.forEach((img) => {
+      if (img.loading !== "eager") img.loading = "eager";
+      if (throughIndex <= 1) img.fetchPriority = "high";
+      void img.decode?.().catch(() => {});
+      img.addEventListener("load", onLoad);
+      img.addEventListener("error", onLoad);
+    });
+    if (allReady()) {
+      finish(true);
+      return;
+    }
+    timer = globalThis.setTimeout(() => finish(allReady()), timeoutMs);
+  }
 
   /** First grid card when it has 2+ gallery frames (mobile swipe). */
   function firstCollectionGridSwipeGalleryMedia() {
@@ -17387,23 +17911,30 @@
     if (prefersReducedMotion) return;
 
     const token = collectionGallerySwipeHintToken;
-    const ease = "cubic-bezier(0.44, 0, 0.22, 1)";
-    const peekMs = 420;
-    const returnMs = 480;
+    const ease = "cubic-bezier(0.33, 0, 0.2, 1)";
+    const peekMs = 280;
+    const returnMs = 340;
 
     const finish = () => {
       if (token !== collectionGallerySwipeHintToken) return;
+      track.classList.remove("is-dragging");
+      track.style.transition = "";
+      track.style.transform = "";
       applyMobileGalleryFrameIndex(media, carousel, 0, false);
       media.classList.remove("card__media--gallery-hint-active");
       carousel.classList.remove("card__gallery-carousel--hint-active");
     };
 
+    const persistSessionDismiss = !collectionGallerySwipeHintForceFromHome;
+
     const dismissHint = () => {
       collectionGallerySwipeHintToken++;
-      try {
-        sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
-      } catch {
-        /* ignore */
+      if (persistSessionDismiss) {
+        try {
+          sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
+        } catch {
+          /* ignore */
+        }
       }
       finish();
     };
@@ -17417,18 +17948,21 @@
       if (w < 40) return;
       media.classList.add("card__media--gallery-hint-active");
       carousel.classList.add("card__gallery-carousel--hint-active");
-      track.classList.add("is-dragging");
+      /* Do not use is-dragging — CSS disables transition on that class. */
+      track.classList.remove("is-dragging");
       track.style.transition = `transform ${peekMs}ms ${ease}`;
-      track.style.transform = "translate3d(-50%, 0, 0)";
+      track.style.transform = "translate3d(-42%, 0, 0)";
       window.setTimeout(() => {
         if (token !== collectionGallerySwipeHintToken) return;
         track.style.transition = `transform ${returnMs}ms ${ease}`;
         track.style.transform = "translate3d(0, 0, 0)";
         window.setTimeout(() => {
-          try {
-            sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
-          } catch {
-            /* ignore */
+          if (persistSessionDismiss) {
+            try {
+              sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
+            } catch {
+              /* ignore */
+            }
           }
           finish();
         }, returnMs + 40);
@@ -17438,20 +17972,26 @@
     requestAnimationFrame(() => requestAnimationFrame(run));
   }
 
-  /** Once per session on collection PLP (mobile): nudge first swipeable card. */
+  /** Mobile PLP: nudge first swipeable card (always when entering from home; otherwise once per session). */
   function scheduleCollectionGallerySwipeHint() {
     if (!document.body.classList.contains("collection-page")) return;
-    if (!isCollectionCardCoarsePointer()) return;
+    if (!isCollectionGallerySwipeHintViewport()) return;
     if (document.body.classList.contains("collection-ui--search-results-plp")) return;
-    try {
-      if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1") return;
-    } catch {
-      /* ignore */
+
+    collectionGallerySwipeHintForceFromHome = consumeCollectionEntryFromHomePage();
+    if (!collectionGallerySwipeHintForceFromHome) {
+      try {
+        if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1") return;
+      } catch {
+        /* ignore */
+      }
     }
 
     const token = ++collectionGallerySwipeHintToken;
+    const maxTries = collectionGallerySwipeHintForceFromHome ? 28 : 14;
+    const framesReadyMs = collectionGallerySwipeHintForceFromHome ? 3600 : 1400;
 
-    const attempt = (triesLeft = 8) => {
+    const attempt = (triesLeft = maxTries) => {
       if (token !== collectionGallerySwipeHintToken) return;
       const media = firstCollectionGridSwipeGalleryMedia();
       if (!media) {
@@ -17463,24 +18003,64 @@
         if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), 120);
         return;
       }
-      playCollectionGallerySwipeHint(media, carousel);
+      whenMobileGalleryCarouselFramesReady(
+        carousel,
+        1,
+        (ready) => {
+          if (token !== collectionGallerySwipeHintToken) return;
+          if (!ready && triesLeft > 0) {
+            window.setTimeout(() => attempt(triesLeft - 1), 120);
+            return;
+          }
+          if (!ready) return;
+          playCollectionGallerySwipeHint(media, carousel);
+        },
+        framesReadyMs
+      );
     };
 
     requestAnimationFrame(() => {
-      window.setTimeout(() => attempt(), 520);
+      window.setTimeout(() => attempt(), collectionGallerySwipeHintForceFromHome ? 80 : 220);
     });
   }
 
+  /** Clears the once-per-session flag and replays the hint (console: `twReplayCollectionSwipeHint()`). */
+  function replayCollectionGallerySwipeHint() {
+    collectionGallerySwipeHintToken++;
+    try {
+      sessionStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_KEY);
+    } catch {
+      /* ignore */
+    }
+    scheduleCollectionGallerySwipeHint();
+  }
+
+  if (typeof globalThis !== "undefined") {
+    globalThis.twReplayCollectionSwipeHint = replayCollectionGallerySwipeHint;
+  }
+
   /**
+   * Index-locked horizontal gallery (grid PLP + item PDP) — drag follow + eased snap.
    * @param {HTMLElement} carousel
-   * @param {HTMLElement} media
+   * @param {HTMLElement} host
+   * @param {{
+   *   readIndex: () => number,
+   *   applyIndex: (index: number, animate?: boolean) => void,
+   *   frameCount: () => number,
+   *   swipeFlagHost?: HTMLElement,
+   *   blockTouchWhen?: () => boolean,
+   * }} api
    */
-  function wireMobileGalleryStrictSnap(carousel, media) {
+  function wireIndexLockedHorizontalGallerySnap(carousel, host, api) {
     if (carousel.dataset.twStrictSnapWired === "1") return;
     carousel.dataset.twStrictSnapWired = "1";
 
-    const track = carousel.querySelector(".card__gallery-carousel-track");
+    const track = carousel.querySelector(
+      ".card__gallery-carousel-track, .item-detail__gallery-carousel-track"
+    );
     if (!(track instanceof HTMLElement)) return;
+
+    const swipeHost = api.swipeFlagHost instanceof HTMLElement ? api.swipeFlagHost : host;
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -17488,15 +18068,19 @@
     let touchActive = false;
     let suppressTimer = 0;
 
-    const frameCount = () => track.children.length;
-
     const markSwiping = () => {
-      media.dataset.galleryCarouselSwiping = "1";
+      swipeHost.dataset.galleryCarouselSwiping = "1";
       if (suppressTimer) window.clearTimeout(suppressTimer);
       suppressTimer = window.setTimeout(() => {
-        media.dataset.galleryCarouselSwiping = "0";
+        swipeHost.dataset.galleryCarouselSwiping = "0";
         suppressTimer = 0;
-      }, 320);
+      }, 280);
+    };
+
+    const markSwipingIfGesture = (dx, dy) => {
+      const w = carousel.clientWidth || 1;
+      const threshold = Math.min(44, w * 0.14);
+      if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) markSwiping();
     };
 
     const setTrackDragOffset = (index, dragPx) => {
@@ -17510,10 +18094,9 @@
 
     const settleFromTouch = (dx, dy) => {
       const w = carousel.clientWidth || 1;
-      /* Vertical page scroll — keep the frame the user already picked (do not snap back to cover). */
+      const max = Math.max(0, api.frameCount() - 1);
       if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
-        applyMobileGalleryFrameIndex(media, carousel, readMobileGalleryFrameIndex(media), false);
-        markSwiping();
+        api.applyIndex(Math.max(0, Math.min(max, api.readIndex())), false);
         return;
       }
       const threshold = Math.min(44, w * 0.14);
@@ -17521,22 +18104,22 @@
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
         target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
-      target = Math.max(0, Math.min(frameCount() - 1, target));
-      applyMobileGalleryFrameIndex(media, carousel, target, true);
-      markSwiping();
+      target = Math.max(0, Math.min(max, target));
+      api.applyIndex(target, true);
+      markSwipingIfGesture(dx, dy);
     };
 
     carousel.addEventListener(
       "touchstart",
       (e) => {
-        if (frameCount() < 2) return;
-        if (carousel.classList.contains("card__gallery-carousel--hint-active")) return;
+        if (api.frameCount() < 2) return;
+        if (api.blockTouchWhen?.()) return;
         const t = e.touches?.[0];
         if (!t) return;
         touchActive = true;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
-        touchStartIndex = readMobileGalleryFrameIndex(media);
+        touchStartIndex = api.readIndex();
         track.classList.add("is-dragging");
         track.style.transition = "none";
       },
@@ -17546,26 +18129,24 @@
     carousel.addEventListener(
       "touchmove",
       (e) => {
-        if (!touchActive || frameCount() < 2) return;
+        if (!touchActive || api.frameCount() < 2) return;
         const t = e.touches?.[0];
         if (!t) return;
         const dx = t.clientX - touchStartX;
         const dy = t.clientY - touchStartY;
         if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
           touchActive = false;
-          /* Let the page scroll — hold the swiped frame (avoid cover snap + transition jank). */
-          applyMobileGalleryFrameIndex(media, carousel, readMobileGalleryFrameIndex(media), false);
+          api.applyIndex(Math.max(0, Math.min(api.frameCount() - 1, api.readIndex())), false);
           return;
         }
         const atStart = touchStartIndex <= 0;
-        const atEnd = touchStartIndex >= frameCount() - 1;
+        const atEnd = touchStartIndex >= api.frameCount() - 1;
         let clampedDx = dx;
         if (atStart && clampedDx > 0) clampedDx *= 0.22;
         if (atEnd && clampedDx < 0) clampedDx *= 0.22;
         const maxDrag = carousel.clientWidth * 0.92;
         clampedDx = Math.max(-maxDrag, Math.min(maxDrag, clampedDx));
         setTrackDragOffset(touchStartIndex, clampedDx);
-        if (Math.abs(dx) > 8) markSwiping();
       },
       { passive: true }
     );
@@ -17575,7 +18156,7 @@
       touchActive = false;
       const t = e.changedTouches?.[0];
       if (!t) {
-        applyMobileGalleryFrameIndex(media, carousel, touchStartIndex, true);
+        api.applyIndex(touchStartIndex, true);
         return;
       }
       settleFromTouch(t.clientX - touchStartX, t.clientY - touchStartY);
@@ -17591,6 +18172,21 @@
       },
       { passive: false }
     );
+  }
+
+  /**
+   * @param {HTMLElement} carousel
+   * @param {HTMLElement} media
+   */
+  function wireMobileGalleryStrictSnap(carousel, media) {
+    wireIndexLockedHorizontalGallerySnap(carousel, media, {
+      readIndex: () => readMobileGalleryFrameIndex(media),
+      applyIndex: (idx, animate) => applyMobileGalleryFrameIndex(media, carousel, idx, animate),
+      frameCount: () =>
+        carousel.querySelector(".card__gallery-carousel-track")?.children.length ?? 0,
+      swipeFlagHost: media,
+      blockTouchWhen: () => carousel.classList.contains("card__gallery-carousel--hint-active"),
+    });
   }
 
   const COLLECTION_CARD_GALLERY_FRAME_MS = 280;
@@ -17799,8 +18395,9 @@
    * @param {HTMLElement} media
    * @param {HTMLImageElement} img
    * @param {{ url: string, cutout: boolean }[]} frameEntries
+   * @param {{ eagerThroughIndex?: number }} [opts]
    */
-  function syncMobileGalleryCarousel(media, img, frameEntries) {
+  function syncMobileGalleryCarousel(media, img, frameEntries, opts = {}) {
     const sig = collectionCardGalleryFrameSig(frameEntries);
     let carousel = getMobileGalleryCarousel(media);
     const rebuild =
@@ -17821,6 +18418,8 @@
       const track = document.createElement("div");
       track.className = "card__gallery-carousel-track";
       const alt = String(img.alt ?? "").trim();
+      const eagerThrough =
+        typeof opts.eagerThroughIndex === "number" ? Math.max(0, opts.eagerThroughIndex) : -1;
       frameEntries.forEach((entry, i) => {
         const slide = document.createElement("div");
         const useCoverPlate = entry.cutout;
@@ -17830,7 +18429,9 @@
           ? "card__media-img card__media-img--cover"
           : "card__gallery-carousel-img card__gallery-frame-img";
         simg.alt = i === 0 ? alt : "";
-        simg.loading = "lazy";
+        const eager = i <= eagerThrough;
+        simg.loading = eager ? "eager" : "lazy";
+        if (eager) simg.fetchPriority = "high";
         simg.decoding = "async";
         simg.draggable = false;
         simg.src = entry.url;
@@ -17890,7 +18491,9 @@
 
       if (coarsePointer) {
         teardownDesktopGalleryStage(media, img);
-        const carousel = syncMobileGalleryCarousel(media, img, frameEntries);
+        const carousel = syncMobileGalleryCarousel(media, img, frameEntries, {
+          eagerThroughIndex: isFirstGridSwipeGalleryCard(media) ? 1 : undefined,
+        });
         applyMobileGalleryFrameIndex(media, carousel, idx, false);
         return;
       }
@@ -17899,20 +18502,6 @@
       const stage = syncDesktopGalleryTrack(media, img, frameEntries);
       const settled = applyDesktopGalleryFrameIndex(stage, idx, false);
       media.dataset.galleryFrameIndex = String(settled);
-    }
-
-    if (coarsePointer && media.dataset.mobileGalleryClickGuard !== "1") {
-      media.dataset.mobileGalleryClickGuard = "1";
-      media.addEventListener(
-        "click",
-        (e) => {
-          if (media.dataset.galleryCarouselSwiping !== "1") return;
-          if (!(e.target instanceof Element) || !e.target.closest(".card__gallery-carousel")) return;
-          e.preventDefault();
-          e.stopPropagation();
-        },
-        true
-      );
     }
 
     media.addEventListener("tw-collection-cover-change", (e) => {
@@ -18150,9 +18739,6 @@
       Boolean(variants?.length) && allVariantKeys.length > 0 && allVariantKeys.every((k) => takenKeys.has(k));
     const singleTaken = !variants?.length && outfitSlotKeySet().has(outfitSlotKey({ itemId: item.id }));
 
-    const slotLab = itemSlot(item);
-    const recKey = recordCategoryForDrill(item, slotLab);
-
     const colourBucket = activeBasicColourFilterKey();
     const variantKeyForHero =
       variants?.length && colourBucket ? firstVariantKeyMatchingBasicColourBucket(item, colourBucket) : "";
@@ -18233,13 +18819,16 @@
     function openCardDetail(ev) {
       openItemDetail(String(item.id), ev);
     }
-    media.addEventListener("click", (ev) => {
+    article.addEventListener("click", (ev) => {
+      if (!(ev.target instanceof Element)) return;
+      if (!ev.target.closest(".card__media.card__media--opens-detail")) return;
       if (ev.target.closest(".card__board-add, .card__quick-outfit")) return;
       if (ev.target.closest(".card__swatch--pick")) return;
       if (ev.target.closest(".card__colour-tray")) return;
       if (ev.target.closest(".card__gallery-thumb")) return;
       if (ev.target.closest(".card__gallery-nav")) return;
       if (ev.target.closest(".card__season-chip")) return;
+      if (media.dataset.galleryCarouselSwiping === "1") return;
       /* Collection PLP mobile: first tap on card reveals “+”, second opens piece. */
       if (
         isCollectionCardCoarsePointer() &&
@@ -18319,8 +18908,7 @@
 
     const specs = document.createElement("ul");
     specs.className = "card__specs card__specs--hover";
-    const fr = friendlyRecordCategory(recKey) || recKey;
-    [fr, categoryDisplayLabel(slotLab), ...specParts(item, { forGridCard: true })].filter(Boolean).forEach((part) => {
+    specParts(item, { forGridCard: true }).filter(Boolean).forEach((part) => {
       const li = document.createElement("li");
       li.textContent = part;
       specs.appendChild(li);
@@ -21328,7 +21916,8 @@
     img.className = "card__media-img card__media-img--cover";
     img.alt = imageAltForItem(itemForMedia);
     img.decoding = "async";
-    img.draggable = false;
+    /* PDP hero: keep native right-click Save Image (collection grid still uses draggable=false). */
+    if (!usePdpGalleryLayout) img.draggable = false;
     wireCoverImageWithFallbacks(img, itemForMedia, {
       host: media,
       coverRenderWidth: ITEM_DETAIL_GALLERY_RENDER.width,
@@ -22321,7 +22910,9 @@
   }
 
   function navigateToCollectionMain(overrides = {}) {
-    const href = collectionHrefForBrowseState(overrides);
+    if (isHomePageContext()) noteCollectionEntryFromHomePage();
+    let href = collectionHrefForBrowseState(overrides);
+    if (isHomePageContext()) href = appendCollectionFromHomeQuery(href);
     try {
       globalThis.location.assign(href);
     } catch {
@@ -22546,8 +23137,8 @@
               message: pieceLabel
                 ? `Create a copy of ${pieceLabel}? Photos and all fields are copied; the name will get “ (copy)”.`
                 : "Create a copy of this piece? Photos and all fields are copied; the name will get “ (copy)”.",
-              confirmLabel: "確定",
-              cancelLabel: "取消",
+              confirmLabel: "Duplicate",
+              cancelLabel: "Cancel",
             });
             if (!ok) return;
             if (dupBtnEl) dupBtnEl.disabled = true;
