@@ -13417,11 +13417,11 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   box-sizing: border-box;
   transform: translate3d(0, 0, 0);
   transition: transform var(--tw-card-gallery-frame-duration) var(--tw-card-gallery-frame-ease);
-  will-change: transform;
 }
 
 #grid .card__media--gallery-swipe .card__gallery-carousel-track.is-dragging {
   transition: none;
+  will-change: transform;
 }
 
 /* Swipe hint: subtle track nudge only — never block taps (user may scroll or swipe first). */

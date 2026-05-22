@@ -6136,7 +6136,52 @@
     }
 
     /* Preserve cloud / seed gallery array order (edit drag order) — do not re-sort by filename slot. */
-    return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
+    return mergeMissingFrozenSeedGalleryPaths(
+      itemId,
+      orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean)
+    );
+  }
+
+  /** @param {string[]} urls */
+  function galleryPathKeySignature(urls) {
+    return urls
+      .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
+      .filter(Boolean)
+      .join("|");
+  }
+
+  /**
+   * Frozen catalogue: prepend seed `gallery/*` paths missing from the current list (seed order).
+   * Keeps cloud / editor drag order for paths already present — no filename re-sort.
+   * @param {string} itemId
+   * @param {string[]} urls
+   */
+  function mergeMissingFrozenSeedGalleryPaths(itemId, urls) {
+    const id = String(itemId ?? "").trim();
+    if (!id || !isLocalCatalogueItemId(id)) return [...urls];
+    const seed = catalogueSeedRow(id);
+    if (!seed) return [...urls];
+    const coverKey = wardrobeMediaPathKey(String(seed.image ?? ""));
+    const present = new Set(urls.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
+    /** @type {string[]} */
+    const missing = [];
+    for (const raw of itemGalleryList(seed)) {
+      const u = String(raw ?? "").trim();
+      if (!u || !isDisplayableCloudImageUrl(u)) continue;
+      if (!isFileBackedLocalWardrobeUrl(seed, u)) continue;
+      const key = wardrobeMediaPathKey(u);
+      if (!key || key === coverKey || present.has(key)) continue;
+      present.add(key);
+      missing.push(u);
+    }
+    if (!missing.length) return [...urls];
+    return [...missing, ...urls];
+  }
+
+  /** Gallery extras for display / editor — frozen seed paths merged when cloud row is incomplete. */
+  function resolvedItemGalleryList(item) {
+    const id = String(item?.id ?? "").trim();
+    return mergeMissingFrozenSeedGalleryPaths(id, itemGalleryList(item));
   }
 
   /** Gallery order diff (same paths in different sequence should count as user media edit). */
@@ -14107,7 +14152,9 @@
     const seen = new Set();
     /** @type {string[]} */
     const out = [];
-    for (const raw of itemGalleryList(item)) {
+    const id = String(item?.id ?? "").trim();
+    const gallerySource = resolvedItemGalleryList(item);
+    for (const raw of gallerySource) {
       const x = String(raw ?? "").trim();
       if (!x || !isDisplayableCloudImageUrl(x)) continue;
       const key = x.split("?")[0];
@@ -14427,7 +14474,7 @@
   /** Ordered PDP / hero frames: cover first, then gallery extras (deduped). */
   function itemDetailGalleryFrames(item) {
     const cover = buildCoverCandidates(item)[0] ?? "";
-    const extras = itemGalleryList(item).filter(isDisplayableCloudImageUrl);
+    const extras = resolvedItemGalleryList(item).filter(isDisplayableCloudImageUrl);
     /** @type {{ url: string, label: string }[]} */
     const frames = [];
     const seen = new Set();
@@ -14706,6 +14753,12 @@
 
     let currentIndex = 0;
 
+    const clampGalleryFrameIndex = (index) => {
+      const max = frames.length - 1;
+      if (max < 0) return 0;
+      return Math.max(0, Math.min(max, Math.floor(Number(index) || 0)));
+    };
+
     const syncActiveThumb = () => {
       /** @type {HTMLElement | null} */
       let activeBtn = null;
@@ -14759,7 +14812,7 @@
     };
 
     const showFrame = (index, animate = true) => {
-      currentIndex = ((index % frames.length) + frames.length) % frames.length;
+      currentIndex = clampGalleryFrameIndex(index);
       stageEl.classList.remove("item-detail__media--zoomed");
       heroImgEl.classList.remove("item-detail__hero-img--zoomed");
       heroImgEl.style.removeProperty("--hero-zoom-x");
@@ -14862,7 +14915,7 @@
     const pdpGalleryApi = {
       frameCount: frames.length,
       frameUrlAt(i) {
-        const fr = frames[((i % frames.length) + frames.length) % frames.length];
+        const fr = frames[clampGalleryFrameIndex(i)];
         return heroFrameSrc(String(fr?.url ?? "").trim());
       },
       step(delta) {
@@ -18230,17 +18283,21 @@
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
     const max = track.children.length - 1;
     const idx = Math.max(0, Math.min(max, Math.floor(index)));
+    const prevIdx = Number.parseInt(String(media.dataset.galleryFrameIndex ?? ""), 10);
+    const indexChanged = !Number.isFinite(prevIdx) || prevIdx !== idx;
     track.classList.remove("is-dragging");
     track.style.transition = animate ? "" : "none";
     /* Touch carousel: always index-locked translate (compact + browse share one motion). */
     carousel.classList.remove("card__gallery-carousel--compact-stack");
     track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
-    [...track.children].forEach((slide, i) => {
-      if (!(slide instanceof HTMLElement)) return;
-      slide.classList.toggle("is-active", i === idx);
-    });
-    media.dataset.galleryFrameIndex = String(idx);
-    carousel.dataset.galleryIndex = String(idx);
+    if (indexChanged) {
+      [...track.children].forEach((slide, i) => {
+        if (!(slide instanceof HTMLElement)) return;
+        slide.classList.toggle("is-active", i === idx);
+      });
+      media.dataset.galleryFrameIndex = String(idx);
+      carousel.dataset.galleryIndex = String(idx);
+    }
     return idx;
   }
 
@@ -18640,6 +18697,9 @@
     let touchStartIndex = 0;
     let touchActive = false;
     let suppressTimer = 0;
+    let dragWidth = 0;
+    let dragRaf = 0;
+    let pendingDragPx = 0;
 
     const markSwiping = () => {
       swipeHost.dataset.galleryCarouselSwiping = "1";
@@ -18651,25 +18711,43 @@
     };
 
     const markSwipingIfGesture = (dx, dy) => {
-      const w = carousel.clientWidth || 1;
+      const w = dragWidth || carousel.clientWidth || 1;
       const threshold = Math.min(44, w * 0.14);
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) markSwiping();
     };
 
     const setTrackDragOffset = (index, dragPx) => {
-      const w = carousel.clientWidth;
+      const w = dragWidth || carousel.clientWidth;
       if (!w) return;
-      const ratio = Math.max(-1, Math.min(1, dragPx / w));
-      track.classList.add("is-dragging");
       track.style.transition = "none";
-      track.style.transform = `translate3d(calc(-${index * 100}% + ${ratio * 100}%), 0, 0)`;
+      track.style.transform = `translate3d(${-(index * w) + dragPx}px, 0, 0)`;
+    };
+
+    const cancelDragRaf = () => {
+      if (!dragRaf) return;
+      cancelAnimationFrame(dragRaf);
+      dragRaf = 0;
+    };
+
+    const scheduleTrackDragOffset = (index, dragPx) => {
+      pendingDragPx = dragPx;
+      if (dragRaf) return;
+      dragRaf = requestAnimationFrame(() => {
+        dragRaf = 0;
+        setTrackDragOffset(index, pendingDragPx);
+      });
+    };
+
+    const releaseToIndex = (index, animate) => {
+      cancelDragRaf();
+      api.applyIndex(index, animate);
     };
 
     const settleFromTouch = (dx, dy) => {
-      const w = carousel.clientWidth || 1;
+      const w = dragWidth || carousel.clientWidth || 1;
       const max = Math.max(0, api.frameCount() - 1);
       if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
-        api.applyIndex(Math.max(0, Math.min(max, api.readIndex())), false);
+        releaseToIndex(touchStartIndex, false);
         return;
       }
       const threshold = Math.min(44, w * 0.14);
@@ -18678,7 +18756,7 @@
         target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
       target = Math.max(0, Math.min(max, target));
-      api.applyIndex(target, true);
+      releaseToIndex(target, target !== touchStartIndex);
       markSwipingIfGesture(dx, dy);
     };
 
@@ -18689,10 +18767,12 @@
         if (api.blockTouchWhen?.()) return;
         const t = e.touches?.[0];
         if (!t) return;
+        cancelDragRaf();
         touchActive = true;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
         touchStartIndex = api.readIndex();
+        dragWidth = carousel.clientWidth || 0;
         track.classList.add("is-dragging");
         track.style.transition = "none";
       },
@@ -18709,7 +18789,8 @@
         const dy = t.clientY - touchStartY;
         if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
           touchActive = false;
-          api.applyIndex(Math.max(0, Math.min(api.frameCount() - 1, api.readIndex())), false);
+          cancelDragRaf();
+          releaseToIndex(touchStartIndex, false);
           return;
         }
         const atStart = touchStartIndex <= 0;
@@ -18717,9 +18798,9 @@
         let clampedDx = dx;
         if (atStart && clampedDx > 0) clampedDx *= 0.22;
         if (atEnd && clampedDx < 0) clampedDx *= 0.22;
-        const maxDrag = carousel.clientWidth * 0.92;
+        const maxDrag = (dragWidth || carousel.clientWidth) * 0.92;
         clampedDx = Math.max(-maxDrag, Math.min(maxDrag, clampedDx));
-        setTrackDragOffset(touchStartIndex, clampedDx);
+        scheduleTrackDragOffset(touchStartIndex, clampedDx);
       },
       { passive: true }
     );
@@ -18727,9 +18808,10 @@
     const endTouch = (/** @type {TouchEvent} */ e) => {
       if (!touchActive) return;
       touchActive = false;
+      cancelDragRaf();
       const t = e.changedTouches?.[0];
       if (!t) {
-        api.applyIndex(touchStartIndex, true);
+        releaseToIndex(touchStartIndex, false);
         return;
       }
       settleFromTouch(t.clientX - touchStartX, t.clientY - touchStartY);
@@ -21833,6 +21915,8 @@
       delete updated.price;
       delete updated.priceCurrency;
     }
+    const galleryBeforeFrozenHeal = gallery;
+    gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
     if (gallery.length) updated.gallery = gallery;
     else delete updated.gallery;
 
@@ -21897,10 +21981,14 @@
     const nextGallerySig = gallery
       .map((u) => String(u).split("?")[0])
       .join("|");
+    const frozenGalleryHealed =
+      isLocalCatalogueItemId(id) &&
+      galleryPathKeySignature(gallery) !== galleryPathKeySignature(galleryBeforeFrozenHeal);
     const mediaTouched =
       hadNewPhotoFiles ||
       String(image).split("?")[0] !== String(prevImage).split("?")[0] ||
-      nextGallerySig !== prevGallerySig;
+      nextGallerySig !== prevGallerySig ||
+      frozenGalleryHealed;
     if (mediaTouched) stampWardrobeItemMediaNonce(updated);
 
     /** When saving a custom piece, whether `data/custom-items.json` was updated (npm run dev). */
@@ -22740,7 +22828,7 @@
         mountItemEditPhotoManager(photosHost, {
           item: itemForMedia,
           coverUrl: String(itemForMedia.image ?? "").trim(),
-          galleryUrls: itemGalleryList(itemForMedia),
+          galleryUrls: resolvedItemGalleryList(itemForMedia),
           uploadLabel: "Upload photos",
           onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
         });
