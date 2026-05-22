@@ -22553,7 +22553,7 @@
     }
     /* PDP hero: keep native right-click Save Image (collection grid still uses draggable=false). */
     if (!usePdpGalleryLayout) img.draggable = false;
-    wireCoverImageWithFallbacks(img, itemForMedia, {
+    const coverWireOpts = {
       host: media,
       coverRenderWidth: ITEM_DETAIL_GALLERY_RENDER.width,
       coverRenderHeight: ITEM_DETAIL_GALLERY_RENDER.height,
@@ -22568,16 +22568,22 @@
           if (ti) ti.src = url;
         }
       },
-    });
+    };
     media.appendChild(img);
-    if (isItemPageView) {
+    if (usePdpGalleryLayout && galleryWrap) {
       mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia, {
-        heroInteractions: true,
+        heroInteractions: isItemPageView,
       });
-    } else if (!isPageEdit && !detailVariants?.length) {
-      mountHeroGalleryStrip(media, img, itemForMedia);
-    } else if (!isPageEdit && itemGalleryList(itemForMedia).length) {
-      mountHeroGalleryStrip(media, img, itemForMedia);
+      const resolvedCover = String(img.src ?? img.dataset.coverSrc ?? "").trim();
+      if (resolvedCover) coverWireOpts.preferredUrl = resolvedCover;
+      wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
+    } else {
+      wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
+      if (!isPageEdit && !detailVariants?.length) {
+        mountHeroGalleryStrip(media, img, itemForMedia);
+      } else if (!isPageEdit && itemGalleryList(itemForMedia).length) {
+        mountHeroGalleryStrip(media, img, itemForMedia);
+      }
     }
 
     if (isPageEdit) root.classList.add("item-detail__root--edit");
@@ -27726,6 +27732,8 @@
     const root = document.getElementById("tw-page-loader");
     if (!root || !document.body.classList.contains("tw-page-loader-active")) return;
     const isCollectionGridPage = Boolean(document.getElementById("grid")) && !document.body.classList.contains("home-page");
+    const isItemPdpPage =
+      document.body.classList.contains("item-page") || Boolean(document.getElementById("item-page-main"));
     const isLoginPage = isTwLoginPage();
     const fastCollectionPaint = Boolean(document.body?.dataset?.twFastCollectionPaint);
     const fastCollectionFromHome =
@@ -27740,7 +27748,9 @@
           ? 120
           : isCollectionGridPage
             ? 420
-            : 1000;
+            : isItemPdpPage
+              ? 180
+              : 1000;
     const logoInMs = fastCollectionFromHome
       ? 60
       : fastCollectionPaint
@@ -27749,7 +27759,9 @@
           ? 80
           : isCollectionGridPage
             ? 280
-            : 1000;
+            : isItemPdpPage
+              ? 120
+              : 1000;
     const fadeOutMs = fastCollectionFromHome
       ? 140
       : fastCollectionPaint
@@ -27758,7 +27770,10 @@
           ? 160
           : isCollectionGridPage
             ? 280
-            : 520;
+            : isItemPdpPage
+              ? 240
+              : 520;
+    /* Item PDP: one reveal step (loader out) — skip second main fade that felt like a double flash. */
     const mainInMs = fastCollectionFromHome
       ? 100
       : fastCollectionPaint
@@ -27767,7 +27782,9 @@
           ? 120
           : isCollectionGridPage
             ? 220
-            : 500;
+            : isItemPdpPage
+              ? 0
+              : 500;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
@@ -27779,9 +27796,11 @@
     root.setAttribute("aria-busy", "false");
     document.body.classList.remove("tw-page-loader-active");
     document.body.classList.remove("tw-page-loader-main-pending");
-    document.body.classList.add("tw-page-loader-main-reveal");
-    await twSleep(mainInMs);
-    document.body.classList.remove("tw-page-loader-main-reveal");
+    if (mainInMs > 0) {
+      document.body.classList.add("tw-page-loader-main-reveal");
+      await twSleep(mainInMs);
+      document.body.classList.remove("tw-page-loader-main-reveal");
+    }
     document.body.classList.add("tw-page-loader-revealed");
     document.querySelector(".site-header")?.classList.add("site-header--entered");
   }

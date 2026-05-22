@@ -22012,6 +22012,12 @@ body.tw-page-loader-main-reveal #item-page-main {
   animation: tw-main-reveal 500ms ease both;
 }
 
+/* Item PDP: single-step loader exit — no second main fade (see completeTwInitialPageLoader mainInMs=0). */
+body.item-page.tw-page-loader-revealed #item-page-main {
+  opacity: 1;
+  transform: none;
+}
+
 body.tw-page-loader-revealed #grid .card {
   animation: none;
   opacity: 1;
