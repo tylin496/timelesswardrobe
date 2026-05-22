@@ -35,7 +35,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "tassel-loafer",
     "category": "Footwear",
@@ -59,7 +58,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "sage-beaufort-waxed-jacket",
     "category": "Outerwear",
@@ -82,7 +80,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "curb-bracelet",
     "category": "Jewellery",
@@ -90,7 +87,7 @@ const WARDROBE_ITEMS = [
     "name": "Curb Bracelet",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "18ct yellow gold, 5.2 mm",
     "size": "20.5 cm （8.07inches）",
     "purchaseDate": "2024-10-26",
@@ -105,7 +102,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "rolo-chain",
     "category": "Jewellery",
@@ -113,7 +109,7 @@ const WARDROBE_ITEMS = [
     "name": "Rolo Chain",
     "season": "All-season",
     "colour": "18ct yellow gold, 2.5 mm",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "size": "50 cm",
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain/1778704232768-cover-edit.png",
@@ -127,7 +123,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "ruby-gypsy-ring",
     "category": "Jewellery",
@@ -135,8 +130,8 @@ const WARDROBE_ITEMS = [
     "name": "Ruby Gypsy Ring",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
-    "fabric": "18K",
+    "colourCode": "#ffe691",
+    "fabric": "18ct yellow gold",
     "weight": "18ct yellow gold with Diamonds, 6.8 mm face, 3 mm shank",
     "size": "HK 22",
     "purchaseDate": "2024-08-04",
@@ -154,7 +149,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "b7172a"
     }
   },
-
   {
     "id": "signet-ring",
     "category": "Jewellery",
@@ -162,7 +156,7 @@ const WARDROBE_ITEMS = [
     "name": "Signet Ring",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "18ct yellow gold, 12 × 14 mm",
     "size": "HK 14",
     "purchaseDate": "2020-11-01",
@@ -178,7 +172,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "golden-fleece-navy-blazer",
     "category": "Jackets",
@@ -200,7 +193,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "houndstooth-tweed-jacket",
     "category": "Jackets",
@@ -226,7 +218,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "balmacaan-coat",
     "category": "Outerwear",
@@ -249,7 +240,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "tank-solo",
     "category": "Dress watch",
@@ -257,7 +247,7 @@ const WARDROBE_ITEMS = [
     "name": "Tank Solo",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "D6C082",
+    "colourCode": "#ffe691",
     "weight": "W5200004",
     "size": "Large Model",
     "purchaseDate": "2024-11-03",
@@ -274,7 +264,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "9A4B17"
     }
   },
-
   {
     "id": "achilles-low",
     "category": "Footwear",
@@ -296,7 +285,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "chukka",
     "category": "Footwear",
@@ -319,7 +307,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "pembroke",
     "category": "Footwear",
@@ -342,7 +329,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "kingsman-0847-sunglasses",
     "category": "Eyewear",
@@ -362,7 +348,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "sapphire-ring",
     "category": "Jewellery",
@@ -382,7 +367,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#384D87"
     }
   },
-
   {
     "id": "wedding-bands",
     "category": "Jewellery",
@@ -390,8 +374,8 @@ const WARDROBE_ITEMS = [
     "name": "Wedding Bands",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
-    "fabric": "Pt950 1.8 mm (bride) / 18ct YG 2 mm size 13 (groom)",
+    "colourCode": "#ffe691",
+    "fabric": "Pt950 1.8 mm (bride) / 18ct yellow gold 2 mm size 13 (groom)",
     "image": "/images/wardrobe/wedding-bands/main/cover.png",
     "gallery": [
       "/images/wardrobe/wedding-bands/main/gallery/01.png",
@@ -403,7 +387,6 @@ const WARDROBE_ITEMS = [
       "basicColour": "gold"
     }
   },
-
   {
     "id": "dw-5600",
     "pillar": "Collections",
@@ -422,7 +405,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "cable-knit-polo",
     "category": "Shirts",
@@ -444,7 +426,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "wide-straight-trousers",
     "category": "Bottoms",
@@ -467,7 +448,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "hole-knit-polo-shirt",
     "category": "Shirts",
@@ -488,7 +468,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "linen-pleated-shorts",
     "category": "Bottoms",
@@ -510,7 +489,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "striped-camp-collar-shirt",
     "category": "Shirts",
@@ -533,7 +511,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "herringbone-tweed-jacket",
     "category": "Jackets",
@@ -555,7 +532,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "smoke-olive-acetate-optical",
     "category": "Eyewear",
@@ -577,7 +553,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "corduroy-trousers",
     "category": "Bottoms",
@@ -599,7 +574,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "grand-soir",
     "category": "Evening",
@@ -607,7 +581,7 @@ const WARDROBE_ITEMS = [
     "name": "Grand Soir",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "Labdanum, benzoin, vanilla, amber",
     "size": "70 ml",
     "purchaseDate": "2025-08-01",
@@ -621,7 +595,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "aran-cable-knit-jumper",
     "category": "Mid Layer",
@@ -644,7 +617,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "fine-knit-t-shirt",
     "category": "Shirts",
@@ -674,7 +646,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "v-neck-cardigan",
     "category": "Mid Layer",
@@ -698,7 +669,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "wide-leg-jeans",
     "category": "Bottoms",
@@ -720,7 +690,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "new-york",
     "category": "Day",
@@ -728,7 +697,7 @@ const WARDROBE_ITEMS = [
     "name": "New York",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#BFA665",
+    "colourCode": "#ffe691",
     "weight": "Bergamot, black pepper, oak moss.",
     "size": "100 ml",
     "purchaseDate": "2025-08-02",
@@ -742,7 +711,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ferret",
     "category": "Footwear",
@@ -766,7 +734,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "basket-weave-linen-jacket",
     "category": "Jackets",
@@ -790,7 +757,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "polo-bear-jumper",
     "category": "Mid Layer",
@@ -814,7 +780,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "washed-rugby-shirt",
     "category": "Mid Layer",
@@ -840,7 +805,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "F5F1E8"
     }
   },
-
   {
     "id": "original-wayfarer-sunglasses",
     "category": "Eyewear",
@@ -864,7 +828,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ligne-2",
     "category": "Jewellery",
@@ -872,7 +835,7 @@ const WARDROBE_ITEMS = [
     "name": "Ligne-2",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#fef4bb",
+    "colourCode": "#ffe691",
     "purchaseDate": "2026-05-19",
     "image": "/images/wardrobe/ligne-2/main/cover.png",
     "gallery": [
@@ -883,7 +846,6 @@ const WARDROBE_ITEMS = [
     ],
     "notes": "Lighter Line 2, small model. Microdiamond tip Yellow gold color. Associated lighter stone: black. Associated gas refill: red (REF 900435). Lighter delivered empty of gas, refill sold separately."
   },
-
   {
     "id": "fair-isle-vest",
     "category": "Mid Layer",
@@ -904,7 +866,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "knit-long-sleeve-polo",
     "category": "Shirts",
@@ -924,7 +885,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "linen-safari-jacket",
     "category": "Outerwear",
@@ -946,7 +906,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "prx-quartz",
     "category": "Everyday",
@@ -954,7 +913,7 @@ const WARDROBE_ITEMS = [
     "name": "PRX Quartz",
     "season": "All-season",
     "colour": "Gold PVD",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "T137.210.33.021.00",
     "size": "35 mm",
     "purchaseDate": "2024-08-08",
@@ -969,7 +928,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "cordovan-l-zip-wallet-regular-price",
     "category": "Bags",
@@ -992,7 +950,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "black-bay-58",
     "category": "Dive watch",
@@ -1016,7 +973,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "jwa-straight-jeans",
     "category": "Bottoms",
@@ -1038,7 +994,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "kataaze-knit-mock-neck",
     "category": "Shirts",
@@ -1059,7 +1014,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "linen-camp-collar-shirt",
     "category": "Shirts",
@@ -1081,7 +1035,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ocbd-shirt",
     "category": "Shirts",
@@ -1189,7 +1142,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "cutwork-knit-polo-shirt",
     "category": "Shirts",
@@ -1213,7 +1165,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "linen-loop-collar-shirt",
     "category": "Shirts",
@@ -1234,7 +1185,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "purl-knit-t-shirt",
     "category": "Shirts",
@@ -1254,7 +1204,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "rib-knit-polo-shirt-dusty-ice-blue",
     "category": "Shirts",
@@ -1276,7 +1225,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "boston-metal-frames",
     "category": "Eyewear",
@@ -1298,12 +1246,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "gold",
       "priceCurrency": "JPY",
       "secondaryColour": "Gold",
-      "secondaryColourCode": "#D6C082"
+      "secondaryColourCode": "#ffe691"
     }
   },
-
-  // ——— A/W – Country Classics ———,
-
   {
     "id": "glen-check-tweed-jacket",
     "pillar": "Clothing",
@@ -1328,7 +1273,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "boa-fleece-vest",
     "pillar": "Clothing",
@@ -1354,7 +1298,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#737051"
     }
   },
-
   {
     "id": "rib-knit-roll-neck-neck-jumper",
     "pillar": "Clothing",
@@ -1378,7 +1321,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ventile-harrington",
     "pillar": "Clothing",
@@ -1405,7 +1347,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "camel-hair-polo-coat",
     "pillar": "Clothing",
@@ -1415,7 +1356,7 @@ const WARDROBE_ITEMS = [
     "name": "Camel Hair Polo Coat",
     "season": "A/W",
     "colour": "Golden Camel",
-    "colourCode": "#C89C7B",
+    "colourCode": "#ffe691",
     "fabric": "Camel hair",
     "weight": "760 gsm",
     "size": "46",
@@ -1431,7 +1372,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "cricket-cable-knit-jumper-vest",
     "pillar": "Clothing",
@@ -1460,7 +1400,6 @@ const WARDROBE_ITEMS = [
       "secondaryBasicColour": "white"
     }
   },
-
   {
     "id": "pleated-trousers",
     "pillar": "Clothing",
@@ -1532,9 +1471,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
-  // ——— Accessories ———,
-
   {
     "id": "panama-hat",
     "pillar": "Accessories",
@@ -1557,7 +1493,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "boat-and-tote",
     "pillar": "Accessories",
@@ -1583,7 +1518,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#303c73"
     }
   },
-
   {
     "id": "anthony",
     "pillar": "Accessories",
@@ -1625,7 +1559,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "american-flag-hat",
     "pillar": "Accessories",
@@ -1648,7 +1581,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "helmet-bag",
     "pillar": "Accessories",
@@ -1673,9 +1605,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
-  // ——— Future Pieces ———,
-
   {
     "id": "sapphire-three-stone-ring",
     "pillar": "Jewellery",
@@ -1701,9 +1630,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#1B57BC"
     }
   },
-
-  // ——— S/S – Mediterranean Resort ———,
-
   {
     "id": "washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt",
     "pillar": "Clothing",
@@ -1729,7 +1655,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "baker-neck-knitted-t-shirt",
     "pillar": "Clothing",
@@ -1752,7 +1677,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "rib-knit-polo-shirt-dark-chocolate",
     "pillar": "Clothing",
@@ -1783,7 +1707,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "structured-knit-polo-shirt",
     "pillar": "Clothing",

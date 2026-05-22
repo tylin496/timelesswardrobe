@@ -52,7 +52,14 @@
 
     <main id="login-main" class="login-page-main" role="main">
       <h1 class="login-page-main__title">Editor sign-in</h1>
-      <p id="login-status" class="login-page-main__status" role="status">Opening Google sign-in…</p>
+      <div
+        id="login-status"
+        class="login-page-main__status login-page-main__status--pending"
+        role="status"
+        aria-live="polite"
+      >
+        <span id="login-status-text" class="login-page-main__status-text">Opening Google sign-in…</span>
+      </div>
       <p class="login-page-main__hint">
         Allowed Google accounts only. After sign-in you can add pieces, edit items, and use export tools on the
         collection.

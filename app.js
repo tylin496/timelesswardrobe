@@ -214,7 +214,7 @@
 
   /** Broad colour families — collection colour chips + optional per-item / per-variant override. */
   const BASIC_COLOUR_FAMILY_KEYS = ["blue", "brown", "red", "white", "black", "beige", "gold", "silver", "green", "grey"];
-  const GOLD_BASIC_COLOUR_HEX = "#DCC98A";
+  const GOLD_BASIC_COLOUR_HEX = "#ffe691";
 
   /**
    * Stored in `item.basicColour` or `metadata.basicColour`: piece opts out of broad-colour buckets —
@@ -591,17 +591,19 @@
     return ph;
   }
 
-  /** Value to persist on save — typed code wins; otherwise commit grey hex suggest from colour name. */
+  /** Value to persist on save — typed code only (placeholder hex from colour name is a hint, not stored). */
   function itemEditColourCodeCommittedValue(input) {
+    if (!(input instanceof HTMLInputElement)) return "";
+    return itemEditColourCodeSaveValue(input);
+  }
+
+  /** Live preview / Auto hints — includes grey placeholder suggest, never written unless user types. */
+  function itemEditColourCodeValueForPreview(input) {
     if (!(input instanceof HTMLInputElement)) return "";
     const typed = itemEditColourCodeSaveValue(input);
     if (typed) return typed;
     if (input.dataset.inferred === "1") return itemEditColourCodeSuggestedPlaceholder(input);
     return "";
-  }
-
-  function itemEditColourCodeValueForPreview(input) {
-    return itemEditColourCodeCommittedValue(input);
   }
 
   /**
@@ -2352,6 +2354,7 @@
   const TW_ADMIN_MODE_STORAGE_KEY = "adminMode";
   /** @type {{ email: string, denied?: boolean } | null} */
   let twEditorSession = null;
+  let twEditorAuthListenerInstalled = false;
   /** Open item edit after Google OAuth redirect. */
   let twPendingItemEditId = "";
 
@@ -2457,6 +2460,7 @@
     const params = new URLSearchParams(globalThis.location.search);
     let id = String(params.get("id") ?? "").trim();
     if (id.endsWith("/edit")) id = id.slice(0, -"/edit".length);
+    if (id.endsWith("/login")) id = id.slice(0, -"/login".length);
     let wantEdit = params.get("edit") === "1";
     try {
       const path = String(globalThis.location?.pathname ?? "");
@@ -2551,9 +2555,34 @@
     }
   }
 
-  function updateLoginPageStatus(text, { showRetry = false } = {}) {
+  /** @typedef {"pending" | "success" | "error"} TwLoginPageStatusVariant */
+
+  function updateLoginPageStatus(text, { showRetry = false, variant = "pending" } = {}) {
+    /** @type {TwLoginPageStatusVariant} */
+    const v = variant === "success" || variant === "error" ? variant : "pending";
     const status = document.getElementById("login-status");
-    if (status) status.textContent = text;
+    const statusText = document.getElementById("login-status-text");
+    const main = document.getElementById("login-main");
+    const title = document.querySelector(".login-page-main__title");
+    if (statusText) statusText.textContent = text;
+    else if (status) status.textContent = text;
+    if (status instanceof HTMLElement) {
+      status.classList.remove(
+        "login-page-main__status--pending",
+        "login-page-main__status--success",
+        "login-page-main__status--error"
+      );
+      status.classList.add(`login-page-main__status--${v}`);
+    }
+    if (main instanceof HTMLElement) {
+      main.classList.remove("login-page-main--pending", "login-page-main--success", "login-page-main--error");
+      main.classList.add(`login-page-main--${v}`);
+    }
+    if (title instanceof HTMLElement) {
+      if (v === "success") title.textContent = "Signed in";
+      else if (v === "error") title.textContent = "Sign-in failed";
+      else title.textContent = "Editor sign-in";
+    }
     const retry = document.getElementById("login-retry");
     if (retry instanceof HTMLButtonElement) {
       retry.hidden = !showRetry;
@@ -2561,10 +2590,50 @@
         retry.dataset.wired = "1";
         retry.addEventListener("click", () => {
           twLoginOAuthKickoff = false;
+          clearTwAuthCallbackUrlParams();
           void handleTwLoginPage();
         });
       }
     }
+  }
+
+  function clearTwAuthCallbackUrlParams() {
+    try {
+      const url = new URL(globalThis.location.href);
+      let dirty = false;
+      for (const key of ["code", "state", "error", "error_description"]) {
+        if (url.searchParams.has(key)) {
+          url.searchParams.delete(key);
+          dirty = true;
+        }
+      }
+      if (url.hash && /access_token=|refresh_token=|error=/i.test(url.hash)) {
+        url.hash = "";
+        dirty = true;
+      }
+      if (dirty) globalThis.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function readTwAuthCallbackError() {
+    try {
+      const url = new URL(globalThis.location.href);
+      const qp = url.searchParams;
+      const err = String(qp.get("error") ?? "").trim();
+      const desc = String(qp.get("error_description") ?? "").trim();
+      if (desc) return desc.replace(/\+/g, " ");
+      if (err) {
+        if (err === "access_denied") return "Sign-in was cancelled.";
+        return err.replace(/_/g, " ");
+      }
+      const hash = String(url.hash ?? "");
+      if (/error=/i.test(hash)) return "Sign-in failed. Please try again.";
+    } catch {
+      /* ignore */
+    }
+    return "";
   }
 
   const TW_LOGIN_OAUTH_PENDING_KEY = "tw-login-oauth-pending-v1";
@@ -2616,41 +2685,64 @@
 
   function waitForTwLoginSessionResolution(attempt = 0) {
     if (!isTwLoginPage()) return;
+    const oauthErr = readTwAuthCallbackError();
+    if (oauthErr) {
+      clearTwLoginOAuthPending();
+      clearTwAuthCallbackUrlParams();
+      updateLoginPageStatus(oauthErr, { showRetry: true, variant: "error" });
+      twLoginOAuthKickoff = false;
+      return;
+    }
     if (isTwEditorUser()) {
       clearTwLoginOAuthPending();
-      updateLoginPageStatus("Signed in. Redirecting…");
+      clearTwAuthCallbackUrlParams();
+      updateLoginPageStatus("Signed in successfully. Redirecting to the collection…", { variant: "success" });
       applyTwAdminModeUi();
-      completeTwLoginPageRedirect();
+      completeTwLoginPageRedirect(900);
       return;
     }
     if (twEditorSession?.denied) {
       clearTwLoginOAuthPending();
-      updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+      clearTwAuthCallbackUrlParams();
+      updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true, variant: "error" });
       twLoginOAuthKickoff = false;
       return;
     }
     if (attempt >= 40) {
       clearTwLoginOAuthPending();
-      updateLoginPageStatus("Sign-in timed out. Please try again.", { showRetry: true });
+      updateLoginPageStatus("Sign-in timed out. Please try again.", { showRetry: true, variant: "error" });
       twLoginOAuthKickoff = false;
       return;
     }
     globalThis.setTimeout(() => waitForTwLoginSessionResolution(attempt + 1), 120);
   }
 
-  function completeTwLoginPageRedirect() {
+  function completeTwLoginPageRedirect(delayMs = 0) {
     if (!isTwLoginPage()) return;
-    try {
-      globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
-    } catch {
-      globalThis.location.replace("/collection.html");
-    }
+    const run = () => {
+      try {
+        globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
+      } catch {
+        globalThis.location.replace("/collection.html");
+      }
+    };
+    const ms = Math.max(0, Math.floor(Number(delayMs) || 0));
+    if (ms > 0) globalThis.setTimeout(run, ms);
+    else run();
   }
 
   async function handleTwLoginPage() {
     if (!isTwLoginPage()) return;
+    const oauthErr = readTwAuthCallbackError();
+    if (oauthErr) {
+      clearTwLoginOAuthPending();
+      clearTwAuthCallbackUrlParams();
+      updateLoginPageStatus(oauthErr, { showRetry: true, variant: "error" });
+      twLoginOAuthKickoff = false;
+      return;
+    }
     if (isTwLocalDevHost()) {
-      updateLoginPageStatus("Local dev does not require sign-in. Redirecting…");
+      updateLoginPageStatus("Local dev does not require sign-in. Redirecting…", { variant: "success" });
       try {
         globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
       } catch {
@@ -2659,32 +2751,32 @@
       return;
     }
     if (!isSupabaseReady()) {
-      updateLoginPageStatus("Sign-in is not configured on this deployment.", { showRetry: false });
+      updateLoginPageStatus("Sign-in is not configured on this deployment.", { showRetry: false, variant: "error" });
       return;
     }
     if (isTwEditorUser()) {
-      updateLoginPageStatus("Signed in. Redirecting…");
+      updateLoginPageStatus("Signed in successfully. Redirecting to the collection…", { variant: "success" });
       applyTwAdminModeUi();
-      completeTwLoginPageRedirect();
+      completeTwLoginPageRedirect(900);
       return;
     }
     if (twEditorSession?.denied) {
-      updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+      updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true, variant: "error" });
       return;
     }
     if (hasTwAuthCallbackPayload() || hasRecentTwLoginOAuthPending()) {
       // OAuth callback is back on /login; wait for session hydration instead of re-opening Google.
-      updateLoginPageStatus("Completing sign-in…");
+      updateLoginPageStatus("Completing sign-in…", { variant: "pending" });
       twLoginOAuthKickoff = true;
       waitForTwLoginSessionResolution();
       return;
     }
     if (twLoginOAuthKickoff) return;
-    updateLoginPageStatus("Opening Google sign-in…");
+    updateLoginPageStatus("Opening Google sign-in…", { variant: "pending" });
     twLoginOAuthKickoff = true;
     await signInWithGoogleEditor();
     if (!isTwEditorUser() && !twEditorSession?.denied) {
-      updateLoginPageStatus("Sign-in was cancelled or did not complete.", { showRetry: true });
+      updateLoginPageStatus("Sign-in was cancelled or did not complete.", { showRetry: true, variant: "error" });
       twLoginOAuthKickoff = false;
     }
   }
@@ -2743,7 +2835,13 @@
     if (error) {
       clearTwLoginOAuthPending();
       console.warn("Google sign-in failed:", error);
-      showToast(formatSupabaseUserMessage(error) || "Google sign-in failed.");
+      const msg = formatSupabaseUserMessage(error) || "Google sign-in failed.";
+      if (isTwLoginPage()) {
+        updateLoginPageStatus(msg, { showRetry: true, variant: "error" });
+        twLoginOAuthKickoff = false;
+      } else {
+        showToast(msg);
+      }
     }
   }
 
@@ -2771,30 +2869,35 @@
     if (twEditorSession?.denied) {
       showToast("This Google account cannot edit this wardrobe.");
     }
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (!twEditorAuthListenerInstalled) {
+      twEditorAuthListenerInstalled = true;
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
       twEditorSession = resolveTwEditorSession(session);
       if (isTwEditorUser() || twEditorSession?.denied) clearTwLoginOAuthPending();
       applyTwAdminModeUi();
       installTwEditorAuthUi();
       if (isTwLoginPage() && isTwEditorUser()) {
-        updateLoginPageStatus("Signed in. Redirecting…");
-        completeTwLoginPageRedirect();
+        updateLoginPageStatus("Signed in successfully. Redirecting to the collection…", { variant: "success" });
+        completeTwLoginPageRedirect(900);
         return;
       }
       if (isTwLoginPage() && twEditorSession?.denied) {
-        updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
+        updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true, variant: "error" });
         twLoginOAuthKickoff = false;
         return;
       }
       if (!isTwEditorUser()) {
         if (twEditorSession?.denied) {
           showToast("This Google account cannot edit this wardrobe.");
+          if (isTwLoginPage()) {
+            updateLoginPageStatus("This Google account cannot edit this wardrobe.", {
+              showRetry: true,
+              variant: "error",
+            });
+            twLoginOAuthKickoff = false;
+          }
         }
         exitItemDetailEditIfOpen();
-        if (isTwLoginPage()) {
-          updateLoginPageStatus("This Google account cannot edit this wardrobe.", { showRetry: true });
-          twLoginOAuthKickoff = false;
-        }
         return;
       }
       if (isTwAdminMode()) {
@@ -2813,6 +2916,7 @@
         showToast("Signed in — you can edit now.");
       }
     });
+    }
     installTwEditorAuthUi();
     if (isTwEditorUser() && twPendingItemEditId) {
       const pendingId = twPendingItemEditId;
@@ -3466,8 +3570,23 @@
 
   /** @param {string} raw */
   function basicColourFamilyFromColourLabel(raw) {
-    const segment = colourLabelSegmentForAutoBroadColour(raw);
-    if (!segment) return "";
+    const s = String(raw ?? "").trim();
+    if (!s) return "";
+    const words = s.split(/\s+/).filter(Boolean);
+    /* Two-word labels: modifier + hue (e.g. grey green → green). */
+    if (words.length === 2) {
+      for (const f of basicFamiliesFromColourSegment(words[1])) return f;
+      for (const f of basicFamiliesFromColourSegment(words[0])) return f;
+    }
+    /* 3+ words: scan full label + each word (e.g. Gold Diamond Head → gold, not “Diamond”). */
+    if (words.length >= 3) {
+      for (const f of basicFamiliesFromColourSegment(s)) return f;
+      for (const word of words) {
+        for (const f of basicFamiliesFromColourSegment(word)) return f;
+      }
+      return "";
+    }
+    const segment = colourLabelSegmentForAutoBroadColour(s);
     for (const f of basicFamiliesFromColourSegment(segment)) return f;
     return "";
   }
@@ -6394,6 +6513,50 @@
     }
   }
 
+  function getSupabaseProjectOrigin() {
+    return String(globalThis.APP_CONFIG?.SUPABASE_URL ?? globalThis.__TW_SUPABASE_URL__ ?? "")
+      .trim()
+      .replace(/\/$/, "");
+  }
+
+  /**
+   * Public object URL for a wardrobe storage path (used to resize local `/images/wardrobe/…` via Supabase render).
+   * @param {string} storagePath
+   * @param {object} [item]
+   */
+  function supabasePublicObjectUrlForWardrobePath(storagePath, item) {
+    const base = getSupabaseProjectOrigin();
+    const path = String(storagePath ?? "").trim().replace(/^\/+/, "");
+    if (!base || !path) return "";
+    const encoded = path
+      .split("/")
+      .map((seg) => encodeURIComponent(seg))
+      .join("/");
+    return withWardrobeImageCacheBust(
+      `${base}/storage/v1/object/public/${WARDROBE_IMAGE_BUCKET}/${encoded}`,
+      item
+    );
+  }
+
+  /**
+   * Map a local wardrobe path or Supabase URL to a transport URL suitable for Storage image rendering.
+   * @param {string} url
+   * @param {object} [item]
+   */
+  function resolveWardrobeImageTransportUrl(url, item) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return "";
+    if (raw.startsWith("blob:") || raw.startsWith("data:")) return raw;
+    const existing = storagePathFromWardrobeImageUrl(raw);
+    if (existing) return withWardrobeImageCacheBust(raw.split("?")[0], item);
+    const objPath = wardrobeImageObjectPath(raw);
+    if (objPath) {
+      const cloud = supabasePublicObjectUrlForWardrobePath(objPath, item);
+      if (cloud) return cloud;
+    }
+    return withWardrobeImageCacheBust(raw, item);
+  }
+
   /** Original Storage object URL (no imgproxy width/height) — for crop / download source. */
   function wardrobeImageFullResolutionUrl(url, item) {
     const raw = String(url ?? "").trim();
@@ -6446,12 +6609,14 @@
    */
   function withSupabaseWardrobeImageRenderSize(url, width, height, transformOpts) {
     const raw = String(url ?? "").trim();
-    if (!raw || !storagePathFromWardrobeImageUrl(raw)) return raw;
+    if (!raw) return raw;
+    const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
+    if (!transport || !storagePathFromWardrobeImageUrl(transport)) return raw;
     const w = Math.max(1, Math.floor(width));
     const h = Math.max(1, Math.floor(height));
     let u;
     try {
-      u = new URL(raw);
+      u = new URL(transport);
     } catch {
       return raw;
     }
@@ -7869,16 +8034,19 @@
 
       const titleEl = document.createElement("span");
       titleEl.className = "site-header__search-category-card__title";
-      titleEl.textContent = title;
-
-      const cta = document.createElement("span");
-      cta.className = "site-header__search-category-card__cta";
-      cta.textContent = "Browse Now";
+      titleEl.textContent = isHeaderCompactViewport()
+        ? title
+        : String(title ?? "").trim().toUpperCase();
 
       const copy = document.createElement("div");
       copy.className = "site-header__search-category-card__copy";
       copy.appendChild(titleEl);
-      copy.appendChild(cta);
+      if (isHeaderCompactViewport()) {
+        const cta = document.createElement("span");
+        cta.className = "site-header__search-category-card__cta";
+        cta.textContent = "Browse Now";
+        copy.appendChild(cta);
+      }
 
       a.appendChild(media);
       a.appendChild(copy);
@@ -8025,6 +8193,7 @@
       heroHost.appendChild(layer);
     });
     wireHomeHeroCollectionTap();
+    wireHomeCollectionEntryLinks();
   }
 
   /** Random first slide (session), then remaining hero assets in catalog order. */
@@ -8302,7 +8471,29 @@
     });
   }
 
-  /** Tap hero imagery (not CTAs) → collection PLP; respects swipe click suppression. */
+  /** Any homepage link to Collection should replay the mobile swipe hint on arrival. */
+  function wireHomeCollectionEntryLinks() {
+    if (!isHomePageContext()) return;
+    if (document.body.dataset.twHomeCollectionEntryWired === "1") return;
+    document.body.dataset.twHomeCollectionEntryWired = "1";
+    document.body.addEventListener(
+      "click",
+      (e) => {
+        const anchor = e.target instanceof Element ? e.target.closest("a[href]") : null;
+        if (!(anchor instanceof HTMLAnchorElement)) return;
+        try {
+          const u = new URL(anchor.href, globalThis.location.origin);
+          if (!/^\/collection(?:\.html)?(?:\/|$)/i.test(u.pathname)) return;
+        } catch {
+          return;
+        }
+        noteCollectionEntryFromHomePage();
+      },
+      { capture: true }
+    );
+  }
+
+  /** Click hero imagery (desktop + mobile) → collection PLP; CTAs/carousel chrome stay separate. */
   function wireHomeHeroCollectionTap() {
     const hero =
       document.querySelector("body.home-page .ed-lp__hero") || document.querySelector(".ed-lp__hero");
@@ -8311,19 +8502,23 @@
     hero.dataset.twHeroCollectionTapWired = "1";
 
     const href = appendCollectionFromHomeQuery(collectionHrefForBrowseState());
-    const targets = [
-      document.getElementById("ed-lp-hero-layers"),
-      hero.querySelector(".ed-lp__hero-scrim"),
-    ];
 
-    for (const el of targets) {
-      if (!(el instanceof HTMLElement)) continue;
-      el.addEventListener("click", (e) => {
-        if (e.defaultPrevented) return;
-        if (hero.classList.contains("is-hero-dragging")) return;
-        globalThis.location.href = href;
-      });
-    }
+    const isHeroChromeTarget = (/** @type {EventTarget | null} */ target) => {
+      if (!(target instanceof Element)) return false;
+      return Boolean(
+        target.closest(
+          "a, button, input, textarea, select, label, [role='tab'], .ed-lp__hero-dot, .ed-lp__hero-arrow, .ed-lp__hero-carousel"
+        )
+      );
+    };
+
+    hero.addEventListener("click", (e) => {
+      if (e.defaultPrevented) return;
+      if (hero.classList.contains("is-hero-dragging")) return;
+      if (isHeroChromeTarget(e.target)) return;
+      noteCollectionEntryFromHomePage();
+      globalThis.location.href = href;
+    });
   }
 
   function initEditorialHomeHeroCarousel(slideCount) {
@@ -9824,6 +10019,7 @@
   function renderEditorialLandingPage() {
     if (!document.body.classList.contains("home-page")) return;
     mountHomePageHero();
+    wireHomeCollectionEntryLinks();
     wireEditorialQuoteReveal();
     const root = document.getElementById("main");
     if (!root?.classList.contains("ed-lp")) return;
@@ -10092,16 +10288,61 @@
   }
 
   /**
-   * Desktop: scale hero inside the 3×4 frame; mouse position pans across the image.
+   * RL-style “+” cursor that follows the pointer over the PDP hero (desktop).
+   * @param {HTMLElement} media
+   */
+  function attachItemDetailHeroPlusCursor(media) {
+    if (!(media instanceof HTMLElement)) {
+      return { position() {}, show() {}, hide() {}, cleanup() {} };
+    }
+    const useCustomCursor = !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    /** @type {HTMLElement | null} */
+    let cursorEl = null;
+    if (useCustomCursor) {
+      cursorEl = document.createElement("div");
+      cursorEl.className = "item-detail__hero-zoom-cursor";
+      cursorEl.setAttribute("aria-hidden", "true");
+      document.body.appendChild(cursorEl);
+    }
+
+    return {
+      position(clientX, clientY) {
+        if (!cursorEl) return;
+        cursorEl.style.left = `${clientX}px`;
+        cursorEl.style.top = `${clientY}px`;
+      },
+      show() {
+        cursorEl?.classList.add("is-visible");
+      },
+      hide() {
+        cursorEl?.classList.remove("is-visible");
+      },
+      cleanup() {
+        cursorEl?.remove();
+        cursorEl = null;
+      },
+    };
+  }
+
+  /**
+   * Desktop: in-frame zoom inside the hero frame — click to magnify, not hover.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
+   * @param {{ plusCursor?: boolean }} [opts]
    */
-  function wireItemDetailHeroDesktopZoomPan(media, heroImg) {
+  function wireItemDetailHeroDesktopZoomPan(media, heroImg, opts = {}) {
     if (!isItemPageDesktopHoverZoom()) return () => {};
     if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return () => {};
 
+    const plusCursor = Boolean(opts.plusCursor);
+    const cursor = plusCursor ? attachItemDetailHeroPlusCursor(media) : null;
+
     media.classList.add("item-detail__media--zoomable");
     heroImg.classList.add("item-detail__hero-img--zoomable");
+    if (plusCursor) {
+      media.classList.add("item-detail__media--hero-enlarge-desktop");
+      heroImg.classList.add("item-detail__hero-img--enlarge-desktop");
+    }
 
     const resetZoom = () => {
       media.classList.remove("item-detail__media--zoomed");
@@ -10117,8 +10358,8 @@
       if (!ir.width || !ir.height) return 0;
       const byW = heroImg.naturalWidth / ir.width;
       const byH = heroImg.naturalHeight / ir.height;
-      const need = Math.max(byW, byH, 1.35);
-      if (need < 1.12) return 0;
+      const need = Math.max(byW, byH, 1.5);
+      if (need < 1.08) return 1.5;
       return Math.min(2.75, need);
     };
 
@@ -10143,29 +10384,87 @@
       setPanOrigin(ev.clientX, ev.clientY);
     };
 
-    const onEnter = (ev) => activateZoom(ev);
+    const onEnter = (ev) => {
+      cursor?.show();
+      cursor?.position(ev.clientX, ev.clientY);
+    };
+
     const onMove = (ev) => {
-      if (!media.classList.contains("item-detail__media--zoomed")) {
-        activateZoom(ev);
+      cursor?.position(ev.clientX, ev.clientY);
+      if (media.classList.contains("item-detail__media--zoomed")) {
+        setPanOrigin(ev.clientX, ev.clientY);
+      }
+    };
+
+    const onLeave = () => {
+      cursor?.hide();
+      resetZoom();
+    };
+
+    const onClick = (ev) => {
+      if (ev.target.closest(".item-detail__gallery-nav")) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (media.classList.contains("item-detail__media--zoomed")) {
+        resetZoom();
         return;
       }
-      setPanOrigin(ev.clientX, ev.clientY);
+      activateZoom(ev);
     };
-    const onLeave = () => resetZoom();
+
+    const onKeydown = (e) => {
+      if (e.key === "Escape") resetZoom();
+      if (e.key === "Enter" || e.key === " ") {
+        if (e.target !== media && e.target !== heroImg) return;
+        e.preventDefault();
+        if (media.classList.contains("item-detail__media--zoomed")) {
+          resetZoom();
+          return;
+        }
+        const r = media.getBoundingClientRect();
+        activateZoom({
+          clientX: r.left + r.width / 2,
+          clientY: r.top + r.height / 2,
+        });
+      }
+    };
+
     const onLoad = () => resetZoom();
 
     media.addEventListener("mouseenter", onEnter, { passive: true });
     media.addEventListener("mousemove", onMove, { passive: true });
     media.addEventListener("mouseleave", onLeave);
+    media.addEventListener("click", onClick);
+    heroImg.addEventListener("click", onClick);
+    media.addEventListener("keydown", onKeydown);
     heroImg.addEventListener("load", onLoad);
+    if (plusCursor) {
+      if (!media.hasAttribute("tabindex")) media.tabIndex = 0;
+      if (!media.getAttribute("role")) media.setAttribute("role", "button");
+      if (!media.getAttribute("aria-label")) {
+        media.setAttribute("aria-label", "Click to magnify product photo");
+      }
+    }
 
     return () => {
       media.removeEventListener("mouseenter", onEnter);
       media.removeEventListener("mousemove", onMove);
       media.removeEventListener("mouseleave", onLeave);
+      media.removeEventListener("click", onClick);
+      heroImg.removeEventListener("click", onClick);
+      media.removeEventListener("keydown", onKeydown);
       heroImg.removeEventListener("load", onLoad);
-      media.classList.remove("item-detail__media--zoomable", "item-detail__media--zoomed");
-      heroImg.classList.remove("item-detail__hero-img--zoomable", "item-detail__hero-img--zoomed");
+      cursor?.cleanup();
+      media.classList.remove(
+        "item-detail__media--zoomable",
+        "item-detail__media--zoomed",
+        "item-detail__media--hero-enlarge-desktop"
+      );
+      heroImg.classList.remove(
+        "item-detail__hero-img--zoomable",
+        "item-detail__hero-img--zoomed",
+        "item-detail__hero-img--enlarge-desktop"
+      );
       resetZoom();
     };
   }
@@ -10242,7 +10541,7 @@
       onIndexChange: null,
     };
 
-    const zoomState = { scale: 1 };
+    const zoomState = { scale: 1, dismissDragging: false };
 
     /**
      * @param {HTMLElement} trackEl
@@ -10296,7 +10595,7 @@
       readIndex: () => pagerState.index,
       applyIndex: (idx, animate) => showPagerFrame(idx, { syncHero: true, animate }),
       frameCount: () => pagerState.count,
-      blockTouchWhen: () => zoomState.scale > 1.02,
+      blockTouchWhen: () => zoomState.scale > 1.02 || zoomState.dismissDragging,
     });
 
     const resetViewRef = { current: /** @type {null | (() => void)} */ (null) };
@@ -10319,6 +10618,13 @@
       carousel.hidden = true;
       track.replaceChildren();
       zoomState.scale = 1;
+      zoomState.dismissDragging = false;
+      dlg.classList.remove("item-image-zoom-dialog--dismiss-drag");
+      viewport.classList.remove("item-image-zoom__viewport--dismiss-drag");
+      dlg.style.removeProperty("opacity");
+      viewport.style.removeProperty("transform");
+      viewport.style.removeProperty("transition");
+      dlg.style.removeProperty("transition");
     });
     dlg.addEventListener("cancel", (ev) => {
       ev.preventDefault();
@@ -10383,6 +10689,7 @@
     const wirePanPinch = () => {
       let scale = 1;
       zoomState.scale = 1;
+      zoomState.dismissDragging = false;
       let panX = 0;
       let panY = 0;
       /** @type {Map<number, PointerEvent>} */
@@ -10393,8 +10700,47 @@
       let dragStartY = 0;
       let dragPanX = 0;
       let dragPanY = 0;
+      let dismissDragActive = false;
+      let dismissDy = 0;
+      const DISMISS_START_PX = 14;
+      let dismissClosePx = 96;
 
       const pointerDistance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+
+      const syncDismissThreshold = () => {
+        dismissClosePx = Math.max(72, Math.min(140, Math.round(viewport.clientHeight * 0.14)));
+      };
+
+      const clearDismissDragStyles = (animate) => {
+        dlg.classList.remove("item-image-zoom-dialog--dismiss-drag");
+        viewport.classList.remove("item-image-zoom__viewport--dismiss-drag");
+        if (animate) {
+          const ease = "cubic-bezier(0.44, 0, 0.22, 1)";
+          viewport.style.transition = `transform 240ms ${ease}`;
+          dlg.style.transition = `opacity 240ms ${ease}`;
+        } else {
+          viewport.style.transition = "none";
+          dlg.style.transition = "none";
+        }
+        viewport.style.transform = "";
+        dlg.style.opacity = "";
+        requestAnimationFrame(() => {
+          if (!dismissDragActive) {
+            viewport.style.removeProperty("transform");
+            viewport.style.removeProperty("transition");
+            dlg.style.removeProperty("opacity");
+            dlg.style.removeProperty("transition");
+          }
+        });
+      };
+
+      const applyDismissDrag = (dy) => {
+        const t = Math.max(0, Math.min(dy, viewport.clientHeight * 0.55));
+        dismissDy = t;
+        const fade = Math.max(0.32, 1 - t / (dismissClosePx * 2.1));
+        viewport.style.transform = `translate3d(0, ${t}px, 0)`;
+        dlg.style.opacity = String(fade);
+      };
 
       const applyTransform = () => {
         const target = activeLightboxZoomImg();
@@ -10406,10 +10752,14 @@
         zoomState.scale = 1;
         panX = 0;
         panY = 0;
+        dismissDragActive = false;
+        dismissDy = 0;
+        zoomState.dismissDragging = false;
         img.style.transform = "";
         track.querySelectorAll(".item-image-zoom__carousel-img").forEach((el) => {
           if (el instanceof HTMLImageElement) el.style.transform = "";
         });
+        clearDismissDragStyles(false);
       };
 
       const clampPan = () => {
@@ -10425,11 +10775,18 @@
 
       const onPointerDown = (ev) => {
         if (ev.pointerType === "mouse" && ev.button !== 0) return;
+        syncDismissThreshold();
         const carouselMode = track.children.length && pagerState.count >= 2;
         if (carouselMode && scale <= 1.02) {
           pointers.set(ev.pointerId, ev);
-          if (pointers.size === 1) return;
+          if (pointers.size === 1) {
+            dragStartX = ev.clientX;
+            dragStartY = ev.clientY;
+            return;
+          }
           if (pointers.size === 2) {
+            dismissDragActive = false;
+            zoomState.dismissDragging = false;
             ev.preventDefault();
             viewport.setPointerCapture(ev.pointerId);
             const pts = [...pointers.values()];
@@ -10447,6 +10804,8 @@
           dragPanX = panX;
           dragPanY = panY;
         } else if (pointers.size === 2) {
+          dismissDragActive = false;
+          zoomState.dismissDragging = false;
           const pts = [...pointers.values()];
           pinchStartDist = pointerDistance(pts[0], pts[1]);
           pinchStartScale = scale;
@@ -10457,6 +10816,9 @@
         if (!pointers.has(ev.pointerId)) return;
         pointers.set(ev.pointerId, ev);
         if (pointers.size === 2) {
+          dismissDragActive = false;
+          zoomState.dismissDragging = false;
+          clearDismissDragStyles(false);
           const pts = [...pointers.values()];
           const d = pointerDistance(pts[0], pts[1]);
           if (pinchStartDist > 0) {
@@ -10472,7 +10834,33 @@
           }
           return;
         }
+        if (pointers.size === 1 && scale <= 1.02) {
+          const dx = ev.clientX - dragStartX;
+          const dy = ev.clientY - dragStartY;
+          if (!dismissDragActive) {
+            if (dy > DISMISS_START_PX && dy > Math.abs(dx) * 1.12) {
+              dismissDragActive = true;
+              zoomState.dismissDragging = true;
+              dlg.classList.add("item-image-zoom-dialog--dismiss-drag");
+              viewport.classList.add("item-image-zoom__viewport--dismiss-drag");
+              viewport.style.transition = "none";
+              dlg.style.transition = "none";
+              try {
+                viewport.setPointerCapture(ev.pointerId);
+              } catch {
+                /* ignore */
+              }
+            } else {
+              return;
+            }
+          }
+          ev.preventDefault();
+          applyDismissDrag(Math.max(0, dy));
+          return;
+        }
         if (pointers.size === 1 && scale > 1) {
+          dismissDragActive = false;
+          zoomState.dismissDragging = false;
           panX = dragPanX + (ev.clientX - dragStartX);
           panY = dragPanY + (ev.clientY - dragStartY);
           zoomState.scale = scale;
@@ -10481,7 +10869,30 @@
         }
       };
 
+      const settleDismissDrag = () => {
+        if (!dismissDragActive) return;
+        const shouldClose = dismissDy >= dismissClosePx;
+        dismissDragActive = false;
+        zoomState.dismissDragging = false;
+        if (shouldClose) {
+          clearDismissDragStyles(false);
+          closeDialog();
+          return;
+        }
+        clearDismissDragStyles(true);
+      };
+
       const endPointer = (ev) => {
+        if (dismissDragActive && pointers.has(ev.pointerId)) {
+          pointers.delete(ev.pointerId);
+          try {
+            viewport.releasePointerCapture(ev.pointerId);
+          } catch {
+            /* ignore */
+          }
+          if (!pointers.size) settleDismissDrag();
+          return;
+        }
         pointers.delete(ev.pointerId);
         try {
           viewport.releasePointerCapture(ev.pointerId);
@@ -10497,6 +10908,7 @@
           pinchStartDist = 0;
         } else if (!pointers.size) {
           pinchStartDist = 0;
+          if (dismissDragActive) settleDismissDrag();
         }
       };
 
@@ -10593,13 +11005,23 @@
         String(heroImg.dataset.frameRaw ?? "").trim() ||
         galleryApi?.frameUrlAt?.(safeIdx) ||
         String(heroImg.dataset.coverSrc ?? "").trim();
-      return displaySrc || wardrobeImageFullResolutionUrl(raw, item) || raw;
+      return (
+        displaySrc ||
+        wardrobeImageForFrame(raw, item, ITEM_DETAIL_ZOOM_RENDER) ||
+        wardrobeImageFullResolutionUrl(raw, item) ||
+        raw
+      );
     }
     const raw =
       galleryApi?.frameUrlAt?.(safeIdx) ||
       (safeIdx === 0 ? String(heroImg.dataset.coverSrc ?? "").trim() : "") ||
       String(heroImg.dataset.frameRaw ?? "").trim();
-    return wardrobeImageFullResolutionUrl(raw, item) || galleryApi?.frameUrlAt?.(safeIdx) || raw;
+    return (
+      wardrobeImageForFrame(raw, item, ITEM_DETAIL_ZOOM_RENDER) ||
+      wardrobeImageFullResolutionUrl(raw, item) ||
+      galleryApi?.frameUrlAt?.(safeIdx) ||
+      raw
+    );
   }
 
   function resolveItemHeroEnlargedSrc(media, heroImg, item, galleryApi) {
@@ -10656,93 +11078,16 @@
   }
 
   /**
-   * Desktop PDP: circle + cursor on hover; click opens full-screen viewer (no in-frame hover zoom).
+   * Desktop PDP: “+” cursor on hover; click magnifies inside the hero frame only (no overlay).
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
-   * @param {object} item
-   * @param {{ frameUrlAt?: (index: number) => string } | null} galleryApi
    */
-  function wireItemDetailHeroDesktopClickEnlarge(media, heroImg, item, galleryApi) {
-    if (!isItemPageDesktopHoverZoom()) return () => {};
-    if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return () => {};
-
-    media.classList.add("item-detail__media--hero-enlarge-desktop");
-    heroImg.classList.add("item-detail__hero-img--enlarge-desktop");
-
-    const useCustomCursor = !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    /** @type {HTMLElement | null} */
-    let cursorEl = null;
-    if (useCustomCursor) {
-      cursorEl = document.createElement("div");
-      cursorEl.className = "item-detail__hero-zoom-cursor";
-      cursorEl.setAttribute("aria-hidden", "true");
-      document.body.appendChild(cursorEl);
-    }
-
-    const positionCursor = (clientX, clientY) => {
-      if (!cursorEl) return;
-      cursorEl.style.left = `${clientX}px`;
-      cursorEl.style.top = `${clientY}px`;
-    };
-
-    const showCursor = () => cursorEl?.classList.add("is-visible");
-    const hideCursor = () => cursorEl?.classList.remove("is-visible");
-
-    const openEnlarged = () => {
-      const opts = buildItemHeroLightboxOpenOpts(media, heroImg, item, galleryApi);
-      if (!String(opts.src ?? "").trim()) return;
-      openItemImageZoomLightbox(opts);
-    };
-
-    const onMove = (ev) => {
-      positionCursor(ev.clientX, ev.clientY);
-    };
-
-    const onEnter = (ev) => {
-      showCursor();
-      positionCursor(ev.clientX, ev.clientY);
-    };
-
-    const onLeave = () => hideCursor();
-
-    const onClick = (e) => {
-      if (e.target.closest(".item-detail__gallery-nav")) return;
-      e.preventDefault();
-      openEnlarged();
-    };
-
-    const onKeydown = (e) => {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      if (e.target !== media && e.target !== heroImg) return;
-      e.preventDefault();
-      openEnlarged();
-    };
-
-    media.addEventListener("mouseenter", onEnter);
-    media.addEventListener("mousemove", onMove, { passive: true });
-    media.addEventListener("mouseleave", onLeave);
-    media.addEventListener("click", onClick);
-    media.addEventListener("keydown", onKeydown);
-    if (!media.hasAttribute("tabindex")) media.tabIndex = 0;
-    if (!media.getAttribute("role")) media.setAttribute("role", "button");
-    if (!media.getAttribute("aria-label")) media.setAttribute("aria-label", "Enlarge product photo");
-
-    return () => {
-      media.removeEventListener("mouseenter", onEnter);
-      media.removeEventListener("mousemove", onMove);
-      media.removeEventListener("mouseleave", onLeave);
-      media.removeEventListener("click", onClick);
-      media.removeEventListener("keydown", onKeydown);
-      cursorEl?.remove();
-      cursorEl = null;
-      media.classList.remove("item-detail__media--hero-enlarge-desktop");
-      heroImg.classList.remove("item-detail__hero-img--enlarge-desktop");
-      hideCursor();
-    };
+  function wireItemDetailHeroDesktopClickEnlarge(media, heroImg) {
+    return wireItemDetailHeroDesktopZoomPan(media, heroImg, { plusCursor: true });
   }
 
   /**
-   * PDP hero (mobile): tap opens full-screen viewer; inline hero does not swipe — use thumbs or lightbox.
+   * PDP hero (mobile): tap opens full-screen viewer; inline carousel uses the same horizontal swipe as PLP.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
    * @param {object} item
@@ -10750,7 +11095,7 @@
    */
   function wireItemPageHeroView(media, heroImg, item, galleryApi) {
     if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return;
-    /* Desktop: hover zoom + pan only (wired separately); no tap/click lightbox. */
+    /* Desktop: click zoom + “+” cursor (wired separately); no tap/click lightbox. */
     if (!isItemPageCoarsePointer()) return;
     if (media.dataset.twHeroViewWired === "1") return;
     media.dataset.twHeroViewWired = "1";
@@ -10880,6 +11225,8 @@
     if (s < 0.11 && l > 0.15 && l < 0.88) return "grey";
     if (hh < 0.03 || hh > 0.97) return "red";
     if (hh < 0.085) return "brown";
+    /* Yellow-gold swatches (#ffe691, #DCC98A) sit in beige hue band — classify before beige. */
+    if (hh >= 0.11 && hh < 0.17 && s > 0.22 && l > 0.52) return "gold";
     if (hh < 0.17) return "beige";
     if (hh < 0.52) return "green";
     if (hh < 0.78) return "blue";
@@ -13810,25 +14157,25 @@
   }
 
   const COLLECTION_GRID_CARD_RENDER = Object.freeze({
-    width: 1200,
-    height: 1600,
-    quality: 88,
+    width: 720,
+    height: 960,
+    quality: 82,
     resize: "contain",
   });
 
   /** Collection card carousel / chevron frames — edge-to-edge crop (not cut-out contain). */
   const COLLECTION_GRID_GALLERY_RENDER = Object.freeze({
-    width: 1200,
-    height: 1600,
-    quality: 88,
+    width: 800,
+    height: 1067,
+    quality: 80,
     resize: "cover",
   });
 
   /** Mobile PLP carousel — smaller transform for faster hint + swipe frames. */
   const COLLECTION_GRID_GALLERY_RENDER_MOBILE = Object.freeze({
-    width: 640,
-    height: 853,
-    quality: 82,
+    width: 480,
+    height: 640,
+    quality: 78,
     resize: "cover",
   });
 
@@ -13877,9 +14224,17 @@
   });
 
   const ITEM_DETAIL_GALLERY_RENDER = Object.freeze({
+    width: 1200,
+    height: 1600,
+    quality: 85,
+    resize: "contain",
+  });
+
+  /** Full-screen zoom / pinch viewer — larger than inline PDP hero. */
+  const ITEM_DETAIL_ZOOM_RENDER = Object.freeze({
     width: 1800,
     height: 2400,
-    quality: 90,
+    quality: 88,
     resize: "contain",
   });
 
@@ -13943,6 +14298,8 @@
           : "contain";
       const expanded = [];
       const seenExpanded = new Set();
+      /** @type {string[]} */
+      const rawLocalFallbacks = [];
       const pushCandidate = (u) => {
         const x = String(u ?? "").trim();
         if (!x || seenExpanded.has(x)) return;
@@ -13957,8 +14314,15 @@
           quality: typeof q === "number" && q >= 20 ? q : undefined,
         });
         pushCandidate(rendered);
-        if (rendered !== u) pushCandidate(u);
+        /* Try Supabase transforms first; keep local originals only as a last resort. */
+        const deferRawFallback = Boolean(wardrobeImageObjectPath(u) && getSupabaseProjectOrigin());
+        if (!deferRawFallback && rendered !== u) pushCandidate(u);
+        else if (deferRawFallback && rendered !== u) {
+          const raw = withWardrobeImageCacheBust(u, item);
+          if (raw) rawLocalFallbacks.push(raw);
+        }
       }
+      for (const raw of rawLocalFallbacks) pushCandidate(raw);
       candidates = expanded;
     }
     if (!candidates.length) {
@@ -14245,7 +14609,6 @@
     });
 
     carousel.appendChild(track);
-    carousel.classList.add("item-detail__gallery-carousel--no-touch-swipe");
     stageEl.insertBefore(carousel, heroImgEl);
     stageEl.classList.add("item-detail__gallery-stage--swipe");
     heroImgEl.hidden = true;
@@ -14453,6 +14816,15 @@
       stageEl.appendChild(makeNav("next"));
     }
 
+    if (pdpMobileCarousel) {
+      wireIndexLockedHorizontalGallerySnap(pdpMobileCarousel, stageEl, {
+        readIndex: () => currentIndex,
+        applyIndex: (idx, animate) => showFrame(idx, animate),
+        frameCount: () => frames.length,
+        swipeFlagHost: stageEl,
+      });
+    }
+
     const start =
       typeof opts.initialIndex === "number" && Number.isFinite(opts.initialIndex)
         ? opts.initialIndex
@@ -14471,7 +14843,10 @@
         syncGalleryThumbRailHeight();
         requestAnimationFrame(syncGalleryThumbRailHeight);
       });
-      wireItemDetailGalleryThumbHint(galleryEl, thumbsEl);
+      /* Hero carousel already uses the same horizontal swipe — skip thumb-rail nudge (reads as “swipe left” on previews). */
+      if (!pdpMobileCarousel) {
+        wireItemDetailGalleryThumbHint(galleryEl, thumbsEl);
+      }
     } else {
       galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
       thumbsEl.style.removeProperty("max-height");
@@ -14498,15 +14873,10 @@
       }
     }
 
-    if (opts.heroInteractions && isItemPageDesktopHoverZoom()) {
-      stageEl.__twDesktopZoomCleanup = wireItemDetailHeroDesktopClickEnlarge(
-        stageEl,
-        heroImgEl,
-        item,
-        stageEl.__twPdpGallery
-      );
-    } else {
-      stageEl.__twDesktopZoomCleanup = wireItemDetailHeroDesktopZoomPan(stageEl, heroImgEl);
+    if (isItemPageDesktopHoverZoom()) {
+      stageEl.__twDesktopZoomCleanup = opts.heroInteractions
+        ? wireItemDetailHeroDesktopClickEnlarge(stageEl, heroImgEl)
+        : wireItemDetailHeroDesktopZoomPan(stageEl, heroImgEl, { plusCursor: true });
     }
   }
 
@@ -17878,8 +18248,13 @@
   const COLLECTION_SWIPE_HINT_FROM_HOME_QUERY = "from";
   const COLLECTION_SWIPE_HINT_FROM_HOME_VALUE = "home";
   let collectionGallerySwipeHintToken = 0;
-  /** When true, mobile PLP always plays the first-card swipe nudge (home entry). */
-  let collectionGallerySwipeHintForceFromHome = false;
+  /** Latched once per collection page load when URL/session says user came from home. */
+  let collectionGallerySwipeHintEntryFromHome = false;
+  /** After a successful from-home hint this visit, skip re-scheduling on later `renderGrid` calls. */
+  let collectionGallerySwipeHintFromHomePlayed = false;
+  /** Defer from-home hint until the page loader has revealed the grid. */
+  let collectionGallerySwipeHintFromHomePending = false;
+  let collectionSwipeHintUserInputGuardInstalled = false;
 
   /** Mobile-only swipe hint (narrow viewport — not desktop coarse-pointer emulation). */
   function isCollectionGallerySwipeHintViewport() {
@@ -17997,6 +18372,37 @@
     timer = globalThis.setTimeout(() => finish(allReady()), timeoutMs);
   }
 
+  /** User scrolled or touched the PLP before the hint — skip so we never fight active gestures. */
+  function installCollectionSwipeHintUserInputGuard() {
+    if (collectionSwipeHintUserInputGuardInstalled) return;
+    collectionSwipeHintUserInputGuardInstalled = true;
+    const main = document.getElementById("main");
+    if (!(main instanceof HTMLElement)) return;
+    const cancel = () => {
+      if (collectionGallerySwipeHintFromHomePlayed) return;
+      collectionGallerySwipeHintToken++;
+      collectionGallerySwipeHintFromHomePlayed = true;
+      collectionGallerySwipeHintFromHomePending = false;
+    };
+    main.addEventListener("touchstart", cancel, { once: true, passive: true, capture: true });
+    main.addEventListener("wheel", cancel, { once: true, passive: true, capture: true });
+    main.addEventListener("scroll", cancel, { once: true, passive: true, capture: true });
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {HTMLElement} carousel
+   * @param {number} token
+   */
+  function tryPlayCollectionGallerySwipeHint(media, carousel, token) {
+    if (token !== collectionGallerySwipeHintToken) return false;
+    const track = carousel.querySelector(".card__gallery-carousel-track");
+    if (!(track instanceof HTMLElement) || track.children.length < 2) return false;
+    if (carousel.clientWidth < 40) return false;
+    playCollectionGallerySwipeHint(media, carousel);
+    return true;
+  }
+
   /** First grid card when it has 2+ gallery frames (mobile swipe). */
   function firstCollectionGridSwipeGalleryMedia() {
     if (!els.grid) return null;
@@ -18025,9 +18431,9 @@
     if (prefersReducedMotion) return;
 
     const token = collectionGallerySwipeHintToken;
-    const ease = "cubic-bezier(0.33, 0, 0.2, 1)";
-    const peekMs = 280;
-    const returnMs = 340;
+    const ease = "cubic-bezier(0.4, 0, 0.2, 1)";
+    const peekMs = 200;
+    const returnMs = 240;
 
     const finish = () => {
       if (token !== collectionGallerySwipeHintToken) return;
@@ -18039,7 +18445,9 @@
       carousel.classList.remove("card__gallery-carousel--hint-active");
     };
 
-    const persistSessionDismiss = !collectionGallerySwipeHintForceFromHome;
+    const forceFromHomeEntry =
+      collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed;
+    const persistSessionDismiss = !forceFromHomeEntry;
 
     const dismissHint = () => {
       collectionGallerySwipeHintToken++;
@@ -18055,17 +18463,30 @@
 
     media.addEventListener("touchstart", dismissHint, { once: true, passive: true });
     carousel.addEventListener("touchstart", dismissHint, { once: true, passive: true });
+    document.getElementById("main")?.addEventListener("scroll", dismissHint, { once: true, passive: true });
+    document.getElementById("grid")?.addEventListener("touchstart", dismissHint, { once: true, passive: true });
 
-    const run = () => {
+    const markFromHomePlayed = () => {
+      if (!collectionGallerySwipeHintEntryFromHome) return;
+      collectionGallerySwipeHintFromHomePlayed = true;
+      collectionGallerySwipeHintFromHomePending = false;
+    };
+
+    const run = (layoutTries = 16) => {
       if (token !== collectionGallerySwipeHintToken) return;
       const w = carousel.clientWidth;
-      if (w < 40) return;
+      if (w < 40) {
+        if (layoutTries > 0) {
+          requestAnimationFrame(() => run(layoutTries - 1));
+        }
+        return;
+      }
       media.classList.add("card__media--gallery-hint-active");
       carousel.classList.add("card__gallery-carousel--hint-active");
       /* Do not use is-dragging — CSS disables transition on that class. */
       track.classList.remove("is-dragging");
       track.style.transition = `transform ${peekMs}ms ${ease}`;
-      track.style.transform = "translate3d(-42%, 0, 0)";
+      track.style.transform = "translate3d(-30%, 0, 0)";
       window.setTimeout(() => {
         if (token !== collectionGallerySwipeHintToken) return;
         track.style.transition = `transform ${returnMs}ms ${ease}`;
@@ -18078,43 +18499,57 @@
               /* ignore */
             }
           }
+          markFromHomePlayed();
           finish();
         }, returnMs + 40);
       }, peekMs + 30);
     };
 
-    requestAnimationFrame(() => requestAnimationFrame(run));
+    requestAnimationFrame(run);
   }
 
-  /** Mobile PLP: nudge first swipeable card (always when entering from home; otherwise once per session). */
-  function scheduleCollectionGallerySwipeHint() {
+  /**
+   * Mobile PLP: nudge first swipeable card (always when entering from home; otherwise once per session).
+   * @param {{ fromHomeEntry?: boolean }} [opts]
+   */
+  function scheduleCollectionGallerySwipeHint(opts = {}) {
     if (!document.body.classList.contains("collection-page")) return;
     if (!isCollectionGallerySwipeHintViewport()) return;
     if (document.body.classList.contains("collection-ui--search-results-plp")) return;
 
-    collectionGallerySwipeHintForceFromHome = consumeCollectionEntryFromHomePage();
-    if (!collectionGallerySwipeHintForceFromHome) {
+    const forceFromHomeEntry =
+      Boolean(opts.fromHomeEntry) ||
+      (collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed);
+
+    if (!forceFromHomeEntry) {
       try {
         if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1") return;
       } catch {
         /* ignore */
       }
+    } else {
+      installCollectionSwipeHintUserInputGuard();
     }
 
     const token = ++collectionGallerySwipeHintToken;
-    const maxTries = collectionGallerySwipeHintForceFromHome ? 28 : 14;
-    const framesReadyMs = collectionGallerySwipeHintForceFromHome ? 3600 : 1400;
+    const maxTries = forceFromHomeEntry ? 28 : 12;
+    const retryMs = forceFromHomeEntry ? 32 : 100;
 
     const attempt = (triesLeft = maxTries) => {
       if (token !== collectionGallerySwipeHintToken) return;
       const media = firstCollectionGridSwipeGalleryMedia();
       if (!media) {
-        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), 120);
+        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), retryMs);
         return;
       }
       const carousel = getMobileGalleryCarousel(media);
       if (!carousel) {
-        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), 120);
+        if (triesLeft > 0) window.setTimeout(() => attempt(triesLeft - 1), retryMs);
+        return;
+      }
+      if (tryPlayCollectionGallerySwipeHint(media, carousel, token)) return;
+      if (forceFromHomeEntry) {
+        if (triesLeft > 0) requestAnimationFrame(() => attempt(triesLeft - 1));
         return;
       }
       whenMobileGalleryCarouselFramesReady(
@@ -18123,30 +18558,47 @@
         (ready) => {
           if (token !== collectionGallerySwipeHintToken) return;
           if (!ready && triesLeft > 0) {
-            window.setTimeout(() => attempt(triesLeft - 1), 120);
+            window.setTimeout(() => attempt(triesLeft - 1), retryMs);
             return;
           }
           if (!ready) return;
           playCollectionGallerySwipeHint(media, carousel);
         },
-        framesReadyMs
+        900
       );
     };
 
-    requestAnimationFrame(() => {
-      window.setTimeout(() => attempt(), collectionGallerySwipeHintForceFromHome ? 80 : 220);
-    });
+    const startAttempt = () => attempt();
+
+    if (forceFromHomeEntry && !document.body.classList.contains("tw-page-loader-revealed")) {
+      const waitForReveal = (triesLeft = 24) => {
+        if (token !== collectionGallerySwipeHintToken) return;
+        if (document.body.classList.contains("tw-page-loader-revealed")) {
+          startAttempt();
+          return;
+        }
+        if (triesLeft > 0) requestAnimationFrame(() => waitForReveal(triesLeft - 1));
+        else startAttempt();
+      };
+      waitForReveal();
+      return;
+    }
+
+    startAttempt();
   }
 
   /** Clears the once-per-session flag and replays the hint (console: `twReplayCollectionSwipeHint()`). */
   function replayCollectionGallerySwipeHint() {
     collectionGallerySwipeHintToken++;
+    collectionGallerySwipeHintEntryFromHome = true;
+    collectionGallerySwipeHintFromHomePlayed = false;
+    collectionGallerySwipeHintFromHomePending = false;
     try {
       sessionStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_KEY);
     } catch {
       /* ignore */
     }
-    scheduleCollectionGallerySwipeHint();
+    scheduleCollectionGallerySwipeHint({ fromHomeEntry: true });
   }
 
   if (typeof globalThis !== "undefined") {
@@ -18325,6 +18777,14 @@
    * @param {number} index
    * @param {boolean} [animate]
    */
+  function ensureDeferredGalleryFrameImageLoaded(img) {
+    if (!(img instanceof HTMLImageElement)) return;
+    const deferred = String(img.dataset.twFrameSrc ?? "").trim();
+    if (!deferred) return;
+    if (!String(img.getAttribute("src") ?? "").trim()) img.src = deferred;
+    delete img.dataset.twFrameSrc;
+  }
+
   function applyDesktopGalleryFrameIndex(stage, index, animate = true) {
     const track = stage.querySelector(".card__gallery-desktop-track");
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
@@ -18337,6 +18797,8 @@
       [...track.children].forEach((slide, i) => {
         if (!(slide instanceof HTMLElement)) return;
         slide.classList.toggle("is-active", i === idx);
+        const frameImg = slide.querySelector("img");
+        if (i === idx || i === idx + 1) ensureDeferredGalleryFrameImageLoaded(frameImg);
       });
       return idx;
     }
@@ -18344,6 +18806,8 @@
     [...track.children].forEach((slide, i) => {
       if (!(slide instanceof HTMLElement)) return;
       slide.classList.toggle("is-active", i === idx);
+      const frameImg = slide.querySelector("img");
+      if (i === idx || i === idx + 1) ensureDeferredGalleryFrameImageLoaded(frameImg);
     });
     return idx;
   }
@@ -18390,7 +18854,11 @@
         simg.decoding = "async";
         simg.draggable = false;
         if (img.sizes) simg.sizes = img.sizes;
-        simg.src = entry.url;
+        if (i === 0) {
+          simg.src = entry.url;
+        } else {
+          simg.dataset.twFrameSrc = entry.url;
+        }
         slide.appendChild(simg);
         track.appendChild(slide);
       });
@@ -18440,7 +18908,7 @@
         applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
         media.dataset.galleryFrameIndex = String(hoverIdx);
       } else {
-        applyDesktopGalleryFrameIndex(stage, idx, false);
+        applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
         if (track.children.length >= 2 && idx === 0) {
           media.dataset.galleryFrameIndex = "1";
         }
@@ -19590,7 +20058,11 @@
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
     syncToolbarActiveFilterChips();
-    scheduleCollectionGallerySwipeHint();
+    if (collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed) {
+      collectionGallerySwipeHintFromHomePending = true;
+    } else {
+      scheduleCollectionGallerySwipeHint();
+    }
   }
 
   function getCollectionCountLineLayout(visible, total, searchNorm) {
@@ -20837,7 +21309,7 @@
     refillBasicColourSelectOptions(basicSel, String(data.basicColour ?? "").trim());
     const syncVariantBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
       colour: itemEditColourNameForInference(colourIn),
-      colourCode: itemEditColourCodeCommittedValue(codeIn),
+      colourCode: itemEditColourCodeValueForPreview(codeIn),
       label: String(labelIn.value ?? "").trim(),
     }));
     const variantSecBasicMount = createItemEditSecondaryBasicColourField(String(data.secondaryBasicColour ?? "").trim(), {
@@ -22030,6 +22502,10 @@
     img.className = "card__media-img card__media-img--cover";
     img.alt = imageAltForItem(itemForMedia);
     img.decoding = "async";
+    if (isItemPageView) {
+      img.loading = "eager";
+      img.fetchPriority = "high";
+    }
     /* PDP hero: keep native right-click Save Image (collection grid still uses draggable=false). */
     if (!usePdpGalleryLayout) img.draggable = false;
     wireCoverImageWithFallbacks(img, itemForMedia, {
@@ -23353,6 +23829,7 @@
     const wantEdit = route.wantEdit;
 
     if (!item) {
+      root.classList.add("item-detail__root--not-found");
       root.innerHTML =
         '<div class="item-page-not-found-wrap" role="alert">' +
         '<p class="item-page-not-found">This piece is not in the collection.</p>' +
@@ -23364,6 +23841,7 @@
       return;
     }
 
+    root.classList.remove("item-detail__root--not-found");
     document.title = `${item.brand} — ${displayNameWithoutLeadingColour(item)} · Timeless Wardrobe`;
     recordRecentlyViewedItem(item.id);
     const wantEditRequested = wantEdit;
@@ -27203,12 +27681,48 @@
     const root = document.getElementById("tw-page-loader");
     if (!root || !document.body.classList.contains("tw-page-loader-active")) return;
     const isCollectionGridPage = Boolean(document.getElementById("grid")) && !document.body.classList.contains("home-page");
+    const isLoginPage = isTwLoginPage();
     const fastCollectionPaint = Boolean(document.body?.dataset?.twFastCollectionPaint);
+    const fastCollectionFromHome =
+      isCollectionGridPage &&
+      (collectionGallerySwipeHintEntryFromHome || collectionGallerySwipeHintFromHomePending);
     /* Collection should feel immediate: keep brand cue but shorten enforced loader timings. */
-    const minMs = fastCollectionPaint ? 140 : isCollectionGridPage ? 420 : 1000;
-    const logoInMs = fastCollectionPaint ? 120 : isCollectionGridPage ? 280 : 1000;
-    const fadeOutMs = fastCollectionPaint ? 200 : isCollectionGridPage ? 280 : 520;
-    const mainInMs = fastCollectionPaint ? 160 : isCollectionGridPage ? 220 : 500;
+    const minMs = fastCollectionFromHome
+      ? 80
+      : fastCollectionPaint
+        ? 140
+        : isLoginPage
+          ? 120
+          : isCollectionGridPage
+            ? 420
+            : 1000;
+    const logoInMs = fastCollectionFromHome
+      ? 60
+      : fastCollectionPaint
+        ? 120
+        : isLoginPage
+          ? 80
+          : isCollectionGridPage
+            ? 280
+            : 1000;
+    const fadeOutMs = fastCollectionFromHome
+      ? 140
+      : fastCollectionPaint
+        ? 200
+        : isLoginPage
+          ? 160
+          : isCollectionGridPage
+            ? 280
+            : 520;
+    const mainInMs = fastCollectionFromHome
+      ? 100
+      : fastCollectionPaint
+        ? 160
+        : isLoginPage
+          ? 120
+          : isCollectionGridPage
+            ? 220
+            : 500;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
@@ -27236,6 +27750,7 @@
     const twLoaderPageStarted = performance.now();
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
+    let twEditorAuthBootstrapped = false;
     const [lockManifest, hybridManifest] = await Promise.all([
       loadCatalogueLockManifest(),
       loadHybridLocalCatalogueManifest(),
@@ -27280,7 +27795,17 @@
           deferHybridCloudRefresh = preferFastCollectionPaint && isHybridLocalCatalogueEnabled();
           deferOutfitsFetch = preferFastCollectionPaint;
 
-          if (deferHybridCloudRefresh) {
+          if (isTwLoginPage()) {
+            refreshCatalogueSeedSnapshot();
+            wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
+            wardrobeCatalogueSource = "seed";
+            cloudBackedCustomItems = [];
+            savedOutfits = loadSavedOutfitsFromStorage();
+            useCloudOutfits = false;
+            deferredSeedSyncSnapshot = null;
+            await initTwEditorAuth();
+            twEditorAuthBootstrapped = true;
+          } else if (deferHybridCloudRefresh) {
             if (document.body) document.body.dataset.twFastCollectionPaint = "1";
             refreshCatalogueSeedSnapshot();
             wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
@@ -27401,13 +27926,17 @@
 
     normalizeLegacyEditorUrls();
     await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint });
-    if (preferFastCollectionPaint) {
-      applyTwAdminModeUi();
-      scheduleCollectionDeferredWork(() => {
-        void initTwEditorAuth().then(() => applyTwAdminModeUi());
-      });
+    if (!twEditorAuthBootstrapped) {
+      if (preferFastCollectionPaint) {
+        applyTwAdminModeUi();
+        scheduleCollectionDeferredWork(() => {
+          void initTwEditorAuth().then(() => applyTwAdminModeUi());
+        });
+      } else {
+        await initTwEditorAuth();
+        applyTwAdminModeUi();
+      }
     } else {
-      await initTwEditorAuth();
       applyTwAdminModeUi();
     }
 
@@ -27496,6 +28025,13 @@
       await runItemDetailPage(itemRoot, pageId);
     } else {
       normalizeCollectionTopLanding();
+      collectionGallerySwipeHintEntryFromHome = consumeCollectionEntryFromHomePage();
+      collectionGallerySwipeHintFromHomePlayed = false;
+      collectionGallerySwipeHintFromHomePending = false;
+      collectionSwipeHintUserInputGuardInstalled = false;
+      if (collectionGallerySwipeHintEntryFromHome) {
+        installCollectionSwipeHintUserInputGuard();
+      }
       applyCollectionPathFromUrl();
       consumeCollectionBrowseStateForReturn();
       syncCollectionUrlFromBrowseState({ replace: true });
@@ -27536,6 +28072,14 @@
     }
     } finally {
       await completeTwInitialPageLoader(twLoaderPageStarted);
+      if (
+        collectionGallerySwipeHintFromHomePending &&
+        collectionGallerySwipeHintEntryFromHome &&
+        !collectionGallerySwipeHintFromHomePlayed
+      ) {
+        collectionGallerySwipeHintFromHomePending = false;
+        scheduleCollectionGallerySwipeHint({ fromHomeEntry: true });
+      }
     }
     wireEvents();
     syncOutfitSaveButtonLabel();
