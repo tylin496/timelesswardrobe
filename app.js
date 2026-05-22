@@ -18802,6 +18802,27 @@
     delete img.dataset.twFrameSrc;
   }
 
+  /** Hover crossfade stacks slides — track translate must stay at 0 (not chevron index). */
+  function resetDesktopGalleryTrackTransformForHoverFade(track) {
+    if (!(track instanceof HTMLElement)) return;
+    track.classList.remove("is-dragging");
+    track.style.transition = "none";
+    track.style.transform = "translate3d(0, 0, 0)";
+  }
+
+  /** @param {HTMLElement} stage @param {number} throughIndex */
+  function preloadDesktopGalleryHoverSlides(stage, throughIndex = 1) {
+    const track = stage.querySelector(".card__gallery-desktop-track");
+    if (!(track instanceof HTMLElement)) return;
+    const max = Math.min(Math.max(0, Math.floor(throughIndex)), track.children.length - 1);
+    for (let i = 0; i <= max; i++) {
+      const slide = track.children[i];
+      if (slide instanceof HTMLElement) {
+        ensureDeferredGalleryFrameImageLoaded(slide.querySelector("img"));
+      }
+    }
+  }
+
   function applyDesktopGalleryFrameIndex(stage, index, animate = true) {
     const track = stage.querySelector(".card__gallery-desktop-track");
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
@@ -18918,9 +18939,8 @@
     }
 
     if (preview) {
-      const hoverIdx = Math.min(1, track.children.length - 1);
-      applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
-      media.dataset.galleryFrameIndex = String(hoverIdx);
+      resetDesktopGalleryTrackTransformForHoverFade(track);
+      preloadDesktopGalleryHoverSlides(stage, 1);
       media.classList.add("card__media--hover-gallery-fade");
       stage.classList.add("card__gallery-desktop-stage--hover-fade");
       requestAnimationFrame(() => {
@@ -18931,6 +18951,7 @@
     }
 
     media.dataset.galleryFrameIndex = "0";
+    resetDesktopGalleryTrackTransformForHoverFade(track);
     applyDesktopGalleryFrameIndex(stage, 0, false);
 
     media.classList.remove("is-hover-preview");
