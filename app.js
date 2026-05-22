@@ -6103,7 +6103,16 @@
   function mergeHybridCatalogueGallery(seed, cloudRow, opts = {}) {
     const itemId = String(seed?.id ?? cloudRow?.id ?? "").trim();
     const preferCloudOrder = Boolean(opts && opts.preferCloudOrder);
-    const cloudGal = itemGalleryList(cloudRow);
+    const rawCloudGal = itemGalleryList(cloudRow);
+    // For frozen local catalogue items, discard cloud gallery URLs whose storage path
+    // belongs to a different (old) item ID — legacy orphans from before ID migration.
+    const cloudGal = itemId && isLocalCatalogueItemId(itemId)
+      ? rawCloudGal.filter((u) => {
+          const key = wardrobeMediaPathKey(u);
+          if (!key) return true; // keep non-parseable URLs
+          return key.startsWith(itemId + "/");
+        })
+      : rawCloudGal;
     const cloudAuthoritative =
       preferCloudOrder ||
       rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
@@ -27619,6 +27628,12 @@
     if (!seed || !cloudRow) return false;
     const cloudImage = String(cloudRow.image ?? "").trim();
     if (!cloudImage) return false;
+    // If the cloud cover/gallery paths use a different (old) item ID, they are legacy
+    // orphans from before an ID migration — not genuinely newer media.
+    if (itemId) {
+      const cloudImageKey = wardrobeMediaPathKey(cloudImage);
+      if (cloudImageKey && !cloudImageKey.startsWith(itemId + "/")) return false;
+    }
     const cloudTs = rowMediaTimestamp(cloudRow);
     const seedTs = rowMediaTimestamp(seed);
     if (cloudTs > seedTs && cloudTs > 0) return true;

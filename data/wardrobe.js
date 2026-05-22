@@ -1339,7 +1339,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/ventile-harrington/main/gallery/01.webp",
       "/images/wardrobe/ventile-harrington/main/gallery/01.jpg",
       "/images/wardrobe/ventile-harrington/main/gallery/02.jpg",
-      "/images/wardrobe/ventile-harrington/main/gallery/03.jpg"
+      "/images/wardrobe/ventile-harrington/main/gallery/03.jpg",
+      "/images/wardrobe/ventile-harrington/main/gallery/04.jpg"
     ],
     "notes": "A jacket with soul. First stitched in the 1950s and still made in Manchester, it has dressed rebels, musicians, and silver-screen legends for generations. With its stand collar, copper zip, and waterproof Ventile shell, the Harrington is as it was meant to be - timeless, understated, and unmistakably British.",
     "metadata": {
