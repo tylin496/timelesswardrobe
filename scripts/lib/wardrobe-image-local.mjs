@@ -5,6 +5,57 @@
 export const WARDROBE_IMAGE_BUCKET = "wardrobe-images";
 export const LOCAL_WARDROBE_IMAGE_ROOT = "/images/wardrobe";
 
+export function safeStorageSegment(value, fallback = "item") {
+  const cleaned = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return cleaned || fallback;
+}
+
+/** @param {string} [fileName] @param {string} [mimeType] */
+export function fileExtensionFromName(fileName, mimeType = "") {
+  const name = String(fileName ?? "").trim();
+  const m = name.match(/\.([a-z0-9]+)$/i);
+  if (m) return m[1].toLowerCase();
+  const type = String(mimeType ?? "").toLowerCase();
+  if (type.includes("avif")) return "avif";
+  if (type.includes("png")) return "png";
+  if (type.includes("webp")) return "webp";
+  if (type.includes("gif")) return "gif";
+  return "jpg";
+}
+
+/**
+ * Object path under `images/wardrobe/` (no leading slash).
+ * @param {string} itemId
+ * @param {string} ext
+ * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+ */
+export function wardrobeImageStorageObjectPath(itemId, ext, slot) {
+  const root = safeStorageSegment(itemId);
+  const e = String(ext ?? "jpg")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "") || "jpg";
+  if (!slot || slot.type === "main_cover") {
+    return `${root}/main/cover.${e}`;
+  }
+  if (slot.type === "main_gallery") {
+    const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+    return `${root}/main/gallery/${String(n).padStart(2, "0")}.${e}`;
+  }
+  if (slot.type === "variant_cover" || slot.type === "variant_preview") {
+    const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+    const role = slot.type === "variant_preview" ? "preview" : "cover";
+    return `${root}/variants/${vk}/${role}.${e}`;
+  }
+  return `${root}/main/cover.${e}`;
+}
+
 /** @param {string} u */
 export function storagePathFromWardrobeImageUrl(u) {
   const s = String(u ?? "").trim().split("?")[0];

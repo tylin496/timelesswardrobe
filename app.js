@@ -4592,7 +4592,7 @@
   let storageMode = /** @type {"cloud" | "local"} */ ("local");
 
   function isCloudModeActive() {
-    return storageMode === "cloud" && isSupabaseReady();
+    return storageMode === "cloud" && isSupabaseReady() && !isGitWardrobeStorageEnabled();
   }
 
   /** All rows last loaded from Supabase `wardrobe_items` (not only `custom-*`). */
@@ -6090,6 +6090,92 @@
     return data?.publicUrl || "";
   }
 
+  /**
+   * @param {File} file
+   * @returns {Promise<string>}
+   */
+  async function fileToBase64ForGitUpload(file) {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  }
+
+  /**
+   * @param {File} file
+   * @param {string} itemId
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   */
+  async function uploadWardrobeImageFileToGit(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
+    if (!isGitWardrobeStorageEnabled()) {
+      throw new Error(GIT_WARDROBE_WRITE_REQUIRED_MESSAGE);
+    }
+    if (!file) return "";
+    const dataBase64 = await fileToBase64ForGitUpload(file);
+    const res = await fetch("/api/wardrobe/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        itemId: String(itemId ?? "").trim(),
+        slot,
+        fileName: String(file.name ?? "photo.jpg"),
+        mimeType: String(file.type ?? ""),
+        dataBase64,
+      }),
+    });
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {
+      /* ignore */
+    }
+    if (!res.ok) {
+      const errText = String(payload?.error ?? res.statusText ?? "Upload failed");
+      throw new Error(errText);
+    }
+    return String(payload?.url ?? "").trim();
+  }
+
+  /**
+   * @param {File} file
+   * @param {string} itemId
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   */
+  async function uploadWardrobeImageFile(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
+    if (isGitWardrobeStorageEnabled()) {
+      return uploadWardrobeImageFileToGit(file, itemId, slot);
+    }
+    return uploadWardrobeImageFileToCloud(file, itemId, slot);
+  }
+
+  /** Persist one catalogue row to data/wardrobe.js (dev server only). */
+  async function saveWardrobeItemToGit(item) {
+    if (!isGitWardrobeStorageEnabled()) {
+      throw new Error(GIT_WARDROBE_WRITE_REQUIRED_MESSAGE);
+    }
+    const res = await fetch("/api/wardrobe/item", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    });
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {
+      /* ignore */
+    }
+    if (!res.ok) {
+      throw new Error(String(payload?.error ?? res.statusText ?? "Git save failed"));
+    }
+    const saved = payload?.item && typeof payload.item === "object" ? payload.item : item;
+    pinCatalogueSeedRow(saved);
+    return normalizeItemDerivedFields(saved);
+  }
+
   /** Derive a stable cache-bust token from a local `/images/wardrobe/…` path (incl. `*-cover-edit` filenames). */
   function wardrobeImageCacheBustTokenFromPath(url) {
     const path = String(url ?? "").trim().split("?")[0];
@@ -6372,7 +6458,7 @@
    * @param {(t: string, err?: boolean) => void} [setMsg]
    */
   async function ensureFrozenCatalogueMediaUrlsOnCloud(itemId, image, gallery, setMsg) {
-    if (!isLocalCatalogueItemId(itemId) || !isSupabaseReady()) {
+    if (!isLocalCatalogueItemId(itemId) || !isSupabaseReady() || isGitWardrobeStorageEnabled()) {
       return { image, gallery: dedupeGalleryUrls(image, gallery) };
     }
     const item = { id: itemId };
@@ -17635,13 +17721,13 @@
         url = String(s.url ?? "").trim();
       } else if (s.kind === "file" && s.file) {
         try {
-          if (isSupabaseReady()) {
+          if (isWardrobeEditorWriteReady()) {
             if (i === 0) {
               url = variantKey
-                ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
-                : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
+                ? await uploadWardrobeImageFile(s.file, itemId, { type: "variant_cover", key: variantKey })
+                : await uploadWardrobeImageFile(s.file, itemId, { type: "main_cover" });
             } else {
-              url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
+              url = await uploadWardrobeImageFile(s.file, itemId, {
                 type: "main_gallery",
                 index: i,
               });
@@ -17999,6 +18085,17 @@
   /** Short line for wardrobe_items upsert failures (add / edit / duplicate). */
   const CLOUD_WRITE_REQUIRED_MESSAGE =
     "Cloud save is required. Supabase is not connected yet — configure js/tw-supabase-config.js (URL + anon key) and retry.";
+
+  const GIT_WARDROBE_WRITE_REQUIRED_MESSAGE =
+    "Git save requires npm run dev on this machine (127.0.0.1). Photos go to images/wardrobe/ and data/wardrobe.js — then commit and push to GitHub.";
+
+  function wardrobeEditorWriteRequiredMessage() {
+    return isGitWardrobeStorageEnabled() ? GIT_WARDROBE_WRITE_REQUIRED_MESSAGE : CLOUD_WRITE_REQUIRED_MESSAGE;
+  }
+
+  function isWardrobeEditorWriteReady() {
+    return isSupabaseReady() || isGitWardrobeStorageEnabled();
+  }
 
   function messageForCloudUploadFailure(context, err) {
     const detail = formatSupabaseUserMessage(err);
@@ -22004,9 +22101,10 @@
         previewImage = prevPr;
         if (previewFile2) {
           try {
-            const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
-            previewImage = cloudId
-              ? await uploadWardrobeImageFileToCloud(previewFile2, cloudId, { type: "variant_preview", key })
+            const uploadId =
+              opts?.cloudItemId && isWardrobeEditorWriteReady() ? String(opts.cloudItemId).trim() : "";
+            previewImage = uploadId
+              ? await uploadWardrobeImageFile(previewFile2, uploadId, { type: "variant_preview", key })
               : await fileToStorageDataUrl(previewFile2);
           } catch (err) {
             console.warn(err);
@@ -22087,9 +22185,10 @@
     const prev = itemById.get(id);
     if (!prev) return;
     const isCustom = String(id).startsWith("custom-");
-    if (!isSupabaseReady()) {
-      setMsg(CLOUD_WRITE_REQUIRED_MESSAGE, true);
-      showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
+    if (!isWardrobeEditorWriteReady()) {
+      const needMsg = wardrobeEditorWriteRequiredMessage();
+      setMsg(needMsg, true);
+      showToast(needMsg);
       return;
     }
 
@@ -22273,7 +22372,7 @@
     if (!userEditedGalleryPhotos) {
       gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
     }
-    if (isLocalCatalogueItemId(id) && isSupabaseReady()) {
+    if (isLocalCatalogueItemId(id) && isSupabaseReady() && !isGitWardrobeStorageEnabled()) {
       const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, {
         userEdited: userEditedGalleryPhotos,
       });
@@ -22521,7 +22620,34 @@
 
       if (isLocalCatalogueItemId(id)) {
         const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
-        if (mediaTouched) {
+        if (mediaTouched && isGitWardrobeStorageEnabled()) {
+          try {
+            const saved = await saveWardrobeItemToGit(
+              normalizeItemDerivedFields({
+                ...mergedForCloud,
+                image: updated.image,
+                gallery: updated.gallery,
+                colourVariants: updated.colourVariants,
+              })
+            );
+            const displayAfterSave = normalizeItemDerivedFields({
+              ...prev,
+              ...saved,
+              id,
+              image: updated.image,
+              gallery: updated.gallery,
+              colourVariants: updated.colourVariants,
+            });
+            stampWardrobeItemMediaNonce(displayAfterSave, Date.now());
+            upsertWardrobeBaseRowInMemory(displayAfterSave, { skipLocalMediaMerge: true });
+            savedRowForPin = displayAfterSave;
+            collectionSavedAsOverride = true;
+          } catch (e) {
+            setMsg(`Git save failed: ${e instanceof Error ? e.message : String(e)}`, true);
+            keepFinalWarningMessage = true;
+            return;
+          }
+        } else if (mediaTouched) {
           try {
             const saved = await saveWardrobeItemToCloud(mergedForCloud);
             const mediaBust = stampWardrobeItemMediaNonce(saved, Date.now());
@@ -22562,6 +22688,17 @@
           } catch (e) {
             setMsg(`Cloud media save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
             keepFinalWarningMessage = true;
+            return;
+          }
+        } else if (isGitWardrobeStorageEnabled()) {
+          try {
+            const saved = await saveWardrobeItemToGit(mergedForCloud);
+            stampWardrobeItemMediaNonce(saved, Date.now());
+            upsertWardrobeBaseRowInMemory(saved, { skipLocalMediaMerge: true });
+            savedRowForPin = saved;
+            collectionSavedAsOverride = true;
+          } catch (e) {
+            setMsg(`Git save failed: ${e instanceof Error ? e.message : String(e)}`, true);
             return;
           }
         } else {
@@ -22630,7 +22767,12 @@
     }
 
     if (!keepFinalWarningMessage && !(isCustom && isSupabaseReady() && !customCloudSynced)) {
-      setMsg("Saved to collection", false);
+      setMsg(
+        isGitWardrobeStorageEnabled()
+          ? "Saved to data/wardrobe.js — commit and push images/wardrobe for production."
+          : "Saved to collection",
+        false
+      );
     }
     if (!didCloudListRefresh) {
       mergeWardrobeFromSources();
@@ -27723,6 +27865,9 @@
   /** @type {Record<string, { main: string[], variants: Record<string, string[]> }> | null} */
   let localGalleryDiskManifest = null;
 
+  /** @type {{ enabled: boolean, localImageRoot: string } | null} */
+  let gitWardrobeStorageManifest = null;
+
   /**
    * Frozen `data/wardrobe.js` rows at load (committed seed / your local edits after refresh).
    * Hybrid conflict rule: local file paths win unless Supabase media is newer than this snapshot (manual re-upload).
@@ -27774,6 +27919,34 @@
 
   function isHybridLocalCatalogueEnabled() {
     return Boolean(hybridLocalCatalogueManifest?.enabled && catalogueLockManifest?.ids?.size);
+  }
+
+  async function loadGitWardrobeStorageManifest() {
+    try {
+      const res = await fetch("data/wardrobe-git-storage.json", { cache: "no-store" });
+      if (!res.ok) return null;
+      const p = await res.json();
+      if (String(p?._schema ?? "") !== "timeless-wardrobe-git-storage-v1") return null;
+      if (!p.enabled) return null;
+      return {
+        enabled: true,
+        localImageRoot: String(p.localImageRoot ?? "/images/wardrobe").trim() || "/images/wardrobe",
+      };
+    } catch (e) {
+      console.warn("wardrobe-git-storage.json", e);
+      return null;
+    }
+  }
+
+  /** Git repo folders via `npm run dev` — no Supabase Storage for editor uploads. */
+  function isGitWardrobeStorageEnabled() {
+    return Boolean(gitWardrobeStorageManifest?.enabled && isTwLocalDevHost());
+  }
+
+  function pinCatalogueSeedRow(item) {
+    const id = String(item?.id ?? "").trim();
+    if (!id) return;
+    catalogueSeedById.set(id, { ...item });
   }
 
   async function loadLocalGalleryDiskManifest() {
@@ -28331,14 +28504,16 @@
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
     let twEditorAuthBootstrapped = false;
-    const [lockManifest, hybridManifest, galleryDiskManifest] = await Promise.all([
+    const [lockManifest, hybridManifest, galleryDiskManifest, gitStorageManifest] = await Promise.all([
       loadCatalogueLockManifest(),
       loadHybridLocalCatalogueManifest(),
       loadLocalGalleryDiskManifest(),
+      loadGitWardrobeStorageManifest(),
     ]);
     catalogueLockManifest = lockManifest;
     hybridLocalCatalogueManifest = hybridManifest;
     localGalleryDiskManifest = galleryDiskManifest;
+    gitWardrobeStorageManifest = gitStorageManifest;
     if (catalogueLockManifest) {
       console.info(
         `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
@@ -28347,6 +28522,11 @@
     if (isHybridLocalCatalogueEnabled()) {
       console.info(
         `[hybrid local] Catalogue (${catalogueLockManifest.count} pieces) from data/wardrobe.js + ${hybridLocalCatalogueManifest.localImageRoot}; new rows still from Supabase.`
+      );
+    }
+    if (isGitWardrobeStorageEnabled()) {
+      console.info(
+        "[git wardrobe] Editor saves → images/wardrobe/ + data/wardrobe.js (commit + push for production). Supabase wardrobe sync off."
       );
     }
     const hasCollectionGridEarly = Boolean(document.getElementById("grid"));
@@ -28370,11 +28550,14 @@
         const supabaseUrl = String(url).trim();
         supabaseClient = api.createBrowserClient(supabaseUrl, String(key).trim()) || supabaseClient;
         if (supabaseClient) {
-          storageMode = "cloud";
+          storageMode = isGitWardrobeStorageEnabled() ? "local" : "cloud";
           let wardrobeFromSupabase = false;
           /** @type {Promise<{ ok: boolean, outfits?: unknown, error?: string }> | null} */
           let outfitsFetchPromise = null;
-          deferHybridCloudRefresh = preferFastCollectionPaint && isHybridLocalCatalogueEnabled();
+          deferHybridCloudRefresh =
+            preferFastCollectionPaint &&
+            isHybridLocalCatalogueEnabled() &&
+            !isGitWardrobeStorageEnabled();
           deferOutfitsFetch = preferFastCollectionPaint;
 
           if (isTwLoginPage()) {
@@ -28405,7 +28588,14 @@
               "fetchWardrobeItems"
             );
             if (res.ok && res.items.length) {
-              if (isHybridLocalCatalogueEnabled()) {
+              if (isGitWardrobeStorageEnabled()) {
+                refreshCatalogueSeedSnapshot();
+                wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
+                wardrobeCatalogueSource = "seed";
+                wardrobeFromSupabase = false;
+                cloudBackedCustomItems = [];
+                deferredSeedSyncSnapshot = null;
+              } else if (isHybridLocalCatalogueEnabled()) {
                 refreshCatalogueSeedSnapshot();
                 wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
                 wardrobeCatalogueSource = "seed";
@@ -28528,7 +28718,7 @@
         if (!deferHybridCloudRefresh && !cloudBackedCustomItems.length) {
               const allCloud = await withTimeout(loadWardrobeItemsFromCloud(), 5000, "loadWardrobeItemsFromCloud");
           cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
-          if (allCloud.length) {
+          if (cloudBackedCustomItems.length) {
             stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
             mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
           }
