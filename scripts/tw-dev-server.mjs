@@ -412,8 +412,20 @@ function installCssAutoBuildWatcher() {
 const preferredPort = Number(process.env.PORT) || 8787;
 const maxPortTries = 20;
 
+async function handleGetWardrobeStatus(_req, res) {
+  jsonResponse(res, 200, {
+    gitStorage: true,
+    imageRoot: "/images/wardrobe",
+    wardrobeJs: "data/wardrobe.js",
+  });
+}
+
 const server = http.createServer((req, res) => {
   const pathname = req.url?.split("?")[0] || "";
+  if (req.method === "GET" && pathname === "/api/wardrobe/status") {
+    void handleGetWardrobeStatus(req, res);
+    return;
+  }
   if (req.method === "PUT" && pathname === "/api/custom-items") {
     void handlePutCustomItems(req, res);
     return;

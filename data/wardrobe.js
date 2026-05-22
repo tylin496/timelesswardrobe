@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — frozen catalogue seed (offline fallback + dev).
  *
- * Frozen from Supabase wardrobe_items on 2026-05-22T19:56:29.349Z.
+ * Frozen from Supabase wardrobe_items on 2026-05-20T17:43:25.444Z.
  * Regenerate: npm run db:freeze-catalogue
  *
  * Collection thesis is described in the site header. Each row uses `category` (and optional
@@ -17,7 +17,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "navy-double-breasted-blazer",
     "category": "Jackets",
-    "brand": "ACME Cultum",
+    "brand": "Acme Cultum",
     "name": "Navy Double-Breasted  Blazer",
     "season": "A/W",
     "colour": "Navy",
@@ -35,7 +35,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "tassel-loafer",
     "category": "Footwear",
@@ -59,12 +58,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "sage-beaufort-waxed-jacket",
     "category": "Outerwear",
     "brand": "Barbour",
-    "name": "Beaufort Waxed Jacket",
+    "name": "Sage Beaufort Waxed Jacket",
     "season": "A/W",
     "colour": "Sage",
     "colourCode": "40403C",
@@ -74,17 +72,14 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/sage-beaufort-waxed-jacket/main/cover.png",
     "gallery": [
       "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/01.jpg",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/05.jpg",
       "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/02.jpg",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/03.jpg",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/04.jpg"
+      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/03.jpg"
     ],
     "metadata": {
       "price": 43200,
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "curb-bracelet",
     "category": "Jewellery",
@@ -92,7 +87,7 @@ const WARDROBE_ITEMS = [
     "name": "Curb Bracelet",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "18ct yellow gold, 5.2 mm",
     "size": "20.5 cm （8.07inches）",
     "purchaseDate": "2024-10-26",
@@ -107,7 +102,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "rolo-chain",
     "category": "Jewellery",
@@ -115,7 +109,7 @@ const WARDROBE_ITEMS = [
     "name": "Rolo Chain",
     "season": "All-season",
     "colour": "18ct yellow gold, 2.5 mm",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "size": "50 cm",
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain/1778704232768-cover-edit.png",
@@ -129,7 +123,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "ruby-gypsy-ring",
     "category": "Jewellery",
@@ -137,15 +130,15 @@ const WARDROBE_ITEMS = [
     "name": "Ruby Gypsy Ring",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "fabric": "18ct yellow gold",
     "weight": "18ct yellow gold with Diamonds, 6.8 mm face, 3 mm shank",
     "size": "HK 22",
     "purchaseDate": "2024-08-04",
     "image": "/images/wardrobe/ruby-gypsy-ring/1778698277222-cover-edit.png",
     "gallery": [
-      "/images/wardrobe/ruby-gypsy-ring/main/gallery/02.png",
-      "/images/wardrobe/ruby-gypsy-ring/main/gallery/01.png"
+      "/images/wardrobe/ruby-gypsy-ring/main/gallery/01.png",
+      "/images/wardrobe/ruby-gypsy-ring/main/gallery/02.png"
     ],
     "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)       Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\n\nEngraving\nInscription: Ad Meliora . 2024\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
     "metadata": {
@@ -156,7 +149,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "b7172a"
     }
   },
-
   {
     "id": "signet-ring",
     "category": "Jewellery",
@@ -164,23 +156,22 @@ const WARDROBE_ITEMS = [
     "name": "Signet Ring",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "DCC98A",
+    "colourCode": "#ffe691",
     "weight": "18ct yellow gold, 12 × 14 mm",
     "size": "HK 14",
     "purchaseDate": "2020-11-01",
     "image": "/images/wardrobe/signet-ring/main/cover.png",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/gallery/02.jpg",
       "/images/wardrobe/signet-ring/main/gallery/01.jpg",
-      "/images/wardrobe/signet-ring/main/gallery/01.png"
+      "/images/wardrobe/signet-ring/main/gallery/01.png",
+      "/images/wardrobe/signet-ring/main/gallery/02.jpg"
     ],
-    "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
+    "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)   Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
     "metadata": {
       "price": 20000,
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "golden-fleece-navy-blazer",
     "category": "Jackets",
@@ -202,7 +193,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "houndstooth-tweed-jacket",
     "category": "Jackets",
@@ -228,7 +218,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "balmacaan-coat",
     "category": "Outerwear",
@@ -242,16 +231,15 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-12-06",
     "image": "/images/wardrobe/balmacaan-coat/main/cover.png",
     "gallery": [
-      "/images/wardrobe/balmacaan-coat/main/gallery/01.jpg",
+      "/images/wardrobe/balmacaan-coat/main/gallery/01.png",
       "/images/wardrobe/balmacaan-coat/main/gallery/02.png",
-      "/images/wardrobe/balmacaan-coat/main/gallery/01.png"
+      "/images/wardrobe/balmacaan-coat/main/gallery/01.jpg"
     ],
     "metadata": {
       "price": 83.99,
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "tank-solo",
     "category": "Dress watch",
@@ -259,7 +247,7 @@ const WARDROBE_ITEMS = [
     "name": "Tank Solo",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "D6C082",
+    "colourCode": "#ffe691",
     "weight": "W5200004",
     "size": "Large Model",
     "purchaseDate": "2024-11-03",
@@ -276,7 +264,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "9A4B17"
     }
   },
-
   {
     "id": "achilles-low",
     "category": "Footwear",
@@ -298,7 +285,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "chukka",
     "category": "Footwear",
@@ -321,7 +307,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "pembroke",
     "category": "Footwear",
@@ -344,57 +329,25 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "kingsman-0847-sunglasses",
     "category": "Eyewear",
-    "brand": "Cutler and Gross",
+    "brand": "Cutler And Gross",
     "name": "Kingsman 0847 Sunglasses",
     "season": "All-season",
-    "colour": "Black",
-    "colourCode": "#000000",
-    "measuredDimensions": "Lens Width: 54 mm\nBridge Width: 19 mm\nTemple Length: 145 mm\nLens Height: 39.5 mm\nFrame Height: 43 mm\nFrame Width: 142 mm",
+    "colour": "Black, Brown Lenses",
     "purchaseDate": "2023-11-27",
     "image": "/images/wardrobe/kingsman-0847-sunglasses/main/cover.png",
     "gallery": [
-      "/images/wardrobe/kingsman-0847-sunglasses/main/gallery/01.jpg",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/gallery/02.jpg"
+      "/images/wardrobe/kingsman-0847-sunglasses/main/gallery/01.png",
+      "/images/wardrobe/kingsman-0847-sunglasses/main/gallery/02.png"
     ],
     "metadata": {
       "price": 177.99,
       "basicColour": "black",
-      "priceCurrency": "CNY",
-      "measurementRows": [
-        {
-          "label": "Lens Width",
-          "value": "54"
-        },
-        {
-          "label": "Bridge Width",
-          "value": "19"
-        },
-        {
-          "label": "Temple Length",
-          "value": "145"
-        },
-        {
-          "label": "Lens Height",
-          "value": "39.5"
-        },
-        {
-          "label": "Frame Height",
-          "value": "43"
-        },
-        {
-          "label": "Frame Width",
-          "value": "142"
-        }
-      ],
-      "measurementUnit": "mm",
-      "secondaryColour": "Brown Lenses"
+      "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "sapphire-ring",
     "category": "Jewellery",
@@ -414,7 +367,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#384D87"
     }
   },
-
   {
     "id": "wedding-bands",
     "category": "Jewellery",
@@ -422,42 +374,37 @@ const WARDROBE_ITEMS = [
     "name": "Wedding Bands",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "fabric": "Pt950 1.8 mm (bride) / 18ct yellow gold 2 mm size 13 (groom)",
     "image": "/images/wardrobe/wedding-bands/main/cover.png",
     "gallery": [
-      "/images/wardrobe/wedding-bands/main/gallery/05.png",
+      "/images/wardrobe/wedding-bands/main/gallery/01.png",
       "/images/wardrobe/wedding-bands/main/gallery/02.png",
-      "/images/wardrobe/wedding-bands/main/gallery/03.jpg",
-      "/images/wardrobe/wedding-bands/main/gallery/04.jpg"
+      "/images/wardrobe/wedding-bands/main/cover.png"
     ],
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
     "metadata": {
       "basicColour": "gold"
     }
   },
-
   {
     "id": "dw-5600",
+    "pillar": "Collections",
     "category": "Beater",
-    "brand": "G-SHOCK",
-    "name": "DW-5600E",
+    "brand": "G-Shock",
+    "name": "DW-5600",
     "season": "All-season",
-    "colour": "Black",
-    "colourCode": "#121212",
     "purchaseDate": "2020-04-09",
     "image": "/images/wardrobe/dw-5600/main/cover.png",
     "gallery": [
       "/images/wardrobe/dw-5600/main/gallery/01.jpg"
     ],
-    "notes": "The Casio DW-5600E preserves the original square-form design language established by the first G-Shock models of the 1980s. Although positioned within the collection as the dedicated beater watch, it remains one of the defining forms of the modern digital watch, with a design language that has remained essentially unchanged for decades.",
     "metadata": {
       "price": 1479,
       "basicColour": "black",
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "cable-knit-polo",
     "category": "Shirts",
@@ -479,7 +426,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "wide-straight-trousers",
     "category": "Bottoms",
@@ -502,7 +448,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "hole-knit-polo-shirt",
     "category": "Shirts",
@@ -523,7 +468,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "linen-pleated-shorts",
     "category": "Bottoms",
@@ -545,7 +489,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "striped-camp-collar-shirt",
     "category": "Shirts",
@@ -568,7 +511,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "herringbone-tweed-jacket",
     "category": "Jackets",
@@ -590,7 +532,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "smoke-olive-acetate-optical",
     "category": "Eyewear",
@@ -612,7 +553,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "corduroy-trousers",
     "category": "Bottoms",
@@ -634,7 +574,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "grand-soir",
     "category": "Evening",
@@ -642,7 +581,7 @@ const WARDROBE_ITEMS = [
     "name": "Grand Soir",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "Labdanum, benzoin, vanilla, amber",
     "size": "70 ml",
     "purchaseDate": "2025-08-01",
@@ -656,7 +595,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "aran-cable-knit-jumper",
     "category": "Mid Layer",
@@ -679,7 +617,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "fine-knit-t-shirt",
     "category": "Shirts",
@@ -709,7 +646,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "v-neck-cardigan",
     "category": "Mid Layer",
@@ -733,7 +669,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "wide-leg-jeans",
     "category": "Bottoms",
@@ -755,7 +690,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "new-york",
     "category": "Day",
@@ -763,7 +697,7 @@ const WARDROBE_ITEMS = [
     "name": "New York",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#BFA665",
+    "colourCode": "#ffe691",
     "weight": "Bergamot, black pepper, oak moss.",
     "size": "100 ml",
     "purchaseDate": "2025-08-02",
@@ -777,7 +711,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ferret",
     "category": "Footwear",
@@ -801,7 +734,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "basket-weave-linen-jacket",
     "category": "Jackets",
@@ -825,7 +757,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "polo-bear-jumper",
     "category": "Mid Layer",
@@ -849,7 +780,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "washed-rugby-shirt",
     "category": "Mid Layer",
@@ -875,7 +805,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "F5F1E8"
     }
   },
-
   {
     "id": "original-wayfarer-sunglasses",
     "category": "Eyewear",
@@ -899,7 +828,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ligne-2",
     "category": "Jewellery",
@@ -907,7 +835,7 @@ const WARDROBE_ITEMS = [
     "name": "Ligne-2",
     "season": "All-season",
     "colour": "Gold",
-    "colourCode": "#fef4bb",
+    "colourCode": "#ffe691",
     "purchaseDate": "2026-05-19",
     "image": "/images/wardrobe/ligne-2/main/cover.png",
     "gallery": [
@@ -918,7 +846,6 @@ const WARDROBE_ITEMS = [
     ],
     "notes": "Lighter Line 2, small model. Microdiamond tip Yellow gold color. Associated lighter stone: black. Associated gas refill: red (REF 900435). Lighter delivered empty of gas, refill sold separately."
   },
-
   {
     "id": "fair-isle-vest",
     "category": "Mid Layer",
@@ -939,7 +866,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "knit-long-sleeve-polo",
     "category": "Shirts",
@@ -959,7 +885,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "linen-safari-jacket",
     "category": "Outerwear",
@@ -981,7 +906,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "prx-quartz",
     "category": "Everyday",
@@ -989,7 +913,7 @@ const WARDROBE_ITEMS = [
     "name": "PRX Quartz",
     "season": "All-season",
     "colour": "Gold PVD",
-    "colourCode": "#D6C082",
+    "colourCode": "#ffe691",
     "weight": "T137.210.33.021.00",
     "size": "35 mm",
     "purchaseDate": "2024-08-08",
@@ -1004,7 +928,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "cordovan-l-zip-wallet-regular-price",
     "category": "Bags",
@@ -1018,7 +941,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/cover.png",
     "gallery": [
       "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/01.jpg",
-      "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/02.png"
+      "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/03.webp"
     ],
     "notes": "Crafted from aniline-dyed Japanese cordovan, this minimalist wallet offers sleek design and efficient functionality. The luxuriously smooth leather has striking presence in a streamlined profile that slips effortlessly into any pocket. Over time, it develops a rich, gem-like luster—the perfect companion for an intentional lifestyle.",
     "metadata": {
@@ -1027,10 +950,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "black-bay-58",
-    "category": "Dive",
+    "category": "Dive watch",
     "brand": "Tudor",
     "name": "Black Bay 58",
     "season": "All-season",
@@ -1044,14 +966,13 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/black-bay-58/main/gallery/01.jpg",
       "/images/wardrobe/black-bay-58/main/gallery/02.jpg"
     ],
-    "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe proportions and detailing of the Tudor Black Bay 58 inherit the design language of the 1958 Tudor / Rolex Submariner references 7924 and 7922, including the narrow bezel and slim mid-case. The red triangle at 12 o’clock echoes the 6538 ‘Big Crown’, while the gilt dial complements the gold jewellery already present within the collection. It remains the only true sports watch in the collection.",
+    "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nNotes:\nBB58 的比例與細節承襲 1958 年 Tudor ／ Rolex Submariner (7924 ／ 7922) 的設定, 包括窄外圈與纖薄中殼｡ 12 點紅⾊倒三⾓呼應 6538 ｢Big Crown｣, gilt dial 亦與現有⾦飾相呼應 ｡ 是本收藏裡唯⼀真正意義上的運動錶 ｡",
     "metadata": {
       "price": 82000,
       "basicColour": "silver",
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "jwa-straight-jeans",
     "category": "Bottoms",
@@ -1073,7 +994,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "kataaze-knit-mock-neck",
     "category": "Shirts",
@@ -1094,7 +1014,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "linen-camp-collar-shirt",
     "category": "Shirts",
@@ -1116,7 +1035,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ocbd-shirt",
     "category": "Shirts",
@@ -1224,7 +1142,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "cutwork-knit-polo-shirt",
     "category": "Shirts",
@@ -1248,7 +1165,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "linen-loop-collar-shirt",
     "category": "Shirts",
@@ -1269,7 +1185,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "purl-knit-t-shirt",
     "category": "Shirts",
@@ -1289,7 +1204,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "rib-knit-polo-shirt-dusty-ice-blue",
     "category": "Shirts",
@@ -1311,7 +1225,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "boston-metal-frames",
     "category": "Eyewear",
@@ -1322,38 +1235,20 @@ const WARDROBE_ITEMS = [
     "colourCode": "#3b2425",
     "fabric": "Green Photochromic Lenses",
     "weight": "ZF192014",
-    "measuredDimensions": "Lens width: 52 mm cm\nBridge width: 20 mm cm\nTemple length: 145 mm cm",
     "purchaseDate": "2025-02-28",
     "image": "/images/wardrobe/boston-metal-frames/main/cover.png",
     "gallery": [
-      "/images/wardrobe/boston-metal-frames/main/gallery/01.jpg"
+      "/images/wardrobe/boston-metal-frames/main/gallery/01.png"
     ],
-    "notes": "A contemporary metal-frame design influenced by modern Asian eyewear trends. The softly rounded Boston shape creates a refined yet relaxed impression, while the slim 0.7 mm metal rim provides both a natural fit and comfortable wear. The polished metal construction adds a subtle jewellery-like character, allowing the frame to function easily as an everyday accessory.\n\nFinished in a dark Havana tortoiseshell pattern with gold temples, the frame balances warmer heritage tones with a lighter metallic accent. The slightly taller lens proportions soften the overall silhouette while adding openness to the face, making it suitable for both casual and more refined styling. Designed with a timeless approach, it remains easy to wear across changing trends.",
+    "notes": "『Zoff CLASSIC』\n\n【デザイン】\nアジアントレンドを意識した今っぽいメタルフレーム。\n柔らかなでおしゃれな印象のボストン型◎\n0.7㎜のリム線を使用することで、顔なじみの良さと快適な掛け心地を実現。\n光沢感のあるメタルフレームはアクセサリー感覚で使用していただけます。\n縦幅があるフレームは、抜け感が出る上に小顔効果も期待でき、ファッションのアクセントに。\n\n【カラー】\nZF192014-14E1：人気のブラック。テンプルのゴールドが抜け感のある印象に\nZF192014-49E1：おしゃれなべっこう柄ブラウン。ゴールドのテンプルがアクセントに。\nZF192014-21E1：柔らかい印象を与えてくれるピンク。フェミニンさをプラス。\nZF192014-56E1：こなれ感のあるゴールド。アクセサリー感覚でお使いいただけます。\n\n【スタイリングポイント】\nカジュアルからキレイめスタイルにも合わせやすい逸品。\nかけるだけでこなれ感をプラスするアイウェアは、普段コンタクトの方にもおすすめ。\nトレンドに左右されず、長くご愛用いただけます。\n\n※柄や色味の出方に個体差があり、画像と異なる場合がございます。\n\nCLASSIC(クラシック) 特集ページをみる\n※アウトレット商品は、販売から一定期間経過した商品などです。キズ、汚れなどがあるB級品ではございません。\n52□20-145\nA 片方のレンズ横幅：52mm\nB ブリッジ(鼻部分)の横幅：20mm\nC テンプル(つる)の長さ：145mm",
     "metadata": {
       "price": 9800,
       "basicColour": "gold",
       "priceCurrency": "JPY",
-      "measurementRows": [
-        {
-          "label": "Lens width",
-          "value": "52 mm"
-        },
-        {
-          "label": "Bridge width",
-          "value": "20 mm"
-        },
-        {
-          "label": "Temple length",
-          "value": "145 mm"
-        }
-      ],
       "secondaryColour": "Gold",
-      "secondaryColourCode": "#D4C07D"
+      "secondaryColourCode": "#ffe691"
     }
   },
-
-  // ——— A/W – Country Classics ———,
-
   {
     "id": "glen-check-tweed-jacket",
     "pillar": "Clothing",
@@ -1370,9 +1265,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-11-22",
     "image": "/images/wardrobe/glen-check-tweed-jacket/main/cover.png",
     "gallery": [
-      "/images/wardrobe/glen-check-tweed-jacket/main/gallery/01.png",
-      "/images/wardrobe/glen-check-tweed-jacket/main/gallery/02.jpg",
-      "/images/wardrobe/glen-check-tweed-jacket/main/gallery/03.jpg"
+      "/images/wardrobe/glen-check-tweed-jacket/main/gallery/01.png"
     ],
     "metadata": {
       "price": 867,
@@ -1380,7 +1273,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "boa-fleece-vest",
     "pillar": "Clothing",
@@ -1406,7 +1298,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#737051"
     }
   },
-
   {
     "id": "rib-knit-roll-neck-neck-jumper",
     "pillar": "Clothing",
@@ -1430,7 +1321,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "ventile-harrington",
     "pillar": "Clothing",
@@ -1446,7 +1336,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-12-26",
     "image": "/images/wardrobe/ventile-harrington/main/cover.png",
     "gallery": [
-      "/images/wardrobe/ventile-harrington/main/gallery/04.jpg",
+      "/images/wardrobe/ventile-harrington/main/gallery/01.webp",
+      "/images/wardrobe/ventile-harrington/main/gallery/01.jpg",
       "/images/wardrobe/ventile-harrington/main/gallery/02.jpg",
       "/images/wardrobe/ventile-harrington/main/gallery/03.jpg"
     ],
@@ -1456,7 +1347,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY"
     }
   },
-
   {
     "id": "camel-hair-polo-coat",
     "pillar": "Clothing",
@@ -1466,15 +1356,15 @@ const WARDROBE_ITEMS = [
     "name": "Camel Hair Polo Coat",
     "season": "A/W",
     "colour": "Golden Camel",
-    "colourCode": "#C89C7B",
+    "colourCode": "#ffe691",
     "fabric": "Camel hair",
     "weight": "760 gsm",
     "size": "46",
     "purchaseDate": "2025-02-16",
     "image": "/images/wardrobe/camel-hair-polo-coat/main/cover.png",
     "gallery": [
-      "/images/wardrobe/camel-hair-polo-coat/main/gallery/01.jpg",
       "/images/wardrobe/camel-hair-polo-coat/main/gallery/02.jpg",
+      "/images/wardrobe/camel-hair-polo-coat/main/gallery/01.jpg",
       "/images/wardrobe/camel-hair-polo-coat/main/gallery/03.jpg"
     ],
     "metadata": {
@@ -1483,7 +1373,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD"
     }
   },
-
   {
     "id": "cricket-cable-knit-jumper-vest",
     "pillar": "Clothing",
@@ -1499,7 +1388,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2022-08-08",
     "image": "/images/wardrobe/cricket-cable-knit-jumper-vest/main/cover.png",
     "gallery": [
-      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/gallery/01.jpg"
+      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/gallery/01.webp",
+      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/gallery/02.webp"
     ],
     "notes": "Filename: if slash is problematic on disk, use a variant without “/” in the filename and adjust this path.",
     "metadata": {
@@ -1511,7 +1401,6 @@ const WARDROBE_ITEMS = [
       "secondaryBasicColour": "white"
     }
   },
-
   {
     "id": "pleated-trousers",
     "pillar": "Clothing",
@@ -1583,9 +1472,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
-  // ——— Accessories ———,
-
   {
     "id": "panama-hat",
     "pillar": "Accessories",
@@ -1608,7 +1494,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "boat-and-tote",
     "pillar": "Accessories",
@@ -1634,7 +1519,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#303c73"
     }
   },
-
   {
     "id": "anthony",
     "pillar": "Accessories",
@@ -1676,21 +1560,19 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "american-flag-hat",
     "pillar": "Accessories",
     "section": "Accessories",
     "category": "Hats",
     "brand": "Smathers & Branson",
-    "name": "American Flag Cap",
+    "name": "American Flag Hat",
     "season": "All-season",
     "colour": "Steel Blue",
     "colourCode": "#5E829A",
     "purchaseDate": "2026-05-11",
     "image": "/images/wardrobe/american-flag-hat/main/cover.png",
     "gallery": [
-      "/images/wardrobe/american-flag-hat/main/gallery/02.png",
       "/images/wardrobe/american-flag-hat/main/gallery/01.jpg",
       "/images/wardrobe/american-flag-hat/main/gallery/01.png"
     ],
@@ -1700,7 +1582,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "TWD"
     }
   },
-
   {
     "id": "helmet-bag",
     "pillar": "Accessories",
@@ -1725,9 +1606,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
-  // ——— Future Pieces ———,
-
   {
     "id": "sapphire-three-stone-ring",
     "pillar": "Jewellery",
@@ -1741,7 +1619,7 @@ const WARDROBE_ITEMS = [
     "fabric": "Platinum",
     "image": "/images/wardrobe/sapphire-three-stone-ring/main/cover.png",
     "gallery": [
-      "/images/wardrobe/sapphire-three-stone-ring/main/gallery/04.png",
+      "/images/wardrobe/sapphire-three-stone-ring/main/gallery/01.jpg",
       "/images/wardrobe/sapphire-three-stone-ring/main/gallery/01.png",
       "/images/wardrobe/sapphire-three-stone-ring/main/gallery/02.png",
       "/images/wardrobe/sapphire-three-stone-ring/main/gallery/03.png"
@@ -1753,9 +1631,6 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#1B57BC"
     }
   },
-
-  // ——— S/S – Mediterranean Resort ———,
-
   {
     "id": "washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt",
     "pillar": "Clothing",
@@ -1781,7 +1656,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "baker-neck-knitted-t-shirt",
     "pillar": "Clothing",
@@ -1804,7 +1678,6 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY"
     }
   },
-
   {
     "id": "rib-knit-polo-shirt-dark-chocolate",
     "pillar": "Clothing",
@@ -1835,7 +1708,6 @@ const WARDROBE_ITEMS = [
       ]
     }
   },
-
   {
     "id": "structured-knit-polo-shirt",
     "pillar": "Clothing",

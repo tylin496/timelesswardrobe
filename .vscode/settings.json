@@ -1,4 +1,7 @@
 {
+  "workbench.editorAssociations": {
+    "*.md": "default"
+  },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,

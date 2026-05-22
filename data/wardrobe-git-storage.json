@@ -1,7 +1,0 @@
-{
-  "_schema": "timeless-wardrobe-git-storage-v1",
-  "enabled": true,
-  "migratedAt": "2026-05-22T20:05:00.000Z",
-  "localImageRoot": "/images/wardrobe",
-  "note": "Editor saves write to images/wardrobe/ and data/wardrobe.js via npm run dev. Commit and push to GitHub for production. Supabase wardrobe sync is disabled while this flag is on."
-}

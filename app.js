@@ -2222,7 +2222,6 @@
           }
         });
         updateColourLabelForKey(initialKey);
-        applyVariantHero(initialKey);
       }
     }
 
@@ -2263,30 +2262,6 @@
     }
   }
 
-  /** Default colour variant for PDP / gallery (matches active swatch on first paint). */
-  function defaultColourVariantKey(item) {
-    const variants = getItemColourVariants(item);
-    if (!variants?.length) return "";
-    const mainImg = String(item?.image ?? "").trim();
-    return (
-      String(variants.find((vv) => String(vv.image ?? "").trim() === mainImg)?.key ?? variants[0]?.key ?? "").trim()
-    );
-  }
-
-  /** Row used for PDP gallery frames — projects colour-variant gallery onto the hero item. */
-  function itemDetailGallerySourceItem(item, colourKey = "") {
-    const id = String(item?.id ?? "").trim();
-    const key = String(colourKey ?? "").trim() || defaultColourVariantKey(item);
-    if (!key || !id) return item;
-    return itemProjectionForOutfitSlot(item, { itemId: id, colourKey: key });
-  }
-
-  function colourKeyFromProjectedItem(item) {
-    const tag = String(item?.__coverCacheKey ?? "").trim();
-    if (!tag.includes("::")) return "";
-    return tag.split("::").slice(1).join("::").trim();
-  }
-
   /** Shallow row shaped for cover / gallery resolution for one outfit slot. */
   function itemProjectionForOutfitSlot(item, slot) {
     const vars = getItemColourVariants(item);
@@ -2296,7 +2271,7 @@
     const baseId = String(item.id ?? "");
     const vColour = String(v.colour ?? v.color ?? "").trim();
     const vCode = String(v.colourCode ?? "").trim();
-    const vGal = resolvedVariantGalleryList(item, slot.colourKey);
+    const vGal = Array.isArray(v.gallery) ? v.gallery : [];
     const itemGal = Array.isArray(item.gallery) ? item.gallery : [];
     return {
       ...item,
@@ -4592,7 +4567,7 @@
   let storageMode = /** @type {"cloud" | "local"} */ ("local");
 
   function isCloudModeActive() {
-    return storageMode === "cloud" && isSupabaseReady() && !isGitWardrobeStorageEnabled();
+    return storageMode === "cloud" && isSupabaseReady();
   }
 
   /** All rows last loaded from Supabase `wardrobe_items` (not only `custom-*`). */
@@ -6090,92 +6065,6 @@
     return data?.publicUrl || "";
   }
 
-  /**
-   * @param {File} file
-   * @returns {Promise<string>}
-   */
-  async function fileToBase64ForGitUpload(file) {
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    let binary = "";
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    }
-    return btoa(binary);
-  }
-
-  /**
-   * @param {File} file
-   * @param {string} itemId
-   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
-   */
-  async function uploadWardrobeImageFileToGit(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
-    if (!isGitWardrobeStorageEnabled()) {
-      throw new Error(GIT_WARDROBE_WRITE_REQUIRED_MESSAGE);
-    }
-    if (!file) return "";
-    const dataBase64 = await fileToBase64ForGitUpload(file);
-    const res = await fetch("/api/wardrobe/upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        itemId: String(itemId ?? "").trim(),
-        slot,
-        fileName: String(file.name ?? "photo.jpg"),
-        mimeType: String(file.type ?? ""),
-        dataBase64,
-      }),
-    });
-    let payload = null;
-    try {
-      payload = await res.json();
-    } catch {
-      /* ignore */
-    }
-    if (!res.ok) {
-      const errText = String(payload?.error ?? res.statusText ?? "Upload failed");
-      throw new Error(errText);
-    }
-    return String(payload?.url ?? "").trim();
-  }
-
-  /**
-   * @param {File} file
-   * @param {string} itemId
-   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
-   */
-  async function uploadWardrobeImageFile(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
-    if (isGitWardrobeStorageEnabled()) {
-      return uploadWardrobeImageFileToGit(file, itemId, slot);
-    }
-    return uploadWardrobeImageFileToCloud(file, itemId, slot);
-  }
-
-  /** Persist one catalogue row to data/wardrobe.js (dev server only). */
-  async function saveWardrobeItemToGit(item) {
-    if (!isGitWardrobeStorageEnabled()) {
-      throw new Error(GIT_WARDROBE_WRITE_REQUIRED_MESSAGE);
-    }
-    const res = await fetch("/api/wardrobe/item", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(item),
-    });
-    let payload = null;
-    try {
-      payload = await res.json();
-    } catch {
-      /* ignore */
-    }
-    if (!res.ok) {
-      throw new Error(String(payload?.error ?? res.statusText ?? "Git save failed"));
-    }
-    const saved = payload?.item && typeof payload.item === "object" ? payload.item : item;
-    pinCatalogueSeedRow(saved);
-    return normalizeItemDerivedFields(saved);
-  }
-
   /** Derive a stable cache-bust token from a local `/images/wardrobe/…` path (incl. `*-cover-edit` filenames). */
   function wardrobeImageCacheBustTokenFromPath(url) {
     const path = String(url ?? "").trim().split("?")[0];
@@ -6228,7 +6117,7 @@
     const urlByPath = new Map();
 
     const consider = (url, preferLocal) => {
-      const u = preferLocalWardrobeMediaUrl(itemId, String(url ?? "").trim());
+      const u = String(url ?? "").trim();
       if (!u) return;
       const key = wardrobeMediaPathKey(u);
       if (!key || coverKeys.has(key)) return;
@@ -6271,35 +6160,6 @@
     );
   }
 
-  /**
-   * Hybrid colour variants: merge each variant's gallery (local seed paths + cloud) like main-row gallery.
-   * @param {object} seed
-   * @param {object} cloudRow
-   * @param {{ preferCloudOrder?: boolean }} [opts]
-   */
-  function mergeHybridColourVariants(seed, cloudRow, opts = {}) {
-    const itemId = String(seed?.id ?? cloudRow?.id ?? "").trim();
-    const seedVars = getItemColourVariants(seed) || [];
-    const cloudVars = getItemColourVariants(cloudRow) || [];
-    if (!cloudVars.length) return seedVars.length ? seedVars : null;
-    if (!seedVars.length) return cloudVars;
-    const seedByKey = new Map(seedVars.map((v) => [String(v.key ?? "").trim(), v]));
-    return cloudVars.map((cv) => {
-      const key = String(cv?.key ?? "").trim();
-      const sv = seedByKey.get(key) || {};
-      const gallery = mergeHybridCatalogueGallery(
-        { id: itemId, image: sv.image ?? cv.image, gallery: sv.gallery },
-        { id: itemId, image: cv.image, gallery: cv.gallery },
-        opts
-      );
-      return {
-        ...sv,
-        ...cv,
-        gallery: gallery.length ? gallery : Array.isArray(cv.gallery) ? cv.gallery : [],
-      };
-    });
-  }
-
   /** @param {string[]} urls */
   function galleryPathKeySignature(urls) {
     return urls
@@ -6308,78 +6168,38 @@
       .join("|");
   }
 
-  function frozenSeedGalleryPathsForItem(itemId, variantKey = "") {
-    const seed = catalogueSeedRow(String(itemId ?? "").trim());
-    if (!seed) return [];
-    const key = String(variantKey ?? "").trim();
-    if (key) {
-      const v = getItemColourVariants(seed)?.find((x) => String(x?.key ?? "") === key);
-      return Array.isArray(v?.gallery) ? v.gallery.map((x) => String(x ?? "").trim()).filter(Boolean) : [];
-    }
-    return itemGalleryList(seed);
-  }
-
   /**
    * Frozen catalogue: prepend seed `gallery/*` paths missing from the current list (seed order).
    * Keeps cloud / editor drag order for paths already present — no filename re-sort.
    * @param {string} itemId
    * @param {string[]} urls
-   * @param {string} [variantKey]
    */
-  function mergeMissingFrozenSeedGalleryPaths(itemId, urls, variantKey = "") {
+  function mergeMissingFrozenSeedGalleryPaths(itemId, urls) {
     const id = String(itemId ?? "").trim();
-    const list = Array.isArray(urls) ? urls.map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? ""))) : [];
-    if (!id || !isLocalCatalogueItemId(id)) return mergeDiscoveredLocalGalleryUrls(id, list, variantKey);
+    if (!id || !isLocalCatalogueItemId(id)) return [...urls];
     const seed = catalogueSeedRow(id);
-    if (!seed) return mergeDiscoveredLocalGalleryUrls(id, list, variantKey);
+    if (!seed) return [...urls];
     const coverKey = wardrobeMediaPathKey(String(seed.image ?? ""));
-    const present = new Set(list.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
+    const present = new Set(urls.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
     /** @type {string[]} */
     const missing = [];
-    for (const raw of frozenSeedGalleryPathsForItem(id, variantKey)) {
-      const u = preferLocalWardrobeMediaUrl(id, String(raw ?? "").trim());
+    for (const raw of itemGalleryList(seed)) {
+      const u = String(raw ?? "").trim();
       if (!u || !isDisplayableCloudImageUrl(u)) continue;
       if (!isFileBackedLocalWardrobeUrl(seed, u)) continue;
-      const pathKey = wardrobeMediaPathKey(u);
-      if (!pathKey || pathKey === coverKey || present.has(pathKey)) continue;
-      present.add(pathKey);
+      const key = wardrobeMediaPathKey(u);
+      if (!key || key === coverKey || present.has(key)) continue;
+      present.add(key);
       missing.push(u);
     }
-    const merged = missing.length ? [...missing, ...list] : list;
-    return mergeDiscoveredLocalGalleryUrls(id, merged, variantKey);
-  }
-
-  /** Gallery extras for one colour variant (hybrid local + cloud + on-disk manifest). */
-  function resolvedVariantGalleryList(item, variantKey) {
-    const id = String(item?.id ?? "").trim();
-    const key = String(variantKey ?? "").trim();
-    const seed = catalogueSeedRow(id);
-    const seedV =
-      key && seed ? getItemColourVariants(seed)?.find((x) => String(x?.key ?? "") === key) : null;
-    const rowV = key ? getItemColourVariants(item)?.find((x) => String(x?.key ?? "") === key) : null;
-    const v = seedV || rowV;
-    let urls = Array.isArray(v?.gallery)
-      ? v.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
-      : [];
-    if (!id || !isLocalCatalogueItemId(id)) {
-      return mergeDiscoveredLocalGalleryUrls(id, urls, key);
-    }
-    const ov = loadCollectionOverrides()[id];
-    if (Number(/** @type {any} */ (ov?.__mediaEditedAt)) > 0 && Array.isArray(ov?.gallery)) {
-      return dedupeGalleryUrls(
-        String(v?.image ?? item?.image ?? "").trim(),
-        ov.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
-      );
-    }
-    return mergeMissingFrozenSeedGalleryPaths(id, urls, key);
+    if (!missing.length) return [...urls];
+    return [...missing, ...urls];
   }
 
   /** Gallery extras for display / editor — frozen seed paths merged when cloud row is incomplete. */
   function resolvedItemGalleryList(item) {
     const id = String(item?.id ?? "").trim();
-    const variantKey = colourKeyFromProjectedItem(item);
-    if (variantKey) return resolvedVariantGalleryList(item, variantKey);
-    let base = itemGalleryList(item).map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? "").trim()));
+    const base = itemGalleryList(item);
     if (!id || !isLocalCatalogueItemId(id)) return base;
     const ov = loadCollectionOverrides()[id];
     if (
@@ -6388,14 +6208,20 @@
     ) {
       return dedupeGalleryUrls(
         String(item?.image ?? "").trim(),
-        ov.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
+        ov.gallery.map((x) => String(x ?? "").trim()).filter(Boolean)
       );
     }
     const seed = catalogueSeedRow(id);
-    if (seed) {
-      base = itemGalleryList(seed).map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? "").trim()));
+    const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === id);
+    if (
+      seed &&
+      cloudRow &&
+      (rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
+        supabaseMediaAheadOfCatalogueSeed(id, cloudRow))
+    ) {
+      return base;
     }
-    return mergeMissingFrozenSeedGalleryPaths(id, base, "");
+    return mergeMissingFrozenSeedGalleryPaths(id, base);
   }
 
   /** @param {string} url */
@@ -6458,7 +6284,7 @@
    * @param {(t: string, err?: boolean) => void} [setMsg]
    */
   async function ensureFrozenCatalogueMediaUrlsOnCloud(itemId, image, gallery, setMsg) {
-    if (!isLocalCatalogueItemId(itemId) || !isSupabaseReady() || isGitWardrobeStorageEnabled()) {
+    if (!isLocalCatalogueItemId(itemId) || !isSupabaseReady()) {
       return { image, gallery: dedupeGalleryUrls(image, gallery) };
     }
     const item = { id: itemId };
@@ -6685,40 +6511,12 @@
     return next;
   }
 
-  /**
-   * Frozen catalogue (`wardrobe-catalogue-lock.json`): committed seed + `images/wardrobe/` are canonical for media.
-   * Cloud row supplies text/metadata only unless the editor just saved fresh media in-memory.
-   */
-  function mergeFrozenCatalogueSeedWithCloudRow(localRow, cloudRow, seed) {
-    const itemId = String(localRow?.id ?? cloudRow?.id ?? seed?.id ?? "").trim();
-    const baseSeed = seed || localRow || {};
-    const merged = normalizeItemDerivedFields({
-      ...cloudRow,
-      ...baseSeed,
-      id: itemId,
-      image: String(baseSeed.image ?? localRow?.image ?? "").trim(),
-      gallery: Array.isArray(baseSeed.gallery) ? baseSeed.gallery : undefined,
-      colourVariants:
-        getItemColourVariants(baseSeed)?.length
-          ? getItemColourVariants(baseSeed)
-          : localRow?.colourVariants ?? cloudRow?.colourVariants,
-      metadata: baseSeed.metadata ?? cloudRow?.metadata ?? localRow?.metadata,
-    });
-    return carryForwardMediaNonce(localRow, merged, { forceFresh: false });
-  }
-
   /** Hybrid local catalogue: seed (`data/wardrobe.js`) vs Supabase — see `supabaseMediaAheadOfCatalogueSeed`. */
   function mergeCloudMediaOntoLocalCatalogueRow(localRow, cloudRow) {
     if (!localRow || typeof localRow !== "object") return localRow;
     if (!cloudRow || typeof cloudRow !== "object") return { ...localRow };
     const itemId = String(localRow.id ?? cloudRow.id ?? "").trim();
     const seed = catalogueSeedRow(itemId) || localRow;
-    if (
-      isLocalCatalogueItemId(itemId) &&
-      !inMemoryRowHasFreshMediaSave(cloudRow, seed)
-    ) {
-      return mergeFrozenCatalogueSeedWithCloudRow(localRow, cloudRow, seed);
-    }
     const staleMirror = cloudMediaLooksLikeStaleSeedMirror(cloudRow, seed);
     const samePathReupload = cloudMediaReuploadedAtSamePath(cloudRow, seed);
     const galleryOrderChanged = cloudGalleryOrderDiffersFromSeed(cloudRow, seed);
@@ -6740,11 +6538,9 @@
         id: itemId,
         image: String(cloudRow.image ?? localRow.image ?? seedImage).trim() || seedImage,
         gallery: hybridGallery.length ? normalizeGalleryFromDb(hybridGallery) : undefined,
-        colourVariants:
-          mergeHybridColourVariants(seed, cloudRow, { preferCloudOrder: galleryOrderChanged }) ||
-          (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length
-            ? cloudRow.colourVariants
-            : localRow.colourVariants),
+        colourVariants: Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length
+          ? cloudRow.colourVariants
+          : localRow.colourVariants,
       });
       return carryForwardMediaNonce(cloudRow, merged, { forceFresh: true });
     }
@@ -6762,12 +6558,7 @@
     }
 
     if (useCloudMedia) {
-      const hybridVars = mergeHybridColourVariants(seed, cloudRow, {
-        preferCloudOrder: galleryOrderChanged,
-      });
-      if (hybridVars?.length) {
-        merged.colourVariants = hybridVars;
-      } else if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
+      if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
         merged.colourVariants = cloudRow.colourVariants;
       }
       const cloudTs = String(cloudRow.updatedAt ?? cloudRow.updated_at ?? "").trim();
@@ -14895,10 +14686,9 @@
   }
 
   /** Ordered PDP / hero frames: cover first, then gallery extras (deduped). */
-  function itemDetailGalleryFrames(item, opts = {}) {
-    const source = itemDetailGallerySourceItem(item, opts?.colourKey);
-    const cover = buildCoverCandidates(source)[0] ?? "";
-    const extras = resolvedItemGalleryList(source).filter(isDisplayableCloudImageUrl);
+  function itemDetailGalleryFrames(item) {
+    const cover = buildCoverCandidates(item)[0] ?? "";
+    const extras = resolvedItemGalleryList(item).filter(isDisplayableCloudImageUrl);
     /** @type {{ url: string, label: string }[]} */
     const frames = [];
     const seen = new Set();
@@ -17721,13 +17511,13 @@
         url = String(s.url ?? "").trim();
       } else if (s.kind === "file" && s.file) {
         try {
-          if (isWardrobeEditorWriteReady()) {
+          if (isSupabaseReady()) {
             if (i === 0) {
               url = variantKey
-                ? await uploadWardrobeImageFile(s.file, itemId, { type: "variant_cover", key: variantKey })
-                : await uploadWardrobeImageFile(s.file, itemId, { type: "main_cover" });
+                ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
+                : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
             } else {
-              url = await uploadWardrobeImageFile(s.file, itemId, {
+              url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
                 type: "main_gallery",
                 index: i,
               });
@@ -18085,17 +17875,6 @@
   /** Short line for wardrobe_items upsert failures (add / edit / duplicate). */
   const CLOUD_WRITE_REQUIRED_MESSAGE =
     "Cloud save is required. Supabase is not connected yet — configure js/tw-supabase-config.js (URL + anon key) and retry.";
-
-  const GIT_WARDROBE_WRITE_REQUIRED_MESSAGE =
-    "Git save requires npm run dev on this machine (127.0.0.1). Photos go to images/wardrobe/ and data/wardrobe.js — then commit and push to GitHub.";
-
-  function wardrobeEditorWriteRequiredMessage() {
-    return isGitWardrobeStorageEnabled() ? GIT_WARDROBE_WRITE_REQUIRED_MESSAGE : CLOUD_WRITE_REQUIRED_MESSAGE;
-  }
-
-  function isWardrobeEditorWriteReady() {
-    return isSupabaseReady() || isGitWardrobeStorageEnabled();
-  }
 
   function messageForCloudUploadFailure(context, err) {
     const detail = formatSupabaseUserMessage(err);
@@ -22101,10 +21880,9 @@
         previewImage = prevPr;
         if (previewFile2) {
           try {
-            const uploadId =
-              opts?.cloudItemId && isWardrobeEditorWriteReady() ? String(opts.cloudItemId).trim() : "";
-            previewImage = uploadId
-              ? await uploadWardrobeImageFile(previewFile2, uploadId, { type: "variant_preview", key })
+            const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
+            previewImage = cloudId
+              ? await uploadWardrobeImageFileToCloud(previewFile2, cloudId, { type: "variant_preview", key })
               : await fileToStorageDataUrl(previewFile2);
           } catch (err) {
             console.warn(err);
@@ -22185,10 +21963,9 @@
     const prev = itemById.get(id);
     if (!prev) return;
     const isCustom = String(id).startsWith("custom-");
-    if (!isWardrobeEditorWriteReady()) {
-      const needMsg = wardrobeEditorWriteRequiredMessage();
-      setMsg(needMsg, true);
-      showToast(needMsg);
+    if (!isSupabaseReady()) {
+      setMsg(CLOUD_WRITE_REQUIRED_MESSAGE, true);
+      showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
       return;
     }
 
@@ -22372,7 +22149,7 @@
     if (!userEditedGalleryPhotos) {
       gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
     }
-    if (isLocalCatalogueItemId(id) && isSupabaseReady() && !isGitWardrobeStorageEnabled()) {
+    if (isLocalCatalogueItemId(id) && isSupabaseReady()) {
       const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, {
         userEdited: userEditedGalleryPhotos,
       });
@@ -22620,34 +22397,7 @@
 
       if (isLocalCatalogueItemId(id)) {
         const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
-        if (mediaTouched && isGitWardrobeStorageEnabled()) {
-          try {
-            const saved = await saveWardrobeItemToGit(
-              normalizeItemDerivedFields({
-                ...mergedForCloud,
-                image: updated.image,
-                gallery: updated.gallery,
-                colourVariants: updated.colourVariants,
-              })
-            );
-            const displayAfterSave = normalizeItemDerivedFields({
-              ...prev,
-              ...saved,
-              id,
-              image: updated.image,
-              gallery: updated.gallery,
-              colourVariants: updated.colourVariants,
-            });
-            stampWardrobeItemMediaNonce(displayAfterSave, Date.now());
-            upsertWardrobeBaseRowInMemory(displayAfterSave, { skipLocalMediaMerge: true });
-            savedRowForPin = displayAfterSave;
-            collectionSavedAsOverride = true;
-          } catch (e) {
-            setMsg(`Git save failed: ${e instanceof Error ? e.message : String(e)}`, true);
-            keepFinalWarningMessage = true;
-            return;
-          }
-        } else if (mediaTouched) {
+        if (mediaTouched) {
           try {
             const saved = await saveWardrobeItemToCloud(mergedForCloud);
             const mediaBust = stampWardrobeItemMediaNonce(saved, Date.now());
@@ -22688,17 +22438,6 @@
           } catch (e) {
             setMsg(`Cloud media save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
             keepFinalWarningMessage = true;
-            return;
-          }
-        } else if (isGitWardrobeStorageEnabled()) {
-          try {
-            const saved = await saveWardrobeItemToGit(mergedForCloud);
-            stampWardrobeItemMediaNonce(saved, Date.now());
-            upsertWardrobeBaseRowInMemory(saved, { skipLocalMediaMerge: true });
-            savedRowForPin = saved;
-            collectionSavedAsOverride = true;
-          } catch (e) {
-            setMsg(`Git save failed: ${e instanceof Error ? e.message : String(e)}`, true);
             return;
           }
         } else {
@@ -22767,12 +22506,7 @@
     }
 
     if (!keepFinalWarningMessage && !(isCustom && isSupabaseReady() && !customCloudSynced)) {
-      setMsg(
-        isGitWardrobeStorageEnabled()
-          ? "Saved to data/wardrobe.js — commit and push images/wardrobe for production."
-          : "Saved to collection",
-        false
-      );
+      setMsg("Saved to collection", false);
     }
     if (!didCloudListRefresh) {
       mergeWardrobeFromSources();
@@ -23181,11 +22915,10 @@
     };
     media.appendChild(img);
     if (usePdpGalleryLayout && galleryWrap) {
-      const galleryItem = itemDetailGallerySourceItem(itemForMedia);
-      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, galleryItem);
+      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia);
       const resolvedCover = String(img.src ?? img.dataset.coverSrc ?? "").trim();
       if (resolvedCover) coverWireOpts.preferredUrl = resolvedCover;
-      wireCoverImageWithFallbacks(img, galleryItem, coverWireOpts);
+      wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
     } else {
       wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
       if (!isPageEdit && !detailVariants?.length) {
@@ -23346,13 +23079,12 @@
       const photosHost = document.createElement("div");
       photosHost.id = "item-edit-photos";
       if (!initialVariants) {
-        const photoGalleryItem = itemDetailGallerySourceItem(itemForMedia);
         mountItemEditPhotoManager(photosHost, {
-          item: photoGalleryItem,
-          coverUrl: String(photoGalleryItem.image ?? "").trim(),
-          galleryUrls: resolvedItemGalleryList(photoGalleryItem),
+          item: itemForMedia,
+          coverUrl: String(itemForMedia.image ?? "").trim(),
+          galleryUrls: resolvedItemGalleryList(itemForMedia),
           uploadLabel: "Upload photos",
-          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, photoGalleryItem),
+          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
         });
         syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
       }
@@ -27862,12 +27594,6 @@
   /** @type {{ enabled: boolean, migratedAt: string, localImageRoot: string } | null} */
   let hybridLocalCatalogueManifest = null;
 
-  /** @type {Record<string, { main: string[], variants: Record<string, string[]> }> | null} */
-  let localGalleryDiskManifest = null;
-
-  /** @type {{ enabled: boolean, localImageRoot: string } | null} */
-  let gitWardrobeStorageManifest = null;
-
   /**
    * Frozen `data/wardrobe.js` rows at load (committed seed / your local edits after refresh).
    * Hybrid conflict rule: local file paths win unless Supabase media is newer than this snapshot (manual re-upload).
@@ -27919,101 +27645,6 @@
 
   function isHybridLocalCatalogueEnabled() {
     return Boolean(hybridLocalCatalogueManifest?.enabled && catalogueLockManifest?.ids?.size);
-  }
-
-  async function loadGitWardrobeStorageManifest() {
-    try {
-      const res = await fetch("data/wardrobe-git-storage.json", { cache: "no-store" });
-      if (!res.ok) return null;
-      const p = await res.json();
-      if (String(p?._schema ?? "") !== "timeless-wardrobe-git-storage-v1") return null;
-      if (!p.enabled) return null;
-      return {
-        enabled: true,
-        localImageRoot: String(p.localImageRoot ?? "/images/wardrobe").trim() || "/images/wardrobe",
-      };
-    } catch (e) {
-      console.warn("wardrobe-git-storage.json", e);
-      return null;
-    }
-  }
-
-  /** Git repo folders via `npm run dev` — no Supabase Storage for editor uploads. */
-  function isGitWardrobeStorageEnabled() {
-    return Boolean(gitWardrobeStorageManifest?.enabled && isTwLocalDevHost());
-  }
-
-  function pinCatalogueSeedRow(item) {
-    const id = String(item?.id ?? "").trim();
-    if (!id) return;
-    catalogueSeedById.set(id, { ...item });
-  }
-
-  async function loadLocalGalleryDiskManifest() {
-    try {
-      const res = await fetch("data/wardrobe-local-gallery-manifest.json", { cache: "no-store" });
-      if (!res.ok) return null;
-      const payload = await res.json();
-      if (String(payload?._schema ?? "") !== "timeless-wardrobe-local-gallery-manifest-v1") return null;
-      const items = payload?.items;
-      return items && typeof items === "object" ? items : null;
-    } catch (e) {
-      console.warn("wardrobe-local-gallery-manifest.json", e);
-      return null;
-    }
-  }
-
-  /** On-disk gallery files under images/wardrobe/{id}/ (from manifest scan). */
-  function localDiskGalleryUrls(itemId, variantKey = "") {
-    if (!isHybridLocalCatalogueEnabled() || !localGalleryDiskManifest) return [];
-    const row = localGalleryDiskManifest[String(itemId ?? "").trim()];
-    if (!row) return [];
-    const key = String(variantKey ?? "").trim();
-    const variantUrls = key && row.variants?.[key] ? row.variants[key] : [];
-    const mainUrls = Array.isArray(row.main) ? row.main : [];
-    const seen = new Set();
-    /** @type {string[]} */
-    const out = [];
-    for (const u of [...mainUrls, ...variantUrls]) {
-      const s = String(u ?? "").trim();
-      const pathKey = wardrobeMediaPathKey(s) || s.split("?")[0];
-      if (!s || seen.has(pathKey)) continue;
-      seen.add(pathKey);
-      out.push(s);
-    }
-    return out;
-  }
-
-  function localGalleryPathExistsOnDisk(itemId, storagePathKey) {
-    const key = String(storagePathKey ?? "").trim();
-    if (!key) return false;
-    return localDiskGalleryUrls(itemId).some((u) => wardrobeMediaPathKey(u) === key);
-  }
-
-  /** Prefer `/images/wardrobe/…` when the file exists locally (hybrid dev / static deploy). */
-  function preferLocalWardrobeMediaUrl(itemId, url) {
-    const raw = String(url ?? "").trim();
-    if (!raw || !isHybridLocalCatalogueEnabled()) return raw;
-    const storageKey = wardrobeMediaPathKey(raw);
-    if (!storageKey || !localGalleryPathExistsOnDisk(itemId, storageKey)) return raw;
-    if (/^\/images\/wardrobe\//i.test(raw.split("?")[0])) return raw;
-    return `/images/wardrobe/${storageKey}`;
-  }
-
-  function mergeDiscoveredLocalGalleryUrls(itemId, urls, variantKey = "") {
-    const list = Array.isArray(urls) ? urls : [];
-    const present = new Set(list.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
-    const discovered = localDiskGalleryUrls(itemId, variantKey);
-    /** @type {string[]} */
-    const missing = [];
-    for (const u of discovered) {
-      const pathKey = wardrobeMediaPathKey(u);
-      if (!pathKey || present.has(pathKey)) continue;
-      present.add(pathKey);
-      missing.push(u);
-    }
-    if (!missing.length) return list;
-    return [...missing, ...list];
   }
 
   function isLocalCatalogueItemId(id) {
@@ -28194,8 +27825,8 @@
           if (!cloudIds.has(id)) upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
         }
       } else {
-        /* Hybrid: only merge cloud-only rows — frozen lock ids stay on seed + local images. */
-        mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems, pinnedById);
+        /* Full cloud fetch (incl. hybrid local ids) — media overlay; `cloudBackedCustomItems` stays filtered for dupes. */
+        mergeWardrobeBaseWithFetchedCloudRows(loadedCloud, pinnedById);
         for (const pinned of pinnedById.values()) {
           upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
         }
@@ -28504,16 +28135,12 @@
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
     let twEditorAuthBootstrapped = false;
-    const [lockManifest, hybridManifest, galleryDiskManifest, gitStorageManifest] = await Promise.all([
+    const [lockManifest, hybridManifest] = await Promise.all([
       loadCatalogueLockManifest(),
       loadHybridLocalCatalogueManifest(),
-      loadLocalGalleryDiskManifest(),
-      loadGitWardrobeStorageManifest(),
     ]);
     catalogueLockManifest = lockManifest;
     hybridLocalCatalogueManifest = hybridManifest;
-    localGalleryDiskManifest = galleryDiskManifest;
-    gitWardrobeStorageManifest = gitStorageManifest;
     if (catalogueLockManifest) {
       console.info(
         `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
@@ -28522,11 +28149,6 @@
     if (isHybridLocalCatalogueEnabled()) {
       console.info(
         `[hybrid local] Catalogue (${catalogueLockManifest.count} pieces) from data/wardrobe.js + ${hybridLocalCatalogueManifest.localImageRoot}; new rows still from Supabase.`
-      );
-    }
-    if (isGitWardrobeStorageEnabled()) {
-      console.info(
-        "[git wardrobe] Editor saves → images/wardrobe/ + data/wardrobe.js (commit + push for production). Supabase wardrobe sync off."
       );
     }
     const hasCollectionGridEarly = Boolean(document.getElementById("grid"));
@@ -28550,15 +28172,12 @@
         const supabaseUrl = String(url).trim();
         supabaseClient = api.createBrowserClient(supabaseUrl, String(key).trim()) || supabaseClient;
         if (supabaseClient) {
-          storageMode = isGitWardrobeStorageEnabled() ? "local" : "cloud";
+          storageMode = "cloud";
           let wardrobeFromSupabase = false;
           /** @type {Promise<{ ok: boolean, outfits?: unknown, error?: string }> | null} */
           let outfitsFetchPromise = null;
-          deferHybridCloudRefresh =
-            preferFastCollectionPaint &&
-            isHybridLocalCatalogueEnabled() &&
-            !isGitWardrobeStorageEnabled();
-          deferOutfitsFetch = preferFastCollectionPaint;
+          deferHybridCloudRefresh = isHybridLocalCatalogueEnabled();
+          deferOutfitsFetch = preferFastCollectionPaint || isStandaloneItemPageEarly;
 
           if (isTwLoginPage()) {
             refreshCatalogueSeedSnapshot();
@@ -28588,21 +28207,14 @@
               "fetchWardrobeItems"
             );
             if (res.ok && res.items.length) {
-              if (isGitWardrobeStorageEnabled()) {
-                refreshCatalogueSeedSnapshot();
-                wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
-                wardrobeCatalogueSource = "seed";
-                wardrobeFromSupabase = false;
-                cloudBackedCustomItems = [];
-                deferredSeedSyncSnapshot = null;
-              } else if (isHybridLocalCatalogueEnabled()) {
+              if (isHybridLocalCatalogueEnabled()) {
                 refreshCatalogueSeedSnapshot();
                 wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
                 wardrobeCatalogueSource = "seed";
                 wardrobeFromSupabase = false;
                 const normalizedCloud = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
                 cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalizedCloud);
-                mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+                mergeWardrobeBaseWithFetchedCloudRows(normalizedCloud);
                 deferredSeedSyncSnapshot = null;
               } else {
                 const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
@@ -28697,7 +28309,7 @@
     }
 
     normalizeLegacyEditorUrls();
-    await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint });
+    await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint || isStandaloneItemPageEarly });
     if (!twEditorAuthBootstrapped) {
       if (preferFastCollectionPaint) {
         applyTwAdminModeUi();
@@ -28718,9 +28330,9 @@
         if (!deferHybridCloudRefresh && !cloudBackedCustomItems.length) {
               const allCloud = await withTimeout(loadWardrobeItemsFromCloud(), 5000, "loadWardrobeItemsFromCloud");
           cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
-          if (cloudBackedCustomItems.length) {
+          if (allCloud.length) {
             stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
-            mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+            mergeWardrobeBaseWithFetchedCloudRows(allCloud);
           }
         }
       } else if (wardrobeCatalogueSource === "cloud" && wardrobeBase.length) {
