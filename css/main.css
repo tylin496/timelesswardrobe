@@ -79,8 +79,9 @@
   /*
    * Horizontal inset ladder (shallow → deep). One padding per surface — never stack scales.
    *   Tier 1 — Header: `--chrome-content-inset-*` (logo ↔ tools, utility bar, home editorial)
-   *   Tier 2 — Flyouts: `--chrome-x` (mega menu, search overlay body)
-   *   Tier 3 — PLP: `--catalogue-plp-inline-x` (collection toolbar; grid bleeds on mobile)
+   *   Tier 2 — Flyouts: `--chrome-x` (fallback when PLP tier unset)
+   *   Tier 3 — PLP: `--catalogue-plp-inline-x` (toolbar / home editorial)
+   *   Flyout rail (mega + search): `--header-flyout-inline-x` (= tier 3 when set, else tier 2)
    */
   --page-gutter: clamp(12px, 1.5vw, 32px);
   --header-x: calc(var(--page-gutter) * var(--header-margin-scale));
@@ -160,9 +161,10 @@
   /* Left edge of “TIMELESS WARDROBE” text (monogram width + gap) — legacy / mobile fallbacks. */
   --site-header-submenu-text-offset: calc(var(--site-title-mark-size) + var(--site-title-primary-gap));
   --wordmark-start-x: var(--site-header-submenu-text-offset);
-  /* Desktop mega menu — one tier inside header rail (`--chrome-x`); synced in app.js. */
-  --header-mega-nav-inset-left: var(--chrome-x);
-  --header-mega-preview-inset-right: var(--chrome-x);
+  /* Desktop flyouts — mega menu + search share one horizontal inset (see `--header-flyout-inline-x` on catalogue surfaces). */
+  --header-flyout-inline-x: var(--chrome-x);
+  --header-mega-nav-inset-left: var(--header-flyout-inline-x);
+  --header-mega-preview-inset-right: var(--header-flyout-inline-x);
   /* RL mega menu — left nav column (content width, not full 19vw rail). */
   --header-mega-menu-rail-width: clamp(260px, 18vw, 340px);
   /* Product imagery: 3×4 frame; image spans full width; vertical letterboxing OK. */
@@ -478,17 +480,19 @@ body.collection-page #main {
   max-width: none;
 }
 
-/* Shared catalogue content rail — collection PLP + home editorial sections stay in sync. */
+/* Shared catalogue content rail — collection PLP + home editorial + item PDP flyouts stay in sync. */
 body.collection-page,
-body.home-page {
+body.home-page,
+body.item-page {
   /* Mobile / base PLP edge — capped so scale never blows out on small viewports. */
   --collection-plp-margin-scale: 2.09;
-  /* Shared desktop/content nesting baseline (home + collection). */
+  /* Shared desktop/content nesting baseline (home + collection + item). */
   --collection-plp-nest-step: 1.5rem;
   --catalogue-plp-inline-x: min(
     calc(var(--header-x) * var(--collection-plp-margin-scale)),
     var(--collection-plp-inset-cap)
   );
+  --header-flyout-inline-x: var(--catalogue-plp-inline-x);
   --collection-plp-mobile-inline: min(
     calc(1rem * var(--collection-plp-margin-scale)),
     var(--collection-plp-inset-cap)
@@ -3584,9 +3588,9 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
    */
   .site-header__search-wrap.desktop-search-flyout {
   @apply ml-[calc(50%-50vw)] mr-[calc(50%-50vw)];
-    /* Search copy rail — flyout tier (aligns with mega menu, one step in from header). */
-    --search-flyout-plp-x: var(--chrome-x);
-    --search-flyout-row-x: var(--chrome-x);
+    /* Search copy rail — same inset as desktop mega menu (`--header-flyout-inline-x`). */
+    --search-flyout-plp-x: var(--header-flyout-inline-x);
+    --search-flyout-row-x: var(--header-flyout-inline-x);
     --search-flyout-field-icon-size: var(--site-header-tool-icon-size, 15px);
     --search-flyout-field-gap: 12px;
     --search-flyout-field-pad-inline: 18px;
@@ -4734,7 +4738,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     --mega-menu-flyout-pad-bottom: clamp(3.75rem, 5.5vh, 5.5rem);
     --mega-menu-rail-gap: clamp(1.15rem, 1.75vw, 1.65rem);
     /* Align preview card tops with first `.site-header__submenu-link` (e.g. All) — no extra band after head removal. */
-    --mega-menu-inline-x: var(--catalogue-plp-inline-x, var(--chrome-x));
+    --mega-menu-inline-x: var(--header-flyout-inline-x);
     --mega-menu-preview-inset: clamp(0.85rem, 1.35vw, 1.35rem);
     --mega-menu-preview-pad-top: clamp(0.2rem, 0.4vw, 0.45rem);
     --mega-menu-preview-pad-left: var(--mega-menu-preview-inset);
@@ -4742,7 +4746,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     --mega-menu-preview-pad-bottom: clamp(3.5rem, 5vh, 5rem);
     --mega-menu-preview-col-gap: 12px;
     --mega-menu-rail-column-width: calc(
-      var(--header-mega-nav-inset-left, 0px) + var(--header-mega-menu-rail-width, clamp(260px, 18vw, 340px))
+      var(--header-flyout-inline-x, var(--chrome-x)) + var(--header-mega-menu-rail-width, clamp(260px, 18vw, 340px))
     );
     display: flex;
     flex-direction: row;
@@ -14879,8 +14883,8 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   transform: translateY(0);
 }
 
-/* PDP hero: desktop click-to-zoom in frame + RL-style “+” cursor (not hover zoom). */
-@media (hover: hover) and (pointer: fine) and (min-width: 880px) {
+/* PDP hero: desktop — in-frame click zoom + custom “+” cursor (mobile uses lightbox). */
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
   .item-detail__root--page .item-detail__media.item-detail__media--zoomable,
   .item-detail__root--edit .item-detail__media.item-detail__media--zoomable,
   .item-detail__root--page .item-detail__gallery-stage.item-detail__media--zoomable,
@@ -16115,7 +16119,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   position: relative;
   width: 108px;
   cursor: grab;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 .item-edit-photo-tile__media {
@@ -16134,6 +16138,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 .item-edit-photo-tile.is-dragging {
   opacity: 0.45;
+  touch-action: none;
 }
 
 .item-edit-photo-tile.is-drop-target .item-edit-photo-tile__media {
@@ -16199,6 +16204,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   color: var(--ink);
   cursor: pointer;
   pointer-events: auto;
+  touch-action: manipulation;
   box-shadow: 0 1px 5px rgb(0 0 0 / 0.28);
   transition:
     background 0.15s ease,
@@ -18468,7 +18474,8 @@ body.collection-page .collection-container > .collection-actions {
   }
 
   body.collection-page,
-  body.home-page {
+  body.home-page,
+  body.item-page {
     /*
      * PLP tier 3 — same centered chrome box as header (`--chrome-content-max`), then pad inward.
      * Home editorial copy uses the same rail as collection PLP toolbar / title.
@@ -18480,6 +18487,7 @@ body.collection-page .collection-container > .collection-actions {
     --catalogue-plp-inline-x: calc(
       var(--catalogue-plp-box-gutter) + var(--collection-plp-tier3-inner)
     );
+    --header-flyout-inline-x: var(--catalogue-plp-inline-x);
   }
 
   body.collection-page {
@@ -18502,8 +18510,9 @@ body.collection-page .collection-container > .collection-actions {
   }
 
   @media (min-width: 901px) {
-    body.collection-page {
-      /* Collection PLP: always header inset + extra nest (never less than logo rail). */
+    body.collection-page,
+    body.item-page {
+      /* Collection / item PDP: header inset + extra nest (never less than logo rail). */
       --collection-plp-nest-step: clamp(1.35rem, 1.65vw, 2.15rem);
       --collection-plp-tier3-inner: calc(
         var(--chrome-content-inset-left) + var(--collection-plp-nest-step)
@@ -18511,6 +18520,10 @@ body.collection-page .collection-container > .collection-actions {
       --catalogue-plp-inline-x: calc(
         var(--catalogue-plp-box-gutter) + var(--collection-plp-tier3-inner)
       );
+      --header-flyout-inline-x: var(--catalogue-plp-inline-x);
+    }
+
+    body.collection-page {
       --collection-plp-x: var(--collection-plp-tier3-inner);
     }
 
@@ -18523,6 +18536,7 @@ body.collection-page .collection-container > .collection-actions {
       --catalogue-plp-inline-x: calc(
         var(--catalogue-plp-box-gutter) + var(--collection-plp-tier3-inner)
       );
+      --header-flyout-inline-x: var(--catalogue-plp-inline-x);
     }
   }
 

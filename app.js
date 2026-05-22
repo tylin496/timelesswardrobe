@@ -2222,6 +2222,7 @@
           }
         });
         updateColourLabelForKey(initialKey);
+        applyVariantHero(initialKey);
       }
     }
 
@@ -2262,6 +2263,30 @@
     }
   }
 
+  /** Default colour variant for PDP / gallery (matches active swatch on first paint). */
+  function defaultColourVariantKey(item) {
+    const variants = getItemColourVariants(item);
+    if (!variants?.length) return "";
+    const mainImg = String(item?.image ?? "").trim();
+    return (
+      String(variants.find((vv) => String(vv.image ?? "").trim() === mainImg)?.key ?? variants[0]?.key ?? "").trim()
+    );
+  }
+
+  /** Row used for PDP gallery frames — projects colour-variant gallery onto the hero item. */
+  function itemDetailGallerySourceItem(item, colourKey = "") {
+    const id = String(item?.id ?? "").trim();
+    const key = String(colourKey ?? "").trim() || defaultColourVariantKey(item);
+    if (!key || !id) return item;
+    return itemProjectionForOutfitSlot(item, { itemId: id, colourKey: key });
+  }
+
+  function colourKeyFromProjectedItem(item) {
+    const tag = String(item?.__coverCacheKey ?? "").trim();
+    if (!tag.includes("::")) return "";
+    return tag.split("::").slice(1).join("::").trim();
+  }
+
   /** Shallow row shaped for cover / gallery resolution for one outfit slot. */
   function itemProjectionForOutfitSlot(item, slot) {
     const vars = getItemColourVariants(item);
@@ -2271,7 +2296,7 @@
     const baseId = String(item.id ?? "");
     const vColour = String(v.colour ?? v.color ?? "").trim();
     const vCode = String(v.colourCode ?? "").trim();
-    const vGal = Array.isArray(v.gallery) ? v.gallery : [];
+    const vGal = resolvedVariantGalleryList(item, slot.colourKey);
     const itemGal = Array.isArray(item.gallery) ? item.gallery : [];
     return {
       ...item,
@@ -2936,6 +2961,7 @@
     document.documentElement.classList.toggle("tw-admin-mode", on);
     if (document.body) document.body.classList.toggle("tw-admin-mode", on);
     document.querySelectorAll(".tw-admin-only").forEach((el) => {
+      if (el.id === "local-data-risk-banner") return;
       if (on) el.removeAttribute("hidden");
       else el.setAttribute("hidden", "");
     });
@@ -2943,6 +2969,7 @@
     if (on) {
       initAddItemForm();
       installLocalDataRiskBanner();
+      refreshLocalDataRiskBannerVisibility();
       installWardrobeTextLocalExportActions();
     } else {
       addItemFormWired = false;
@@ -3070,6 +3097,10 @@
   const COLLECTION_DEFAULT_VIEW_MODE = "default";
   /** User hid the “browser-only storage” banner; clearing this key shows it again. */
   const LOCAL_DATA_RISK_BANNER_DISMISSED_KEY = "timeless-wardrobe-dismiss-local-risk-v1";
+  const LOCAL_DATA_RISK_BANNER_HTML =
+    "<strong>Browser-only storage</strong> — Supabase is not connected (<code>js/tw-supabase-config.js</code>). " +
+    "Wardrobe edits, hidden pieces, and outfits stay in this browser for this site URL only. " +
+    "Use <strong>Download backup JSON</strong> before clearing site data, switching devices, or changing the dev port.";
   const PRICE_CURRENCY_CODES = ["TWD", "USD", "JPY", "CNY"];
   const COLLECTION_SORT_MODES = ["default", "price-asc", "price-desc", "date-desc", "date-asc"];
   const COLLECTION_DEFAULT_SORT_MODE = "default";
@@ -6097,6 +6128,11 @@
   function mergeHybridCatalogueGallery(seed, cloudRow, opts = {}) {
     const itemId = String(seed?.id ?? cloudRow?.id ?? "").trim();
     const preferCloudOrder = Boolean(opts && opts.preferCloudOrder);
+    const cloudGal = itemGalleryList(cloudRow);
+    const cloudAuthoritative =
+      preferCloudOrder ||
+      rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
+      supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow);
     const coverKeys = new Set(
       [seed?.image, cloudRow?.image].map((u) => wardrobeMediaPathKey(u)).filter(Boolean)
     );
@@ -6106,7 +6142,7 @@
     const urlByPath = new Map();
 
     const consider = (url, preferLocal) => {
-      const u = String(url ?? "").trim();
+      const u = preferLocalWardrobeMediaUrl(itemId, String(url ?? "").trim());
       if (!u) return;
       const key = wardrobeMediaPathKey(u);
       if (!key || coverKeys.has(key)) return;
@@ -6125,14 +6161,21 @@
       else if (!prevLocal && isLocal) urlByPath.set(key, u);
     };
 
+    if (cloudAuthoritative && cloudGal.length) {
+      for (const u of cloudGal) consider(u, false);
+      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
+      for (const u of itemGalleryList(seed)) consider(u, true);
+      return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
+    }
+
     if (preferCloudOrder) {
-      for (const u of itemGalleryList(cloudRow)) consider(u, false);
+      for (const u of cloudGal) consider(u, false);
       for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
       for (const u of itemGalleryList(seed)) consider(u, true);
     } else {
       for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
       for (const u of itemGalleryList(seed)) consider(u, true);
-      for (const u of itemGalleryList(cloudRow)) consider(u, false);
+      for (const u of cloudGal) consider(u, false);
     }
 
     /* Preserve cloud / seed gallery array order (edit drag order) — do not re-sort by filename slot. */
@@ -6140,6 +6183,35 @@
       itemId,
       orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean)
     );
+  }
+
+  /**
+   * Hybrid colour variants: merge each variant's gallery (local seed paths + cloud) like main-row gallery.
+   * @param {object} seed
+   * @param {object} cloudRow
+   * @param {{ preferCloudOrder?: boolean }} [opts]
+   */
+  function mergeHybridColourVariants(seed, cloudRow, opts = {}) {
+    const itemId = String(seed?.id ?? cloudRow?.id ?? "").trim();
+    const seedVars = getItemColourVariants(seed) || [];
+    const cloudVars = getItemColourVariants(cloudRow) || [];
+    if (!cloudVars.length) return seedVars.length ? seedVars : null;
+    if (!seedVars.length) return cloudVars;
+    const seedByKey = new Map(seedVars.map((v) => [String(v.key ?? "").trim(), v]));
+    return cloudVars.map((cv) => {
+      const key = String(cv?.key ?? "").trim();
+      const sv = seedByKey.get(key) || {};
+      const gallery = mergeHybridCatalogueGallery(
+        { id: itemId, image: sv.image ?? cv.image, gallery: sv.gallery },
+        { id: itemId, image: cv.image, gallery: cv.gallery },
+        opts
+      );
+      return {
+        ...sv,
+        ...cv,
+        gallery: gallery.length ? gallery : Array.isArray(cv.gallery) ? cv.gallery : [],
+      };
+    });
   }
 
   /** @param {string[]} urls */
@@ -6150,38 +6222,94 @@
       .join("|");
   }
 
+  function frozenSeedGalleryPathsForItem(itemId, variantKey = "") {
+    const seed = catalogueSeedRow(String(itemId ?? "").trim());
+    if (!seed) return [];
+    const key = String(variantKey ?? "").trim();
+    if (key) {
+      const v = getItemColourVariants(seed)?.find((x) => String(x?.key ?? "") === key);
+      return Array.isArray(v?.gallery) ? v.gallery.map((x) => String(x ?? "").trim()).filter(Boolean) : [];
+    }
+    return itemGalleryList(seed);
+  }
+
   /**
    * Frozen catalogue: prepend seed `gallery/*` paths missing from the current list (seed order).
    * Keeps cloud / editor drag order for paths already present — no filename re-sort.
    * @param {string} itemId
    * @param {string[]} urls
+   * @param {string} [variantKey]
    */
-  function mergeMissingFrozenSeedGalleryPaths(itemId, urls) {
+  function mergeMissingFrozenSeedGalleryPaths(itemId, urls, variantKey = "") {
     const id = String(itemId ?? "").trim();
-    if (!id || !isLocalCatalogueItemId(id)) return [...urls];
+    const list = Array.isArray(urls) ? urls.map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? ""))) : [];
+    if (!id || !isLocalCatalogueItemId(id)) return mergeDiscoveredLocalGalleryUrls(id, list, variantKey);
     const seed = catalogueSeedRow(id);
-    if (!seed) return [...urls];
+    if (!seed) return mergeDiscoveredLocalGalleryUrls(id, list, variantKey);
     const coverKey = wardrobeMediaPathKey(String(seed.image ?? ""));
-    const present = new Set(urls.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
+    const present = new Set(list.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
     /** @type {string[]} */
     const missing = [];
-    for (const raw of itemGalleryList(seed)) {
-      const u = String(raw ?? "").trim();
+    for (const raw of frozenSeedGalleryPathsForItem(id, variantKey)) {
+      const u = preferLocalWardrobeMediaUrl(id, String(raw ?? "").trim());
       if (!u || !isDisplayableCloudImageUrl(u)) continue;
       if (!isFileBackedLocalWardrobeUrl(seed, u)) continue;
-      const key = wardrobeMediaPathKey(u);
-      if (!key || key === coverKey || present.has(key)) continue;
-      present.add(key);
+      const pathKey = wardrobeMediaPathKey(u);
+      if (!pathKey || pathKey === coverKey || present.has(pathKey)) continue;
+      present.add(pathKey);
       missing.push(u);
     }
-    if (!missing.length) return [...urls];
-    return [...missing, ...urls];
+    const merged = missing.length ? [...missing, ...list] : list;
+    return mergeDiscoveredLocalGalleryUrls(id, merged, variantKey);
+  }
+
+  /** Gallery extras for one colour variant (hybrid local + cloud + on-disk manifest). */
+  function resolvedVariantGalleryList(item, variantKey) {
+    const id = String(item?.id ?? "").trim();
+    const key = String(variantKey ?? "").trim();
+    const seed = catalogueSeedRow(id);
+    const seedV =
+      key && seed ? getItemColourVariants(seed)?.find((x) => String(x?.key ?? "") === key) : null;
+    const rowV = key ? getItemColourVariants(item)?.find((x) => String(x?.key ?? "") === key) : null;
+    const v = seedV || rowV;
+    let urls = Array.isArray(v?.gallery)
+      ? v.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
+      : [];
+    if (!id || !isLocalCatalogueItemId(id)) {
+      return mergeDiscoveredLocalGalleryUrls(id, urls, key);
+    }
+    const ov = loadCollectionOverrides()[id];
+    if (Number(/** @type {any} */ (ov?.__mediaEditedAt)) > 0 && Array.isArray(ov?.gallery)) {
+      return dedupeGalleryUrls(
+        String(v?.image ?? item?.image ?? "").trim(),
+        ov.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
+      );
+    }
+    return mergeMissingFrozenSeedGalleryPaths(id, urls, key);
   }
 
   /** Gallery extras for display / editor — frozen seed paths merged when cloud row is incomplete. */
   function resolvedItemGalleryList(item) {
     const id = String(item?.id ?? "").trim();
-    return mergeMissingFrozenSeedGalleryPaths(id, itemGalleryList(item));
+    const variantKey = colourKeyFromProjectedItem(item);
+    if (variantKey) return resolvedVariantGalleryList(item, variantKey);
+    let base = itemGalleryList(item).map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? "").trim()));
+    if (!id || !isLocalCatalogueItemId(id)) return base;
+    const ov = loadCollectionOverrides()[id];
+    if (
+      Number(/** @type {any} */ (ov?.__mediaEditedAt)) > 0 &&
+      Array.isArray(ov?.gallery)
+    ) {
+      return dedupeGalleryUrls(
+        String(item?.image ?? "").trim(),
+        ov.gallery.map((x) => preferLocalWardrobeMediaUrl(id, String(x ?? "").trim())).filter(Boolean)
+      );
+    }
+    const seed = catalogueSeedRow(id);
+    if (seed) {
+      base = itemGalleryList(seed).map((u) => preferLocalWardrobeMediaUrl(id, String(u ?? "").trim()));
+    }
+    return mergeMissingFrozenSeedGalleryPaths(id, base, "");
   }
 
   /** @param {string} url */
@@ -6196,10 +6324,14 @@
    * @param {string} itemId
    * @param {string[]} gallery
    */
-  function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery) {
+  function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery, opts = {}) {
     if (!isLocalCatalogueItemId(itemId)) return false;
+    const useSeedHeal = !Boolean(opts && opts.userEdited);
     const targetSig = galleryPathKeySignature(
-      dedupeGalleryUrls("", mergeMissingFrozenSeedGalleryPaths(itemId, gallery))
+      dedupeGalleryUrls(
+        "",
+        useSeedHeal ? mergeMissingFrozenSeedGalleryPaths(itemId, gallery) : gallery
+      )
     );
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === itemId);
     const cloudSig = galleryPathKeySignature(itemGalleryList(cloudRow || {}));
@@ -6467,12 +6599,40 @@
     return next;
   }
 
+  /**
+   * Frozen catalogue (`wardrobe-catalogue-lock.json`): committed seed + `images/wardrobe/` are canonical for media.
+   * Cloud row supplies text/metadata only unless the editor just saved fresh media in-memory.
+   */
+  function mergeFrozenCatalogueSeedWithCloudRow(localRow, cloudRow, seed) {
+    const itemId = String(localRow?.id ?? cloudRow?.id ?? seed?.id ?? "").trim();
+    const baseSeed = seed || localRow || {};
+    const merged = normalizeItemDerivedFields({
+      ...cloudRow,
+      ...baseSeed,
+      id: itemId,
+      image: String(baseSeed.image ?? localRow?.image ?? "").trim(),
+      gallery: Array.isArray(baseSeed.gallery) ? baseSeed.gallery : undefined,
+      colourVariants:
+        getItemColourVariants(baseSeed)?.length
+          ? getItemColourVariants(baseSeed)
+          : localRow?.colourVariants ?? cloudRow?.colourVariants,
+      metadata: baseSeed.metadata ?? cloudRow?.metadata ?? localRow?.metadata,
+    });
+    return carryForwardMediaNonce(localRow, merged, { forceFresh: false });
+  }
+
   /** Hybrid local catalogue: seed (`data/wardrobe.js`) vs Supabase — see `supabaseMediaAheadOfCatalogueSeed`. */
   function mergeCloudMediaOntoLocalCatalogueRow(localRow, cloudRow) {
     if (!localRow || typeof localRow !== "object") return localRow;
     if (!cloudRow || typeof cloudRow !== "object") return { ...localRow };
     const itemId = String(localRow.id ?? cloudRow.id ?? "").trim();
     const seed = catalogueSeedRow(itemId) || localRow;
+    if (
+      isLocalCatalogueItemId(itemId) &&
+      !inMemoryRowHasFreshMediaSave(cloudRow, seed)
+    ) {
+      return mergeFrozenCatalogueSeedWithCloudRow(localRow, cloudRow, seed);
+    }
     const staleMirror = cloudMediaLooksLikeStaleSeedMirror(cloudRow, seed);
     const samePathReupload = cloudMediaReuploadedAtSamePath(cloudRow, seed);
     const galleryOrderChanged = cloudGalleryOrderDiffersFromSeed(cloudRow, seed);
@@ -6494,9 +6654,11 @@
         id: itemId,
         image: String(cloudRow.image ?? localRow.image ?? seedImage).trim() || seedImage,
         gallery: hybridGallery.length ? normalizeGalleryFromDb(hybridGallery) : undefined,
-        colourVariants: Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length
-          ? cloudRow.colourVariants
-          : localRow.colourVariants,
+        colourVariants:
+          mergeHybridColourVariants(seed, cloudRow, { preferCloudOrder: galleryOrderChanged }) ||
+          (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length
+            ? cloudRow.colourVariants
+            : localRow.colourVariants),
       });
       return carryForwardMediaNonce(cloudRow, merged, { forceFresh: true });
     }
@@ -6514,7 +6676,12 @@
     }
 
     if (useCloudMedia) {
-      if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
+      const hybridVars = mergeHybridColourVariants(seed, cloudRow, {
+        preferCloudOrder: galleryOrderChanged,
+      });
+      if (hybridVars?.length) {
+        merged.colourVariants = hybridVars;
+      } else if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
         merged.colourVariants = cloudRow.colourVariants;
       }
       const cloudTs = String(cloudRow.updatedAt ?? cloudRow.updated_at ?? "").trim();
@@ -6664,6 +6831,37 @@
     }
   }
 
+  /** Storage path from a Supabase URL or a local `/images/wardrobe/…` path. */
+  function wardrobeStoragePathFromMediaUrl(url) {
+    const cloud = storagePathFromWardrobeImageUrl(url);
+    if (cloud) return cloud;
+    return wardrobeImageObjectPath(url);
+  }
+
+  /**
+   * Before cloud upsert: persist gallery/cover as stable public Storage URLs (not `/images/…` paths).
+   * @param {object} item
+   */
+  function normalizeItemMediaUrlsForCloudPersistence(item) {
+    if (!item || typeof item !== "object" || !isSupabaseReady()) return item;
+    const id = String(item.id ?? "").trim();
+    const ref = { id };
+    const toPublic = (url) => {
+      const raw = String(url ?? "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw.split("?")[0])) return raw.split("?")[0];
+      const path = wardrobeStoragePathFromMediaUrl(raw);
+      if (!path) return raw;
+      return supabasePublicObjectUrlForWardrobePath(path, ref).split("?")[0] || raw;
+    };
+    const image = toPublic(item.image);
+    const gallery = itemGalleryList(item).map(toPublic).filter(Boolean);
+    const out = { ...item, image };
+    if (gallery.length) out.gallery = dedupeGalleryUrls(image, gallery, 12);
+    else delete out.gallery;
+    return out;
+  }
+
   function getSupabaseProjectOrigin() {
     return String(globalThis.APP_CONFIG?.SUPABASE_URL ?? globalThis.__TW_SUPABASE_URL__ ?? "")
       .trim()
@@ -6800,7 +6998,7 @@
 
   async function deleteWardrobeImageUrlFromCloud(url) {
     if (!isSupabaseReady()) return false;
-    const path = storagePathFromWardrobeImageUrl(url);
+    const path = wardrobeStoragePathFromMediaUrl(url);
     if (!path) return false;
     const { error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).remove([path]);
     if (error) {
@@ -6811,14 +7009,14 @@
   }
 
   function wardrobeImageUrlStillReferencedByOtherItems(url, excludeItemId) {
-    const pathKey = String(url ?? "").trim().split("?")[0];
+    const pathKey = wardrobeStoragePathFromMediaUrl(url);
     if (!pathKey) return false;
     const skipId = String(excludeItemId ?? "").trim();
     for (const row of items) {
       if (!row || typeof row !== "object") continue;
       if (skipId && String(row.id ?? "") === skipId) continue;
-      for (const u of collectSupabaseWardrobeImageUrls(row)) {
-        if (String(u).trim().split("?")[0] === pathKey) return true;
+      for (const p of collectWardrobeImageStoragePaths(row)) {
+        if (p === pathKey) return true;
       }
     }
     return false;
@@ -6848,7 +7046,7 @@
     }
     const excludeId = String(item.id ?? "").trim();
     const cloudUrls = urls
-      .filter(storagePathFromWardrobeImageUrl)
+      .filter((u) => wardrobeStoragePathFromMediaUrl(u))
       .filter((u) => !wardrobeImageUrlStillReferencedByOtherItems(u, excludeId));
     if (!cloudUrls.length) return;
     await Promise.allSettled(cloudUrls.map(deleteWardrobeImageUrlFromCloud));
@@ -6946,17 +7144,16 @@
     }
   }
 
-  /** Public URLs in our `wardrobe-images` bucket referenced by a row (cover, gallery, colour variants). */
-  function collectSupabaseWardrobeImageUrls(item) {
+  /** Storage paths referenced by a row (cover, gallery, colour variants) for orphan cleanup. */
+  function collectWardrobeImageStoragePaths(item) {
     if (!item) return [];
     const out = [];
     const seen = new Set();
     function add(u) {
-      const s = String(u ?? "").trim();
-      if (!s || seen.has(s)) return;
-      if (!storagePathFromWardrobeImageUrl(s)) return;
-      seen.add(s);
-      out.push(s);
+      const path = wardrobeStoragePathFromMediaUrl(u);
+      if (!path || seen.has(path)) return;
+      seen.add(path);
+      out.push(path);
     }
     add(item.image);
     for (const u of itemGalleryList(item)) add(u);
@@ -6975,12 +7172,12 @@
   async function deleteSupabaseImagesNoLongerUsed(prevItem, nextItem, nextItemAlt) {
     if (!isSupabaseReady()) return;
     const keep = new Set([
-      ...collectSupabaseWardrobeImageUrls(nextItem),
-      ...(nextItemAlt ? collectSupabaseWardrobeImageUrls(nextItemAlt) : []),
+      ...collectWardrobeImageStoragePaths(nextItem),
+      ...(nextItemAlt ? collectWardrobeImageStoragePaths(nextItemAlt) : []),
     ]);
-    const drop = collectSupabaseWardrobeImageUrls(prevItem).filter((u) => !keep.has(u));
+    const drop = collectWardrobeImageStoragePaths(prevItem).filter((p) => !keep.has(p));
     if (!drop.length) return;
-    await Promise.allSettled(drop.map((u) => deleteWardrobeImageUrlFromCloud(u)));
+    await Promise.allSettled(drop.map((p) => deleteWardrobeImageUrlFromCloud(p)));
   }
 
   async function loadWardrobeItemsFromCloud() {
@@ -7058,11 +7255,12 @@
   /** Upsert one custom row to `wardrobe_items` and return the normalized row from Postgres. */
   async function saveWardrobeItemToCloud(item) {
     if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
+    const itemForCloud = normalizeItemMediaUrlsForCloudPersistence(item);
     /** Prefer British columns; if PostgREST / DB only exposes American names, retry once. */
     const spellings = /** @type {const} */ (["uk", "us"]);
     let lastErr = /** @type {any} */ (null);
     for (const sp of spellings) {
-      const row = wardrobeItemsStrictUpsertRowFromItem(item, sp);
+      const row = wardrobeItemsStrictUpsertRowFromItem(itemForCloud, sp);
       const { data, error } = await supabaseClient.from(WARDROBE_TABLE).upsert(row, { onConflict: "id" }).select("*").single();
       if (!error) {
         const norm = normalizeCloudItemRow(data);
@@ -7370,6 +7568,11 @@
   /** @type {boolean} */
   let localDataRiskBannerWired = false;
 
+  function syncLocalDataRiskBannerCopy() {
+    const text = document.querySelector("#local-data-risk-banner .local-data-risk-banner__text");
+    if (text) text.innerHTML = LOCAL_DATA_RISK_BANNER_HTML;
+  }
+
   function refreshLocalDataRiskBannerVisibility() {
     const el = document.getElementById("local-data-risk-banner");
     if (!el || !isTwAdminMode()) return;
@@ -7392,6 +7595,7 @@
     localDataRiskBannerWired = true;
 
     const el = document.getElementById("local-data-risk-banner");
+    syncLocalDataRiskBannerCopy();
     refreshLocalDataRiskBannerVisibility();
 
     document.getElementById("local-data-backup-json")?.addEventListener("click", () => {
@@ -10450,13 +10654,15 @@
     back.addEventListener("click", (e) => navigateItemPageBack(e));
   }
 
+  /** Mobile / touch: tap opens full-screen lightbox (not in-frame zoom). */
   function isItemPageCoarsePointer() {
     return globalThis.matchMedia?.("(max-width: 900px), (hover: none), (pointer: coarse)")?.matches ?? false;
   }
 
-  /** Desktop PDP / edit preview — in-frame zoom + mouse pan (not full-screen lightbox). */
+  /** Desktop mouse: hover “+” cursor, click magnifies inside the hero frame only. */
   function isItemPageDesktopHoverZoom() {
-    return globalThis.matchMedia?.("(min-width: 880px) and (hover: hover) and (pointer: fine)")?.matches ?? false;
+    if (isItemPageCoarsePointer()) return false;
+    return globalThis.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches ?? false;
   }
 
   /**
@@ -11250,12 +11456,22 @@
   }
 
   /**
-   * Desktop PDP: “+” cursor on hover; click magnifies inside the hero frame only (no overlay).
+   * PDP / edit preview hero: mobile → lightbox; desktop → “+” on hover + in-frame click zoom.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
+   * @param {object} item
+   * @param {{ frameCount?: number, step?: (delta: number) => void, frameUrlAt?: (index: number) => string, goTo?: (index: number) => void } | null} galleryApi
    */
-  function wireItemDetailHeroDesktopClickEnlarge(media, heroImg) {
-    return wireItemDetailHeroDesktopZoomPan(media, heroImg, { plusCursor: true });
+  function wireItemDetailHeroStageInteractions(media, heroImg, item, galleryApi) {
+    if (!(media instanceof HTMLElement) || !(heroImg instanceof HTMLImageElement)) return () => {};
+    if (isItemPageCoarsePointer()) {
+      wireItemPageHeroView(media, heroImg, item, galleryApi);
+      return () => {};
+    }
+    if (isItemPageDesktopHoverZoom()) {
+      return wireItemDetailHeroDesktopZoomPan(media, heroImg, { plusCursor: true });
+    }
+    return () => {};
   }
 
   /**
@@ -14593,9 +14809,10 @@
   }
 
   /** Ordered PDP / hero frames: cover first, then gallery extras (deduped). */
-  function itemDetailGalleryFrames(item) {
-    const cover = buildCoverCandidates(item)[0] ?? "";
-    const extras = resolvedItemGalleryList(item).filter(isDisplayableCloudImageUrl);
+  function itemDetailGalleryFrames(item, opts = {}) {
+    const source = itemDetailGallerySourceItem(item, opts?.colourKey);
+    const cover = buildCoverCandidates(source)[0] ?? "";
+    const extras = resolvedItemGalleryList(source).filter(isDisplayableCloudImageUrl);
     /** @type {{ url: string, label: string }[]} */
     const frames = [];
     const seen = new Set();
@@ -15052,18 +15269,13 @@
       },
     };
 
-    if (opts.heroInteractions) {
-      stageEl.__twPdpGallery = pdpGalleryApi;
-      if (isItemPageCoarsePointer()) {
-        wireItemPageHeroView(stageEl, heroImgEl, item, pdpGalleryApi);
-      }
-    }
-
-    if (isItemPageDesktopHoverZoom()) {
-      stageEl.__twDesktopZoomCleanup = opts.heroInteractions
-        ? wireItemDetailHeroDesktopClickEnlarge(stageEl, heroImgEl)
-        : wireItemDetailHeroDesktopZoomPan(stageEl, heroImgEl, { plusCursor: true });
-    }
+    stageEl.__twPdpGallery = pdpGalleryApi;
+    stageEl.__twDesktopZoomCleanup = wireItemDetailHeroStageInteractions(
+      stageEl,
+      heroImgEl,
+      item,
+      pdpGalleryApi
+    );
   }
 
   function remountItemDetailHeroGallery(heroHost, heroImg, item) {
@@ -15071,12 +15283,8 @@
     if (galleryRoot && heroHost.classList.contains("item-detail__gallery-stage")) {
       const thumbs = galleryRoot.querySelector(".item-detail__gallery-thumbs");
       const root = itemDetailMountRoot();
-      const heroInteractions =
-        itemDetailIsPageRoot(root) && !root?.classList?.contains("item-detail__root--edit");
       if (thumbs) {
-        mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item, {
-          heroInteractions,
-        });
+        mountItemDetailPageGallery(galleryRoot, thumbs, heroHost, heroImg, item);
       }
       return;
     }
@@ -16879,8 +17087,25 @@
     });
   }
 
+  /** Stable path-key signature for photo-manager entries (url + in-memory file slots). */
+  function photoManagerEntryPathSig(entries) {
+    if (!Array.isArray(entries)) return "";
+    return entries
+      .map((e) => {
+        if (e?.kind === "url") {
+          const url = String(e.url ?? "").trim();
+          return wardrobeMediaPathKey(url) || url.split("?")[0];
+        }
+        if (e?.kind === "file") return `file:${String(e.id ?? "")}`;
+        return "";
+      })
+      .filter(Boolean)
+      .join("|");
+  }
+
   function revokeItemEditPhotoManager(host) {
     if (!(host instanceof HTMLElement)) return;
+    host.__twPhotoDirty = false;
     const entries = /** @type {any[]} */ (host.__twPhotoEntries);
     if (Array.isArray(entries)) {
       for (const e of entries) {
@@ -16961,6 +17186,11 @@
     const filesById = new Map();
     host.__twPhotoFiles = filesById;
     host.__twPhotoEntries = entries;
+    host.__twPhotoDirty = false;
+    const markPhotoManagerDirty = () => {
+      host.__twPhotoDirty = true;
+      opts.onDirty?.();
+    };
 
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -17118,7 +17348,7 @@
               delete entry.url;
               entry.previewUrl = URL.createObjectURL(cropped);
               renderList();
-              opts.onDirty?.();
+              markPhotoManagerDirty();
             } catch (err) {
               console.warn(err);
               if (typeof showToast === "function") {
@@ -17153,7 +17383,7 @@
           }
           entries.splice(index, 1);
           renderList();
-          opts.onDirty?.();
+          markPhotoManagerDirty();
         });
 
         actions.append(cropBtn, removeBtn);
@@ -17207,7 +17437,7 @@
           entries.splice(to, 0, moved);
           dragFrom = null;
           renderList();
-          opts.onDirty?.();
+          markPhotoManagerDirty();
         });
 
         tile.addEventListener("pointerdown", (ev) => {
@@ -17261,7 +17491,7 @@
             const [moved] = entries.splice(from, 1);
             entries.splice(to, 0, moved);
             renderList();
-            opts.onDirty?.();
+            markPhotoManagerDirty();
           }
 
           const blockClick = (/** @type {MouseEvent} */ clickEv) => {
@@ -17354,7 +17584,7 @@
           setPhotoHint("");
         }
         renderList();
-        opts.onDirty?.();
+        markPhotoManagerDirty();
         uploadBtn.disabled = false;
       })();
     });
@@ -17385,20 +17615,6 @@
     return { slots };
   }
 
-  /** Highest `main/gallery/NN` index already present in slot URLs (avoid upsert-overwriting on save). */
-  function maxExistingGalleryIndexFromPhotoSlots(slots) {
-    let max = 0;
-    for (const s of slots) {
-      if (!s || s.kind !== "url") continue;
-      const raw = String(s.url ?? "").trim().split("?")[0];
-      if (!raw) continue;
-      const path = storagePathFromWardrobeImageUrl(raw) || raw;
-      const m = /\/gallery\/(\d{1,2})\.[a-z0-9]+$/i.exec(path);
-      if (m) max = Math.max(max, parseInt(m[1], 10));
-    }
-    return max;
-  }
-
   /**
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
@@ -17412,7 +17628,6 @@
     let image = "";
     /** @type {string[]} */
     const gallery = [];
-    let nextGalleryIndex = maxExistingGalleryIndexFromPhotoSlots(slots) + 1;
     for (let i = 0; i < slots.length; i++) {
       const s = slots[i];
       let url = "";
@@ -17426,11 +17641,9 @@
                 ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
                 : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
             } else {
-              const uploadIndex = nextGalleryIndex;
-              nextGalleryIndex += 1;
               url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
                 type: "main_gallery",
-                index: uploadIndex,
+                index: i,
               });
             }
           } else {
@@ -17443,7 +17656,7 @@
               ? variantKey
                 ? `variant cover (${variantKey})`
                 : "main cover"
-              : `gallery image #${nextGalleryIndex - 1}`;
+              : `gallery image #${i}`;
           setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this file.`, true);
           if (i === 0 && opts.keepCoverOnFailure && prevCover) {
             image = prevCover;
@@ -22052,13 +22265,18 @@
     const gallerySigAfterPhotos = gallery
       .map((u) => String(u).split("?")[0])
       .join("|");
+    const photoManagerDirty = Boolean(
+      document.getElementById("item-edit-photos")?.__twPhotoDirty
+    );
     const userEditedGalleryPhotos =
-      hadNewPhotoFiles || gallerySigAfterPhotos !== prevGallerySig;
+      hadNewPhotoFiles || photoManagerDirty || gallerySigAfterPhotos !== prevGallerySig;
     if (!userEditedGalleryPhotos) {
       gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
     }
     if (isLocalCatalogueItemId(id) && isSupabaseReady()) {
-      const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
+      const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, {
+        userEdited: userEditedGalleryPhotos,
+      });
       const itemRef = { id };
       const hasLocalOnlyMedia =
         (image && isFileBackedLocalWardrobeUrl(itemRef, image) && !/^https?:\/\//i.test(image.split("?")[0])) ||
@@ -22142,9 +22360,11 @@
       isLocalCatalogueItemId(id) &&
       galleryPathKeySignature(gallery) !== galleryPathKeySignature(galleryBeforeFrozenHeal);
     const frozenGalleryNeedsCloudSync =
-      isLocalCatalogueItemId(id) && galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
+      isLocalCatalogueItemId(id) &&
+      galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, { userEdited: userEditedGalleryPhotos });
     const mediaTouched =
       hadNewPhotoFiles ||
+      photoManagerDirty ||
       String(image).split("?")[0] !== String(prevImage).split("?")[0] ||
       nextGallerySig !== prevGallerySig ||
       frozenGalleryHealed ||
@@ -22819,12 +23039,11 @@
     };
     media.appendChild(img);
     if (usePdpGalleryLayout && galleryWrap) {
-      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, itemForMedia, {
-        heroInteractions: isItemPageView,
-      });
+      const galleryItem = itemDetailGallerySourceItem(itemForMedia);
+      mountItemDetailPageGallery(galleryWrap, galleryThumbs, media, img, galleryItem);
       const resolvedCover = String(img.src ?? img.dataset.coverSrc ?? "").trim();
       if (resolvedCover) coverWireOpts.preferredUrl = resolvedCover;
-      wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
+      wireCoverImageWithFallbacks(img, galleryItem, coverWireOpts);
     } else {
       wireCoverImageWithFallbacks(img, itemForMedia, coverWireOpts);
       if (!isPageEdit && !detailVariants?.length) {
@@ -22985,12 +23204,13 @@
       const photosHost = document.createElement("div");
       photosHost.id = "item-edit-photos";
       if (!initialVariants) {
+        const photoGalleryItem = itemDetailGallerySourceItem(itemForMedia);
         mountItemEditPhotoManager(photosHost, {
-          item: itemForMedia,
-          coverUrl: String(itemForMedia.image ?? "").trim(),
-          galleryUrls: resolvedItemGalleryList(itemForMedia),
+          item: photoGalleryItem,
+          coverUrl: String(photoGalleryItem.image ?? "").trim(),
+          galleryUrls: resolvedItemGalleryList(photoGalleryItem),
           uploadLabel: "Upload photos",
-          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
+          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, photoGalleryItem),
         });
         syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
       }
@@ -24842,53 +25062,31 @@
   }
 
   /** Resolve a CSS length custom property to pixels (e.g. `var(--chrome-x)`). */
-  function readCssLengthPx(length) {
+  function readCssLengthPx(length, host = document.body) {
+    const mount = host && host.nodeType === 1 ? host : document.body;
     const probe = document.createElement("div");
     probe.style.cssText =
       "position:absolute;visibility:hidden;pointer-events:none;width:0;height:0;margin:0;padding:0;border:0;";
     const inner = document.createElement("div");
     inner.style.width = length;
     probe.appendChild(inner);
-    document.documentElement.appendChild(probe);
+    mount.appendChild(probe);
     const px = inner.getBoundingClientRect().width;
     probe.remove();
     return Math.max(0, Math.round(px));
   }
 
-  /** Desktop mega menu + flyouts: one inset tier inside header chrome (`--chrome-x`). */
+  /** Desktop mega menu + search flyouts: clear legacy inline inset overrides (CSS `--header-flyout-inline-x` owns layout). */
   function syncHeaderMegaMenuNavInset() {
     try {
-      if (!globalThis.matchMedia?.(HEADER_DESKTOP_MQ)?.matches) {
-        document.documentElement.style.removeProperty("--header-mega-nav-inset-left");
-        document.documentElement.style.removeProperty("--header-mega-preview-inset-right");
-        document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
-        return;
-      }
-      const tools = document.querySelector(".site-header__tools");
-      const plpInlineX = readCssLengthPx("var(--catalogue-plp-inline-x)");
-      const flyoutInset = readCssLengthPx("var(--chrome-x)");
-      const navInset = plpInlineX > 0 ? plpInlineX : flyoutInset;
-
-      document.documentElement.style.setProperty("--header-mega-nav-inset-left", `${navInset}px`);
-      document.documentElement.style.setProperty(
-        "--header-mega-preview-inset-right",
-        `${plpInlineX > 0 ? plpInlineX : flyoutInset}px`
-      );
-
-      if (tools && plpInlineX <= 0) {
-        const right = Math.max(0, Math.round(window.innerWidth - tools.getBoundingClientRect().right));
-        document.documentElement.style.setProperty("--header-mega-preview-inset-right", `${right}px`);
-      }
-
+      document.documentElement.style.removeProperty("--header-mega-nav-inset-left");
+      document.documentElement.style.removeProperty("--header-mega-preview-inset-right");
       document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
+      document.body?.style.removeProperty("--header-mega-nav-inset-left");
+      document.body?.style.removeProperty("--header-mega-preview-inset-right");
+      document.body?.style.removeProperty("--header-mega-menu-rail-width");
     } catch {
-      try {
-        document.documentElement.style.removeProperty("--header-mega-nav-inset-left");
-        document.documentElement.style.removeProperty("--header-mega-preview-inset-right");
-        document.documentElement.style.removeProperty("--header-mega-menu-rail-width");
-      } catch {
-        /* ignore */
-      }
+      /* ignore */
     }
   }
 
@@ -27522,6 +27720,9 @@
   /** @type {{ enabled: boolean, migratedAt: string, localImageRoot: string } | null} */
   let hybridLocalCatalogueManifest = null;
 
+  /** @type {Record<string, { main: string[], variants: Record<string, string[]> }> | null} */
+  let localGalleryDiskManifest = null;
+
   /**
    * Frozen `data/wardrobe.js` rows at load (committed seed / your local edits after refresh).
    * Hybrid conflict rule: local file paths win unless Supabase media is newer than this snapshot (manual re-upload).
@@ -27573,6 +27774,73 @@
 
   function isHybridLocalCatalogueEnabled() {
     return Boolean(hybridLocalCatalogueManifest?.enabled && catalogueLockManifest?.ids?.size);
+  }
+
+  async function loadLocalGalleryDiskManifest() {
+    try {
+      const res = await fetch("data/wardrobe-local-gallery-manifest.json", { cache: "no-store" });
+      if (!res.ok) return null;
+      const payload = await res.json();
+      if (String(payload?._schema ?? "") !== "timeless-wardrobe-local-gallery-manifest-v1") return null;
+      const items = payload?.items;
+      return items && typeof items === "object" ? items : null;
+    } catch (e) {
+      console.warn("wardrobe-local-gallery-manifest.json", e);
+      return null;
+    }
+  }
+
+  /** On-disk gallery files under images/wardrobe/{id}/ (from manifest scan). */
+  function localDiskGalleryUrls(itemId, variantKey = "") {
+    if (!isHybridLocalCatalogueEnabled() || !localGalleryDiskManifest) return [];
+    const row = localGalleryDiskManifest[String(itemId ?? "").trim()];
+    if (!row) return [];
+    const key = String(variantKey ?? "").trim();
+    const variantUrls = key && row.variants?.[key] ? row.variants[key] : [];
+    const mainUrls = Array.isArray(row.main) ? row.main : [];
+    const seen = new Set();
+    /** @type {string[]} */
+    const out = [];
+    for (const u of [...mainUrls, ...variantUrls]) {
+      const s = String(u ?? "").trim();
+      const pathKey = wardrobeMediaPathKey(s) || s.split("?")[0];
+      if (!s || seen.has(pathKey)) continue;
+      seen.add(pathKey);
+      out.push(s);
+    }
+    return out;
+  }
+
+  function localGalleryPathExistsOnDisk(itemId, storagePathKey) {
+    const key = String(storagePathKey ?? "").trim();
+    if (!key) return false;
+    return localDiskGalleryUrls(itemId).some((u) => wardrobeMediaPathKey(u) === key);
+  }
+
+  /** Prefer `/images/wardrobe/…` when the file exists locally (hybrid dev / static deploy). */
+  function preferLocalWardrobeMediaUrl(itemId, url) {
+    const raw = String(url ?? "").trim();
+    if (!raw || !isHybridLocalCatalogueEnabled()) return raw;
+    const storageKey = wardrobeMediaPathKey(raw);
+    if (!storageKey || !localGalleryPathExistsOnDisk(itemId, storageKey)) return raw;
+    if (/^\/images\/wardrobe\//i.test(raw.split("?")[0])) return raw;
+    return `/images/wardrobe/${storageKey}`;
+  }
+
+  function mergeDiscoveredLocalGalleryUrls(itemId, urls, variantKey = "") {
+    const list = Array.isArray(urls) ? urls : [];
+    const present = new Set(list.map((u) => wardrobeMediaPathKey(u)).filter(Boolean));
+    const discovered = localDiskGalleryUrls(itemId, variantKey);
+    /** @type {string[]} */
+    const missing = [];
+    for (const u of discovered) {
+      const pathKey = wardrobeMediaPathKey(u);
+      if (!pathKey || present.has(pathKey)) continue;
+      present.add(pathKey);
+      missing.push(u);
+    }
+    if (!missing.length) return list;
+    return [...missing, ...list];
   }
 
   function isLocalCatalogueItemId(id) {
@@ -27753,8 +28021,8 @@
           if (!cloudIds.has(id)) upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
         }
       } else {
-        /* Full cloud fetch (incl. hybrid local ids) — media overlay; `cloudBackedCustomItems` stays filtered for dupes. */
-        mergeWardrobeBaseWithFetchedCloudRows(loadedCloud, pinnedById);
+        /* Hybrid: only merge cloud-only rows — frozen lock ids stay on seed + local images. */
+        mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems, pinnedById);
         for (const pinned of pinnedById.values()) {
           upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
         }
@@ -28063,12 +28331,14 @@
     try {
     let deferredSeedSyncSnapshot = /** @type {object[] | null} */ (null);
     let twEditorAuthBootstrapped = false;
-    const [lockManifest, hybridManifest] = await Promise.all([
+    const [lockManifest, hybridManifest, galleryDiskManifest] = await Promise.all([
       loadCatalogueLockManifest(),
       loadHybridLocalCatalogueManifest(),
+      loadLocalGalleryDiskManifest(),
     ]);
     catalogueLockManifest = lockManifest;
     hybridLocalCatalogueManifest = hybridManifest;
+    localGalleryDiskManifest = galleryDiskManifest;
     if (catalogueLockManifest) {
       console.info(
         `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
@@ -28142,7 +28412,7 @@
                 wardrobeFromSupabase = false;
                 const normalizedCloud = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
                 cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalizedCloud);
-                mergeWardrobeBaseWithFetchedCloudRows(normalizedCloud);
+                mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
                 deferredSeedSyncSnapshot = null;
               } else {
                 const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
@@ -28260,7 +28530,7 @@
           cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
           if (allCloud.length) {
             stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
-            mergeWardrobeBaseWithFetchedCloudRows(allCloud);
+            mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
           }
         }
       } else if (wardrobeCatalogueSource === "cloud" && wardrobeBase.length) {
@@ -28334,6 +28604,10 @@
       initFilters();
       syncOutfitSaveButtonLabel();
       installItemPageBackNavigation();
+      if (document.getElementById("local-data-risk-banner")) {
+        installLocalDataRiskBanner();
+        refreshLocalDataRiskBannerVisibility();
+      }
       await runItemDetailPage(itemRoot, pageId);
     } else {
       normalizeCollectionTopLanding();

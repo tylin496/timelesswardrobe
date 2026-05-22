@@ -190,10 +190,19 @@ fs.writeFileSync(
   "utf8"
 );
 
+const manifestScript = path.join(root, "scripts", "build-wardrobe-local-gallery-manifest.mjs");
+if (fs.existsSync(manifestScript)) {
+  const { spawnSync } = await import("node:child_process");
+  const man = spawnSync(process.execPath, [manifestScript], { cwd: root, stdio: "inherit" });
+  if (man.status !== 0) {
+    console.warn("Gallery manifest build failed — run: node scripts/build-wardrobe-local-gallery-manifest.mjs");
+  }
+}
+
 console.log("");
 console.log(`Wrote ${seedItems.length} pieces → data/wardrobe.js (local image URLs)`);
 console.log(`  data/wardrobe-catalogue-lock.json (${lock.count} ids)`);
 console.log(`  data/wardrobe-hybrid-mode.json (hybrid mode ON)`);
 console.log(`  images/wardrobe/ (${downloaded + skipped} files on disk)`);
 console.log("");
-console.log("Next: hard-refresh the site. Existing catalogue uses local files; new Supabase-only rows still sync from cloud.");
+console.log("Next: hard-refresh the site. Frozen catalogue uses local files only; new Supabase-only rows still sync from cloud.");

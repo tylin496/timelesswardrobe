@@ -5,9 +5,9 @@
   "scripts": {
     "css:build": "node scripts/build-css.mjs",
     "css:migrate-margins": "node scripts/migrate-margins-to-tailwind.mjs",
-    "predev": "node scripts/build-css.mjs",
+    "predev": "node scripts/build-css.mjs && node scripts/build-wardrobe-local-gallery-manifest.mjs",
     "og:build": "node scripts/build-og-image.mjs",
-    "build": "node scripts/build-css.mjs && node scripts/build-og-image.mjs && node scripts/vercel-build.mjs",
+    "build": "node scripts/build-css.mjs && node scripts/build-wardrobe-local-gallery-manifest.mjs && node scripts/build-og-image.mjs && node scripts/vercel-build.mjs",
     "check:urls": "node scripts/check-public-urls.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
@@ -20,7 +20,8 @@
     "db:migrate-supabase-ids": "node scripts/migrate_supabase_item_ids.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
-    "storage:prune-orphans": "node scripts/prune_wardrobe_storage_orphans.mjs"
+    "storage:prune-orphans": "node scripts/prune_wardrobe_storage_orphans.mjs",
+    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"
