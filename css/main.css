@@ -13355,9 +13355,10 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
     opacity: 0;
   }
 
-  #grid .card__media--gallery-nav:not(.card__media--gallery-swipe) .card__gallery-desktop-stage--hover-fade.is-hover-preview .card__gallery-desktop-slide:nth-child(2) {
+  #grid .card__media--gallery-nav:not(.card__media--gallery-swipe) .card__gallery-desktop-stage--hover-fade.is-hover-preview .card__gallery-desktop-slide.is-hover-gallery-target {
     opacity: 1;
     z-index: 2;
+    visibility: visible;
   }
 }
 

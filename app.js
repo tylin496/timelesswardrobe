@@ -6135,7 +6135,8 @@
       for (const u of itemGalleryList(cloudRow)) consider(u, false);
     }
 
-    return sortGalleryUrlsBySlotIndex(orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean));
+    /* Preserve cloud / seed gallery array order (edit drag order) — do not re-sort by filename slot. */
+    return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
   }
 
   /** Gallery order diff (same paths in different sequence should count as user media edit). */
@@ -13960,18 +13961,6 @@
     return s;
   }
 
-  /** `main/gallery/NN` slot for stable PLP / edit order (missing index sorts last). */
-  function gallerySlotIndexFromUrl(url) {
-    const path = String(url ?? "").trim().split("?")[0];
-    const m = /\/gallery\/(\d{1,2})\.[a-z0-9]+$/i.exec(path);
-    return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
-  }
-
-  /** Keep collection / carousel frames in numeric gallery slot order (01, 02, 03…). */
-  function sortGalleryUrlsBySlotIndex(urls) {
-    return [...urls].sort((a, b) => gallerySlotIndexFromUrl(a) - gallerySlotIndexFromUrl(b));
-  }
-
   /** Extra images only (not the main `image` URL). */
   function itemGalleryList(item) {
     const raw = item?.gallery;
@@ -14128,7 +14117,8 @@
       seen.add(key);
       out.push(x);
     }
-    return sortGalleryUrlsBySlotIndex(out);
+    /* Match edit photo manager order (badge 2 = first entry here) — not filename /NN sort. */
+    return out;
   }
 
   /** Header search category tiles: pick a random visible cover (not always collection sort order). */
@@ -18823,6 +18813,26 @@
     }
   }
 
+  /** First editorial gallery slide in track DOM order (matches edit badge 2 / `item.gallery[0]`). */
+  function firstGallerySlideInDesktopTrack(track) {
+    if (!(track instanceof HTMLElement)) return null;
+    const slide = track.querySelector(".card__gallery-desktop-slide--gallery");
+    return slide instanceof HTMLElement ? slide : null;
+  }
+
+  /** First non-cover frame from collection card entries (edit gallery order). */
+  function firstCollectionCardEditorialFrameEntry(frameEntries) {
+    return frameEntries.find((entry, i) => i > 0 && !entry.cutout) ?? frameEntries[1] ?? null;
+  }
+
+  /** @param {HTMLElement} track */
+  function clearDesktopGalleryHoverTargetSlide(track) {
+    if (!(track instanceof HTMLElement)) return;
+    track.querySelectorAll(".card__gallery-desktop-slide.is-hover-gallery-target").forEach((el) => {
+      el.classList.remove("is-hover-gallery-target");
+    });
+  }
+
   function applyDesktopGalleryFrameIndex(stage, index, animate = true) {
     const track = stage.querySelector(".card__gallery-desktop-track");
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
@@ -18928,7 +18938,10 @@
     /* Quick-find desktop: stacked frames (no track translate — avoids hover crossfade flash). */
     if (isCollectionCompactQuickFindView()) {
       if (preview) {
-        const hoverIdx = Math.min(1, track.children.length - 1);
+        const hoverSlide = firstGallerySlideInDesktopTrack(track);
+        const hoverIdx = hoverSlide
+          ? Math.max(1, [...track.children].indexOf(hoverSlide))
+          : Math.min(1, track.children.length - 1);
         applyDesktopGalleryFrameIndex(stage, hoverIdx, false);
         media.dataset.galleryFrameIndex = String(hoverIdx);
       } else {
@@ -18939,8 +18952,12 @@
     }
 
     if (preview) {
+      const gallerySlide = firstGallerySlideInDesktopTrack(track);
+      if (!gallerySlide) return false;
       resetDesktopGalleryTrackTransformForHoverFade(track);
-      preloadDesktopGalleryHoverSlides(stage, 1);
+      clearDesktopGalleryHoverTargetSlide(track);
+      gallerySlide.classList.add("is-hover-gallery-target");
+      ensureDeferredGalleryFrameImageLoaded(gallerySlide.querySelector("img"));
       media.classList.add("card__media--hover-gallery-fade");
       stage.classList.add("card__gallery-desktop-stage--hover-fade");
       requestAnimationFrame(() => {
@@ -18951,6 +18968,7 @@
     }
 
     media.dataset.galleryFrameIndex = "0";
+    clearDesktopGalleryHoverTargetSlide(track);
     resetDesktopGalleryTrackTransformForHoverFade(track);
     applyDesktopGalleryFrameIndex(stage, 0, false);
 
@@ -19186,7 +19204,7 @@
       const frames = frameEntries.map((entry) => entry.url);
       const cover = String(img.dataset.coverSrc ?? frames[0] ?? "").trim();
       if (!cover) return;
-      const hoverEntry = frameEntries[1];
+      const hoverEntry = firstCollectionCardEditorialFrameEntry(frameEntries);
       const hoverUrl = hoverEntry?.url ?? "";
       if (!hoverUrl || hoverUrl === cover) return;
       if (setDesktopGalleryHoverPreview(media, true)) {
