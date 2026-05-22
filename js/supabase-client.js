@@ -118,20 +118,37 @@ export function mapRowToItem(row) {
   return out;
 }
 
+/** @param {string[]} ids */
+function formatPostgrestInList(ids) {
+  const quoted = ids
+    .map((id) => String(id ?? "").trim())
+    .filter(Boolean)
+    .map((id) => `"${id.replace(/"/g, '\\"')}"`);
+  return `(${quoted.join(",")})`;
+}
+
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string[]} [excludeIds] — when set, skip frozen catalogue ids (hybrid local mode).
  * @returns {Promise<{ ok: true, items: object[] } | { ok: false, error: string }>}
  */
-export async function fetchWardrobeItems(client) {
+export async function fetchWardrobeItems(client, excludeIds = []) {
   try {
     return await withNetworkRetries("fetchWardrobeItems", async () => {
-      const { data, error } = await client
+      const exclude = Array.isArray(excludeIds)
+        ? excludeIds.map((id) => String(id ?? "").trim()).filter(Boolean)
+        : [];
+      let query = client
         .from("wardrobe_items")
         .select("*")
         .order("section", { ascending: true })
         .order("category", { ascending: true })
         .order("brand", { ascending: true })
         .order("name", { ascending: true });
+      if (exclude.length) {
+        query = query.not("id", "in", formatPostgrestInList(exclude));
+      }
+      const { data, error } = await query;
       if (error) {
         if (isProbablyTransientFetchFailure(error.message)) throw new Error(error.message);
         return { ok: false, error: error.message };

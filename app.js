@@ -7358,11 +7358,8 @@
     }
   }
 
-  async function hydrateCollectionAndSeasonState() {
-    if (!isSupabaseReady()) {
-      hydrateCollectionStateFromLocalStorageOnly();
-      return;
-    }
+  async function hydrateCollectionStateFromCloud() {
+    if (!isSupabaseReady()) return;
 
     const lsOv = readCollectionOverridesFromLocalStorageRaw();
     const lsH = readCollectionHiddenIdsFromLocalStorageRaw();
@@ -7421,6 +7418,26 @@
         /* ignore */
       }
     }
+  }
+
+  /**
+   * @param {{ deferCloud?: boolean }} [opts]
+   */
+  async function hydrateCollectionAndSeasonState(opts = {}) {
+    hydrateCollectionStateFromLocalStorageOnly();
+    if (!isSupabaseReady()) return;
+    if (opts.deferCloud) {
+      scheduleCollectionDeferredWork(() => {
+        void hydrateCollectionStateFromCloud().then(() => {
+          if (document.getElementById("grid")) {
+            mergeWardrobeFromSources();
+            renderGrid();
+          }
+        });
+      });
+      return;
+    }
+    await hydrateCollectionStateFromCloud();
   }
 
   function loadCollectionOverrides() {
@@ -10172,6 +10189,13 @@
     const viewport = document.createElement("div");
     viewport.className = "item-image-zoom__viewport";
 
+    const carousel = document.createElement("div");
+    carousel.className = "item-image-zoom__carousel";
+    carousel.hidden = true;
+    const track = document.createElement("div");
+    track.className = "item-image-zoom__carousel-track";
+    carousel.appendChild(track);
+
     const img = document.createElement("img");
     img.className = "item-image-zoom__img";
     img.alt = "";
@@ -10206,7 +10230,7 @@
     nextBtn.appendChild(nextGlyph);
 
     pager.append(prevBtn, countEl, nextBtn);
-    viewport.appendChild(img);
+    viewport.append(carousel, img);
     dlg.append(closeBtn, viewport, pager);
     document.body.appendChild(dlg);
 
@@ -10217,6 +10241,63 @@
       frameAt: null,
       onIndexChange: null,
     };
+
+    const zoomState = { scale: 1 };
+
+    /**
+     * @param {HTMLElement} trackEl
+     * @param {number} index
+     * @param {boolean} [animate]
+     */
+    const applyLightboxCarouselIndex = (trackEl, index, animate = true) => {
+      if (!trackEl.children.length) return 0;
+      const max = trackEl.children.length - 1;
+      const idx = Math.max(0, Math.min(max, Math.floor(index)));
+      trackEl.classList.remove("is-dragging");
+      trackEl.style.transition = animate ? "" : "none";
+      trackEl.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+      [...trackEl.children].forEach((slide, i) => {
+        if (!(slide instanceof HTMLElement)) return;
+        slide.classList.toggle("is-active", i === idx);
+      });
+      return idx;
+    };
+
+    /**
+     * @param {HTMLElement} trackEl
+     * @param {number} count
+     * @param {(i: number) => { src: string, alt: string }} frameAt
+     */
+    const buildLightboxCarouselSlides = (trackEl, count, frameAt) => {
+      trackEl.replaceChildren();
+      for (let i = 0; i < count; i++) {
+        const frame = frameAt(i);
+        const slide = document.createElement("div");
+        slide.className = `item-image-zoom__carousel-slide${i === 0 ? " is-active" : ""}`;
+        const simg = document.createElement("img");
+        simg.className = "item-image-zoom__carousel-img";
+        simg.alt = String(frame?.alt ?? "");
+        simg.src = String(frame?.src ?? "").trim();
+        simg.decoding = "async";
+        simg.draggable = false;
+        slide.appendChild(simg);
+        trackEl.appendChild(slide);
+      }
+    };
+
+    const activeLightboxZoomImg = () => {
+      const slideImg = track.querySelector(
+        ".item-image-zoom__carousel-slide.is-active .item-image-zoom__carousel-img"
+      );
+      return slideImg instanceof HTMLImageElement ? slideImg : img;
+    };
+
+    wireIndexLockedHorizontalGallerySnap(carousel, viewport, {
+      readIndex: () => pagerState.index,
+      applyIndex: (idx, animate) => showPagerFrame(idx, { syncHero: true, animate }),
+      frameCount: () => pagerState.count,
+      blockTouchWhen: () => zoomState.scale > 1.02,
+    });
 
     const resetViewRef = { current: /** @type {null | (() => void)} */ (null) };
 
@@ -10234,6 +10315,10 @@
       resetViewRef.current?.();
       resetViewRef.current = null;
       img.removeAttribute("src");
+      img.hidden = false;
+      carousel.hidden = true;
+      track.replaceChildren();
+      zoomState.scale = 1;
     });
     dlg.addEventListener("cancel", (ev) => {
       ev.preventDefault();
@@ -10249,18 +10334,28 @@
       nextBtn.disabled = idx >= max;
     };
 
-    const showPagerFrame = (index, { syncHero = true } = {}) => {
+    const showPagerFrame = (index, { syncHero = true, animate = true } = {}) => {
       if (!pagerState.frameAt || pagerState.count < 2) return;
       const max = pagerState.count - 1;
-      const idx = Math.max(0, Math.min(max, Math.floor(index)));
-      pagerState.index = idx;
-      const frame = pagerState.frameAt(idx);
-      const src = String(frame?.src ?? "").trim();
-      if (!src) return;
+      let idx = Math.max(0, Math.min(max, Math.floor(index)));
       resetViewRef.current?.();
+      zoomState.scale = 1;
+      if (track.children.length) {
+        idx = applyLightboxCarouselIndex(track, idx, animate);
+        carousel.hidden = false;
+        img.hidden = true;
+        img.removeAttribute("src");
+      } else {
+        const frame = pagerState.frameAt(idx);
+        const src = String(frame?.src ?? "").trim();
+        if (!src) return;
+        img.hidden = false;
+        carousel.hidden = true;
+        img.alt = String(frame?.alt ?? "");
+        img.src = src;
+      }
+      pagerState.index = idx;
       resetViewRef.current = wirePanPinch();
-      img.alt = String(frame?.alt ?? "");
-      img.src = src;
       syncPagerUi();
       if (syncHero) pagerState.onIndexChange?.(idx);
     };
@@ -10287,6 +10382,7 @@
 
     const wirePanPinch = () => {
       let scale = 1;
+      zoomState.scale = 1;
       let panX = 0;
       let panY = 0;
       /** @type {Map<number, PointerEvent>} */
@@ -10301,19 +10397,25 @@
       const pointerDistance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
       const applyTransform = () => {
-        img.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+        const target = activeLightboxZoomImg();
+        target.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
       };
 
       const resetView = () => {
         scale = 1;
+        zoomState.scale = 1;
         panX = 0;
         panY = 0;
         img.style.transform = "";
+        track.querySelectorAll(".item-image-zoom__carousel-img").forEach((el) => {
+          if (el instanceof HTMLImageElement) el.style.transform = "";
+        });
       };
 
       const clampPan = () => {
+        const target = activeLightboxZoomImg();
         const vr = viewport.getBoundingClientRect();
-        const ir = img.getBoundingClientRect();
+        const ir = target.getBoundingClientRect();
         if (!vr.width || !ir.width) return;
         const maxX = Math.max(0, (ir.width * scale - vr.width) / 2);
         const maxY = Math.max(0, (ir.height * scale - vr.height) / 2);
@@ -10323,6 +10425,19 @@
 
       const onPointerDown = (ev) => {
         if (ev.pointerType === "mouse" && ev.button !== 0) return;
+        const carouselMode = track.children.length && pagerState.count >= 2;
+        if (carouselMode && scale <= 1.02) {
+          pointers.set(ev.pointerId, ev);
+          if (pointers.size === 1) return;
+          if (pointers.size === 2) {
+            ev.preventDefault();
+            viewport.setPointerCapture(ev.pointerId);
+            const pts = [...pointers.values()];
+            pinchStartDist = pointerDistance(pts[0], pts[1]);
+            pinchStartScale = scale;
+          }
+          return;
+        }
         ev.preventDefault();
         viewport.setPointerCapture(ev.pointerId);
         pointers.set(ev.pointerId, ev);
@@ -10351,6 +10466,7 @@
               panX = 0;
               panY = 0;
             }
+            zoomState.scale = scale;
             applyTransform();
             clampPan();
           }
@@ -10359,6 +10475,7 @@
         if (pointers.size === 1 && scale > 1) {
           panX = dragPanX + (ev.clientX - dragStartX);
           panY = dragPanY + (ev.clientY - dragStartY);
+          zoomState.scale = scale;
           clampPan();
           applyTransform();
         }
@@ -10399,6 +10516,7 @@
             panX = 0;
             panY = 0;
           }
+          zoomState.scale = scale;
           applyTransform();
           clampPan();
         },
@@ -10420,10 +10538,14 @@
             typeof pagerOpts?.onIndexChange === "function" ? pagerOpts.onIndexChange : null,
         };
         pager.hidden = false;
-        showPagerFrame(pagerState.index, { syncHero: true });
+        buildLightboxCarouselSlides(track, count, pagerOpts.frameAt);
+        showPagerFrame(pagerState.index, { syncHero: true, animate: false });
       } else {
         pagerState = { index: 0, count: 1, frameAt: null, onIndexChange: null };
         pager.hidden = true;
+        track.replaceChildren();
+        carousel.hidden = true;
+        img.hidden = false;
         resetViewRef.current?.();
         resetViewRef.current = wirePanPinch();
         img.alt = alt || "";
@@ -10620,7 +10742,7 @@
   }
 
   /**
-   * PDP hero: click opens full-screen viewer; touch swipe changes frames when gallery has 2+ photos.
+   * PDP hero (mobile): tap opens full-screen viewer; inline hero does not swipe — use thumbs or lightbox.
    * @param {HTMLElement} media
    * @param {HTMLImageElement} heroImg
    * @param {object} item
@@ -14123,6 +14245,7 @@
     });
 
     carousel.appendChild(track);
+    carousel.classList.add("item-detail__gallery-carousel--no-touch-swipe");
     stageEl.insertBefore(carousel, heroImgEl);
     stageEl.classList.add("item-detail__gallery-stage--swipe");
     heroImgEl.hidden = true;
@@ -14328,15 +14451,6 @@
       };
       stageEl.appendChild(makeNav("prev"));
       stageEl.appendChild(makeNav("next"));
-    }
-
-    if (pdpMobileCarousel) {
-      wireIndexLockedHorizontalGallerySnap(pdpMobileCarousel, stageEl, {
-        readIndex: () => currentIndex,
-        applyIndex: (idx, animate) => showFrame(idx, animate),
-        frameCount: () => frames.length,
-        swipeFlagHost: stageEl,
-      });
     }
 
     const start =
@@ -18056,7 +18170,7 @@
     carousel.dataset.twStrictSnapWired = "1";
 
     const track = carousel.querySelector(
-      ".card__gallery-carousel-track, .item-detail__gallery-carousel-track"
+      ".card__gallery-carousel-track, .item-detail__gallery-carousel-track, .item-image-zoom__carousel-track"
     );
     if (!(track instanceof HTMLElement)) return;
 
@@ -26716,7 +26830,7 @@
 
   async function loadCatalogueLockManifest() {
     try {
-      const res = await fetch("data/wardrobe-catalogue-lock.json", { cache: "no-store" });
+      const res = await fetch("data/wardrobe-catalogue-lock.json");
       if (!res.ok) return null;
       const p = await res.json();
       if (String(p?._schema ?? "") !== "timeless-wardrobe-catalogue-lock-v1") return null;
@@ -26905,6 +27019,105 @@
     }
   }
 
+  /** Defer non-critical cloud work so the collection PLP can paint from local seed first. */
+  function scheduleCollectionDeferredWork(fn) {
+    const ric = globalThis.requestIdleCallback;
+    if (typeof ric === "function") {
+      ric.call(globalThis, fn, { timeout: 2200 });
+    } else {
+      globalThis.setTimeout(fn, 48);
+    }
+  }
+
+  /** @returns {string[]} */
+  function catalogueLockIdList() {
+    if (!catalogueLockManifest?.ids?.size) return [];
+    return [...catalogueLockManifest.ids];
+  }
+
+  /**
+   * Hybrid mode: catalogue is already in `data/wardrobe.js` — fetch only cloud-only rows, then outfits.
+   * @param {typeof import("/js/supabase-client.js")} api
+   */
+  async function refreshHybridCloudAfterCollectionPaint(api) {
+    if (!isSupabaseReady() || !isHybridLocalCatalogueEnabled()) return;
+    const excludeIds = catalogueLockIdList();
+    const res = await withTimeout(
+      api.fetchWardrobeItems(supabaseClient, excludeIds),
+      9000,
+      "fetchWardrobeItems(hybrid)"
+    );
+    if (res.ok && res.items.length) {
+      const normalized = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
+      cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalized);
+      if (cloudBackedCustomItems.length) {
+        stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
+        mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+        mergeWardrobeFromSources();
+        renderGrid();
+        syncOutfitSaveButtonLabel();
+      }
+    } else if (!res.ok) {
+      console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
+    }
+
+    const outfitsRes = await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
+    if (outfitsRes.ok) {
+      const fromCloud = (outfitsRes.outfits || [])
+        .map((o) => normalizeSavedOutfitRecord(o))
+        .filter(Boolean);
+      savedOutfits = mergeSavedOutfitNotesFromLocalCache(fromCloud)
+        .map((o) => normalizeSavedOutfitRecord(o))
+        .filter(Boolean);
+      persistSavedOutfitsCache();
+      useCloudOutfits = true;
+      renderOutfitStrip();
+      renderSavedOutfits();
+      syncOutfitBuilderPanel();
+      syncOutfitSaveButtonLabel();
+    } else {
+      const outfitsErr = String(outfitsRes.error || "").trim();
+      if (
+        !isSupabaseSchemaTableMissingError(outfitsErr, "outfits") &&
+        !isSupabaseSchemaTableMissingError(outfitsErr, "outfit_items")
+      ) {
+        console.warn("Supabase outfits:", outfitsRes.error);
+      }
+    }
+  }
+
+  /**
+   * @param {typeof import("/js/supabase-client.js")} api
+   */
+  async function refreshOutfitsAfterCollectionPaint(api) {
+    if (!isSupabaseReady()) return;
+    const outfitsRes = await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
+    if (outfitsRes.ok) {
+      const fromCloud = (outfitsRes.outfits || [])
+        .map((o) => normalizeSavedOutfitRecord(o))
+        .filter(Boolean);
+      savedOutfits = mergeSavedOutfitNotesFromLocalCache(fromCloud)
+        .map((o) => normalizeSavedOutfitRecord(o))
+        .filter(Boolean);
+      persistSavedOutfitsCache();
+      useCloudOutfits = true;
+      if (document.getElementById("outfit-strip") || document.getElementById("styling-board-drawer")) {
+        renderOutfitStrip();
+        renderSavedOutfits();
+        syncOutfitBuilderPanel();
+      }
+      syncOutfitSaveButtonLabel();
+    } else {
+      const outfitsErr = String(outfitsRes.error || "").trim();
+      if (
+        !isSupabaseSchemaTableMissingError(outfitsErr, "outfits") &&
+        !isSupabaseSchemaTableMissingError(outfitsErr, "outfit_items")
+      ) {
+        console.warn("Supabase outfits:", outfitsRes.error);
+      }
+    }
+  }
+
   /** @param {number} ms */
   function twSleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -26990,11 +27203,12 @@
     const root = document.getElementById("tw-page-loader");
     if (!root || !document.body.classList.contains("tw-page-loader-active")) return;
     const isCollectionGridPage = Boolean(document.getElementById("grid")) && !document.body.classList.contains("home-page");
+    const fastCollectionPaint = Boolean(document.body?.dataset?.twFastCollectionPaint);
     /* Collection should feel immediate: keep brand cue but shorten enforced loader timings. */
-    const minMs = isCollectionGridPage ? 420 : 1000;
-    const logoInMs = isCollectionGridPage ? 280 : 1000;
-    const fadeOutMs = isCollectionGridPage ? 280 : 520;
-    const mainInMs = isCollectionGridPage ? 220 : 500;
+    const minMs = fastCollectionPaint ? 140 : isCollectionGridPage ? 420 : 1000;
+    const logoInMs = fastCollectionPaint ? 120 : isCollectionGridPage ? 280 : 1000;
+    const fadeOutMs = fastCollectionPaint ? 200 : isCollectionGridPage ? 280 : 520;
+    const mainInMs = fastCollectionPaint ? 160 : isCollectionGridPage ? 220 : 500;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
@@ -27038,6 +27252,16 @@
         `[hybrid local] Catalogue (${catalogueLockManifest.count} pieces) from data/wardrobe.js + ${hybridLocalCatalogueManifest.localImageRoot}; new rows still from Supabase.`
       );
     }
+    const hasCollectionGridEarly = Boolean(document.getElementById("grid"));
+    const itemRootEarly = document.getElementById("item-detail-root");
+    const pageIdEarly = parseItemPageRoute().id;
+    const isStandaloneItemPageEarly = Boolean(itemRootEarly && pageIdEarly && !hasCollectionGridEarly);
+    const preferFastCollectionPaint = hasCollectionGridEarly && !isStandaloneItemPageEarly;
+    /** @type {typeof import("/js/supabase-client.js") | null} */
+    let bootstrapSupabaseApi = null;
+    let deferHybridCloudRefresh = false;
+    let deferOutfitsFetch = false;
+
     const cfg = globalThis.APP_CONFIG || {};
     const url = String(cfg.SUPABASE_URL || globalThis.__TW_SUPABASE_URL__ || "").trim();
     const key = String(cfg.SUPABASE_ANON_KEY || globalThis.__TW_SUPABASE_ANON_KEY__ || "").trim();
@@ -27045,81 +27269,107 @@
     if (url && key) {
       try {
         const api = await getSupabaseApiModule();
+        bootstrapSupabaseApi = api;
         const supabaseUrl = String(url).trim();
-        supabaseClient = api.createBrowserClient(supabaseUrl, String(key).trim());
+        supabaseClient = api.createBrowserClient(supabaseUrl, String(key).trim()) || supabaseClient;
         if (supabaseClient) {
           storageMode = "cloud";
           let wardrobeFromSupabase = false;
           /** @type {Promise<{ ok: boolean, outfits?: unknown, error?: string }> | null} */
           let outfitsFetchPromise = null;
-          const res = await withTimeout(api.fetchWardrobeItems(supabaseClient), 9000, "fetchWardrobeItems");
-          if (res.ok && res.items.length) {
-            if (isHybridLocalCatalogueEnabled()) {
-              refreshCatalogueSeedSnapshot();
-              wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
-              wardrobeCatalogueSource = "seed";
-              wardrobeFromSupabase = false;
-              const normalizedCloud = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
-              cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalizedCloud);
-              mergeWardrobeBaseWithFetchedCloudRows(normalizedCloud);
-              deferredSeedSyncSnapshot = null;
-            } else {
-              const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
-              wardrobeBase = resolved;
-              wardrobeFromSupabase = true;
-              if (wardrobeCatalogueSource !== "seed") wardrobeCatalogueSource = "cloud";
-              deferredSeedSyncSnapshot = wardrobeBase.slice();
-            }
-            outfitsFetchPromise = api.fetchOutfits(supabaseClient);
-          } else {
-            if (!res.ok) {
-              console.warn("Supabase wardrobe_items:", res.error);
-            } else {
-              console.warn(
-                catalogueLockManifest
-                  ? `[catalogue lock] Cloud returned 0 rows — using frozen seed (${catalogueLockManifest.count} pieces).`
-                  : "Supabase wardrobe_items returned 0 rows — falling back to data/wardrobe.js; run npm run db:import-seed."
-              );
-            }
+          deferHybridCloudRefresh = preferFastCollectionPaint && isHybridLocalCatalogueEnabled();
+          deferOutfitsFetch = preferFastCollectionPaint;
+
+          if (deferHybridCloudRefresh) {
+            if (document.body) document.body.dataset.twFastCollectionPaint = "1";
             refreshCatalogueSeedSnapshot();
             wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
-            if (catalogueLockManifest) wardrobeCatalogueSource = "seed";
-            deferredSeedSyncSnapshot = wardrobeBase.slice();
+            wardrobeCatalogueSource = "seed";
+            cloudBackedCustomItems = [];
+            wardrobeFromSupabase = false;
             savedOutfits = loadSavedOutfitsFromStorage();
             useCloudOutfits = false;
-          }
-
-          if (wardrobeFromSupabase || outfitsFetchPromise) {
-            const outfitsRes = outfitsFetchPromise
-              ? await withTimeout(outfitsFetchPromise, 7000, "fetchOutfits")
-              : await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
-            if (outfitsRes.ok) {
-              const fromCloud = (outfitsRes.outfits || [])
-                .map((o) => normalizeSavedOutfitRecord(o))
-                .filter(Boolean);
-              savedOutfits = mergeSavedOutfitNotesFromLocalCache(fromCloud)
-                .map((o) => normalizeSavedOutfitRecord(o))
-                .filter(Boolean);
-              persistSavedOutfitsCache();
-              useCloudOutfits = true;
-            } else {
-              const outfitsErr = String(outfitsRes.error || "").trim();
-              if (
-                isSupabaseSchemaTableMissingError(outfitsErr, "outfits") ||
-                isSupabaseSchemaTableMissingError(outfitsErr, "outfit_items")
-              ) {
-                console.info(
-                  "Supabase outfits tables not found yet (outfits/outfit_items). Falling back to browser-saved outfits."
-                );
+            deferredSeedSyncSnapshot = null;
+          } else {
+            const excludeIds = isHybridLocalCatalogueEnabled() ? catalogueLockIdList() : [];
+            const res = await withTimeout(
+              api.fetchWardrobeItems(supabaseClient, excludeIds),
+              9000,
+              "fetchWardrobeItems"
+            );
+            if (res.ok && res.items.length) {
+              if (isHybridLocalCatalogueEnabled()) {
+                refreshCatalogueSeedSnapshot();
+                wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
+                wardrobeCatalogueSource = "seed";
+                wardrobeFromSupabase = false;
+                const normalizedCloud = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
+                cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalizedCloud);
+                mergeWardrobeBaseWithFetchedCloudRows(normalizedCloud);
+                deferredSeedSyncSnapshot = null;
               } else {
-                console.warn("Supabase outfits:", outfitsRes.error);
+                const resolved = resolveWardrobeBaseFromCloudFetch(res.items);
+                wardrobeBase = resolved;
+                wardrobeFromSupabase = true;
+                if (wardrobeCatalogueSource !== "seed") wardrobeCatalogueSource = "cloud";
+                deferredSeedSyncSnapshot = wardrobeBase.slice();
               }
+              if (!deferOutfitsFetch) {
+                outfitsFetchPromise = api.fetchOutfits(supabaseClient);
+              }
+            } else {
+              if (!res.ok) {
+                console.warn("Supabase wardrobe_items:", res.error);
+              } else {
+                console.warn(
+                  catalogueLockManifest
+                    ? `[catalogue lock] Cloud returned 0 rows — using frozen seed (${catalogueLockManifest.count} pieces).`
+                    : "Supabase wardrobe_items returned 0 rows — falling back to data/wardrobe.js; run npm run db:import-seed."
+                );
+              }
+              refreshCatalogueSeedSnapshot();
+              wardrobeBase = seedItemsFromScript().map((r) => ({ ...r }));
+              if (catalogueLockManifest) wardrobeCatalogueSource = "seed";
+              deferredSeedSyncSnapshot = wardrobeBase.slice();
               savedOutfits = loadSavedOutfitsFromStorage();
               useCloudOutfits = false;
             }
-          } else {
-            savedOutfits = loadSavedOutfitsFromStorage();
-            useCloudOutfits = false;
+
+            if (!deferOutfitsFetch && (wardrobeFromSupabase || outfitsFetchPromise)) {
+              const outfitsRes = outfitsFetchPromise
+                ? await withTimeout(outfitsFetchPromise, 7000, "fetchOutfits")
+                : await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
+              if (outfitsRes.ok) {
+                const fromCloud = (outfitsRes.outfits || [])
+                  .map((o) => normalizeSavedOutfitRecord(o))
+                  .filter(Boolean);
+                savedOutfits = mergeSavedOutfitNotesFromLocalCache(fromCloud)
+                  .map((o) => normalizeSavedOutfitRecord(o))
+                  .filter(Boolean);
+                persistSavedOutfitsCache();
+                useCloudOutfits = true;
+              } else {
+                const outfitsErr = String(outfitsRes.error || "").trim();
+                if (
+                  isSupabaseSchemaTableMissingError(outfitsErr, "outfits") ||
+                  isSupabaseSchemaTableMissingError(outfitsErr, "outfit_items")
+                ) {
+                  console.info(
+                    "Supabase outfits tables not found yet (outfits/outfit_items). Falling back to browser-saved outfits."
+                  );
+                } else {
+                  console.warn("Supabase outfits:", outfitsRes.error);
+                }
+                savedOutfits = loadSavedOutfitsFromStorage();
+                useCloudOutfits = false;
+              }
+            } else if (!deferOutfitsFetch) {
+              savedOutfits = loadSavedOutfitsFromStorage();
+              useCloudOutfits = false;
+            } else {
+              savedOutfits = loadSavedOutfitsFromStorage();
+              useCloudOutfits = false;
+            }
           }
         }
       } catch (e) {
@@ -27150,14 +27400,21 @@
     }
 
     normalizeLegacyEditorUrls();
-    await hydrateCollectionAndSeasonState();
-    await initTwEditorAuth();
-    applyTwAdminModeUi();
+    await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint });
+    if (preferFastCollectionPaint) {
+      applyTwAdminModeUi();
+      scheduleCollectionDeferredWork(() => {
+        void initTwEditorAuth().then(() => applyTwAdminModeUi());
+      });
+    } else {
+      await initTwEditorAuth();
+      applyTwAdminModeUi();
+    }
 
     if (isCloudModeActive()) {
       fileBackedCustomItems = [];
           if (isHybridLocalCatalogueEnabled()) {
-        if (!cloudBackedCustomItems.length) {
+        if (!deferHybridCloudRefresh && !cloudBackedCustomItems.length) {
               const allCloud = await withTimeout(loadWardrobeItemsFromCloud(), 5000, "loadWardrobeItemsFromCloud");
           cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
           if (allCloud.length) {
@@ -27270,6 +27527,12 @@
         renderEditorialLandingPage();
         devAsset?.refreshDomImages?.();
       }
+    }
+
+    if (deferHybridCloudRefresh && bootstrapSupabaseApi) {
+      scheduleCollectionDeferredWork(() => void refreshHybridCloudAfterCollectionPaint(bootstrapSupabaseApi));
+    } else if (deferOutfitsFetch && bootstrapSupabaseApi && isSupabaseReady()) {
+      scheduleCollectionDeferredWork(() => void refreshOutfitsAfterCollectionPaint(bootstrapSupabaseApi));
     }
     } finally {
       await completeTwInitialPageLoader(twLoaderPageStarted);

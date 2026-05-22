@@ -18,7 +18,7 @@
     font-family="Georgia, Times New Roman, serif"
     font-size="27"
     fill="#736e66"
-  >A private wardrobe catalogue of classic menswear</text>
+  >A private archive of classic menswear</text>
   <text
     x="600"
     y="444"
@@ -27,5 +27,5 @@
     font-size="21"
     fill="#9a948c"
     letter-spacing="0.02em"
-  >Curated and maintained by Thomas Yanwen Lin</text>
+  >Curated by T. Y. Lin</text>
 </svg>
