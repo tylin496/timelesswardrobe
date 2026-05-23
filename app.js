@@ -3110,9 +3110,6 @@
     return COLLECTION_SORT_MODES.includes(v) ? v : COLLECTION_DEFAULT_SORT_MODE;
   }
 
-  function collectionSortLabel(mode = collectionSortMode) {
-    return COLLECTION_SORT_LABELS[normalizeCollectionSortMode(mode)] ?? COLLECTION_SORT_LABELS[COLLECTION_DEFAULT_SORT_MODE];
-  }
 
   function persistCollectionSortMode(v) {
     const ok = COLLECTION_SORT_MODES.includes(v) ? v : COLLECTION_DEFAULT_SORT_MODE;
@@ -4313,9 +4310,6 @@
     return text;
   }
 
-  function hasItemNotesForDisplay(raw) {
-    return Boolean(itemNotesDisplayText(raw));
-  }
 
   /** Item notes — PDP: always visible; modal/dialog: clamp + read more. */
   function mountItemDetailNotesSection(host, notesText, opts = {}) {
@@ -5311,16 +5305,6 @@
     return 800;
   }
 
-  /** When not drilling to a single record type, sort by slot + garment category, not seed file order. */
-  function compareByTaxonomy(a, b) {
-    const sDiff = browseSlotRank(a) - browseSlotRank(b);
-    if (sDiff !== 0) return sDiff;
-    const rDiff = recordCategoryRank(a) - recordCategoryRank(b);
-    if (rDiff !== 0) return rDiff;
-    const ca = String(recordCategoryForDrill(a, itemSlot(a)) ?? "");
-    const cb = String(recordCategoryForDrill(b, itemSlot(b)) ?? "");
-    return ca.localeCompare(cb, undefined, { sensitivity: "base" });
-  }
 
   /**
    * Editorial archive taxonomy — seasonal wardrobe hierarchy (not ecommerce tabs).
@@ -6079,23 +6063,40 @@
     return itemGalleryList(item).filter((u) => isFileBackedLocalWardrobeUrl(item, u));
   }
 
+  /**
+   * Decoded `images/wardrobe/…` suffix from a local path or any URL that contains it
+   * (e.g. https://timeless-wardrobe.vercel.app/images/wardrobe/…), else "".
+   * Single source of truth for local media-path extraction.
+   */
+  function localWardrobePathFromUrl(url) {
+    const raw = String(url ?? "").trim().split("?")[0];
+    const m = raw.match(/\/?images\/wardrobe\/(.+)$/i);
+    if (!m) return "";
+    try {
+      return decodeURIComponent(m[1]);
+    } catch {
+      return m[1];
+    }
+  }
+
   /** Normalize a wardrobe media URL to a Storage-relative path (local or Supabase). */
   function wardrobeMediaPathKey(url) {
     const raw = String(url ?? "").trim().split("?")[0];
     if (!raw) return "";
     const fromStorage = storagePathFromWardrobeImageUrl(raw);
     if (fromStorage) return fromStorage;
-    // Match both local `/images/wardrobe/…` paths and full https URLs that
-    // contain `/images/wardrobe/…` (e.g. https://timeless-wardrobe.vercel.app/images/…).
-    const m = raw.match(/\/images\/wardrobe\/(.+)$/i);
-    if (m) {
+    const local = localWardrobePathFromUrl(raw);
+    if (local) return local;
+    // Stable fallback: for any other absolute URL, key by pathname so the same
+    // image referenced via different hosts/query strings collapses to one key.
+    if (/^https?:\/\//i.test(raw)) {
       try {
-        return decodeURIComponent(m[1]);
+        return decodeURIComponent(new URL(raw).pathname);
       } catch {
-        return m[1];
+        return raw;
       }
     }
-    return "";
+    return raw;
   }
 
   /**
@@ -6120,7 +6121,9 @@
       rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
       supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow);
     const coverKeys = new Set(
-      [seed?.image, cloudRow?.image].map((u) => wardrobeMediaPathKey(u)).filter(Boolean)
+      [seed?.image, cloudRow?.image]
+        .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
+        .filter(Boolean)
     );
     /** @type {string[]} */
     const orderedKeys = [];
@@ -6130,9 +6133,9 @@
     const consider = (url, preferLocal) => {
       const u = String(url ?? "").trim();
       if (!u) return;
-      const key = wardrobeMediaPathKey(u);
-      if (!key || coverKeys.has(key)) return;
       const pathOnly = u.split("?")[0];
+      const key = wardrobeMediaPathKey(u) || pathOnly;
+      if (!key || coverKeys.has(key)) return;
       const isLocal =
         /^\/images\/wardrobe\//i.test(pathOnly) &&
         (!itemId || primaryCoverUrlBelongsToItem({ id: itemId }, pathOnly));
@@ -6337,7 +6340,9 @@
   /** Gallery order diff (same paths in different sequence should count as user media edit). */
   function cloudGalleryOrderDiffersFromSeed(cloudRow, seed) {
     const coverKeys = new Set(
-      [seed?.image, cloudRow?.image].map((u) => wardrobeMediaPathKey(u)).filter(Boolean)
+      [seed?.image, cloudRow?.image]
+        .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
+        .filter(Boolean)
     );
     const toKeyList = (row) =>
       itemGalleryList(row)
@@ -6707,7 +6712,7 @@
     if (!s || !/^https?:\/\//i.test(s)) return "";
     const esc = WARDROBE_IMAGE_BUCKET.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(
-      `/storage/v1/(?:object/public|render/image/public)/${esc}/(.+)$`,
+      `/storage/v1/(?:object/public|object/sign|render/image/public)/${esc}/(.+)$`,
       "i"
     );
     const m = s.match(re);
@@ -11290,11 +11295,6 @@
     );
   }
 
-  function resolveItemHeroEnlargedSrc(media, heroImg, item, galleryApi) {
-    const idx = Number.parseInt(String(media.dataset.galleryIndex ?? "0"), 10);
-    const safeIdx = Number.isFinite(idx) && idx >= 0 ? idx : 0;
-    return resolveItemHeroEnlargedSrcAtIndex(media, heroImg, item, galleryApi, safeIdx);
-  }
 
   /**
    * @param {HTMLElement} media
@@ -11600,11 +11600,6 @@
     return "";
   }
 
-  /** @param {Set<string>} fams */
-  function addRawChunksToBasicColourFamilySet(raw, fams) {
-    const fam = firstBasicColourFamilyFromRawText(raw);
-    if (fam) fams.add(fam);
-  }
 
   /** Inferred families from colour / fabric / codes only (no stored `basicColour`). */
   /** @returns {Set<string>} */
@@ -11696,16 +11691,6 @@
     return "";
   }
 
-  function itemMatchesBasicColourFilter(item, bucket) {
-    if (!bucket) return true;
-    const vars = getItemColourVariants(item);
-    if (vars?.length) {
-      return vars.some((v) => colourFamiliesForVariantFields(v).has(bucket));
-    }
-    const fams = inferItemBasicColourFamilies(item);
-    if (fams.size === 0) return false;
-    return fams.has(bucket);
-  }
 
   function itemMatchesBasicColourFilters(item) {
     if (basicColourFilters.size === 0) return true;
@@ -12817,70 +12802,8 @@
     if (collectionSubmittedSearchNorm) collectionSearchBrowseAllSlots = false;
   }
 
-  /**
-   * Header search overlay: match keywords against the full merged `items` list only (no season/category/colour/drill).
-   */
-  function listWardrobeItemsMatchingSearchIgnoringUiFilters(liveQueryRaw) {
-    const q = normalizeSearch(String(liveQueryRaw ?? ""));
-    if (!q) return [];
-    const out = [];
-    for (const it of items) {
-      if (itemMatchesSearch(it, q)) out.push(it);
-    }
-    return orderSearchResultItems(out, q);
-  }
 
-  function createHeaderSearchOverlayResultLink(item) {
-    const a = document.createElement("a");
-    a.className = "site-header__search-result-card";
-    a.href = buildItemPageUrl(item.id).toString();
-    const slot = itemSlot(item);
-    const rec = recordCategoryForDrill(item, slot);
-    const sectionLine = [categoryDisplayLabel(slot), friendlyRecordCategory(rec) || rec].filter(Boolean).join(" · ");
 
-    const media = document.createElement("div");
-    media.className = "site-header__search-result-card__media";
-    const img = document.createElement("img");
-    img.className = "site-header__search-result-card__img";
-    img.alt = imageAltForItem(item);
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.draggable = false;
-    wireCoverImageWithFallbacks(img, item, {
-      host: media,
-      missingClass: "site-header__search-result-card__media--missing",
-      coverRenderWidth: 300,
-      coverRenderHeight: 400,
-      coverRenderQuality: 82,
-      coverRenderResize: "contain",
-    });
-    media.appendChild(img);
-
-    const meta = document.createElement("div");
-    meta.className = "site-header__search-result-card__meta";
-    const brand = document.createElement("p");
-    brand.className = "site-header__search-result-card__brand";
-    brand.textContent = String(item.brand ?? "").trim();
-    const name = document.createElement("p");
-    name.className = "site-header__search-result-card__name";
-    name.textContent = displayNameWithoutLeadingColour(item);
-    meta.appendChild(brand);
-    meta.appendChild(name);
-    if (sectionLine) {
-      const sec = document.createElement("p");
-      sec.className = "site-header__search-result-card__section";
-      sec.textContent = sectionLine;
-      meta.appendChild(sec);
-    }
-    a.appendChild(media);
-    a.appendChild(meta);
-    return a;
-  }
-
-  function syncHeaderSearchOverlayResultsPane() {
-    resetHeaderSearchOverlayResultsDom();
-    queueMicrotask(() => syncSearchOverlayBackdropTop());
-  }
 
   function flushHeaderSearchOverlayUiDebounceIfPending() {
     cancelHeaderSearchOverlayUiDebounce();
@@ -12918,28 +12841,6 @@
     );
   }
 
-  function describeNarrowingFiltersForUiSansSearch() {
-    const bits = [];
-    const cat = String(categoryNavFilter ?? "").trim();
-    if (cat) bits.push(categoryDisplayLabel(cat));
-    if (subcategoryFilters.size === 1) {
-      const sub = [...subcategoryFilters][0];
-      bits.push(friendlyRecordCategory(sub) || sub);
-    } else if (subcategoryFilters.size > 1) {
-      bits.push(`${subcategoryFilters.size} types`);
-    }
-    if (allowCollectionBasicColourFilter() && basicColourFilters.size === 1) {
-      bits.push(basicColourLabelEn([...basicColourFilters][0]));
-    } else if (allowCollectionBasicColourFilter() && basicColourFilters.size > 1) {
-      bits.push(`${basicColourFilters.size} colours`);
-    }
-    if (selectedBrandFilters.size > 0) {
-      const brands = [...selectedBrandFilters].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-      if (brands.length === 1) bits.push(brands[0]);
-      else bits.push(`${brands.length} brands`);
-    }
-    return bits.join(" · ");
-  }
 
   function hideLegacyFilterCountRowChips() {
     const unified = document.getElementById("items-toolbar-active-filter-chips");
@@ -13344,16 +13245,6 @@
     collapseFiltersMenuPanel();
   }
 
-  /** Persist a clean collection snapshot for seasonal entry navigation (no inherited filters). */
-  function writeSeasonalEntryBrowseRestoreSnapshot(seasonToken) {
-    writeCollectionBrowseRestoreSnapshot({
-      seasonNav: normalizeSeasonNavToken(seasonToken) || null,
-      category: "",
-      subcategory: "",
-      search: "",
-      basicColour: "",
-    });
-  }
 
   function collectionSeasonHref(seasonToken) {
     const normalized = normalizeSeasonNavToken(seasonToken);
@@ -14257,11 +14148,7 @@
 
   /** Storage object path from a Supabase URL or a local `/images/wardrobe/…` path. */
   function wardrobeImageObjectPath(url) {
-    const cloud = storagePathFromWardrobeImageUrl(url);
-    if (cloud) return cloud;
-    const s = String(url ?? "").trim().split("?")[0];
-    const m = s.match(/^(?:\/)?images\/wardrobe\/(.+)$/i);
-    return m ? m[1] : "";
+    return storagePathFromWardrobeImageUrl(url) || localWardrobePathFromUrl(url);
   }
 
   /** True when cover URL lives under this item's folder (skips stale paths after re-id / merge). */
@@ -14393,14 +14280,6 @@
     return out;
   }
 
-  /** Header search category tiles: pick a random visible cover (not always collection sort order). */
-  function pickRandomHeaderSearchPreviewItem(pool) {
-    if (!Array.isArray(pool) || pool.length === 0) return null;
-    const withCover = pool.filter((it) => buildCoverCandidates(it).length > 0);
-    const source = withCover.length ? withCover : pool;
-    const idx = Math.floor(Math.random() * source.length);
-    return source[idx] ?? null;
-  }
 
   /** Search megamenu tiles: prefer a random extra gallery frame from the subcategory pool. */
   function pickRandomHeaderSearchGalleryFromPool(pool) {
@@ -15287,33 +15166,6 @@
     setTimeout(finish, BOARD_ADDED_TOAST_EXIT_MS + 80);
   }
 
-  function showBoardItemAddedToast() {
-    const toastEl = els.outfitToast || document.getElementById("outfit-toast");
-    if (!toastEl) return;
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = null;
-    resetOutfitToastPresentation(toastEl);
-    toastEl.setAttribute("data-toast-variant", "board-added");
-    toastEl.classList.add("outfit-toast--board-added");
-    const icon = document.createElement("span");
-    icon.className = "outfit-toast__icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
-    const label = document.createElement("span");
-    label.className = "outfit-toast__label";
-    label.textContent = "Piece added";
-    toastEl.append(icon, label);
-    toastEl.hidden = false;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => toastEl.classList.add("outfit-toast--visible"));
-    });
-    toastTimer = setTimeout(() => {
-      dismissOutfitToastAnimated(toastEl, () => {
-        toastTimer = null;
-      });
-    }, BOARD_ADDED_TOAST_MS);
-  }
 
   function showToast(msg, options = {}) {
     const toastEl = els.outfitToast || document.getElementById("outfit-toast");
@@ -16974,21 +16826,6 @@
     });
   }
 
-  /** Stable path-key signature for photo-manager entries (url + in-memory file slots). */
-  function photoManagerEntryPathSig(entries) {
-    if (!Array.isArray(entries)) return "";
-    return entries
-      .map((e) => {
-        if (e?.kind === "url") {
-          const url = String(e.url ?? "").trim();
-          return wardrobeMediaPathKey(url) || url.split("?")[0];
-        }
-        if (e?.kind === "file") return `file:${String(e.id ?? "")}`;
-        return "";
-      })
-      .filter(Boolean)
-      .join("|");
-  }
 
   function revokeItemEditPhotoManager(host) {
     if (!(host instanceof HTMLElement)) return;
@@ -17777,47 +17614,6 @@
     });
   }
 
-  /** Second pass: shrink every embedded image on a custom row before writing JSON to `localStorage`. */
-  async function shrinkCustomItemRowForQuota(row) {
-    const next = { ...row };
-    if (next.image) next.image = await shrinkDataUrlForStorage(String(next.image));
-    if (Array.isArray(next.gallery) && next.gallery.length) {
-      next.gallery = (
-        await Promise.all(next.gallery.map((u) => (u ? shrinkDataUrlForStorage(String(u)) : "")))
-      ).filter(Boolean);
-    }
-    if (Array.isArray(next.colourVariants) && next.colourVariants.length) {
-      next.colourVariants = await Promise.all(
-        next.colourVariants.map(async (v) => {
-          const nv = { ...v };
-          if (nv.image) nv.image = await shrinkDataUrlForStorage(String(nv.image));
-          if (nv.previewImage) nv.previewImage = await shrinkDataUrlForStorage(String(nv.previewImage));
-          if (Array.isArray(nv.gallery) && nv.gallery.length) {
-            nv.gallery = (
-              await Promise.all(nv.gallery.map((u) => (u ? shrinkDataUrlForStorage(String(u)) : "")))
-            ).filter(Boolean);
-          }
-          return nv;
-        })
-      );
-    } else if (Array.isArray(next.colorVariants) && next.colorVariants.length) {
-      next.colourVariants = await Promise.all(
-        next.colorVariants.map(async (v) => {
-          const nv = { ...v };
-          if (nv.image) nv.image = await shrinkDataUrlForStorage(String(nv.image));
-          if (nv.previewImage) nv.previewImage = await shrinkDataUrlForStorage(String(nv.previewImage));
-          if (Array.isArray(nv.gallery) && nv.gallery.length) {
-            nv.gallery = (
-              await Promise.all(nv.gallery.map((u) => (u ? shrinkDataUrlForStorage(String(u)) : "")))
-            ).filter(Boolean);
-          }
-          return nv;
-        })
-      );
-      delete next.colorVariants;
-    }
-    return next;
-  }
 
   /** Shown after `QuotaExceededError` when shrinking and retry did not help. */
   const STORAGE_QUOTA_USER_HINT =
@@ -18534,11 +18330,6 @@
     return idx;
   }
 
-  function scrollMobileGalleryToIndex(carousel, index, smooth) {
-    const media = carousel.closest(".card__media");
-    if (!(media instanceof HTMLElement)) return;
-    applyMobileGalleryFrameIndex(media, carousel, index, smooth);
-  }
 
   const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-v2";
   const COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY = "tw-collection-from-home-entry";
@@ -19115,18 +18906,6 @@
     track.style.transform = "translate3d(0, 0, 0)";
   }
 
-  /** @param {HTMLElement} stage @param {number} throughIndex */
-  function preloadDesktopGalleryHoverSlides(stage, throughIndex = 1) {
-    const track = stage.querySelector(".card__gallery-desktop-track");
-    if (!(track instanceof HTMLElement)) return;
-    const max = Math.min(Math.max(0, Math.floor(throughIndex)), track.children.length - 1);
-    for (let i = 0; i <= max; i++) {
-      const slide = track.children[i];
-      if (slide instanceof HTMLElement) {
-        ensureDeferredGalleryFrameImageLoaded(slide.querySelector("img"));
-      }
-    }
-  }
 
   /** First editorial gallery slide in track DOM order (matches edit badge 2 / `item.gallery[0]`). */
   function firstGallerySlideInDesktopTrack(track) {
@@ -19298,18 +19077,6 @@
     return true;
   }
 
-  /** @param {HTMLElement} media */
-  function clearDesktopGalleryHoverPreview(media) {
-    const stage = getDesktopGalleryStage(media);
-    media.classList.remove(
-      "is-hover-preview",
-      "card__media--hover-gallery-fade",
-      "card__gallery-desktop-stage--hover-fade"
-    );
-    if (stage instanceof HTMLElement) {
-      stage.classList.remove("is-hover-preview", "card__gallery-desktop-stage--hover-fade");
-    }
-  }
 
   /**
    * @param {HTMLElement} media
@@ -20018,9 +19785,6 @@
     return "ALL SEASONS";
   }
 
-  function collectionHeadingSeasonLabel() {
-    return collectionHeadingSeasonShortLabel();
-  }
 
   function collectionHeadingAtCollectionRoot() {
     const cat = String(categoryNavFilter ?? "").trim();
@@ -20046,13 +19810,7 @@
     scrollCollectionViewportTop();
   }
 
-  function isWardrobeCollectionPlp() {
-    return isCollectionLocation() && Boolean(document.getElementById("grid"));
-  }
 
-  function isItemDetailPageContext() {
-    return Boolean(document.getElementById("item-detail-root"));
-  }
 
   /** Header logo / wordmark — always editorial home (`/`); scroll to top when already there. */
   function handleSiteHeaderBrandClick() {
@@ -20513,9 +20271,6 @@
     syncSearchKeywordChip();
   }
 
-  function flushSearchGridDebounceIfPending() {
-    if (isHeaderSearchWrapOpen()) flushHeaderSearchOverlayUiDebounceIfPending();
-  }
 
   let dragFromIndex = null;
   let outfitSlotAnimKeySeed = 1;
@@ -23010,17 +22765,6 @@
       const acquisitionSec = createItemEditSection("Acquisition");
       const acquisitionGrid = acquisitionSec.grid;
 
-      function addField(labelText, child, targetGridOrOpts = identityGrid, maybeOpts) {
-        let targetGrid = identityGrid;
-        let opts = {};
-        if (targetGridOrOpts instanceof HTMLElement) {
-          targetGrid = targetGridOrOpts;
-          opts = maybeOpts && typeof maybeOpts === "object" ? maybeOpts : {};
-        } else if (targetGridOrOpts && typeof targetGridOrOpts === "object") {
-          opts = targetGridOrOpts;
-        }
-        appendItemEditField(targetGrid, labelText, child, opts);
-      }
 
       const brandIn = document.createElement("input");
       brandIn.type = "text";
@@ -24946,20 +24690,6 @@
     return bottom;
   }
 
-  /** Resolve a CSS length custom property to pixels (e.g. `var(--chrome-x)`). */
-  function readCssLengthPx(length, host = document.body) {
-    const mount = host && host.nodeType === 1 ? host : document.body;
-    const probe = document.createElement("div");
-    probe.style.cssText =
-      "position:absolute;visibility:hidden;pointer-events:none;width:0;height:0;margin:0;padding:0;border:0;";
-    const inner = document.createElement("div");
-    inner.style.width = length;
-    probe.appendChild(inner);
-    mount.appendChild(probe);
-    const px = inner.getBoundingClientRect().width;
-    probe.remove();
-    return Math.max(0, Math.round(px));
-  }
 
   /** Desktop mega menu + search flyouts: clear legacy inline inset overrides (CSS `--header-flyout-inline-x` owns layout). */
   function syncHeaderMegaMenuNavInset() {
@@ -25007,9 +24737,6 @@
     }
   }
 
-  function syncHeaderSubmenuDimTop() {
-    syncHeaderFlyoutDimTop();
-  }
 
   const HEADER_SEARCH_FLYOUT_MOTION_MS = 300;
 
@@ -26151,9 +25878,6 @@
       submitCollectionSearchFromInput();
     }
 
-    function isHeaderSearchDropdownLayout() {
-      return globalThis.matchMedia?.(HEADER_DESKTOP_MQ)?.matches ?? false;
-    }
 
     function isHeaderCompactLayout() {
       return isHeaderCompactViewport();
@@ -28026,14 +27750,6 @@
     return api;
   }
 
-  function clearTwPageLoaderBodyState() {
-    document.body.classList.remove(
-      "tw-page-loader-active",
-      "tw-page-loader-main-pending",
-      "tw-page-loader-main-reveal",
-      "tw-page-loader-revealed"
-    );
-  }
 
   function installTwPageLoaderShell() {
     if (twPageLoaderShellInstalled || !document.body) return;
