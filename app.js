@@ -269,6 +269,35 @@
     )
       raw = item.metadata.colorVariants;
     if (!raw) return null;
+    /*
+     * The top-level `colourVariants` copy can diverge from the canonical
+     * `metadata.colourVariants` (an earlier media transform flattened variant
+     * galleries to `main/gallery/NN` and de-duped colliding slots, dropping some
+     * colours' galleries). Keep the metadata copy's galleries as a per-key fallback.
+     */
+    const metaVariantRaw =
+      item?.metadata && typeof item.metadata === "object"
+        ? Array.isArray(item.metadata.colourVariants)
+          ? item.metadata.colourVariants
+          : Array.isArray(item.metadata.colorVariants)
+            ? item.metadata.colorVariants
+            : []
+        : [];
+    /** @type {Map<string, string[]>} */
+    const metaGalleryByKey = new Map();
+    for (const mv of metaVariantRaw) {
+      const mk = String(mv?.key ?? "").trim();
+      if (mk && Array.isArray(mv?.gallery)) {
+        metaGalleryByKey.set(mk, mv.gallery.map((x) => String(x ?? "").trim()).filter(Boolean));
+      }
+    }
+    /** A colour's gallery image must live under its own `variants/<key>/` folder. */
+    const galleryUrlIsForeignToVariant = (url, key) => {
+      const p = String(url ?? "").split("?")[0];
+      if (/\/main\/gallery\//.test(p)) return true;
+      const m = p.match(/\/variants\/([^/]+)\//);
+      return Boolean(m && m[1] !== key);
+    };
     const out = [];
     for (const v of raw) {
       if (!v || typeof v !== "object") continue;
@@ -283,6 +312,16 @@
       const secondaryColourCode = String(
         v.secondaryColourCode ?? v.secondaryColorCode ?? v.secondary_colour_code ?? ""
       ).trim();
+      let variantGallery = Array.isArray(v.gallery)
+        ? v.gallery.map((x) => String(x ?? "").trim()).filter(Boolean)
+        : [];
+      if (variantGallery.length === 0 || variantGallery.some((u) => galleryUrlIsForeignToVariant(u, key))) {
+        const metaGallery = (metaGalleryByKey.get(key) || []).filter(
+          (u) => !galleryUrlIsForeignToVariant(u, key)
+        );
+        if (metaGallery.length) variantGallery = metaGallery;
+        else variantGallery = variantGallery.filter((u) => !galleryUrlIsForeignToVariant(u, key));
+      }
       /** @type {{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage: string, gallery: string[], notes: string, basicColour?: string, secondaryColour?: string, secondaryColourCode?: string }} */
       const row = {
         key,
@@ -291,7 +330,7 @@
         colourCode,
         image,
         previewImage: String(v.previewImage ?? v.swatchImage ?? "").trim(),
-        gallery: Array.isArray(v.gallery) ? v.gallery.map((x) => String(x ?? "").trim()).filter(Boolean) : [],
+        gallery: variantGallery,
         notes: v.notes != null ? String(v.notes) : "",
       };
       if (bc) row.basicColour = bc;
@@ -6273,6 +6312,13 @@
   function resolvedItemGalleryList(item) {
     const id = String(item?.id ?? "").trim();
     const base = itemGalleryList(item);
+    /*
+     * Variant items keep their gallery per colour in `colourVariants[].gallery`; the
+     * displayed list comes from the active-variant projection (already in `base`). The
+     * row-level override/seed/cloud gallery logic must not apply — a media-edited override
+     * stores an empty row gallery for these and would otherwise blank the variant gallery.
+     */
+    if (getItemColourVariants(item)) return base;
     if (!id || !isLocalCatalogueItemId(id)) return base;
     const ov = loadCollectionOverrides()[id];
     if (
@@ -7048,11 +7094,12 @@
         if (prev) v.previewImage = await cloneUrl(prev, { type: "variant_preview", key: vk });
         if (Array.isArray(v.gallery) && v.gallery.length) {
           const vg = [];
+          let variantGalleryIndex = 0;
           for (const raw of v.gallery) {
             const u = String(raw ?? "").trim();
             if (!u) continue;
-            galleryIndex += 1;
-            vg.push(await cloneUrl(u, { type: "main_gallery", index: galleryIndex }));
+            variantGalleryIndex += 1;
+            vg.push(await cloneUrl(u, { type: "variant_gallery", key: vk, index: variantGalleryIndex }));
           }
           v.gallery = vg;
         }
@@ -22579,7 +22626,26 @@
     const usePdpGalleryLayout = isItemPageView || isPageEdit;
     detailItemId = item.id;
     root.innerHTML = "";
-    const itemForMedia = ensureItemMediaCacheBust({ ...item });
+    /*
+     * Variant items keep their gallery under each `colourVariants[].gallery` with an empty
+     * row-level `gallery`. Project the default colour (the one whose cover matches the row
+     * image, else the first) so the media + gallery render that variant's photos — matching
+     * the swatch that `mountVariantSwatchStrip` marks active on load.
+     */
+    const mediaVariants = getItemColourVariants(item);
+    const defaultVariantKey = mediaVariants?.length
+      ? String(
+          mediaVariants.find(
+            (v) => String(v?.image ?? "").trim() === String(item?.image ?? "").trim()
+          )?.key ??
+            mediaVariants[0]?.key ??
+            ""
+        ).trim()
+      : "";
+    const projectedForMedia = defaultVariantKey
+      ? itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: defaultVariantKey })
+      : item;
+    const itemForMedia = ensureItemMediaCacheBust({ ...projectedForMedia });
 
     const media = document.createElement("div");
     media.className = "card__media item-detail__media";
