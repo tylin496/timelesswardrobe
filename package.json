@@ -18,7 +18,8 @@
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
     "storage:prune-orphans": "node scripts/prune_wardrobe_storage_orphans.mjs",
-    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs"
+    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs",
+    "db:resync-photos": "node scripts/resync_wardrobe_photos_to_cloud.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"

@@ -10,20 +10,12 @@ import { createReadStream, watch as watchFs } from "node:fs";
 import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import {
-  fileExtensionFromName,
-  localPublicUrlForStoragePath,
-  wardrobeImageStorageObjectPath,
-} from "./lib/wardrobe-image-local.mjs";
-import { upsertWardrobeItemInFile } from "./lib/wardrobe-js-io.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const customJsonPath = path.join(root, "data", "custom-items.json");
-const wardrobeImagesRoot = path.join(root, "images", "wardrobe");
-const galleryManifestScript = path.join(root, "scripts", "build-wardrobe-local-gallery-manifest.mjs");
 const cssBuildScriptPath = path.join(root, "scripts", "build-css.mjs");
 const cssWatchDir = path.join(root, "css");
 let cssBuildRunning = false;
@@ -70,96 +62,9 @@ async function readRequestBody(req) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-function runGalleryManifestBuild() {
-  if (!galleryManifestScript) return;
-  spawnSync(process.execPath, [galleryManifestScript], { cwd: root, stdio: "inherit" });
-}
-
 function jsonResponse(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(payload));
-}
-
-/** POST /api/wardrobe/upload — write image bytes to images/wardrobe/… */
-async function handlePostWardrobeUpload(req, res) {
-  let body;
-  try {
-    body = await readRequestBody(req);
-  } catch (e) {
-    console.error(e);
-    res.writeHead(400);
-    res.end();
-    return;
-  }
-  /** @type {{ itemId?: string, slot?: object, fileName?: string, mimeType?: string, dataBase64?: string }} */
-  let payload;
-  try {
-    payload = JSON.parse(body);
-  } catch {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid JSON");
-    return;
-  }
-  const itemId = String(payload?.itemId ?? "").trim();
-  const dataBase64 = String(payload?.dataBase64 ?? "").trim();
-  const slot = payload?.slot && typeof payload.slot === "object" ? payload.slot : { type: "main_cover" };
-  if (!itemId || !dataBase64) {
-    jsonResponse(res, 400, { error: "itemId and dataBase64 are required" });
-    return;
-  }
-  const ext = fileExtensionFromName(payload.fileName, payload.mimeType);
-  const storagePath = wardrobeImageStorageObjectPath(itemId, ext, slot);
-  const destPath = path.join(wardrobeImagesRoot, storagePath);
-  if (!isPathInsideRoot(destPath)) {
-    jsonResponse(res, 400, { error: "Invalid destination path" });
-    return;
-  }
-  try {
-    await fs.mkdir(path.dirname(destPath), { recursive: true });
-    await fs.writeFile(destPath, Buffer.from(dataBase64, "base64"));
-    runGalleryManifestBuild();
-    jsonResponse(res, 200, {
-      url: localPublicUrlForStoragePath(storagePath),
-      storagePath,
-    });
-  } catch (e) {
-    console.error(e);
-    jsonResponse(res, 500, { error: e instanceof Error ? e.message : "Write failed" });
-  }
-}
-
-/** PUT /api/wardrobe/item — upsert one row in data/wardrobe.js */
-async function handlePutWardrobeItem(req, res) {
-  let body;
-  try {
-    body = await readRequestBody(req);
-  } catch (e) {
-    console.error(e);
-    res.writeHead(400);
-    res.end();
-    return;
-  }
-  /** @type {Record<string, unknown>} */
-  let item;
-  try {
-    item = JSON.parse(body);
-  } catch {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid JSON");
-    return;
-  }
-  if (!item || typeof item !== "object" || Array.isArray(item)) {
-    jsonResponse(res, 400, { error: "Body must be a wardrobe item object" });
-    return;
-  }
-  try {
-    const saved = upsertWardrobeItemInFile(root, item);
-    runGalleryManifestBuild();
-    jsonResponse(res, 200, { ok: true, item: saved });
-  } catch (e) {
-    console.error(e);
-    jsonResponse(res, 500, { error: e instanceof Error ? e.message : "Write failed" });
-  }
 }
 
 async function handlePutCustomItems(req, res) {
@@ -430,14 +335,6 @@ const server = http.createServer((req, res) => {
     void handlePutCustomItems(req, res);
     return;
   }
-  if (req.method === "POST" && pathname === "/api/wardrobe/upload") {
-    void handlePostWardrobeUpload(req, res);
-    return;
-  }
-  if (req.method === "PUT" && pathname === "/api/wardrobe/item") {
-    void handlePutWardrobeItem(req, res);
-    return;
-  }
   if (req.method === "GET" || req.method === "HEAD") {
     void handleStatic(req, res);
     return;
@@ -469,8 +366,8 @@ function listenWithFallback(port, triesLeft) {
   });
   server.listen(port, "127.0.0.1", () => {
     console.log(`Timeless Wardrobe dev server → http://127.0.0.1:${port}/`);
-    console.log("PUT /api/custom-items writes data/custom-items.json");
-    console.log("Git wardrobe: POST /api/wardrobe/upload, PUT /api/wardrobe/item → images/wardrobe + data/wardrobe.js");
+    console.log("PUT /api/custom-items writes data/custom-items.json (browser-only mode custom rows)");
+    console.log("Wardrobe images: Supabase Storage is canonical; npm run db:backup-to-local to refresh images/wardrobe/.");
   });
 }
 

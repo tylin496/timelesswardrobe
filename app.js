@@ -6014,6 +6014,43 @@
   }
 
   /**
+   * Same slot can have multiple extensions ({slot}.jpg + {slot}.png) — one logical slot maps to
+   * two Storage objects which silently drift. After a successful upload, remove sibling files at
+   * the same logical slot but a different extension so the slot is single-truth.
+   *
+   * @param {string} storagePath full object path that was just uploaded (e.g. `id/main/gallery/01.png`)
+   */
+  async function deleteWardrobeImageSiblingExtensions(storagePath) {
+    if (!isSupabaseReady()) return;
+    const last = storagePath.lastIndexOf("/");
+    if (last < 0) return;
+    const dir = storagePath.slice(0, last);
+    const file = storagePath.slice(last + 1);
+    const dot = file.lastIndexOf(".");
+    if (dot <= 0) return;
+    const base = file.slice(0, dot).toLowerCase();
+    try {
+      const { data, error } = await supabaseClient.storage
+        .from(WARDROBE_IMAGE_BUCKET)
+        .list(dir, { limit: 100 });
+      if (error || !Array.isArray(data)) return;
+      const toRemove = data
+        .map((e) => String(e?.name ?? ""))
+        .filter((name) => {
+          if (!name || name === file) return false;
+          const idx = name.lastIndexOf(".");
+          if (idx <= 0) return false;
+          return name.slice(0, idx).toLowerCase() === base;
+        })
+        .map((name) => `${dir}/${name}`);
+      if (!toRemove.length) return;
+      await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).remove(toRemove);
+    } catch (err) {
+      console.warn("Could not clean sibling extensions for", storagePath, err);
+    }
+  }
+
+  /**
    * @param {File} file
    * @param {string} itemId
    * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
@@ -6044,6 +6081,8 @@
         `Supabase Storage upload failed at ${where} [${WARDROBE_IMAGE_BUCKET}/${path}]${detail ? `: ${detail}` : ""}`
       );
     }
+
+    await deleteWardrobeImageSiblingExtensions(path);
 
     const { data } = supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).getPublicUrl(path);
     return data?.publicUrl || "";
@@ -6210,7 +6249,12 @@
     return [...missing, ...urls];
   }
 
-  /** Gallery extras for display / editor — frozen seed paths merged when cloud row is incomplete. */
+  /**
+   * Display + editor gallery list — cloud is source of truth. Seed paths are merged ONLY when:
+   *   (a) Supabase is unreachable / not configured (offline fallback), OR
+   *   (b) The row is not present in the cloud snapshot yet.
+   * Otherwise cloud-only paths win, so editor and PDP never disagree.
+   */
   function resolvedItemGalleryList(item) {
     const id = String(item?.id ?? "").trim();
     const base = itemGalleryList(item);
@@ -6225,17 +6269,10 @@
         ov.gallery.map((x) => String(x ?? "").trim()).filter(Boolean)
       );
     }
-    const seed = catalogueSeedRow(id);
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === id);
-    if (
-      seed &&
-      cloudRow &&
-      (rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
-        supabaseMediaAheadOfCatalogueSeed(id, cloudRow))
-    ) {
-      return base;
-    }
-    return mergeMissingFrozenSeedGalleryPaths(id, base);
+    if (cloudRow) return base;
+    if (!isSupabaseReady()) return mergeMissingFrozenSeedGalleryPaths(id, base);
+    return base;
   }
 
   /** @param {string} url */
@@ -6250,15 +6287,9 @@
    * @param {string} itemId
    * @param {string[]} gallery
    */
-  function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery, opts = {}) {
+  function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery) {
     if (!isLocalCatalogueItemId(itemId)) return false;
-    const useSeedHeal = !Boolean(opts && opts.userEdited);
-    const targetSig = galleryPathKeySignature(
-      dedupeGalleryUrls(
-        "",
-        useSeedHeal ? mergeMissingFrozenSeedGalleryPaths(itemId, gallery) : gallery
-      )
-    );
+    const targetSig = galleryPathKeySignature(dedupeGalleryUrls("", gallery));
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === itemId);
     const cloudSig = galleryPathKeySignature(itemGalleryList(cloudRow || {}));
     return targetSig !== cloudSig;
@@ -21912,15 +21943,11 @@
     const photoManagerDirty = Boolean(
       document.getElementById("item-edit-photos")?.__twPhotoDirty
     );
-    const userEditedGalleryPhotos =
-      hadNewPhotoFiles || photoManagerDirty || gallerySigAfterPhotos !== prevGallerySig;
-    if (!userEditedGalleryPhotos) {
-      gallery = mergeMissingFrozenSeedGalleryPaths(id, gallery);
-    }
+    /* Cloud is source of truth: trust the editor's gallery list as-is. The legacy
+     * `mergeMissingFrozenSeedGalleryPaths(gallery)` step quietly re-added local seed paths the
+     * user had just removed, hiding deletes (see docs/SUPABASE.md). */
     if (isLocalCatalogueItemId(id) && isSupabaseReady()) {
-      const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, {
-        userEdited: userEditedGalleryPhotos,
-      });
+      const needsCloudGallery = galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
       const itemRef = { id };
       const hasLocalOnlyMedia =
         (image && isFileBackedLocalWardrobeUrl(itemRef, image) && !/^https?:\/\//i.test(image.split("?")[0])) ||
@@ -22004,8 +22031,7 @@
       isLocalCatalogueItemId(id) &&
       galleryPathKeySignature(gallery) !== galleryPathKeySignature(galleryBeforeFrozenHeal);
     const frozenGalleryNeedsCloudSync =
-      isLocalCatalogueItemId(id) &&
-      galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery, { userEdited: userEditedGalleryPhotos });
+      isLocalCatalogueItemId(id) && galleryNeedsFrozenCatalogueCloudGallerySync(id, gallery);
     const mediaTouched =
       hadNewPhotoFiles ||
       photoManagerDirty ||

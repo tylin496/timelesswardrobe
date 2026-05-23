@@ -62,12 +62,33 @@ async function downloadToFile(url, destPath) {
   return buf.length;
 }
 
+async function remoteContentLength(url) {
+  try {
+    const res = await fetch(url, { method: "HEAD", redirect: "follow" });
+    if (!res.ok) return null;
+    const v = res.headers.get("content-length");
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 loadEnvFile();
 
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const dryRun = Boolean(process.env.DRY_RUN && process.env.DRY_RUN !== "0" && process.env.DRY_RUN !== "false");
-const skipExisting = process.env.SKIP_EXISTING !== "0";
+/**
+ * Skip mode (opt-in only):
+ *   SKIP_EXISTING=1  → skip when local path exists and size matches cloud Content-Length
+ *   SKIP_EXISTING=name (default) → skip when local path exists at any size (legacy name-only)
+ *   SKIP_EXISTING=0  → always overwrite (use after editor uploads to refresh the local mirror)
+ *
+ * Cloud is the source of truth; the default re-downloads everything so silent drift can't accumulate.
+ */
+const SKIP_RAW = String(process.env.SKIP_EXISTING ?? "0").trim().toLowerCase();
+const skipMode = SKIP_RAW === "1" ? "size" : SKIP_RAW === "name" ? "name" : "none";
 
 if (!url || !serviceKey) {
   console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env");
@@ -123,9 +144,18 @@ let failed = 0;
 
 for (const [storagePath, { url: imgUrl }] of downloadsByPath) {
   const destPath = path.join(imagesRoot, storagePath);
-  if (skipExisting && fs.existsSync(destPath) && fs.statSync(destPath).size > 0) {
+  const exists = fs.existsSync(destPath) && fs.statSync(destPath).size > 0;
+  if (exists && skipMode === "name") {
     skipped += 1;
     continue;
+  }
+  if (exists && skipMode === "size") {
+    const localSize = fs.statSync(destPath).size;
+    const remoteSize = await remoteContentLength(imgUrl);
+    if (remoteSize != null && remoteSize === localSize) {
+      skipped += 1;
+      continue;
+    }
   }
   try {
     const bytes = await downloadToFile(imgUrl, destPath);
@@ -139,7 +169,9 @@ for (const [storagePath, { url: imgUrl }] of downloadsByPath) {
   }
 }
 
-console.log(`Downloaded: ${downloaded}, skipped (existing): ${skipped}, failed: ${failed}`);
+console.log(
+  `Downloaded: ${downloaded}, skipped (${skipMode === "name" ? "by name" : skipMode === "size" ? "size match" : "none"}): ${skipped}, failed: ${failed}`
+);
 if (failed > 0) {
   console.warn("Some images failed — re-run after fixing network, or check URLs.");
 }
