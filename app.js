@@ -18779,7 +18779,9 @@
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
         target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
-      target = Math.max(0, Math.min(max, target));
+      // Swiping forward past the last frame wraps back to the cover (index 0).
+      if (target > max) target = 0;
+      else target = Math.max(0, Math.min(max, target));
       releaseToIndex(target, target !== touchStartIndex);
       markSwipingIfGesture(dx, dy);
     };

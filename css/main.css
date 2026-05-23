@@ -13470,6 +13470,14 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   filter: var(--collection-cutout-shadow);
 }
 
+#grid .card__gallery-carousel-slide--gallery {
+  background-color: var(--media-cutout-canvas);
+  background-image: var(--collection-grid-media-bg);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
 #grid .card__gallery-carousel-slide--gallery .card__gallery-carousel-img {
   width: 100%;
   height: 100%;
@@ -15143,7 +15151,11 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   margin: 0;
   padding: 0;
   border: none;
-  background: var(--tw-brand-page);
+  background-color: var(--media-cutout-canvas);
+  background-image: var(--collection-grid-media-bg);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   color: var(--ink);
   overflow: hidden;
 }
