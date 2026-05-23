@@ -53,6 +53,11 @@ export function wardrobeImageStorageObjectPath(itemId, ext, slot) {
     const role = slot.type === "variant_preview" ? "preview" : "cover";
     return `${root}/variants/${vk}/${role}.${e}`;
   }
+  if (slot.type === "variant_gallery") {
+    const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+    const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+    return `${root}/variants/${vk}/gallery/${String(n).padStart(2, "0")}.${e}`;
+  }
   return `${root}/main/cover.${e}`;
 }
 

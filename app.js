@@ -2342,7 +2342,7 @@
   /** Seed / Supabase row ids removed from the grid in this browser only (not deleted from disk or cloud). */
   const COLLECTION_HIDDEN_IDS_KEY = "timeless-wardrobe-collection-hidden-v1";
   const SEASON_NAV_STORAGE_KEY = "timeless-wardrobe-season-nav-v1";
-  /** Same-tab return from `item.html` → restore main list scroll (short TTL avoids stale jumps). */
+  /** Same-tab return from `item.html` → restore main list scroll (6h TTL avoids stale jumps). */
   const COLLECTION_SCROLL_RESTORE_KEY = "timeless-wardrobe-collection-scroll-v1";
   /** Same-tab return → restore category / season / type / search (same TTL as scroll). */
   const COLLECTION_BROWSE_RESTORE_KEY = "timeless-wardrobe-collection-browse-v1";
@@ -3062,7 +3062,8 @@
   const COLLECTION_PAGE_PATH = "/collection.html";
   const COLLECTION_HOME_URL = COLLECTION_BASE_PATH;
   const COLLECTION_HOME_MAIN_URL = COLLECTION_HOME_URL;
-  const COLLECTION_SCROLL_TTL_MS = 20 * 60 * 1000;
+  /** PLP scroll + browse restore after PDP return, refresh, or tab discard (6h). */
+  const COLLECTION_SCROLL_TTL_MS = 6 * 60 * 60 * 1000;
 
   const COLLECTION_SORT_MODE_KEY = "timeless-wardrobe-collection-sort-v1";
   const COLLECTION_VIEW_MODE_KEY = "timeless-wardrobe-collection-view-v1";
@@ -6009,6 +6010,11 @@
       const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
       const role = slot.type === "variant_preview" ? "preview" : "cover";
       return `${root}/variants/${vk}/${role}.${ext}`;
+    }
+    if (slot.type === "variant_gallery") {
+      const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+      return `${root}/variants/${vk}/gallery/${String(n).padStart(2, "0")}.${ext}`;
     }
     return `${root}/main/cover.${ext}`;
   }
@@ -17408,6 +17414,12 @@
               url = variantKey
                 ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
                 : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
+            } else if (variantKey) {
+              url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
+                type: "variant_gallery",
+                key: variantKey,
+                index: i,
+              });
             } else {
               url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
                 type: "main_gallery",
@@ -23500,19 +23512,41 @@
     globalThis.history.replaceState(null, "", u.pathname + u.search);
   }
 
+  function collectionListScrollYForPersistence() {
+    if (collectionPageScrollLockCount > 0 && collectionPageScrollLockY > 0) return collectionPageScrollLockY;
+    return globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+  }
+
   function persistCollectionListScrollForReturn() {
     if (!document.getElementById("grid")) return;
     try {
       sessionStorage.setItem(
         COLLECTION_SCROLL_RESTORE_KEY,
         JSON.stringify({
-          y: globalThis.scrollY ?? globalThis.pageYOffset ?? 0,
+          y: collectionListScrollYForPersistence(),
           t: Date.now(),
         })
       );
     } catch {
       /* private mode / disabled storage */
     }
+  }
+
+  /** Save latest PLP scroll on leave; manual restoration avoids browser reset on reload/back. */
+  function installCollectionScrollPersistence() {
+    if (installCollectionScrollPersistence._wired) return;
+    if (!document.getElementById("grid")) return;
+    installCollectionScrollPersistence._wired = true;
+    try {
+      if ("scrollRestoration" in globalThis.history) globalThis.history.scrollRestoration = "manual";
+    } catch {
+      /* ignore */
+    }
+    const onLeave = () => persistCollectionListScrollForReturn();
+    globalThis.addEventListener("pagehide", onLeave);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") onLeave();
+    });
   }
 
   function writeCollectionBrowseRestoreSnapshot(overrides = {}) {
@@ -28082,6 +28116,7 @@
     } else {
       normalizeCollectionTopLanding();
       applyCollectionPathFromUrl();
+      installCollectionScrollPersistence();
       consumeCollectionBrowseStateForReturn();
       syncCollectionUrlFromBrowseState({ replace: true });
       initFilters();
