@@ -6085,7 +6085,9 @@
     if (!raw) return "";
     const fromStorage = storagePathFromWardrobeImageUrl(raw);
     if (fromStorage) return fromStorage;
-    const m = raw.match(/^\/images\/wardrobe\/(.+)$/i);
+    // Match both local `/images/wardrobe/…` paths and full https URLs that
+    // contain `/images/wardrobe/…` (e.g. https://timeless-wardrobe.vercel.app/images/…).
+    const m = raw.match(/\/images\/wardrobe\/(.+)$/i);
     if (m) {
       try {
         return decodeURIComponent(m[1]);
