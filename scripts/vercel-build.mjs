@@ -40,6 +40,7 @@ const rootFiles = [
   "app.js",
   "styles.css",
   "favicon.png",
+  "site.webmanifest",
   "icon.svg",
   "logo.svg",
   "monogram.png",
@@ -48,7 +49,7 @@ const rootFiles = [
   "og-image.svg",
 ];
 
-const rootDirs = ["js", "data", "images"];
+const rootDirs = ["js", "data", "images", "icons"];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });

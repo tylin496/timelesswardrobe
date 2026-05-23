@@ -962,11 +962,11 @@ body {
   padding: 0;
   background-color: var(--tw-header-monogram, var(--tw-brand-monogram-green));
   background-image: none;
-  mask-image: url(/icon.svg);
+  mask-image: url(./icon.svg);
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
-  -webkit-mask-image: url(/icon.svg);
+  -webkit-mask-image: url(./icon.svg);
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
