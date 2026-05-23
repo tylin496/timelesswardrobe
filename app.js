@@ -6169,7 +6169,12 @@
     /** @type {Map<string, string>} */
     const urlByPath = new Map();
 
-    const consider = (url, preferLocal) => {
+    /**
+     * @param {string} url
+     * @param {boolean} preferLocal swap-in local file-backed URL when its key already exists
+     * @param {boolean} allowAdd when false, only swap existing keys — never introduce new ones
+     */
+    const consider = (url, preferLocal, allowAdd = true) => {
       const u = String(url ?? "").trim();
       if (!u) return;
       const pathOnly = u.split("?")[0];
@@ -6180,6 +6185,7 @@
         (!itemId || primaryCoverUrlBelongsToItem({ id: itemId }, pathOnly));
       const prev = urlByPath.get(key);
       if (!prev) {
+        if (!allowAdd) return;
         urlByPath.set(key, u);
         if (!orderedKeys.includes(key)) orderedKeys.push(key);
         return;
@@ -6190,9 +6196,12 @@
     };
 
     if (cloudAuthoritative && cloudGal.length) {
+      /* Cloud is authoritative: cloud paths are the *only* gallery; seed paths may only swap
+       * the URL form (local → CDN) when their key already matches a cloud entry. Adding new
+       * seed-only keys here would silently re-introduce photos the user just deleted on cloud. */
       for (const u of cloudGal) consider(u, false);
-      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
-      for (const u of itemGalleryList(seed)) consider(u, true);
+      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true, false);
+      for (const u of itemGalleryList(seed)) consider(u, true, false);
       return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
     }
 

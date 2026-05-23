@@ -70,8 +70,7 @@
     },
     "boston-metal-frames": {
       "main": [
-        "/images/wardrobe/boston-metal-frames/main/gallery/01.jpg",
-        "/images/wardrobe/boston-metal-frames/main/gallery/01.png"
+        "/images/wardrobe/boston-metal-frames/main/gallery/01.jpg"
       ],
       "variants": {}
     },
@@ -296,7 +295,14 @@
     },
     "pleated-trousers": {
       "main": [],
-      "variants": {}
+      "variants": {
+        "grey": [
+          "/images/wardrobe/pleated-trousers/variants/grey/gallery/01.jpg"
+        ],
+        "beige": [
+          "/images/wardrobe/pleated-trousers/variants/beige/gallery/01.jpg"
+        ]
+      }
     },
     "polo-bear-jumper": {
       "main": [
@@ -450,11 +456,10 @@
     },
     "wedding-bands": {
       "main": [
-        "/images/wardrobe/wedding-bands/main/gallery/01.png",
+        "/images/wardrobe/wedding-bands/main/gallery/05.png",
         "/images/wardrobe/wedding-bands/main/gallery/02.png",
         "/images/wardrobe/wedding-bands/main/gallery/03.jpg",
-        "/images/wardrobe/wedding-bands/main/gallery/04.jpg",
-        "/images/wardrobe/wedding-bands/main/gallery/05.png"
+        "/images/wardrobe/wedding-bands/main/gallery/04.jpg"
       ],
       "variants": {}
     },
