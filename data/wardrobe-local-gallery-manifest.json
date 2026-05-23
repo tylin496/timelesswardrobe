@@ -11,7 +11,6 @@
     "american-flag-hat": {
       "main": [
         "/images/wardrobe/american-flag-hat/main/gallery/01.jpg",
-        "/images/wardrobe/american-flag-hat/main/gallery/1.jpg",
         "/images/wardrobe/american-flag-hat/main/gallery/01.png",
         "/images/wardrobe/american-flag-hat/main/gallery/02.png"
       ],
@@ -167,7 +166,6 @@
     },
     "golden-fleece-navy-blazer": {
       "main": [
-        "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.jpg",
         "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.png"
       ],
       "variants": {}
@@ -273,9 +271,7 @@
       "variants": {}
     },
     "ocbd-shirt": {
-      "main": [
-        "/images/wardrobe/ocbd-shirt/main/gallery/01.png"
-      ],
+      "main": [],
       "variants": {}
     },
     "original-wayfarer-sunglasses": {
@@ -295,15 +291,11 @@
       "variants": {}
     },
     "pembroke": {
-      "main": [
-        "/images/wardrobe/pembroke/main/gallery/01.jpg"
-      ],
+      "main": [],
       "variants": {}
     },
     "pleated-trousers": {
-      "main": [
-        "/images/wardrobe/pleated-trousers/main/gallery/01.avif"
-      ],
+      "main": [],
       "variants": {}
     },
     "polo-bear-jumper": {
@@ -353,7 +345,6 @@
     },
     "ruby-gypsy-ring": {
       "main": [
-        "/images/wardrobe/ruby-gypsy-ring/main/gallery/01.jpg",
         "/images/wardrobe/ruby-gypsy-ring/main/gallery/01.png",
         "/images/wardrobe/ruby-gypsy-ring/main/gallery/02.png"
       ],

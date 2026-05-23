@@ -1056,9 +1056,7 @@ const WARDROBE_ITEMS = [
         "label": "Blue",
         "notes": "",
         "colour": "Blue",
-        "gallery": [
-          "/images/wardrobe/ocbd-shirt/main/gallery/01.png"
-        ],
+        "gallery": [],
         "colourCode": "#BAC9EF",
         "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.jpg"
       },
@@ -1104,9 +1102,7 @@ const WARDROBE_ITEMS = [
           "label": "Blue",
           "notes": "",
           "colour": "Blue",
-          "gallery": [
-            "/images/wardrobe/ocbd-shirt/main/gallery/01.png"
-          ],
+          "gallery": [],
           "colourCode": "#BAC9EF",
           "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.jpg"
         },
@@ -1426,9 +1422,7 @@ const WARDROBE_ITEMS = [
         "label": "Grey",
         "notes": "",
         "colour": "Grey",
-        "gallery": [
-          "/images/wardrobe/pleated-trousers/main/gallery/01.avif"
-        ],
+        "gallery": [],
         "colourCode": "#5F5F62",
         "basicColour": "grey",
         "previewImage": "/images/wardrobe/pleated-trousers/variants/grey/preview.jpg"
@@ -1455,9 +1449,7 @@ const WARDROBE_ITEMS = [
           "label": "Grey",
           "notes": "",
           "colour": "Grey",
-          "gallery": [
-            "/images/wardrobe/pleated-trousers/main/gallery/01.avif"
-          ],
+          "gallery": [],
           "colourCode": "#5F5F62",
           "basicColour": "grey",
           "previewImage": "/images/wardrobe/pleated-trousers/variants/grey/preview.jpg"
