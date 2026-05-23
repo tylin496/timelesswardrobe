@@ -380,7 +380,9 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/wedding-bands/main/gallery/01.png",
       "/images/wardrobe/wedding-bands/main/gallery/02.png",
-      "/images/wardrobe/wedding-bands/main/cover.png"
+      "/images/wardrobe/wedding-bands/main/gallery/03.jpg",
+      "/images/wardrobe/wedding-bands/main/gallery/04.jpg",
+      "/images/wardrobe/wedding-bands/main/gallery/05.png"
     ],
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
     "metadata": {
@@ -1238,7 +1240,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-28",
     "image": "/images/wardrobe/boston-metal-frames/main/cover.png",
     "gallery": [
-      "/images/wardrobe/boston-metal-frames/main/gallery/01.png"
+      "/images/wardrobe/boston-metal-frames/main/gallery/01.png",
+      "/images/wardrobe/boston-metal-frames/main/gallery/01.jpg"
     ],
     "notes": "『Zoff CLASSIC』\n\n【デザイン】\nアジアントレンドを意識した今っぽいメタルフレーム。\n柔らかなでおしゃれな印象のボストン型◎\n0.7㎜のリム線を使用することで、顔なじみの良さと快適な掛け心地を実現。\n光沢感のあるメタルフレームはアクセサリー感覚で使用していただけます。\n縦幅があるフレームは、抜け感が出る上に小顔効果も期待でき、ファッションのアクセントに。\n\n【カラー】\nZF192014-14E1：人気のブラック。テンプルのゴールドが抜け感のある印象に\nZF192014-49E1：おしゃれなべっこう柄ブラウン。ゴールドのテンプルがアクセントに。\nZF192014-21E1：柔らかい印象を与えてくれるピンク。フェミニンさをプラス。\nZF192014-56E1：こなれ感のあるゴールド。アクセサリー感覚でお使いいただけます。\n\n【スタイリングポイント】\nカジュアルからキレイめスタイルにも合わせやすい逸品。\nかけるだけでこなれ感をプラスするアイウェアは、普段コンタクトの方にもおすすめ。\nトレンドに左右されず、長くご愛用いただけます。\n\n※柄や色味の出方に個体差があり、画像と異なる場合がございます。\n\nCLASSIC(クラシック) 特集ページをみる\n※アウトレット商品は、販売から一定期間経過した商品などです。キズ、汚れなどがあるB級品ではございません。\n52□20-145\nA 片方のレンズ横幅：52mm\nB ブリッジ(鼻部分)の横幅：20mm\nC テンプル(つる)の長さ：145mm",
     "metadata": {

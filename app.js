@@ -28324,7 +28324,7 @@
     }
 
     normalizeLegacyEditorUrls();
-    await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint || isStandaloneItemPageEarly });
+    await hydrateCollectionAndSeasonState({ deferCloud: preferFastCollectionPaint });
     if (!twEditorAuthBootstrapped) {
       if (preferFastCollectionPaint) {
         applyTwAdminModeUi();
