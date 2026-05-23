@@ -14654,41 +14654,43 @@
     return frames;
   }
 
-  const PDP_GALLERY_THUMB_HINT_KEY = "tw-pdp-gallery-thumb-hint-v1";
+  const PDP_GALLERY_THUMB_HINT_KEY = "tw-pdp-gallery-thumb-hint-learned-v1";
 
-  /** Mobile PDP: hint + first-thumb nudge when multiple gallery photos. */
+  function hasLearnedPdpThumbSwipe() {
+    try {
+      return localStorage.getItem(PDP_GALLERY_THUMB_HINT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function markPdpThumbSwipeLearned() {
+    try {
+      localStorage.setItem(PDP_GALLERY_THUMB_HINT_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /**
+   * Mobile PDP: one silent visual nudge on the thumb rail when this device has not yet swiped.
+   * No text — the motion alone signals "this row scrolls".
+   */
   function wireItemDetailGalleryThumbHint(galleryEl, thumbsEl) {
     if (!(galleryEl instanceof HTMLElement) || !(thumbsEl instanceof HTMLElement)) return;
     if (thumbsEl.hidden) return;
     if (!isItemPageCoarsePointer()) return;
-
+    if (isTwAdminMode()) return;
+    /* Legacy text element from older builds — remove if rehydrated DOM still has it. */
     galleryEl.querySelector(".item-detail__gallery-thumb-hint")?.remove();
     thumbsEl.classList.remove("is-thumb-hint-active");
 
-    let hintSeen = false;
-    try {
-      hintSeen = sessionStorage.getItem(PDP_GALLERY_THUMB_HINT_KEY) === "1";
-    } catch {
-      /* ignore */
-    }
-
-    const hint = document.createElement("p");
-    hint.className = "item-detail__gallery-thumb-hint";
-    hint.textContent = "Swipe thumbnails to change photo";
-    hint.hidden = hintSeen;
-    galleryEl.appendChild(hint);
-
     const dismiss = () => {
-      hint.hidden = true;
       thumbsEl.classList.remove("is-thumb-hint-active");
-      try {
-        sessionStorage.setItem(PDP_GALLERY_THUMB_HINT_KEY, "1");
-      } catch {
-        /* ignore */
-      }
+      markPdpThumbSwipeLearned();
     };
 
-    if (hintSeen) return;
+    if (hasLearnedPdpThumbSwipe()) return;
 
     const prefersReducedMotion =
       typeof globalThis.matchMedia === "function" &&
@@ -14696,14 +14698,13 @@
 
     const playNudge = () => {
       if (prefersReducedMotion) return;
+      if (thumbsEl.scrollWidth <= thumbsEl.clientWidth + 2) return;
       thumbsEl.classList.add("is-thumb-hint-active");
-      if (thumbsEl.scrollWidth > thumbsEl.clientWidth + 2) {
-        thumbsEl.scrollTo({ left: 0, behavior: "auto" });
-        requestAnimationFrame(() => {
-          thumbsEl.scrollTo({ left: 18, behavior: "smooth" });
-          setTimeout(() => thumbsEl.scrollTo({ left: 0, behavior: "smooth" }), 720);
-        });
-      }
+      thumbsEl.scrollTo({ left: 0, behavior: "auto" });
+      requestAnimationFrame(() => {
+        thumbsEl.scrollTo({ left: 18, behavior: "smooth" });
+        setTimeout(() => thumbsEl.scrollTo({ left: 0, behavior: "smooth" }), 720);
+      });
       setTimeout(() => thumbsEl.classList.remove("is-thumb-hint-active"), 1500);
     };
 
@@ -14756,6 +14757,7 @@
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
     const max = track.children.length - 1;
     const idx = Math.max(0, Math.min(max, Math.floor(index)));
+    const prevIdx = Number.parseInt(String(stageEl.dataset.galleryIndex ?? ""), 10);
     track.classList.remove("is-dragging");
     track.style.transition = animate ? "" : "none";
     track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
@@ -14765,6 +14767,8 @@
     });
     stageEl.dataset.galleryIndex = String(idx);
     carousel.dataset.galleryIndex = String(idx);
+    /* Any successful frame advance on mobile PDP counts as learning the swipe gesture. */
+    if (Number.isFinite(prevIdx) && idx !== prevIdx && idx > 0) markPdpThumbSwipeLearned();
     return idx;
   }
 
@@ -18366,23 +18370,32 @@
       });
       media.dataset.galleryFrameIndex = String(idx);
       carousel.dataset.galleryIndex = String(idx);
+      /* User actually swiped past the cover — the gesture has been learned, stop nudging. */
+      if (idx > 0) markCollectionSwipeLearned();
     }
     return idx;
   }
 
 
-  const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-v2";
-  const COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY = "tw-collection-from-home-entry";
-  const COLLECTION_SWIPE_HINT_FROM_HOME_QUERY = "from";
-  const COLLECTION_SWIPE_HINT_FROM_HOME_VALUE = "home";
+  /** Device-level "learned this gesture" flag — once a user has dismissed or swiped, never replay. */
+  const COLLECTION_GALLERY_SWIPE_HINT_KEY = "tw-collection-gallery-swipe-hint-learned-v1";
   let collectionGallerySwipeHintToken = 0;
-  /** Latched once per collection page load when URL/session says user came from home. */
-  let collectionGallerySwipeHintEntryFromHome = false;
-  /** After a successful from-home hint this visit, skip re-scheduling on later `renderGrid` calls. */
-  let collectionGallerySwipeHintFromHomePlayed = false;
-  /** Defer from-home hint until the page loader has revealed the grid. */
-  let collectionGallerySwipeHintFromHomePending = false;
-  let collectionSwipeHintUserInputGuardInstalled = false;
+
+  function hasLearnedCollectionSwipe() {
+    try {
+      return localStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function markCollectionSwipeLearned() {
+    try {
+      localStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }
 
   /** Mobile-only swipe hint (narrow viewport — not desktop coarse-pointer emulation). */
   function isCollectionGallerySwipeHintViewport() {
@@ -18393,47 +18406,13 @@
     return document.body.classList.contains("home-page");
   }
 
+  /** No-op stubs: `?from=home` force-replay was removed (learned-once is now the single rule). */
   function appendCollectionFromHomeQuery(href) {
-    try {
-      const u = new URL(href, globalThis.location.origin);
-      u.searchParams.set(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY, COLLECTION_SWIPE_HINT_FROM_HOME_VALUE);
-      return `${u.pathname}${u.search}${u.hash}`;
-    } catch {
-      const join = href.includes("?") ? "&" : "?";
-      return `${href}${join}${COLLECTION_SWIPE_HINT_FROM_HOME_QUERY}=${COLLECTION_SWIPE_HINT_FROM_HOME_VALUE}`;
-    }
+    return href;
   }
-
-  function noteCollectionEntryFromHomePage() {
-    try {
-      sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-  }
-
-  /** URL `?from=home` or session flag set before leaving the homepage. */
+  function noteCollectionEntryFromHomePage() {}
   function consumeCollectionEntryFromHomePage() {
-    let fromHome = false;
-    try {
-      const u = new URL(globalThis.location.href);
-      if (u.searchParams.get(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY) === COLLECTION_SWIPE_HINT_FROM_HOME_VALUE) {
-        fromHome = true;
-        u.searchParams.delete(COLLECTION_SWIPE_HINT_FROM_HOME_QUERY);
-        globalThis.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
-      }
-    } catch {
-      /* ignore */
-    }
-    try {
-      if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY) === "1") {
-        fromHome = true;
-        sessionStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_FROM_HOME_KEY);
-      }
-    } catch {
-      /* ignore */
-    }
-    return fromHome;
+    return false;
   }
 
   /** @param {HTMLElement} media */
@@ -18500,23 +18479,6 @@
     timer = globalThis.setTimeout(() => finish(allReady()), timeoutMs);
   }
 
-  /** User scrolled or touched the PLP before the hint — skip so we never fight active gestures. */
-  function installCollectionSwipeHintUserInputGuard() {
-    if (collectionSwipeHintUserInputGuardInstalled) return;
-    collectionSwipeHintUserInputGuardInstalled = true;
-    const main = document.getElementById("main");
-    if (!(main instanceof HTMLElement)) return;
-    const cancel = () => {
-      if (collectionGallerySwipeHintFromHomePlayed) return;
-      collectionGallerySwipeHintToken++;
-      collectionGallerySwipeHintFromHomePlayed = true;
-      collectionGallerySwipeHintFromHomePending = false;
-    };
-    main.addEventListener("touchstart", cancel, { once: true, passive: true, capture: true });
-    main.addEventListener("wheel", cancel, { once: true, passive: true, capture: true });
-    main.addEventListener("scroll", cancel, { once: true, passive: true, capture: true });
-  }
-
   /**
    * @param {HTMLElement} media
    * @param {HTMLElement} carousel
@@ -18573,19 +18535,9 @@
       carousel.classList.remove("card__gallery-carousel--hint-active");
     };
 
-    const forceFromHomeEntry =
-      collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed;
-    const persistSessionDismiss = !forceFromHomeEntry;
-
     const dismissHint = () => {
       collectionGallerySwipeHintToken++;
-      if (persistSessionDismiss) {
-        try {
-          sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
-        } catch {
-          /* ignore */
-        }
-      }
+      markCollectionSwipeLearned();
       finish();
     };
 
@@ -18593,12 +18545,6 @@
     carousel.addEventListener("touchstart", dismissHint, { once: true, passive: true });
     document.getElementById("main")?.addEventListener("scroll", dismissHint, { once: true, passive: true });
     document.getElementById("grid")?.addEventListener("touchstart", dismissHint, { once: true, passive: true });
-
-    const markFromHomePlayed = () => {
-      if (!collectionGallerySwipeHintEntryFromHome) return;
-      collectionGallerySwipeHintFromHomePlayed = true;
-      collectionGallerySwipeHintFromHomePending = false;
-    };
 
     const run = (layoutTries = 16) => {
       if (token !== collectionGallerySwipeHintToken) return;
@@ -18620,14 +18566,7 @@
         track.style.transition = `transform ${returnMs}ms ${ease}`;
         track.style.transform = "translate3d(0, 0, 0)";
         window.setTimeout(() => {
-          if (persistSessionDismiss) {
-            try {
-              sessionStorage.setItem(COLLECTION_GALLERY_SWIPE_HINT_KEY, "1");
-            } catch {
-              /* ignore */
-            }
-          }
-          markFromHomePlayed();
+          markCollectionSwipeLearned();
           finish();
         }, returnMs + 40);
       }, peekMs + 30);
@@ -18640,28 +18579,16 @@
    * Mobile PLP: nudge first swipeable card (always when entering from home; otherwise once per session).
    * @param {{ fromHomeEntry?: boolean }} [opts]
    */
-  function scheduleCollectionGallerySwipeHint(opts = {}) {
+  function scheduleCollectionGallerySwipeHint() {
     if (!document.body.classList.contains("collection-page")) return;
     if (!isCollectionGallerySwipeHintViewport()) return;
     if (document.body.classList.contains("collection-ui--search-results-plp")) return;
-
-    const forceFromHomeEntry =
-      Boolean(opts.fromHomeEntry) ||
-      (collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed);
-
-    if (!forceFromHomeEntry) {
-      try {
-        if (sessionStorage.getItem(COLLECTION_GALLERY_SWIPE_HINT_KEY) === "1") return;
-      } catch {
-        /* ignore */
-      }
-    } else {
-      installCollectionSwipeHintUserInputGuard();
-    }
+    if (isTwAdminMode()) return;
+    if (hasLearnedCollectionSwipe()) return;
 
     const token = ++collectionGallerySwipeHintToken;
-    const maxTries = forceFromHomeEntry ? 28 : 12;
-    const retryMs = forceFromHomeEntry ? 32 : 100;
+    const maxTries = 12;
+    const retryMs = 100;
 
     const attempt = (triesLeft = maxTries) => {
       if (token !== collectionGallerySwipeHintToken) return;
@@ -18676,10 +18603,6 @@
         return;
       }
       if (tryPlayCollectionGallerySwipeHint(media, carousel, token)) return;
-      if (forceFromHomeEntry) {
-        if (triesLeft > 0) requestAnimationFrame(() => attempt(triesLeft - 1));
-        return;
-      }
       whenMobileGalleryCarouselFramesReady(
         carousel,
         1,
@@ -18696,37 +18619,18 @@
       );
     };
 
-    const startAttempt = () => attempt();
-
-    if (forceFromHomeEntry && !document.body.classList.contains("tw-page-loader-revealed")) {
-      const waitForReveal = (triesLeft = 24) => {
-        if (token !== collectionGallerySwipeHintToken) return;
-        if (document.body.classList.contains("tw-page-loader-revealed")) {
-          startAttempt();
-          return;
-        }
-        if (triesLeft > 0) requestAnimationFrame(() => waitForReveal(triesLeft - 1));
-        else startAttempt();
-      };
-      waitForReveal();
-      return;
-    }
-
-    startAttempt();
+    attempt();
   }
 
-  /** Clears the once-per-session flag and replays the hint (console: `twReplayCollectionSwipeHint()`). */
+  /** Clears the learned flag and replays the hint (console: `twReplayCollectionSwipeHint()`). */
   function replayCollectionGallerySwipeHint() {
     collectionGallerySwipeHintToken++;
-    collectionGallerySwipeHintEntryFromHome = true;
-    collectionGallerySwipeHintFromHomePlayed = false;
-    collectionGallerySwipeHintFromHomePending = false;
     try {
-      sessionStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_KEY);
+      localStorage.removeItem(COLLECTION_GALLERY_SWIPE_HINT_KEY);
     } catch {
       /* ignore */
     }
-    scheduleCollectionGallerySwipeHint({ fromHomeEntry: true });
+    scheduleCollectionGallerySwipeHint();
   }
 
   if (typeof globalThis !== "undefined") {
@@ -20218,11 +20122,7 @@
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
     syncToolbarActiveFilterChips();
-    if (collectionGallerySwipeHintEntryFromHome && !collectionGallerySwipeHintFromHomePlayed) {
-      collectionGallerySwipeHintFromHomePending = true;
-    } else {
-      scheduleCollectionGallerySwipeHint();
-    }
+    scheduleCollectionGallerySwipeHint();
   }
 
   function getCollectionCountLineLayout(visible, total, searchNorm) {
@@ -27826,9 +27726,7 @@
       document.body.classList.contains("item-page") || Boolean(document.getElementById("item-page-main"));
     const isLoginPage = isTwLoginPage();
     const fastCollectionPaint = Boolean(document.body?.dataset?.twFastCollectionPaint);
-    const fastCollectionFromHome =
-      isCollectionGridPage &&
-      (collectionGallerySwipeHintEntryFromHome || collectionGallerySwipeHintFromHomePending);
+    const fastCollectionFromHome = false;
     /* Collection should feel immediate: keep brand cue but shorten enforced loader timings. */
     const minMs = fastCollectionFromHome
       ? 80
@@ -28183,13 +28081,6 @@
       await runItemDetailPage(itemRoot, pageId);
     } else {
       normalizeCollectionTopLanding();
-      collectionGallerySwipeHintEntryFromHome = consumeCollectionEntryFromHomePage();
-      collectionGallerySwipeHintFromHomePlayed = false;
-      collectionGallerySwipeHintFromHomePending = false;
-      collectionSwipeHintUserInputGuardInstalled = false;
-      if (collectionGallerySwipeHintEntryFromHome) {
-        installCollectionSwipeHintUserInputGuard();
-      }
       applyCollectionPathFromUrl();
       consumeCollectionBrowseStateForReturn();
       syncCollectionUrlFromBrowseState({ replace: true });
@@ -28230,14 +28121,6 @@
     }
     } finally {
       await completeTwInitialPageLoader(twLoaderPageStarted);
-      if (
-        collectionGallerySwipeHintFromHomePending &&
-        collectionGallerySwipeHintEntryFromHome &&
-        !collectionGallerySwipeHintFromHomePlayed
-      ) {
-        collectionGallerySwipeHintFromHomePending = false;
-        scheduleCollectionGallerySwipeHint({ fromHomeEntry: true });
-      }
     }
     wireEvents();
     syncOutfitSaveButtonLabel();
