@@ -7711,6 +7711,95 @@
   let collectionOverridesState = {};
   /** @type {Set<string>} */
   let collectionHiddenState = new Set();
+  let collectionAppStateCloudHydrated = false;
+  let collectionAppStateMutationVersion = 0;
+  /** @type {Map<string, object | null>} */
+  let collectionPendingOverrideChanges = new Map();
+  /** @type {Set<string>} */
+  let collectionPendingHiddenAdds = new Set();
+  /** @type {Set<string>} */
+  let collectionPendingHiddenDeletes = new Set();
+
+  function collectionAppStateHasPendingCloudChanges() {
+    return (
+      collectionPendingOverrideChanges.size > 0 ||
+      collectionPendingHiddenAdds.size > 0 ||
+      collectionPendingHiddenDeletes.size > 0
+    );
+  }
+
+  function clearPendingCollectionAppStateChanges() {
+    collectionPendingOverrideChanges = new Map();
+    collectionPendingHiddenAdds = new Set();
+    collectionPendingHiddenDeletes = new Set();
+  }
+
+  function collectionOverrideValueSig(value) {
+    try {
+      return JSON.stringify(value ?? null);
+    } catch {
+      return String(value ?? "");
+    }
+  }
+
+  function recordPendingCollectionOverrideChanges(prev, next) {
+    const prevMap = prev && typeof prev === "object" && !Array.isArray(prev) ? prev : {};
+    const nextMap = next && typeof next === "object" && !Array.isArray(next) ? next : {};
+    const ids = new Set([...Object.keys(prevMap), ...Object.keys(nextMap)]);
+    let changed = false;
+    for (const id of ids) {
+      const prevHas = Object.prototype.hasOwnProperty.call(prevMap, id);
+      const nextHas = Object.prototype.hasOwnProperty.call(nextMap, id);
+      const prevVal = prevHas ? prevMap[id] : null;
+      const nextVal = nextHas ? nextMap[id] : null;
+      if (prevHas === nextHas && collectionOverrideValueSig(prevVal) === collectionOverrideValueSig(nextVal)) continue;
+      changed = true;
+      if (!collectionAppStateCloudHydrated && isSupabaseReady()) {
+        collectionPendingOverrideChanges.set(
+          id,
+          nextHas && nextVal && typeof nextVal === "object" && !Array.isArray(nextVal) ? { ...nextVal } : null
+        );
+      }
+    }
+    if (changed) collectionAppStateMutationVersion += 1;
+  }
+
+  function recordPendingCollectionHiddenChanges(prev, next) {
+    const prevSet = prev instanceof Set ? prev : new Set();
+    const nextSet = next instanceof Set ? next : new Set();
+    let changed = false;
+    for (const id of prevSet) {
+      if (nextSet.has(id)) continue;
+      changed = true;
+      if (!collectionAppStateCloudHydrated && isSupabaseReady()) {
+        collectionPendingHiddenAdds.delete(id);
+        collectionPendingHiddenDeletes.add(id);
+      }
+    }
+    for (const id of nextSet) {
+      if (prevSet.has(id)) continue;
+      changed = true;
+      if (!collectionAppStateCloudHydrated && isSupabaseReady()) {
+        collectionPendingHiddenDeletes.delete(id);
+        collectionPendingHiddenAdds.add(id);
+      }
+    }
+    if (changed) collectionAppStateMutationVersion += 1;
+  }
+
+  function mergePendingCollectionAppStateWithCloud(overrides, hidden) {
+    const mergedOverrides =
+      overrides && typeof overrides === "object" && !Array.isArray(overrides) ? { ...overrides } : {};
+    for (const [id, value] of collectionPendingOverrideChanges) {
+      if (value == null) delete mergedOverrides[id];
+      else mergedOverrides[id] = { ...value };
+    }
+
+    const mergedHidden = new Set(Array.isArray(hidden) ? hidden.map((x) => String(x)) : []);
+    for (const id of collectionPendingHiddenDeletes) mergedHidden.delete(id);
+    for (const id of collectionPendingHiddenAdds) mergedHidden.add(id);
+    return { overrides: mergedOverrides, hidden: [...mergedHidden] };
+  }
 
   function readCollectionOverridesFromLocalStorageRaw() {
     try {
@@ -7844,6 +7933,7 @@
 
   async function flushWardrobeAppStateToSupabase() {
     if (!isSupabaseReady()) return;
+    await ensureCollectionAppStateReadyForCloudWrite();
     const updated_at = new Date().toISOString();
     const hidden = [...collectionHiddenState];
     const overrides = collectionOverridesState;
@@ -7885,13 +7975,37 @@
     }
   }
 
+  async function ensureCollectionAppStateReadyForCloudWrite() {
+    if (collectionAppStateCloudHydrated || !isSupabaseReady()) return;
+    const { data, error } = await fetchWardrobeAppStateFromCloud();
+    if (error) throw error;
+    if (!data) {
+      collectionAppStateCloudHydrated = true;
+      clearPendingCollectionAppStateChanges();
+      return;
+    }
+
+    const parsed = parseWardrobeAppStateRow(/** @type {Record<string, unknown>} */ (data));
+    const merged = collectionAppStateHasPendingCloudChanges()
+      ? mergePendingCollectionAppStateWithCloud(parsed.overrides, parsed.hidden)
+      : parsed;
+    installCollectionStateFromPayload(merged.overrides, merged.hidden);
+    collectionAppStateCloudHydrated = true;
+    clearPendingCollectionAppStateChanges();
+  }
+
   async function hydrateCollectionStateFromCloud() {
     if (!isSupabaseReady()) return;
+    const startedMutationVersion = collectionAppStateMutationVersion;
 
     const lsOv = readCollectionOverridesFromLocalStorageRaw();
     const lsH = readCollectionHiddenIdsFromLocalStorageRaw();
 
     const { data, error } = await fetchWardrobeAppStateFromCloud();
+
+    if (startedMutationVersion !== collectionAppStateMutationVersion) {
+      return;
+    }
 
     if (error) {
       console.warn("wardrobe_app_state:", error);
@@ -7902,6 +8016,8 @@
     if (!data) {
       installCollectionStateFromPayload(lsOv, lsH);
       applySeasonNavFromLocalStorage();
+      collectionAppStateCloudHydrated = true;
+      clearPendingCollectionAppStateChanges();
       try {
         await flushWardrobeAppStateToSupabase();
         localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
@@ -7928,6 +8044,8 @@
 
     installCollectionStateFromPayload(overrides, hidden);
     applySeasonNavFromLocalStorage();
+    collectionAppStateCloudHydrated = true;
+    clearPendingCollectionAppStateChanges();
 
     if (migrated) {
       try {
@@ -7972,7 +8090,10 @@
   }
 
   async function saveCollectionOverrides(map) {
-    collectionOverridesState = map && typeof map === "object" && !Array.isArray(map) ? { ...map } : {};
+    const prev = collectionOverridesState;
+    const next = map && typeof map === "object" && !Array.isArray(map) ? { ...map } : {};
+    recordPendingCollectionOverrideChanges(prev, next);
+    collectionOverridesState = next;
     if (!isSupabaseReady()) {
       try {
         localStorage.setItem(ITEM_COLLECTION_OVERRIDES_KEY, JSON.stringify(collectionOverridesState));
@@ -8016,7 +8137,9 @@
   }
 
   async function saveCollectionHiddenIds(set) {
-    collectionHiddenState = new Set(set);
+    const next = new Set(set);
+    recordPendingCollectionHiddenChanges(collectionHiddenState, next);
+    collectionHiddenState = next;
     if (!isSupabaseReady()) {
       try {
         localStorage.setItem(COLLECTION_HIDDEN_IDS_KEY, JSON.stringify([...collectionHiddenState]));
