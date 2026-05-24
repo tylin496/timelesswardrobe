@@ -2562,6 +2562,7 @@
 
   /** @param {string} [nextPath] */
   function redirectToTwLogin(nextPath) {
+    rememberTwLoginNextPath(nextPath);
     try {
       globalThis.location.assign(new URL(twLoginUrl(nextPath), globalThis.location.origin).href);
     } catch {
@@ -2572,6 +2573,14 @@
   /** @returns {string} Same-origin path after successful `/login`. */
   function twLoginNextUrl() {
     try {
+      // Persisted destination wins — survives OAuth redirects that drop `?next=`.
+      const stored = consumeTwLoginNextPath();
+      if (stored) {
+        const su = new URL(stored, globalThis.location.origin);
+        if (su.origin === globalThis.location.origin && su.pathname.startsWith("/") && su.pathname !== "/login") {
+          return `${su.pathname}${su.search}${su.hash}`;
+        }
+      }
       const raw = String(new URLSearchParams(globalThis.location.search).get("next") ?? "").trim();
       if (raw) {
         const u = new URL(raw, globalThis.location.origin);
@@ -2676,6 +2685,35 @@
   }
 
   const TW_LOGIN_OAUTH_PENDING_KEY = "tw-login-oauth-pending-v1";
+  /*
+   * Supabase OAuth redirects back to a registered base URL and can drop the
+   * `?next=` query, so the post-login destination is persisted here and read
+   * back in `twLoginNextUrl()` — this survives the round-trip regardless of
+   * what the provider does to the redirect URL's query string.
+   */
+  const TW_LOGIN_NEXT_KEY = "tw-login-next-path-v1";
+
+  /** @param {string} nextPath same-origin path to return to after sign-in */
+  function rememberTwLoginNextPath(nextPath) {
+    try {
+      const raw = String(nextPath ?? "").trim();
+      if (!raw || !raw.startsWith("/")) return;
+      globalThis.sessionStorage?.setItem(TW_LOGIN_NEXT_KEY, raw);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** @returns {string} stored post-login path, or "" — clears it on read. */
+  function consumeTwLoginNextPath() {
+    try {
+      const raw = String(globalThis.sessionStorage?.getItem(TW_LOGIN_NEXT_KEY) ?? "").trim();
+      if (raw) globalThis.sessionStorage?.removeItem(TW_LOGIN_NEXT_KEY);
+      return raw;
+    } catch {
+      return "";
+    }
+  }
 
   function markTwLoginOAuthPending() {
     try {
@@ -2860,6 +2898,11 @@
       return;
     }
     if (itemIdForEditAfter) twPendingItemEditId = String(itemIdForEditAfter).trim();
+    /* Capture where to land after the OAuth round-trip (query may not survive). */
+    const intendedNext = isTwLoginPage()
+      ? String(new URLSearchParams(globalThis.location.search).get("next") ?? "").trim()
+      : `${globalThis.location.pathname || "/"}${globalThis.location.search || ""}`;
+    if (intendedNext) rememberTwLoginNextPath(intendedNext);
     const redirectTo = twOAuthRedirectUrl();
     markTwLoginOAuthPending();
     /** Force Google account picker when there is no editor session. */
@@ -5033,9 +5076,10 @@
     }, ms);
   }
 
-  /** Plain numbered list for editors: `1. Brand Name Category Season #hex Size Weight spec` */
+  /** Plain numbered list for editors: `1. Brand Name Category Season #hex Size Weight Purchased date` */
   function wardrobePlainListLineParts(item) {
     if (!item || typeof item !== "object") return [];
+    const purchaseDate = String(item.purchaseDate ?? "").trim();
     return [
       String(item.brand ?? "").trim(),
       displayNameWithoutLeadingColour(item),
@@ -5044,6 +5088,7 @@
       itemColourCode(item),
       String(item.size ?? "").trim(),
       String(item.weight ?? "").trim(),
+      purchaseDate ? `Purchased ${formatPurchaseDateForDisplay(purchaseDate)}` : "",
     ].filter(Boolean);
   }
 
@@ -17484,6 +17529,48 @@
     return { slots };
   }
 
+  /** @type {Map<string, Promise<boolean>>} */
+  const itemEditImageUrlLoadableCache = new Map();
+
+  /**
+   * Browser-truth validation for existing editor URLs. A broken gallery path should not
+   * become the saved cover just because a tile was reordered.
+   * @param {string} url
+   * @returns {Promise<boolean>}
+   */
+  function itemEditImageUrlLooksLoadable(url) {
+    const raw = String(url ?? "").trim();
+    if (!raw) return Promise.resolve(false);
+    if (!/^https?:\/\//i.test(raw) && !raw.startsWith("/") && !raw.startsWith("data:") && !raw.startsWith("blob:")) {
+      return Promise.resolve(true);
+    }
+    const key = raw;
+    const cached = itemEditImageUrlLoadableCache.get(key);
+    if (cached) return cached;
+    const p = new Promise((resolve) => {
+      const img = new Image();
+      let done = false;
+      const finish = (ok) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        img.onload = null;
+        img.onerror = null;
+        resolve(Boolean(ok));
+      };
+      const timer = setTimeout(() => finish(false), 8000);
+      img.onload = () => finish(true);
+      img.onerror = () => finish(false);
+      img.src = raw;
+      if (img.complete && img.naturalWidth > 0) finish(true);
+    }).then((ok) => {
+      if (!ok) itemEditImageUrlLoadableCache.delete(key);
+      return ok;
+    });
+    itemEditImageUrlLoadableCache.set(key, p);
+    return p;
+  }
+
   /**
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
@@ -17493,7 +17580,6 @@
   async function materializeItemEditPhotoSlots(slots, itemId, setMsg, opts = {}) {
     const variantKey = String(opts.variantKey ?? "").trim();
     const prevCover = String(opts.previousCover ?? "").trim();
-    const debugSapphire = String(itemId ?? "").trim() === "sapphire-three-stone-ring";
     let image = "";
     /** @type {string[]} */
     const gallery = [];
@@ -17502,10 +17588,22 @@
       let url = "";
       if (s.kind === "url") {
         url = String(s.url ?? "").trim();
+        if (url) {
+          const ok = await itemEditImageUrlLooksLoadable(url);
+          if (!ok) {
+            const where = i === 0 ? "cover" : `gallery image #${i}`;
+            setMsg(`Skipped missing existing ${where}. Remove or replace the broken tile, then save again if needed.`, true);
+            if (i === 0 && opts.keepCoverOnFailure && prevCover) {
+              image = prevCover;
+            }
+            continue;
+          }
+        }
       } else if (s.kind === "file" && s.file) {
         try {
+          const outputIndex = image ? gallery.length + 1 : 0;
           if (isSupabaseReady()) {
-            if (i === 0) {
+            if (outputIndex === 0) {
               url = variantKey
                 ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
                 : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
@@ -17513,34 +17611,35 @@
               url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
                 type: "variant_gallery",
                 key: variantKey,
-                index: i,
+                index: outputIndex,
               });
             } else {
               url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
                 type: "main_gallery",
-                index: i,
+                index: outputIndex,
               });
             }
           } else {
-            url = await fileToStorageDataUrl(s.file, { preferJpeg: i > 0 });
+            url = await fileToStorageDataUrl(s.file, { preferJpeg: outputIndex > 0 });
           }
         } catch (err) {
           console.warn(err);
+          const outputIndex = image ? gallery.length + 1 : 0;
           const where =
-            i === 0
+            outputIndex === 0
               ? variantKey
                 ? `variant cover (${variantKey})`
                 : "main cover"
-              : `gallery image #${i}`;
+              : `gallery image #${outputIndex}`;
           setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this file.`, true);
-          if (i === 0 && opts.keepCoverOnFailure && prevCover) {
+          if (outputIndex === 0 && opts.keepCoverOnFailure && prevCover) {
             image = prevCover;
           }
           continue;
         }
       }
       if (!url) continue;
-      if (i === 0) image = url;
+      if (!image) image = url;
       else gallery.push(url);
     }
     return { image, gallery: dedupeGalleryUrls(image, gallery, 12) };
@@ -27916,7 +28015,7 @@
             ? 420
             : isItemPdpPage
               ? 180
-              : 1000;
+              : 400;
     const logoInMs = fastCollectionFromHome
       ? 60
       : fastCollectionPaint
@@ -27927,7 +28026,7 @@
             ? 280
             : isItemPdpPage
               ? 120
-              : 1000;
+              : 250;
     const fadeOutMs = fastCollectionFromHome
       ? 140
       : fastCollectionPaint
@@ -27938,7 +28037,7 @@
             ? 280
             : isItemPdpPage
               ? 240
-              : 520;
+              : 280;
     /* Item PDP: one reveal step (loader out) — skip second main fade that felt like a double flash. */
     const mainInMs = fastCollectionFromHome
       ? 100
@@ -27950,7 +28049,7 @@
             ? 220
             : isItemPdpPage
               ? 0
-              : 500;
+              : 200;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
