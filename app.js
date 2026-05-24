@@ -5014,6 +5014,8 @@
 
   const ITEM_DETAIL_COPY_AI_SUCCESS_MS = 1650;
   let itemDetailCopyAiSuccessTimer = 0;
+  const COLLECTION_COPY_SUCCESS_MS = 1450;
+  let collectionCopySuccessTimer = 0;
 
   function playItemDetailCopyAiSuccess(btn) {
     if (!(btn instanceof HTMLButtonElement)) return;
@@ -5096,9 +5098,25 @@
       return;
     }
     const text = buildWardrobePlainNumberedList(list);
-    await writeTextToClipboard(text, {
-      successToast: `Copied ${list.length} piece${list.length === 1 ? "" : "s"} as plain text.`,
-    });
+    const ok = await writeTextToClipboard(text);
+    if (ok) playCollectionCopySuccess();
+  }
+
+  function playCollectionCopySuccess() {
+    const btn = document.getElementById("collection-copy-plain-list");
+    if (!(btn instanceof HTMLButtonElement)) return;
+    if (collectionCopySuccessTimer) {
+      clearTimeout(collectionCopySuccessTimer);
+      collectionCopySuccessTimer = 0;
+    }
+    btn.classList.remove("collection-actions__copy-list--copied");
+    void btn.offsetWidth;
+    btn.classList.add("collection-actions__copy-list--copied");
+    const ms = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 800 : COLLECTION_COPY_SUCCESS_MS;
+    collectionCopySuccessTimer = window.setTimeout(() => {
+      btn.classList.remove("collection-actions__copy-list--copied");
+      collectionCopySuccessTimer = 0;
+    }, ms);
   }
 
   function syncCopyFilteredListButton(count) {

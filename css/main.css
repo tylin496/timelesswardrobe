@@ -18234,6 +18234,11 @@ a.item-detail__breadcrumb-current {
   text-underline-offset: 0.22em;
   text-decoration-thickness: 1px;
   cursor: pointer;
+  position: relative;
+  transition:
+    color 0.18s var(--ease-out),
+    opacity 0.18s var(--ease-out),
+    text-decoration-color 0.18s var(--ease-out);
 }
 
 .collection-actions__copy-list:hover,
@@ -18256,8 +18261,63 @@ a.item-detail__breadcrumb-current {
   cursor: not-allowed;
 }
 
+.collection-actions__copy-list-text {
+  display: inline-block;
+  transition:
+    opacity 0.22s var(--ease-out),
+    transform 0.22s var(--ease-out);
+}
+
+.collection-actions__copy-list--copied {
+  color: var(--ink);
+  opacity: 1;
+  text-decoration-color: currentColor;
+}
+
+.collection-actions__copy-list--copied .collection-actions__copy-list-text {
+  opacity: 0;
+  transform: translateY(-0.18rem);
+}
+
+.collection-actions__copy-list--copied::after {
+  content: "Copied";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.12rem;
+  color: currentColor;
+  opacity: 0;
+  animation: collection-copy-confirm 1.45s var(--ease-luxe) both;
+}
+
 .collection-actions__copy-list #collection-copy-plain-list-count:not([hidden])::before {
   content: " · ";
+}
+
+@keyframes collection-copy-confirm {
+  0% {
+    opacity: 0;
+    transform: translateY(0.18rem);
+  }
+  16%,
+  78% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.12rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-actions__copy-list-text {
+    transition: none;
+  }
+
+  .collection-actions__copy-list--copied::after {
+    animation-duration: 0.8s;
+    transform: none;
+  }
 }
 
 body.collection-page .collection-container > .collection-actions {
