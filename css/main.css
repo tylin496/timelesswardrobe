@@ -13385,7 +13385,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 #grid .card__media--gallery-swipe {
-  touch-action: pan-y pinch-zoom;
+  touch-action: pan-x pinch-zoom;
   /* Track owns per-frame plates — static card bg must not show through while swiping. */
   background-color: transparent;
   background-image: none;
@@ -13407,7 +13407,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   min-height: 0;
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: pan-y pinch-zoom;
+  touch-action: pan-x pinch-zoom;
 }
 
 #grid .card__media--gallery-swipe .card__gallery-carousel-track {
@@ -15003,7 +15003,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 @media (max-width: 900px) {
   .item-detail__gallery-stage.item-detail__gallery-stage--swipe {
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-x pinch-zoom;
     background-color: var(--media-cutout-canvas);
     background-image: var(--collection-grid-media-bg);
     background-size: cover;
@@ -15025,7 +15025,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
     min-height: 0;
     overflow: hidden;
     overscroll-behavior: none;
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-x pinch-zoom;
   }
 
   .item-detail__gallery-stage--swipe .item-detail__gallery-carousel-track {
@@ -15096,7 +15096,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 @media (hover: none), (pointer: coarse), (max-width: 900px) {
   .item-detail__gallery-stage.item-detail__media--hero-view {
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-x pinch-zoom;
   }
 }
 
