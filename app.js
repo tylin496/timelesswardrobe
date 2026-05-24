@@ -1213,8 +1213,8 @@
       "</svg>",
     aiBrief:
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-      '<path d="M12 2.5l1.1 3.4 3.4 1.1-3.4 1.1L12 11.5l-1.1-3.4-3.4-1.1 3.4-1.1L12 2.5z" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round"/>' +
-      '<path d="M5.5 17.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2zM18 14.5l.55 1.6 1.6.55-1.6.55L18 18.7l-.55-1.6-1.6-.55 1.6-.55L18 14.5z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/>' +
+      '<path d="M10.5 4Q11.2 11.3 17.5 13Q11.2 14.7 10.5 22Q9.8 14.7 3.5 13Q9.8 11.3 10.5 4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+      '<path d="M18.7 5Q19 6.7 20.7 7Q19 7.3 18.7 9Q18.4 7.3 16.7 7Q18.4 6.7 18.7 5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' +
       "</svg>",
     secondaryColour:
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
