@@ -17,7 +17,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "navy-double-breasted-blazer",
     "category": "Jackets",
-    "brand": "Acme Cultum",
+    "brand": "ACME Cultum",
     "name": "Navy Double-Breasted  Blazer",
     "season": "A/W",
     "colour": "Navy",
@@ -332,7 +332,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "kingsman-0847-sunglasses",
     "category": "Eyewear",
-    "brand": "Cutler And Gross",
+    "brand": "Cutler and Gross",
     "name": "Kingsman 0847 Sunglasses",
     "season": "All-season",
     "colour": "Black, Brown Lenses",
@@ -392,7 +392,7 @@ const WARDROBE_ITEMS = [
     "id": "dw-5600",
     "pillar": "Collections",
     "category": "Beater",
-    "brand": "G-Shock",
+    "brand": "G-SHOCK",
     "name": "DW-5600",
     "season": "All-season",
     "purchaseDate": "2020-04-09",
@@ -409,7 +409,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "cable-knit-polo",
     "category": "Shirts",
-    "brand": "Gu",
+    "brand": "GU",
     "name": "Cable-Knit Polo",
     "season": "S/S",
     "colour": "Wine (White Striped Trim)",
@@ -430,7 +430,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "wide-straight-trousers",
     "category": "Bottoms",
-    "brand": "Gu",
+    "brand": "GU",
     "name": "Wide-Straight Trousers",
     "season": "All-season",
     "colour": "Tan",
@@ -942,7 +942,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/cover.png",
     "gallery": [
       "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/01.jpg",
-      "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/03.webp"
+      "/images/wardrobe/cordovan-l-zip-wallet-regular-price/main/gallery/02.png"
     ],
     "notes": "Crafted from aniline-dyed Japanese cordovan, this minimalist wallet offers sleek design and efficient functionality. The luxuriously smooth leather has striking presence in a streamlined profile that slips effortlessly into any pocket. Over time, it develops a rich, gem-like luster—the perfect companion for an intentional lifestyle.",
     "metadata": {

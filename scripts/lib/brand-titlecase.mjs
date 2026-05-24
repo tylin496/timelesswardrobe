@@ -7,6 +7,19 @@ export function titleCaseBrand(raw) {
   const s = String(raw ?? "").trim();
   if (!s) return s;
 
+  const exactBrandNames = new Map([
+    ["acme cultum", "ACME Cultum"],
+    ["cutler and gross", "Cutler and Gross"],
+    ["g-shock", "G-SHOCK"],
+    ["gu", "GU"],
+    ["h&m", "H&M"],
+    ["l.l.bean", "L.L.Bean"],
+    ["private white vc", "Private White VC"],
+    ["uniqlo : c", "Uniqlo : C"],
+  ]);
+  const exact = exactBrandNames.get(s.toLocaleLowerCase("en"));
+  if (exact) return exact;
+
   function titleToken(token) {
     if (!token) return token;
     const lower = token.toLocaleLowerCase("en");
