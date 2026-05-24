@@ -173,6 +173,11 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     return;
   }
   const COLLECTION_DIVISION_SLUGS = new Set(["clothing", "accessories", "watches", "fragrance"]);
+  if (pathname === "/collection/login") {
+    res.writeHead(302, { Location: "/login" });
+    res.end();
+    return;
+  }
   let rel = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
   if (pathname === "/item.html" || pathname === "/collection/item.html") {
     rel = "item.html";

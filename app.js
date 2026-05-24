@@ -5101,6 +5101,30 @@
     });
   }
 
+  function syncCopyFilteredListButton(count) {
+    const btn = document.getElementById("collection-copy-plain-list");
+    if (!(btn instanceof HTMLButtonElement)) return;
+    const n = Math.max(
+      0,
+      Number(count == null ? getWardrobeItemsForPlainListCopy().length : count) || 0
+    );
+    const countEl = document.getElementById("collection-copy-plain-list-count");
+    btn.disabled = n === 0;
+    btn.title = n
+      ? `Copy ${n} currently filtered piece${n === 1 ? "" : "s"} in this sort order`
+      : "No pieces match the current filters";
+    btn.setAttribute(
+      "aria-label",
+      n
+        ? `Copy ${n} currently filtered wardrobe piece${n === 1 ? "" : "s"} as plain text`
+        : "No filtered wardrobe pieces to copy"
+    );
+    if (countEl) {
+      countEl.textContent = String(n);
+      countEl.hidden = n === 0;
+    }
+  }
+
   async function copyItemPlainTextForAi(item, opts = {}) {
     const text = buildItemAiStylingBrief(item);
     const btn = opts.button instanceof HTMLButtonElement ? opts.button : null;
@@ -7599,8 +7623,17 @@
 
   /** @type {boolean} */
   let wardrobeTextLocalExportWired = false;
+  /** @type {boolean} */
+  let wardrobePlainListCopyWired = false;
 
   function installWardrobeTextLocalExportActions() {
+    if (!wardrobePlainListCopyWired) {
+      wardrobePlainListCopyWired = true;
+      document.getElementById("collection-copy-plain-list")?.addEventListener("click", () => {
+        void copyWardrobePlainListToClipboard();
+      });
+    }
+    syncCopyFilteredListButton();
     if (!isTwAdminMode()) return;
     if (wardrobeTextLocalExportWired) return;
     wardrobeTextLocalExportWired = true;
@@ -7609,9 +7642,6 @@
     });
     document.getElementById("local-data-download-text-json")?.addEventListener("click", () => {
       downloadWardrobeTextLocalJson();
-    });
-    document.getElementById("collection-copy-plain-list")?.addEventListener("click", () => {
-      void copyWardrobePlainListToClipboard();
     });
   }
 
@@ -20109,6 +20139,7 @@
     dismissCollectionCardStylingReveal();
     const sorted = getCollectionSortedDataset();
     const filtered = sorted;
+    syncCopyFilteredListButton(sorted.length);
     els.grid.classList.toggle("grid--dense", sorted.length > GRID_DENSE_ANIMATION_THRESHOLD);
     syncCollectionFilterDrawerDoneLabel(filtered.length);
     syncCollectionFilterDrawerCountUi();

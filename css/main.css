@@ -2573,6 +2573,10 @@ body.collection-page .items-toolbar__control-bar-end > .items-toolbar__filter-so
   align-self: center;
 }
 
+body.collection-page .items-toolbar__control-bar-end > .items-toolbar__copy-filtered-list {
+  flex: 0 0 auto;
+}
+
 body.collection-page
   .items-toolbar__actions
   > .items-toolbar__control-bar:has(> .items-toolbar__active-chips--browse[hidden]) {
@@ -8419,6 +8423,72 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 .items-toolbar__filter-sort-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.items-toolbar__copy-filtered-list {
+  @apply m-0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2rem;
+  padding: 0.44rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 28%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 70%, var(--bg));
+  color: var(--tw-brand-signature-navy, #163229);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 1px 0 color-mix(in srgb, #fff 70%, transparent) inset;
+  cursor: pointer;
+  transition:
+    opacity 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out),
+    background-color 0.18s var(--ease-out);
+}
+
+.items-toolbar__copy-filtered-list:hover,
+.items-toolbar__copy-filtered-list:focus-visible {
+  border-color: var(--tw-brand-signature-navy, #163229);
+  background: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 6%, var(--bg));
+}
+
+.items-toolbar__copy-filtered-list:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.items-toolbar__copy-filtered-list:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.items-toolbar__copy-filtered-list-icon,
+.items-toolbar__copy-filtered-list-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.items-toolbar__copy-filtered-list-icon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.items-toolbar__copy-filtered-list-count {
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: var(--tw-brand-signature-navy, #163229);
+  color: #fff;
+  font-size: 0.58rem;
+  letter-spacing: 0;
 }
 
 .items-toolbar__filter-sort-icon {
