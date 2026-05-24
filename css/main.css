@@ -18214,41 +18214,44 @@ a.item-detail__breadcrumb-current {
 
 /* Secondary — quiet text action (left of primary). */
 .collection-actions__copy-list {
-  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2.125rem;
   height: auto;
-  padding: 0.12rem 0.2rem;
-  border: none;
-  border-radius: 0;
+  padding: 0.38rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--line) 90%, transparent);
+  border-radius: 16px;
   background: transparent;
   box-shadow: none;
   font-family: var(--font-sans);
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: none;
+  text-decoration: none;
   line-height: 1.2;
   color: color-mix(in srgb, var(--ink) 62%, var(--ink-muted));
-  opacity: 0.78;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 32%, transparent);
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1px;
   cursor: pointer;
   position: relative;
   transition:
-    color 0.18s var(--ease-out),
-    opacity 0.18s var(--ease-out),
-    text-decoration-color 0.18s var(--ease-out);
+    color 0.18s var(--ease-luxe),
+    border-color 0.18s var(--ease-luxe),
+    background-color 0.18s var(--ease-luxe);
 }
 
-.collection-actions__copy-list:hover,
+.collection-actions__copy-list:hover:not(:disabled),
 .collection-actions__copy-list:focus-visible {
-  opacity: 1;
   color: var(--ink);
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-  text-decoration-color: currentColor;
+  border-color: color-mix(in srgb, var(--ink) 26%, var(--line));
+  background: color-mix(in srgb, var(--bg-elevated) 88%, var(--bg));
+}
+
+.collection-actions__copy-list-icon {
+  flex: 0 0 auto;
+  display: block;
+  opacity: 0.92;
 }
 
 .collection-actions__copy-list:focus-visible {
@@ -18269,12 +18272,14 @@ a.item-detail__breadcrumb-current {
 }
 
 .collection-actions__copy-list--copied {
-  color: var(--ink);
-  opacity: 1;
-  text-decoration-color: currentColor;
+  color: color-mix(in srgb, var(--accent) 88%, var(--ink));
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
 }
 
-.collection-actions__copy-list--copied .collection-actions__copy-list-text {
+.collection-actions__copy-list--copied .collection-actions__copy-list-icon,
+.collection-actions__copy-list--copied .collection-actions__copy-list-text,
+.collection-actions__copy-list--copied #collection-copy-plain-list-count {
   opacity: 0;
   transform: translateY(-0.18rem);
 }
@@ -18282,9 +18287,13 @@ a.item-detail__breadcrumb-current {
 .collection-actions__copy-list--copied::after {
   content: "Copied";
   position: absolute;
-  left: 0.2rem;
-  top: 0.12rem;
-  color: currentColor;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--accent) 88%, var(--ink));
   opacity: 0;
   animation: collection-copy-confirm 1.45s var(--ease-luxe) both;
 }
