@@ -18728,13 +18728,7 @@
     let dragRaf = 0;
     let pendingDragPx = 0;
     let axisLocked = /** @type {null | "h" | "v"} */ (null);
-    let loopClone = /** @type {HTMLElement | null} */ (null);
-    let realFrameCount = 0;
-    let loopAnimating = false;
-
-    const cleanupLoopClone = () => {
-      if (loopClone) { loopClone.remove(); loopClone = null; }
-    };
+    let rewindAnimating = false;
 
     const markSwiping = () => {
       swipeHost.dataset.galleryCarouselSwiping = "1";
@@ -18775,33 +18769,30 @@
 
     const releaseToIndex = (index, animate) => {
       cancelDragRaf();
-      // Seamless loop: animate into the clone (visually = cover), then snap back to real index 0.
-      if (loopClone && index === 0 && animate) {
-        loopAnimating = true;
-        const w = dragWidth || carousel.clientWidth;
+      // Fast-rewind from last frame back to cover: sweep all slides to signal loop.
+      if (animate && index === 0 && touchStartIndex >= api.frameCount() - 1) {
+        rewindAnimating = true;
         track.classList.remove("is-dragging");
-        track.style.transition = "";
-        track.style.transform = `translate3d(-${realFrameCount * w}px, 0, 0)`;
-        let settled = false;
-        const finalize = () => {
-          if (settled) return;
-          settled = true;
-          loopAnimating = false;
-          cleanupLoopClone();
+        track.style.transition = "transform 300ms ease-in";
+        track.style.transform = "translate3d(0%, 0, 0)";
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          rewindAnimating = false;
           api.applyIndex(0, false);
         };
-        track.addEventListener("transitionend", finalize, { once: true });
-        setTimeout(finalize, 500);
+        track.addEventListener("transitionend", finish, { once: true });
+        setTimeout(finish, 500);
         return;
       }
-      cleanupLoopClone();
-      loopAnimating = false;
+      rewindAnimating = false;
       api.applyIndex(index, animate);
     };
 
     const settleFromTouch = (dx, dy) => {
       const w = dragWidth || carousel.clientWidth || 1;
-      const max = Math.max(0, realFrameCount - 1);
+      const max = Math.max(0, api.frameCount() - 1);
       if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
         releaseToIndex(touchStartIndex, false);
         return;
@@ -18811,8 +18802,8 @@
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
         target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
-      // Swiping forward past the last frame wraps back to the cover (index 0).
-      if (target > max) target = 0;
+      if (target > max) target = 0;        // last → cover (fast rewind)
+      else if (target < 0) target = Math.min(1, max); // cover right-swipe → slide 1
       else target = Math.max(0, Math.min(max, target));
       releaseToIndex(target, target !== touchStartIndex);
       markSwipingIfGesture(dx, dy);
@@ -18821,30 +18812,20 @@
     carousel.addEventListener(
       "touchstart",
       (e) => {
-        if (loopAnimating) return;
+        if (rewindAnimating) return;
         if (api.frameCount() < 2) return;
         if (api.blockTouchWhen?.()) return;
         const t = e.touches?.[0];
         if (!t) return;
         cancelDragRaf();
-        cleanupLoopClone();
         axisLocked = null;
         touchActive = true;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
         touchStartIndex = api.readIndex();
-        realFrameCount = api.frameCount();
         dragWidth = carousel.clientWidth || 0;
         track.classList.add("is-dragging");
         track.style.transition = "none";
-        // Clone first slide after last so swiping left from the last frame naturally reveals the cover.
-        if (touchStartIndex >= realFrameCount - 1 && realFrameCount >= 2) {
-          const firstSlide = track.firstElementChild;
-          if (firstSlide) {
-            loopClone = /** @type {HTMLElement} */ (firstSlide.cloneNode(true));
-            track.appendChild(loopClone);
-          }
-        }
       },
       { passive: true }
     );
@@ -18852,7 +18833,7 @@
     carousel.addEventListener(
       "touchmove",
       (e) => {
-        if (!touchActive || realFrameCount < 2) return;
+        if (!touchActive || api.frameCount() < 2) return;
         const t = e.touches?.[0];
         if (!t) return;
         const dx = t.clientX - touchStartX;
@@ -18874,14 +18855,7 @@
 
         e.preventDefault(); // horizontal lock confirmed — suppress page scroll
 
-        const atStart = touchStartIndex <= 0;
         let clampedDx = dx;
-        if (atStart && clampedDx > 0) clampedDx *= 0.22;
-        // No end resistance when clone is active — drag flows naturally into the cover clone.
-        if (!loopClone) {
-          const atEnd = touchStartIndex >= realFrameCount - 1;
-          if (atEnd && clampedDx < 0) clampedDx *= 0.22;
-        }
         const maxDrag = (dragWidth || carousel.clientWidth) * 0.92;
         clampedDx = Math.max(-maxDrag, Math.min(maxDrag, clampedDx));
         scheduleTrackDragOffset(touchStartIndex, clampedDx);
