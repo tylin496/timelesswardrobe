@@ -14008,11 +14008,15 @@
       return;
     }
     const seasonalPool = poolItemsForDrillSubcategories();
-    if (!seasonalPool.length) {
+    let allowed = seasonalPool.length ? drillSubcategoryKeysFromPool(categoryNavFilter, seasonalPool) : [];
+    const knownExtra = KNOWN_RECORD_TYPES_BY_SLOT[categoryNavFilter];
+    if (knownExtra?.length) {
+      allowed = sortRecordTypeKeysForSlot(categoryNavFilter, [...allowed, ...knownExtra]);
+    }
+    if (!allowed.length) {
       clearSubcategoryFilters();
       return;
     }
-    const allowed = drillSubcategoryKeysFromPool(categoryNavFilter, seasonalPool);
     const collapsed = collapseRecordTypeKeysByDisplayLabel(allowed, categoryNavFilter);
     const next = new Set();
     for (let sub of subcategoryFilters) {
