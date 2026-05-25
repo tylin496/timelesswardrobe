@@ -1624,11 +1624,11 @@ body.theme-catalogue .site-header.site-header--overlay {
   pointer-events: none;
 }
 
-/* Desktop — superscript beside “Outfits” (no icon-corner pill). */
+/* Desktop — icon-only hanger (no text label). */
 @media (min-width: 901px) {
   .site-header__styling-board-btn {
     align-items: center;
-    gap: 0.4rem;
+    gap: 0;
   }
 
   .site-header__styling-board-icon {
@@ -1637,73 +1637,24 @@ body.theme-catalogue .site-header.site-header--overlay {
   }
 
   .site-header__styling-board-label {
-    line-height: 1;
+    display: none;
   }
 
-  .site-header__styling-board-label-wrap .site-header__styling-board-count {
-    top: -0.52em;
-    left: 100%;
-    right: auto;
-    margin: 0 0 0 0.42em;
-    min-width: 0;
-    width: auto;
-    height: auto;
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    background-color: transparent;
-    box-shadow: none;
-    outline: none;
-    font-size: 0.58rem;
-    font-weight: 500;
-    -webkit-mask-image: none;
-    mask-image: none;
-    /* Instant with label — no font-weight/opacity transition (avoids hover lag). */
-    transition: none;
+  .site-header__styling-board-label-wrap {
+    display: contents;
   }
 
-  .site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__styling-board-label,
-  .site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"])
-    .site-header__styling-board-label-wrap
-    .site-header__styling-board-count {
-    font-weight: 600;
+  .site-header__styling-board-btn .site-header__styling-board-count {
+    top: 0.14rem;
+    right: 0.12rem;
+    left: auto;
   }
 
-  /* Transparent header — plain superscript (no ring), matches tool glyph opacity. */
+  /* Transparent header — dim badge to match glyph opacity. */
   .site-header--overlay:not(:hover):not(:focus-within)
-    .site-header__styling-board-btn:not(:hover):not(:focus-visible):not([aria-expanded="true"])
-    .site-header__styling-board-label-wrap
+    .site-header__styling-board-btn:not(:hover):not(:focus-visible):not([aria-expanded=”true”])
     .site-header__styling-board-count {
-    color: inherit;
-    -webkit-text-fill-color: currentColor;
     opacity: var(--site-header-tool-glyph-opacity, 0.72);
-    box-shadow: none;
-  }
-
-  .site-header--overlay:has(.site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]))
-    .site-header__styling-board-label-wrap
-    .site-header__styling-board-count {
-    opacity: 1;
-    box-shadow: none;
-  }
-
-  /* Opaque header — green superscript beside label (no mobile pill). */
-  .site-header--solid .site-header__styling-board-label-wrap .site-header__styling-board-count,
-  .site-header--overlay:is(:hover, :focus-within)
-    .site-header__styling-board-label-wrap
-    .site-header__styling-board-count {
-    color: var(--tw-brand-green);
-    -webkit-text-fill-color: currentColor;
-    opacity: 1;
-    background-color: transparent;
-    box-shadow: none;
-    min-width: 0;
-    width: auto;
-    height: auto;
-    padding: 0;
-    border-radius: 0;
-    -webkit-mask-image: none;
-    mask-image: none;
   }
 }
 
@@ -1988,17 +1939,22 @@ body.item-page .site-header__collection-back:hover {
   stroke-linecap: round;
   transform-origin: 8px 8px;
   transform: translateY(0) rotate(0deg);
-  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.22s;
 }
 
 .site-header__menu-btn[aria-expanded="true"] .site-header__menu-glyph-line--top,
 body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line--top {
-  transform: translateY(2.35px) rotate(45deg);
+  transform: translateY(3px) rotate(45deg);
+}
+
+.site-header__menu-btn[aria-expanded="true"] .site-header__menu-glyph-line--mid,
+body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line--mid {
+  opacity: 0;
 }
 
 .site-header__menu-btn[aria-expanded="true"] .site-header__menu-glyph-line--bottom,
 body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line--bottom {
-  transform: translateY(-2.35px) rotate(-45deg);
+  transform: translateY(-3px) rotate(-45deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4601,7 +4557,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-header__saved-btn {
     padding-inline: 0.55rem;
     padding-block: 0;
-    gap: 0.4rem;
+    gap: 0;
   }
 
   /* Search + Outfits — hover: no circular tool chrome; Search underline, Outfits semibold only. */
@@ -14779,6 +14735,117 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   justify-content: center;
   align-items: center;
   gap: 0.5rem 0.75rem;
+}
+
+.account-page-main {
+  max-width: 34rem;
+  text-align: left;
+}
+
+.account-page-main .login-page-main__title {
+  text-align: center;
+}
+
+.account-body {
+  margin-top: 1.5rem;
+}
+
+.account-card {
+  padding: 1.25rem 1.35rem 1.4rem;
+  border: 1px solid var(--line, #e3dcd0);
+  background: var(--bg-elevated, #fff);
+}
+
+.account-card__title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.account-card__hint {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.account-brand-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  list-style: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.account-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.account-brand-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--bg, #fff);
+  border: 1px solid var(--line, #e3dcd0);
+  border-radius: 2px;
+}
+
+.account-brand-input:focus-visible {
+  outline: none;
+  border-color: var(--tw-brand-signature-navy, #163229);
+}
+
+.account-brand-count {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--ink-muted);
+}
+
+.account-brand-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.account-brand-feedback {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.account-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.account-signout {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+}
+
+.account-signout:is(:hover, :focus-visible) {
+  color: var(--sb-danger, #8b4545);
 }
 
 .item-detail__editor-gate {
