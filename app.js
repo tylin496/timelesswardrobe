@@ -2421,15 +2421,26 @@
   function resolveTwEditorSession(session) {
     const email = String(session?.user?.email ?? "").trim().toLowerCase();
     if (!email) return null;
+    const meta = session?.user?.user_metadata ?? {};
+    const name = String(meta.full_name ?? meta.name ?? "").trim();
     const allowed = getEditorAllowedEmails();
     if (!allowed.length || !allowed.includes(email)) {
-      return { email, denied: true };
+      return { email, name, denied: true };
     }
-    return { email, denied: false };
+    return { email, name, denied: false };
   }
 
   function isTwEditorUser() {
     return Boolean(twEditorSession?.email && !twEditorSession.denied);
+  }
+
+  /** First name (or capitalised email local-part) for greeting the signed-in editor. */
+  function twEditorDisplayName() {
+    const s = twEditorSession;
+    if (!s?.email) return "";
+    if (s.name) return s.name.split(/\s+/)[0];
+    const local = s.email.split("@")[0] || "";
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
   }
 
   function isCollectionPagePathname(pathname) {
@@ -3045,10 +3056,27 @@
     await handleTwLoginPage();
   }
 
+  /** Swap the mobile nav login row between "Sign in" and "Welcome, <name>!". */
+  function syncMobileNavLoginRow() {
+    const link = document.querySelector(".site-mobile-nav__row--login");
+    if (!(link instanceof HTMLElement)) return;
+    const label = link.querySelector("[data-mobile-nav-login-label]");
+    if (!label) return;
+    if (isTwEditorUser()) {
+      const name = twEditorDisplayName();
+      label.textContent = name ? `Welcome, ${name}!` : "Welcome!";
+      link.dataset.loggedIn = "1";
+    } else {
+      label.textContent = "Sign in";
+      delete link.dataset.loggedIn;
+    }
+  }
+
   function applyTwAdminModeUi() {
     const on = isTwAdminMode();
     document.documentElement.classList.toggle("tw-admin-mode", on);
     if (document.body) document.body.classList.toggle("tw-admin-mode", on);
+    syncMobileNavLoginRow();
     document.querySelectorAll(".tw-admin-only").forEach((el) => {
       if (el.id === "local-data-risk-banner") return;
       if (on) el.removeAttribute("hidden");
@@ -25844,11 +25872,12 @@
       const loginLink = document.createElement("a");
       loginLink.href = twLoginUrl();
       loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
-      loginLink.innerHTML = `<span class="site-mobile-nav__login-lead"><svg class="site-mobile-nav__login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"></path></svg><span class="site-mobile-nav__label">Sign in</span></span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+      loginLink.innerHTML = `<span class="site-mobile-nav__login-lead"><svg class="site-mobile-nav__login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"></path></svg><span class="site-mobile-nav__label" data-mobile-nav-login-label>Sign in</span></span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
       loginLink.addEventListener("pointerdown", () => { loginLink.href = twLoginUrl(); });
       loginLink.addEventListener("click", () => closeMobileCategoryPanel());
       loginLi.appendChild(loginLink);
       rootList.appendChild(loginLi);
+      syncMobileNavLoginRow();
 
       for (const slot of SLOT_OPTIONS) {
         const rowLi = document.createElement("li");

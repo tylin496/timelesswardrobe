@@ -6979,10 +6979,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     }
   }
 
-  .tw-admin-mode .site-mobile-nav__item--login {
-    display: none;
-  }
-
   .site-mobile-nav__row {
     display: flex;
     align-items: center;
