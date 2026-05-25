@@ -4883,7 +4883,8 @@
     "Dive watch": "Dive",
     Watches: "Watches",
     Accessories: "Accessories",
-    "Small accessories": "Small Accessories",
+    "Small accessories": "Small Goods",
+    "Small Goods": "Small Goods",
     Bags: "Bags",
     Hats: "Caps & Hats",
     Eyewear: "Eyewear",
@@ -5305,6 +5306,7 @@
     )
       return SLOT_ACCESSORIES;
     if (cat === "Footwear") return SLOT_ACCESSORIES;
+    if (cat === "Small Goods" || cat === "Small accessories") return SLOT_ACCESSORIES;
     if (cat === "Future") return SLOT_ACCESSORIES;
     return SLOT_ACCESSORIES;
   }
@@ -5318,7 +5320,7 @@
       return LEGACY_UNSPEC_CATEGORY_TO_SLOT[rawCat];
     }
 
-    if (rawCat === "Small accessories") return SLOT_ACCESSORIES;
+    if (rawCat === "Small Goods" || rawCat === "Small accessories") return SLOT_ACCESSORIES;
     if (
       rawCat === "Bags" ||
       rawCat === "Hats" ||
@@ -5465,6 +5467,7 @@
     Ring: 14,
     Accessories: 13,
     "Small accessories": 13,
+    "Small Goods": 13,
     Bags: 12,
     Footwear: 13,
     Eyewear: 15,
@@ -5475,7 +5478,7 @@
 
   /** Record types always listed in add/edit `<select>` for these slots (even with zero items). */
   const KNOWN_RECORD_TYPES_BY_SLOT = {
-    [SLOT_ACCESSORIES]: ["Bags", "Footwear", "Jewellery", "Eyewear", "Hats"],
+    [SLOT_ACCESSORIES]: ["Bags", "Small Goods", "Footwear", "Jewellery", "Eyewear", "Hats"],
     [SLOT_WATCHES]: WATCH_RECORD_TYPE_KEYS,
     [SLOT_FRAGRANCE]: ["Day", "Evening"],
   };
@@ -5517,6 +5520,7 @@
     Ring: 8,
     Accessories: 9,
     "Small accessories": 9,
+    "Small Goods": 9,
     Eyewear: 10,
     Sunglasses: 10,
     Glasses: 10,
@@ -13787,7 +13791,8 @@
       if (raw === "Sunglasses" || raw === "Glasses" || raw === "Eyeglasses") raw = "Eyewear";
       raw = mapJewelleryFutureToConcreteDrillKey(raw);
       if (raw === "Footwear") return "Footwear";
-      if (raw === "Small accessories" || raw === "帽子") return "Hats";
+      if (raw === "Small accessories") return "Small Goods";
+      if (raw === "帽子") return "Hats";
       if (WATCH_RECORD_TYPE_KEYS_LEAKED.includes(raw)) {
         return "Hats";
       }
@@ -13911,7 +13916,7 @@
     if (r === "Daywear") return "Day";
     if (r === "項鏈" || r === "手鏈" || r === "戒指") return "Jewellery";
     if (r === "潛水錶") return "Dive";
-    if (r === "Small accessories") return "Hats";
+    if (r === "Small accessories") return "Small Goods";
     if (r === "帽子") return "Hats";
     return r;
   }
