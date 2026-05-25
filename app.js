@@ -15225,7 +15225,15 @@
       const ti = document.createElement("img");
       ti.src = heroFrameSrc(fr.url);
       ti.alt = "";
-      ti.addEventListener("error", () => { btn.hidden = true; });
+      ti.addEventListener("error", () => {
+        btn.hidden = true;
+        const idx = frames.indexOf(fr);
+        if (idx !== -1) {
+          frames.splice(idx, 1);
+          if (currentIndex >= frames.length) currentIndex = Math.max(0, frames.length - 1);
+          if (frames.length <= 1) thumbsEl.hidden = true;
+        }
+      });
       btn.appendChild(ti);
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -25837,6 +25845,7 @@
       loginLink.href = twLoginUrl();
       loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
       loginLink.innerHTML = `<span class="site-mobile-nav__label">Sign in</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+      loginLink.addEventListener("pointerdown", () => { loginLink.href = twLoginUrl(); });
       loginLink.addEventListener("click", () => closeMobileCategoryPanel());
       loginLi.appendChild(loginLink);
       rootList.appendChild(loginLi);
@@ -26492,7 +26501,7 @@
       root.removeAttribute("aria-hidden");
       drill.setAttribute("aria-hidden", "true");
       if (focusMain) {
-        const firstRow = root.querySelector(".site-mobile-nav__row");
+        const firstRow = root.querySelector("[data-mobile-nav-slot]");
         if (firstRow instanceof HTMLElement) firstRow.focus();
       }
     }
