@@ -14793,7 +14793,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 .account-page-main {
   width: 100%;
   max-width: min(112rem, calc(100vw - 2rem));
-  margin-top: clamp(3rem, 8vh, 5.5rem);
+  margin-top: clamp(2.4rem, 6vh, 4.25rem);
   padding: 0 clamp(1.5rem, 5.8vw, 7.25rem) clamp(4rem, 8vw, 7rem);
   text-align: left;
 }
@@ -14815,7 +14815,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   gap: clamp(1rem, 2vw, 1.9rem);
   width: 100%;
   max-width: 86rem;
-  margin: 0 0 clamp(3.25rem, 8vw, 7rem);
+  margin: 0 0 clamp(2.6rem, 5.6vw, 4.75rem);
 }
 
 .account-page-hero__copy {
@@ -14838,8 +14838,9 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 .account-card {
   display: grid;
-  grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
-  gap: clamp(2rem, 5vw, 5.25rem);
+  grid-template-columns: minmax(16rem, 26rem) minmax(0, 1fr);
+  gap: clamp(1.4rem, 3vw, 3rem) clamp(3rem, 7vw, 7rem);
+  align-items: end;
   width: 100%;
   max-width: 96rem;
   padding: 0;
@@ -14848,7 +14849,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 .account-card__title {
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-family: var(--font-serif-display, var(--font-serif));
   font-size: clamp(1.75rem, 2.35vw, 2.6rem);
   font-weight: 600;
@@ -14866,12 +14867,13 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 .account-brand-form {
+  grid-column: 1 / -1;
   min-width: 0;
 }
 
 .account-brand-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(16rem, 1fr));
+  grid-template-columns: repeat(3, minmax(14rem, 1fr));
   gap: 0.7rem 0.8rem;
   margin: 0 0 1.35rem;
   padding: 0;
@@ -14957,7 +14959,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 @media (min-width: 1360px) {
   .account-brand-list {
-    grid-template-columns: repeat(3, minmax(15rem, 1fr));
+    grid-template-columns: repeat(4, minmax(14rem, 1fr));
   }
 }
 
