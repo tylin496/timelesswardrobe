@@ -2446,8 +2446,8 @@
   function twAccountGreetingName() {
     const name = String(twEditorSession?.name ?? "").trim();
     const parts = name.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) return parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
-    return twEditorDisplayName() || "TY";
+    if (parts.length >= 1) return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+    return twEditorDisplayName() || "Thomas";
   }
 
   async function signOutTwAccountAndReturnHome() {
@@ -2954,7 +2954,7 @@
     }
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   }
 
   let twAccountBusy = false;
@@ -4155,7 +4155,7 @@
     black: "#1b1b1b",
     beige: "#d1bfa3",
     gold: GOLD_BASIC_COLOUR_HEX,
-    silver: "#b8babf",
+    silver: "#E8E8E8",
     green: "#4f7b56",
     grey: "#8d8e95",
   };
@@ -17592,6 +17592,10 @@
         if (entry.kind === "url") {
           const url = String(entry.url ?? "").trim();
           img.src = withWardrobeImageCacheBust(url, bustItem) || url;
+          img.addEventListener("error", () => {
+            const i = entries.indexOf(entry);
+            if (i !== -1) { entries.splice(i, 1); renderList(); markPhotoManagerDirty(); }
+          }, { once: true });
         } else {
           img.src = entry.previewUrl;
         }
