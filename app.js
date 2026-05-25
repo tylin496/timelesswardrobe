@@ -6829,20 +6829,28 @@
     const id = String(item?.id ?? "").trim();
     const base = resolvedItemGalleryList(item);
     if (!id || !isLocalCatalogueItemId(id) || getItemColourVariants(item)) return base;
-    // Prepend any missing seed paths, then deduplicate by logical key so that a CDN
-    // ghost upload at the same gallery slot as a seed image gets collapsed to the
-    // local seed version (seeds are prepended first and claim the slot key first).
-    const withSeeds = mergeMissingFrozenSeedGalleryPaths(id, base);
+    const seed = catalogueSeedRow(id);
+    if (!seed) return base;
     const seen = new Set();
+    const indexByKey = new Map();
+    /** @type {string[]} */
     const deduped = [];
-    for (const u of withSeeds) {
+    const add = (u, preferLocalSwap = false) => {
       const str = String(u ?? "").trim();
-      if (!str) continue;
+      if (!str || !isDisplayableCloudImageUrl(str)) return;
       const k = wardrobeGalleryLogicalKey(str);
-      if (k && seen.has(k)) continue;
+      if (k && seen.has(k)) {
+        const idx = indexByKey.get(k);
+        const isLocal = isFileBackedLocalWardrobeUrl(seed, str);
+        if (preferLocalSwap && isLocal && Number.isInteger(idx)) deduped[idx] = str;
+        return;
+      }
       if (k) seen.add(k);
-      deduped.push(u);
-    }
+      if (k) indexByKey.set(k, deduped.length);
+      deduped.push(str);
+    };
+    for (const u of base) add(u, false);
+    for (const u of itemGalleryList(seed)) add(u, true);
     return deduped;
   }
 
@@ -14157,7 +14165,12 @@
     const fall = defaultRecordCategoryForSlot(slot);
     let keys = drillSubcategoryKeysFromPool(slot, pool);
     const knownExtra = KNOWN_RECORD_TYPES_BY_SLOT[slot];
-    if (knownExtra?.length) keys = sortRecordTypeKeysForSlot(slot, [...keys, ...knownExtra]);
+    if (knownExtra?.length) {
+      const knownWithItems = knownExtra.filter((k) =>
+        pool.some((i) => itemSlot(i) === slot && itemMatchesDrillSubcategory(i, slot, k))
+      );
+      keys = sortRecordTypeKeysForSlot(slot, [...keys, ...knownWithItems]);
+    }
     if (slot === SLOT_ACCESSORIES) {
       keys = keys.filter((k) => k && !["Jewellery", "Jewellery", "Future"].includes(k));
       keys = keys.filter(

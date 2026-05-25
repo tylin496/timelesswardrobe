@@ -15815,6 +15815,16 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
     min-height: 0;
   }
 
+  .item-edit-form-footer,
+  .item-detail__body--edit .item-edit-form-footer {
+    position: sticky;
+    bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+    z-index: 24;
+    margin-top: auto;
+    padding: 0.85rem 0 0.35rem;
+    box-shadow: 0 -10px 28px color-mix(in srgb, var(--bg) 55%, transparent);
+  }
+
   .item-detail__root--edit .item-detail__body--edit .item-edit-form-scroll {
     flex: 0 1 auto;
     overflow-y: visible;
@@ -15971,24 +15981,23 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 .item-edit-form-footer {
   @apply mt-1;
   position: sticky;
-  bottom: 0;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   z-index: 24;
-  padding: 1rem 0 max(0.85rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.85rem 0 0.35rem;
   background: var(--bg);
   border-top: none;
-  box-shadow: none;
+  box-shadow: 0 -10px 28px color-mix(in srgb, var(--bg) 55%, transparent);
 }
 
-/* Item PDP edit — footer follows the viewport while the form scrolls above it. */
 .item-detail__body--edit .item-edit-form-footer {
   position: sticky;
-  bottom: 0;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   flex-shrink: 0;
   z-index: 24;
   margin-top: auto;
   min-width: 0;
   max-width: 100%;
-  padding: 0.85rem 0 max(0.85rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.85rem 0 0.35rem;
   background: var(--bg);
   box-shadow: 0 -10px 28px color-mix(in srgb, var(--bg) 55%, transparent);
   box-sizing: border-box;
