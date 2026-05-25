@@ -23432,15 +23432,6 @@
       const wrap = document.createElement("div");
       wrap.className = "item-detail__body item-detail__body--edit";
 
-      if (isPageEdit && isTwEditorUser() && twEditorSession?.email) {
-        const sessionBar = document.createElement("div");
-        sessionBar.className = "item-detail__editor-session";
-        const who = document.createElement("span");
-        who.className = "item-detail__editor-session-label";
-        who.textContent = `Editing as ${twEditorSession.email}`;
-        sessionBar.append(who);
-        wrap.appendChild(sessionBar);
-      }
 
       const statusEl = document.createElement("p");
       statusEl.id = "item-detail-edit-status";
