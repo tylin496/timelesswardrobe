@@ -15225,6 +15225,7 @@
       const ti = document.createElement("img");
       ti.src = heroFrameSrc(fr.url);
       ti.alt = "";
+      ti.addEventListener("error", () => { btn.hidden = true; });
       btn.appendChild(ti);
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -15388,6 +15389,7 @@
       ti.src = heroFrameSrc(url, "gallery");
       ti.alt = "";
       ti.draggable = false;
+      ti.addEventListener("error", () => { btn.hidden = true; });
       btn.appendChild(ti);
       btn.addEventListener("click", () => {
         heroImgEl.src = heroFrameSrc(url, "gallery");
