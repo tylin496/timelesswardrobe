@@ -1575,7 +1575,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2026-05-11",
     "image": "/images/wardrobe/american-flag-hat/main/cover.png",
     "gallery": [
-      "/images/wardrobe/american-flag-hat/main/gallery/01.jpg",
+      "/images/wardrobe/american-flag-hat/main/gallery/02.png",
       "/images/wardrobe/american-flag-hat/main/gallery/01.png"
     ],
     "notes": "Size & Fit Information\nCircumference: approximately 22.45'' (adjustable by a nickel slide)\n\nTop to Side: approximately 6.65''\n\nBrim: 2.9'' long\n\nOur six panel cotton twill hats are adorned with our signature 100% hand-stitched needlepoint. Each hat is adjustable by a nickel slide on the back of the hat.\n\n-100% hand-stitched needlepoint\n-Stitched with French cotton thread\n-Six Panel Construction\n-Washed Cotton Twill\n-Adjustable. One size fits most adults.",
