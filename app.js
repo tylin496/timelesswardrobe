@@ -6829,26 +6829,21 @@
     const id = String(item?.id ?? "").trim();
     const base = resolvedItemGalleryList(item);
     if (!id || !isLocalCatalogueItemId(id) || getItemColourVariants(item)) return base;
-    const ov = loadCollectionOverrides()[id];
-    // When no explicit media-edit override, filter out CDN gallery URLs at slots
-    // beyond the seed's gallery slots — prevents stale Supabase ghost uploads from
-    // appearing in collection cards for frozen catalogue items.
-    if (!(Number(ov?.__mediaEditedAt) > 0)) {
-      const seed = catalogueSeedRow(id);
-      if (seed) {
-        const seedSlots = new Set(
-          itemGalleryList(seed).map((u) => gallerySlotIndexFromMediaUrl(u)).filter(Boolean)
-        );
-        const filtered = base.filter((u) => {
-          const str = String(u ?? "").trim();
-          if (!str || !/^https?:\/\//i.test(str)) return true;
-          const slot = gallerySlotIndexFromMediaUrl(str);
-          return slot === 0 || seedSlots.has(slot);
-        });
-        return mergeMissingFrozenSeedGalleryPaths(id, filtered);
-      }
+    // Prepend any missing seed paths, then deduplicate by logical key so that a CDN
+    // ghost upload at the same gallery slot as a seed image gets collapsed to the
+    // local seed version (seeds are prepended first and claim the slot key first).
+    const withSeeds = mergeMissingFrozenSeedGalleryPaths(id, base);
+    const seen = new Set();
+    const deduped = [];
+    for (const u of withSeeds) {
+      const str = String(u ?? "").trim();
+      if (!str) continue;
+      const k = wardrobeGalleryLogicalKey(str);
+      if (k && seen.has(k)) continue;
+      if (k) seen.add(k);
+      deduped.push(u);
     }
-    return mergeMissingFrozenSeedGalleryPaths(id, base);
+    return deduped;
   }
 
   /** @param {string} url */
