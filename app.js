@@ -2989,6 +2989,8 @@
     let updated = 0;
     let failed = 0;
     const savedRows = [];
+    const overrides = loadCollectionOverrides();
+    const overrideItemIds = new Set();
     for (const { from, to } of renames) {
       const affected = items.filter((it) => String(it?.brand ?? "").trim() === from);
       for (const it of affected) {
@@ -3001,11 +3003,28 @@
           } else {
             upsertWardrobeBaseRowInMemory(next);
           }
+          const id = String(it?.id ?? "").trim();
+          if (id && isLocalCatalogueItemId(id)) {
+            const current =
+              overrides[id] && typeof overrides[id] === "object" && !Array.isArray(overrides[id])
+                ? { ...overrides[id] }
+                : {};
+            overrides[id] = { ...current, brand: to };
+            overrideItemIds.add(id);
+          }
           updated++;
         } catch (e) {
           console.warn("[account] brand rename save failed:", it?.id, e);
           failed++;
         }
+      }
+    }
+    if (overrideItemIds.size) {
+      try {
+        await saveCollectionOverrides(overrides);
+      } catch (e) {
+        console.warn("[account] brand rename override save failed:", e);
+        failed += overrideItemIds.size;
       }
     }
     if (savedRows.length && isCloudModeActive()) {
