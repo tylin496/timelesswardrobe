@@ -6233,6 +6233,54 @@
     }
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+  }
+
+  function supabaseStorageErrorStatus(error) {
+    const candidates = [
+      error?.statusCode,
+      error?.status,
+      error?.code,
+      error?.originalError?.status,
+      error?.originalError?.statusCode,
+    ];
+    for (const c of candidates) {
+      const n = Number(String(c ?? "").match(/\d{3}/)?.[0] ?? NaN);
+      if (Number.isFinite(n)) return n;
+    }
+    return 0;
+  }
+
+  function shouldRetrySupabaseStorageUpload(error) {
+    if (!error) return false;
+    const status = supabaseStorageErrorStatus(error);
+    if (status === 408 || status === 409 || status === 425 || status === 429 || status >= 500) return true;
+    if (status >= 400 && status < 500) return false;
+    const msg = formatSupabaseUserMessage(error).toLowerCase();
+    return /network|fetch|timeout|timed out|temporary|temporarily|econnreset|etimedout|socket|failed to fetch/.test(msg);
+  }
+
+  async function uploadWardrobeImageFileWithRetry(path, file, uploadOptions) {
+    const maxAttempts = 3;
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      let error = null;
+      try {
+        ({ error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).upload(path, file, uploadOptions));
+      } catch (err) {
+        error = err;
+      }
+      if (!error) return null;
+      lastError = error;
+      if (attempt >= maxAttempts || !shouldRetrySupabaseStorageUpload(error)) break;
+      const wait = 450 * 2 ** (attempt - 1) + Math.round(Math.random() * 250);
+      console.warn(`Supabase Storage upload retry ${attempt + 1}/${maxAttempts} for ${path}`, error);
+      await sleep(wait);
+    }
+    return lastError;
+  }
+
   /**
    * @param {File} file
    * @param {string} itemId
@@ -6243,7 +6291,7 @@
     if (!file) return "";
     const path = wardrobeImageStorageObjectPath(itemId, file, slot);
 
-    const { error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).upload(path, file, {
+    const error = await uploadWardrobeImageFileWithRetry(path, file, {
       cacheControl: "31536000",
       upsert: true,
       contentType: file.type || `image/${fileExtensionFromFile(file)}`,
