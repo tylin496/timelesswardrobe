@@ -25830,6 +25830,17 @@
 
       const rootList = document.createElement("ul");
       rootList.className = "site-mobile-nav__list site-mobile-nav__list--root";
+
+      const loginLi = document.createElement("li");
+      loginLi.className = "site-mobile-nav__item site-mobile-nav__item--login";
+      const loginLink = document.createElement("a");
+      loginLink.href = twLoginUrl();
+      loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
+      loginLink.innerHTML = `<span class="site-mobile-nav__label">Sign in</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+      loginLink.addEventListener("click", () => closeMobileCategoryPanel());
+      loginLi.appendChild(loginLink);
+      rootList.appendChild(loginLi);
+
       for (const slot of SLOT_OPTIONS) {
         const rowLi = document.createElement("li");
         rowLi.className = "site-mobile-nav__item";
