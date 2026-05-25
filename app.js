@@ -25844,7 +25844,7 @@
       const loginLink = document.createElement("a");
       loginLink.href = twLoginUrl();
       loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
-      loginLink.innerHTML = `<span class="site-mobile-nav__label">Sign in</span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
+      loginLink.innerHTML = `<span class="site-mobile-nav__login-lead"><svg class="site-mobile-nav__login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"></path></svg><span class="site-mobile-nav__label">Sign in</span></span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
       loginLink.addEventListener("pointerdown", () => { loginLink.href = twLoginUrl(); });
       loginLink.addEventListener("click", () => closeMobileCategoryPanel());
       loginLi.appendChild(loginLink);

@@ -6941,14 +6941,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     padding: 0.04rem var(--site-mobile-nav-inline-x);
   }
 
-  .site-mobile-nav__item--login {
+  .site-mobile-nav__list--root .site-mobile-nav__item--login {
     padding-bottom: clamp(0.6rem, 2vw, 0.9rem);
     margin-bottom: clamp(0.25rem, 1vw, 0.4rem);
     border-bottom: 1px solid color-mix(in srgb, var(--line, #e3dcd0) 88%, var(--tw-brand-signature-navy, #163229));
   }
 
   @supports not (background: color-mix(in srgb, red, blue)) {
-    .site-mobile-nav__item--login {
+    .site-mobile-nav__list--root .site-mobile-nav__item--login {
       border-bottom-color: var(--line, #e3dcd0);
     }
   }
@@ -6959,6 +6959,18 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     font-weight: 400;
     letter-spacing: 0.04em;
     color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 72%, transparent);
+  }
+
+  .site-mobile-nav__login-lead {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(0.6rem, 2.5vw, 0.85rem);
+  }
+
+  .site-mobile-nav__login-icon {
+    flex: 0 0 auto;
+    width: clamp(1.15rem, 4.5vw, 1.4rem);
+    height: clamp(1.15rem, 4.5vw, 1.4rem);
   }
 
   @supports not (background: color-mix(in srgb, red, blue)) {
