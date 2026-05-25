@@ -6387,10 +6387,7 @@
           return key.startsWith(itemId + "/");
         })
       : rawCloudGal;
-    const cloudAuthoritative =
-      preferCloudOrder ||
-      rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed) ||
-      supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow);
+    const cloudAuthoritative = preferCloudOrder;
     const coverKeys = new Set(
       [seed?.image, cloudRow?.image]
         .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
@@ -6410,7 +6407,7 @@
       const u = String(url ?? "").trim();
       if (!u) return;
       const pathOnly = u.split("?")[0];
-      const key = wardrobeMediaPathKey(u) || pathOnly;
+      const key = wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u) || pathOnly;
       if (!key || coverKeys.has(key)) return;
       const isLocal =
         /^\/images\/wardrobe\//i.test(pathOnly) &&
@@ -6454,10 +6451,17 @@
     );
   }
 
+  /** @param {string} url */
+  function wardrobeGalleryLogicalKey(url) {
+    const key = wardrobeMediaPathKey(url) || String(url ?? "").trim().split("?")[0];
+    if (!key) return "";
+    return key.replace(/(\/gallery\/\d{1,2})\.[a-z0-9]+$/i, "$1");
+  }
+
   /** @param {string[]} urls */
   function galleryPathKeySignature(urls) {
     return urls
-      .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
+      .map((u) => wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
       .filter(Boolean)
       .join("|");
   }
@@ -6481,7 +6485,7 @@
       const u = String(raw ?? "").trim();
       if (!u || !isDisplayableCloudImageUrl(u)) continue;
       if (!isFileBackedLocalWardrobeUrl(seed, u)) continue;
-      const key = wardrobeMediaPathKey(u);
+      const key = wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u);
       if (!key || key === coverKey || present.has(key)) continue;
       present.add(key);
       missing.push(u);
@@ -6625,7 +6629,7 @@
     );
     const toKeyList = (row) =>
       itemGalleryList(row)
-        .map((u) => wardrobeMediaPathKey(u))
+        .map((u) => wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u))
         .filter((k) => k && !coverKeys.has(k));
     const seedKeys = toKeyList(seed);
     const cloudKeys = toKeyList(cloudRow);
@@ -6636,7 +6640,7 @@
       seedSet.size === cloudSet.size &&
       [...seedSet].every((k) => cloudSet.has(k)) &&
       [...cloudSet].every((k) => seedSet.has(k));
-    if (!sameMembers) return true;
+    if (!sameMembers) return false;
     return seedKeys.join("|") !== cloudKeys.join("|");
   }
 
