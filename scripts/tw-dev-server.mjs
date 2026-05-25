@@ -102,6 +102,83 @@ async function handlePutCustomItems(req, res) {
   }
 }
 
+function localWardrobeImagePathFromStoragePath(storagePath) {
+  const raw = String(storagePath ?? "").trim().replace(/^\/+/, "");
+  if (!raw || raw.includes("\0")) return "";
+  const parts = raw.split("/");
+  if (parts.some((p) => !p || p === "." || p === "..")) return "";
+  if (!/\.(?:avif|gif|jpe?g|png|webp)$/i.test(raw)) return "";
+  const abs = path.join(root, "images", "wardrobe", raw);
+  const imageRoot = path.join(root, "images", "wardrobe");
+  const resolved = path.resolve(abs);
+  const resolvedRoot = path.resolve(imageRoot);
+  if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) return "";
+  return resolved;
+}
+
+function decodeDataUrlImage(dataUrl) {
+  const raw = String(dataUrl ?? "");
+  const m = raw.match(/^data:(image\/(?:avif|gif|jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!m) return null;
+  return Buffer.from(m[2].replace(/\s+/g, ""), "base64");
+}
+
+async function removeLocalImageSiblingExtensions(absFile) {
+  const dir = path.dirname(absFile);
+  const file = path.basename(absFile);
+  const dot = file.lastIndexOf(".");
+  if (dot <= 0) return;
+  const base = file.slice(0, dot).toLowerCase();
+  let entries = [];
+  try {
+    entries = await fs.readdir(dir);
+  } catch {
+    return;
+  }
+  await Promise.allSettled(
+    entries
+      .filter((name) => {
+        if (!name || name === file) return false;
+        const idx = name.lastIndexOf(".");
+        if (idx <= 0) return false;
+        return name.slice(0, idx).toLowerCase() === base && /\.(?:avif|gif|jpe?g|png|webp)$/i.test(name);
+      })
+      .map((name) => fs.rm(path.join(dir, name), { force: true }))
+  );
+}
+
+async function handlePostWardrobeLocalImage(req, res) {
+  let payload;
+  try {
+    payload = JSON.parse(await readRequestBody(req));
+  } catch {
+    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Invalid JSON");
+    return;
+  }
+  const absFile = localWardrobeImagePathFromStoragePath(payload?.storagePath);
+  const bytes = decodeDataUrlImage(payload?.dataUrl);
+  if (!absFile || !bytes?.length) {
+    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Expected { storagePath, dataUrl } for an image under images/wardrobe");
+    return;
+  }
+  try {
+    await fs.mkdir(path.dirname(absFile), { recursive: true });
+    await fs.writeFile(absFile, bytes);
+    await removeLocalImageSiblingExtensions(absFile);
+    jsonResponse(res, 200, {
+      ok: true,
+      path: path.relative(root, absFile).replace(/\\/g, "/"),
+      bytes: bytes.length,
+    });
+  } catch (e) {
+    console.error(e);
+    res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Write failed");
+  }
+}
+
 async function serveFaviconAsset(/** @type {http.IncomingMessage} */ req, /** @type {http.ServerResponse} */ res, absFile) {
   if (!isPathInsideRoot(absFile)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -340,6 +417,10 @@ const server = http.createServer((req, res) => {
     void handlePutCustomItems(req, res);
     return;
   }
+  if (req.method === "POST" && pathname === "/api/wardrobe/local-image") {
+    void handlePostWardrobeLocalImage(req, res);
+    return;
+  }
   if (req.method === "GET" || req.method === "HEAD") {
     void handleStatic(req, res);
     return;
@@ -372,7 +453,8 @@ function listenWithFallback(port, triesLeft) {
   server.listen(port, "127.0.0.1", () => {
     console.log(`Timeless Wardrobe dev server → http://127.0.0.1:${port}/`);
     console.log("PUT /api/custom-items writes data/custom-items.json (browser-only mode custom rows)");
-    console.log("Wardrobe images: Supabase Storage is canonical; npm run db:backup-to-local to refresh images/wardrobe/.");
+    console.log("POST /api/wardrobe/local-image mirrors editor uploads into images/wardrobe/ during local dev.");
+    console.log("Wardrobe images: Supabase Storage is canonical; npm run db:backup-to-local can refresh the full mirror.");
   });
 }
 

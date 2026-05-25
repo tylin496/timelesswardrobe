@@ -51,7 +51,7 @@ const rootFiles = [
 
 const rootDirs = ["js", "data", "images", "icons"];
 
-fs.rmSync(dist, { recursive: true, force: true });
+fs.rmSync(dist, { recursive: true, force: true, maxRetries: 5, retryDelay: 150 });
 fs.mkdirSync(dist, { recursive: true });
 
 const publicDir = path.join(root, "public");

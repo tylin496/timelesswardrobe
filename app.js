@@ -1023,6 +1023,7 @@
     const onScreenPick = async () => {
       const picked = await pickColourFromScreen(codeInput);
       if (!picked) return;
+      applied = true;
       const next = parseHex6Colour(extractSwatchHexFromVariant({ colourCode: codeInput.value }));
       if (next) {
         const hsv = hexToHsv(next);
@@ -1108,6 +1109,7 @@
       const result = await dropper.open();
       if (result?.sRGBHex) {
         codeInput.value = result.sRGBHex;
+        markItemEditColourFieldUserEdited(codeInput);
         codeInput.dispatchEvent(new Event("input", { bubbles: true }));
         codeInput.focus();
         return true;
@@ -2573,33 +2575,28 @@
   /** @returns {string} Same-origin path after successful `/login`. */
   function twLoginNextUrl() {
     try {
-      // Persisted destination wins — survives OAuth redirects that drop `?next=`.
-      const stored = consumeTwLoginNextPath();
-      if (stored) {
-        const su = new URL(stored, globalThis.location.origin);
-        if (su.origin === globalThis.location.origin && su.pathname.startsWith("/") && su.pathname !== "/login") {
-          return `${su.pathname}${su.search}${su.hash}`;
-        }
-      }
       const raw = String(new URLSearchParams(globalThis.location.search).get("next") ?? "").trim();
-      if (raw) {
-        const u = new URL(raw, globalThis.location.origin);
-        if (u.origin === globalThis.location.origin && u.pathname.startsWith("/")) {
-          return `${u.pathname}${u.search}${u.hash}`;
-        }
+      const queryNext = normalizeTwLoginNextPath(raw);
+      if (queryNext) {
+        rememberTwLoginNextPath(queryNext);
+        return queryNext;
       }
 
+      // Persisted destination wins — survives OAuth redirects that drop `?next=`.
+      const stored = consumeTwLoginNextPath();
+      if (stored) return stored;
+
       // Fallback route intent from pathname rewrite:
-      // `/login` -> home, `/collection/login` -> `/collection`.
+      // `/login` -> collection, `/collection/login` -> `/collection`.
       const pathname = String(globalThis.location.pathname || "").trim() || "/login";
-      if (pathname === "/login" || pathname === "/login.html") return "/";
+      if (pathname === "/login" || pathname === "/login.html") return "/collection.html";
       if (pathname.endsWith("/login")) {
         const base = pathname.slice(0, -"/login".length).trim();
-        return base ? base : "/";
+        return normalizeTwLoginNextPath(base) || "/collection.html";
       }
-      return "/";
+      return "/collection.html";
     } catch {
-      return "/";
+      return "/collection.html";
     }
   }
 
@@ -2692,13 +2689,31 @@
    * what the provider does to the redirect URL's query string.
    */
   const TW_LOGIN_NEXT_KEY = "tw-login-next-path-v1";
+  const TW_LOGIN_NEXT_MAX_AGE_MS = 30 * 60 * 1000;
+
+  /** @returns {string} safe same-origin path/search/hash for post-login redirect, or "" */
+  function normalizeTwLoginNextPath(nextPath) {
+    try {
+      const raw = String(nextPath ?? "").trim();
+      if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "";
+      const u = new URL(raw, globalThis.location.origin);
+      if (u.origin !== globalThis.location.origin || !u.pathname.startsWith("/")) return "";
+      const pathname = u.pathname.replace(/\/$/, "") || "/";
+      if (pathname === "/login" || pathname === "/login.html") return "";
+      return `${u.pathname}${u.search}${u.hash}`;
+    } catch {
+      return "";
+    }
+  }
 
   /** @param {string} nextPath same-origin path to return to after sign-in */
   function rememberTwLoginNextPath(nextPath) {
     try {
-      const raw = String(nextPath ?? "").trim();
-      if (!raw || !raw.startsWith("/")) return;
-      globalThis.sessionStorage?.setItem(TW_LOGIN_NEXT_KEY, raw);
+      const safe = normalizeTwLoginNextPath(nextPath);
+      if (!safe) return;
+      const payload = JSON.stringify({ path: safe, at: Date.now() });
+      globalThis.sessionStorage?.setItem(TW_LOGIN_NEXT_KEY, payload);
+      globalThis.localStorage?.setItem(TW_LOGIN_NEXT_KEY, payload);
     } catch {
       /* ignore */
     }
@@ -2707,9 +2722,22 @@
   /** @returns {string} stored post-login path, or "" — clears it on read. */
   function consumeTwLoginNextPath() {
     try {
-      const raw = String(globalThis.sessionStorage?.getItem(TW_LOGIN_NEXT_KEY) ?? "").trim();
-      if (raw) globalThis.sessionStorage?.removeItem(TW_LOGIN_NEXT_KEY);
-      return raw;
+      const read = (storage) => {
+        const raw = String(storage?.getItem(TW_LOGIN_NEXT_KEY) ?? "").trim();
+        if (!raw) return "";
+        try {
+          const parsed = JSON.parse(raw);
+          const age = Date.now() - Number(parsed?.at ?? 0);
+          if (!Number.isFinite(age) || age < 0 || age > TW_LOGIN_NEXT_MAX_AGE_MS) return "";
+          return normalizeTwLoginNextPath(parsed?.path);
+        } catch {
+          return normalizeTwLoginNextPath(raw);
+        }
+      };
+      const next = read(globalThis.sessionStorage) || read(globalThis.localStorage);
+      globalThis.sessionStorage?.removeItem(TW_LOGIN_NEXT_KEY);
+      globalThis.localStorage?.removeItem(TW_LOGIN_NEXT_KEY);
+      return next;
     } catch {
       return "";
     }
@@ -2810,6 +2838,8 @@
 
   async function handleTwLoginPage() {
     if (!isTwLoginPage()) return;
+    const requestedNext = normalizeTwLoginNextPath(new URLSearchParams(globalThis.location.search).get("next"));
+    if (requestedNext) rememberTwLoginNextPath(requestedNext);
     const oauthErr = readTwAuthCallbackError();
     if (oauthErr) {
       clearTwLoginOAuthPending();
@@ -6119,30 +6149,33 @@
    *
    * @param {string} itemId
    * @param {File} file
-   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string } | { type: "variant_gallery", key: string, index: number }} slot
    * @returns {string} object path (no bucket prefix)
    */
   function wardrobeImageStorageObjectPath(itemId, file, slot) {
     const root = safeStorageSegment(itemId);
     const ext = fileExtensionFromFile(file);
+    const unique =
+      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`.replace(/[^a-z0-9-]/gi, "") ||
+      String(Date.now());
     if (!slot || slot.type === "main_cover") {
-      return `${root}/main/cover.${ext}`;
+      return `${root}/main/${unique}-cover-edit.${ext}`;
     }
     if (slot.type === "main_gallery") {
       const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return `${root}/main/gallery/${String(n).padStart(2, "0")}.${ext}`;
+      return `${root}/main/gallery/${unique}-gallery-${String(n).padStart(2, "0")}.${ext}`;
     }
     if (slot.type === "variant_cover" || slot.type === "variant_preview") {
       const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
       const role = slot.type === "variant_preview" ? "preview" : "cover";
-      return `${root}/variants/${vk}/${role}.${ext}`;
+      return `${root}/variants/${vk}/${unique}-${role}-edit.${ext}`;
     }
     if (slot.type === "variant_gallery") {
       const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
       const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return `${root}/variants/${vk}/gallery/${String(n).padStart(2, "0")}.${ext}`;
+      return `${root}/variants/${vk}/gallery/${unique}-gallery-${String(n).padStart(2, "0")}.${ext}`;
     }
-    return `${root}/main/cover.${ext}`;
+    return `${root}/main/${unique}-cover-edit.${ext}`;
   }
 
   /**
@@ -6182,10 +6215,26 @@
     }
   }
 
+  async function mirrorWardrobeImageFileToLocalDevServer(file, storagePath) {
+    if (!file || !storagePath) return false;
+    try {
+      const dataUrl = await fileToRawDataUrl(file);
+      const res = await fetch("/api/wardrobe/local-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storagePath, dataUrl }),
+      });
+      return res.ok;
+    } catch (err) {
+      console.warn("Could not mirror wardrobe image to local repo.", err);
+      return false;
+    }
+  }
+
   /**
    * @param {File} file
    * @param {string} itemId
-   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string }} slot
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string } | { type: "variant_gallery", key: string, index: number }} slot
    */
   async function uploadWardrobeImageFileToCloud(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
     if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
@@ -6215,6 +6264,7 @@
     }
 
     await deleteWardrobeImageSiblingExtensions(path);
+    await mirrorWardrobeImageFileToLocalDevServer(file, path);
 
     const { data } = supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).getPublicUrl(path);
     return data?.publicUrl || "";
@@ -14205,10 +14255,6 @@
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  /**
-   * Title line: when a descriptive colour is set and the name repeats it at the start, strip it (colour lives in specs).
-   * Does not strip when the leading colour is the first half of a compound material (e.g. Camel Hair, Navy Wool).
-   */
   /** COLLECTION card meta line — rows with colour circles on the preview use the tray instead. */
   function colourLabelForItem(item) {
     const variants = getItemColourVariants(item);
@@ -14233,28 +14279,7 @@
 
   function displayNameWithoutLeadingColour(item) {
     const name = stripScrapedPriceLabelsFromDisplayName(String(item?.name ?? "").trim());
-    const col = String(item?.colour ?? "").trim();
-    if (!name || !col) return name;
-    const re = new RegExp("^" + escapeRegExp(col) + "\\s+", "i");
-    const stripped = name.replace(re, "").trim();
-    if (stripped.length < 2) return name;
-    const firstAfter = stripped.split(/\s+/)[0] || "";
-    /** If stripping would leave this as the first token, we likely split a two-word material (Camel Hair, …). */
-    const compoundMaterialContinuations = new Set([
-      "hair",
-      "wool",
-      "cashmere",
-      "silk",
-      "linen",
-      "cotton",
-      "leather",
-      "suede",
-      "twill",
-      "denim",
-      "mesh",
-    ]);
-    if (firstAfter && compoundMaterialContinuations.has(firstAfter.toLowerCase())) return name;
-    return stripped;
+    return name;
   }
 
   function imageAltForItem(item) {
@@ -16686,7 +16711,7 @@
 
       const enforceCoverScale = () => {
         if (cutoutFreeCrop) {
-          const floor = 0.12;
+          const floor = 0.035;
           if (scale() < floor) baseScale = floor / zoomFactor;
           return;
         }
@@ -16776,7 +16801,7 @@
         zoomInput.value = "1";
         zoomInput.disabled = false;
         if (cutoutFreeCrop) {
-          zoomInput.min = "0.35";
+          zoomInput.min = "0.1";
           zoomInput.max = "3";
           baseScale = containScaleFit();
           meta.textContent = opts.label
@@ -16836,7 +16861,16 @@
           }
         }
         try {
-          ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          if (cutoutFreeCrop) {
+            const outScale = canvas.width / frameRect.width;
+            const dx = (panX - frameRect.left) * outScale;
+            const dy = (panY - frameRect.top) * outScale;
+            const dw = naturalW * s * outScale;
+            const dh = naturalH * s * outScale;
+            ctx.drawImage(source, 0, 0, naturalW, naturalH, dx, dy, dw, dh);
+          } else {
+            ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          }
         } finally {
           bitmap?.close();
         }
@@ -16856,7 +16890,7 @@
         const cy = frameRect.top + frameRect.height / 2;
         const srcX = (cx - panX) / prev;
         const srcY = (cy - panY) / prev;
-        const zMin = cutoutFreeCrop ? 0.35 : 1;
+        const zMin = cutoutFreeCrop ? 0.1 : 1;
         zoomFactor = Math.max(zMin, Number.parseFloat(zoomInput.value) || 1);
         enforceCoverScale();
         const next = scale();
@@ -16869,7 +16903,7 @@
       const onWheel = (ev) => {
         ev.preventDefault();
         const delta = ev.deltaY > 0 ? -0.06 : 0.06;
-        const zMin = cutoutFreeCrop ? 0.35 : 1;
+        const zMin = cutoutFreeCrop ? 0.1 : 1;
         zoomFactor = Math.min(3, Math.max(zMin, zoomFactor + delta));
         zoomInput.value = String(Number(zoomFactor.toFixed(2)));
         onZoom();
@@ -17572,6 +17606,76 @@
   }
 
   /**
+   * @param {number} outputIndex 0 = cover, 1+ = gallery index
+   * @param {string} variantKey
+   * @returns {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_gallery", key: string, index: number }}
+   */
+  function itemEditPhotoOutputSlot(outputIndex, variantKey = "") {
+    const idx = Math.max(0, Math.floor(Number(outputIndex) || 0));
+    const key = String(variantKey ?? "").trim();
+    if (idx === 0) return key ? { type: "variant_cover", key } : { type: "main_cover" };
+    return key ? { type: "variant_gallery", key, index: idx } : { type: "main_gallery", index: idx };
+  }
+
+  /**
+   * @param {string} itemId
+   * @param {string} url
+   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_gallery", key: string, index: number }} slot
+   */
+  function wardrobeMediaUrlAlreadyAtSlot(itemId, url, slot) {
+    const key = wardrobeMediaPathKey(url);
+    if (!key) return false;
+    const root = safeStorageSegment(itemId);
+    if (slot.type === "main_cover") {
+      return new RegExp(`^${escapeRegExp(root)}/main/cover\\.[^/]+$`, "i").test(key);
+    }
+    if (slot.type === "main_gallery") {
+      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+      return new RegExp(`^${escapeRegExp(root)}/main/gallery/${String(n).padStart(2, "0")}\\.[^/]+$`, "i").test(key);
+    }
+    const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+    if (slot.type === "variant_cover") {
+      return new RegExp(`^${escapeRegExp(root)}/variants/${escapeRegExp(vk)}/cover\\.[^/]+$`, "i").test(key);
+    }
+    if (slot.type === "variant_gallery") {
+      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
+      return new RegExp(
+        `^${escapeRegExp(root)}/variants/${escapeRegExp(vk)}/gallery/${String(n).padStart(2, "0")}\\.[^/]+$`,
+        "i"
+      ).test(key);
+    }
+    return false;
+  }
+
+  /** @param {string} url @param {string} fallback */
+  function fileNameFromMediaUrl(url, fallback = "photo.jpg") {
+    try {
+      const path = /^https?:\/\//i.test(String(url ?? ""))
+        ? new URL(String(url)).pathname
+        : String(url ?? "").split("?")[0];
+      const base = decodeURIComponent(path.split("/").pop() || "").trim();
+      return base || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  /**
+   * Fetch the current bytes for an existing URL before writing any new Storage slots.
+   * This protects demoted covers / shifted gallery items from being overwritten by the same save.
+   * @param {string} url
+   * @param {object} item
+   */
+  async function existingPhotoUrlToUploadFile(url, item) {
+    const source = wardrobeImageFullResolutionUrl(String(url ?? "").trim(), item);
+    const res = await fetch(source, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Could not fetch existing photo (${res.status}).`);
+    const blob = await res.blob();
+    const name = fileNameFromMediaUrl(source, "photo.jpg");
+    return new File([blob], name, { type: blob.type || "image/jpeg" });
+  }
+
+  /**
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
    * @param {(t: string, err?: boolean) => void} setMsg
@@ -17583,63 +17687,86 @@
     let image = "";
     /** @type {string[]} */
     const gallery = [];
+    /** @type {{ source: ({ kind: "url", url: string } | { kind: "file", file: File }), slot: ReturnType<typeof itemEditPhotoOutputSlot>, url?: string, relocateFile?: File, skip?: boolean }[]} */
+    const planned = [];
+    const itemRef = { id: itemId };
+
     for (let i = 0; i < slots.length; i++) {
       const s = slots[i];
-      let url = "";
       if (s.kind === "url") {
-        url = String(s.url ?? "").trim();
+        const url = String(s.url ?? "").trim();
         if (url) {
           const ok = await itemEditImageUrlLooksLoadable(url);
           if (!ok) {
             const where = i === 0 ? "cover" : `gallery image #${i}`;
             setMsg(`Skipped missing existing ${where}. Remove or replace the broken tile, then save again if needed.`, true);
-            if (i === 0 && opts.keepCoverOnFailure && prevCover) {
-              image = prevCover;
-            }
             continue;
           }
         }
-      } else if (s.kind === "file" && s.file) {
+        if (!url) continue;
+      } else if (!(s.kind === "file" && s.file)) {
+        continue;
+      }
+      planned.push({ source: s, slot: itemEditPhotoOutputSlot(planned.length, variantKey) });
+    }
+
+    if (!planned.length) {
+      return { image: opts.keepCoverOnFailure && prevCover ? prevCover : "", gallery: [] };
+    }
+
+    /** Existing URLs are immutable media objects; reordering only changes the saved image/gallery arrays. */
+    for (const plan of planned) {
+      if (plan.source.kind !== "url") continue;
+      const rawUrl = String(plan.source.url ?? "").trim();
+      if (!rawUrl) continue;
+      plan.url = rawUrl;
+    }
+
+    for (let i = 0; i < planned.length; i++) {
+      const plan = planned[i];
+      if (plan.skip) {
+        if (i === 0 && opts.keepCoverOnFailure && prevCover) image = prevCover;
+        continue;
+      }
+      let url = "";
+      if (plan.source.kind === "url") {
+        if (plan.relocateFile) {
+          try {
+            url = await uploadWardrobeImageFileToCloud(plan.relocateFile, itemId, plan.slot);
+          } catch (err) {
+            console.warn(err);
+            const where = i === 0 ? "cover" : `gallery image #${i}`;
+            setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this existing photo.`, true);
+            if (i === 0 && opts.keepCoverOnFailure && prevCover) image = prevCover;
+            continue;
+          }
+        } else {
+          url = String(plan.url ?? plan.source.url ?? "").trim();
+        }
+      } else if (plan.source.kind === "file" && plan.source.file) {
         try {
-          const outputIndex = image ? gallery.length + 1 : 0;
           if (isSupabaseReady()) {
-            if (outputIndex === 0) {
-              url = variantKey
-                ? await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "variant_cover", key: variantKey })
-                : await uploadWardrobeImageFileToCloud(s.file, itemId, { type: "main_cover" });
-            } else if (variantKey) {
-              url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
-                type: "variant_gallery",
-                key: variantKey,
-                index: outputIndex,
-              });
-            } else {
-              url = await uploadWardrobeImageFileToCloud(s.file, itemId, {
-                type: "main_gallery",
-                index: outputIndex,
-              });
-            }
+            url = await uploadWardrobeImageFileToCloud(plan.source.file, itemId, plan.slot);
           } else {
-            url = await fileToStorageDataUrl(s.file, { preferJpeg: outputIndex > 0 });
+            url = await fileToStorageDataUrl(plan.source.file, { preferJpeg: i > 0 });
           }
         } catch (err) {
           console.warn(err);
-          const outputIndex = image ? gallery.length + 1 : 0;
           const where =
-            outputIndex === 0
+            i === 0
               ? variantKey
                 ? `variant cover (${variantKey})`
                 : "main cover"
-              : `gallery image #${outputIndex}`;
+              : `gallery image #${i}`;
           setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this file.`, true);
-          if (outputIndex === 0 && opts.keepCoverOnFailure && prevCover) {
+          if (i === 0 && opts.keepCoverOnFailure && prevCover) {
             image = prevCover;
           }
           continue;
         }
       }
       if (!url) continue;
-      if (!image) image = url;
+      if (i === 0) image = url;
       else gallery.push(url);
     }
     return { image, gallery: dedupeGalleryUrls(image, gallery, 12) };
@@ -19634,6 +19761,7 @@
       variants?.length && colourBucket ? firstVariantKeyMatchingBasicColourBucket(item, colourBucket) : "";
     const cardCoverItem =
       variantKeyForHero ? itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: variantKeyForHero }) : item;
+    const cardCoverMediaItem = ensureItemMediaCacheBust({ ...cardCoverItem });
 
     const article = document.createElement("article");
     const outfitHighlight = inOutfit && itemEligibleForOutfit(item);
@@ -19649,15 +19777,15 @@
 
     const img = document.createElement("img");
     img.className = "card__media-img card__media-img--cover";
-    img.alt = imageAltForItem(cardCoverItem);
+    img.alt = imageAltForItem(cardCoverMediaItem);
     img.loading = "lazy";
     img.decoding = "async";
     img.draggable = false;
     img.sizes = "(max-width: 900px) 50vw, 33vw";
     if (cardOpts.fetchPriority === "high") img.fetchPriority = "high";
-    wireCoverImageWithFallbacks(img, cardCoverItem, {
+    wireCoverImageWithFallbacks(img, cardCoverMediaItem, {
       host: media,
-      coverCandidates: buildCollectionGridCoverCandidates(cardCoverItem),
+      coverCandidates: buildCollectionGridCoverCandidates(cardCoverMediaItem),
       coverRenderWidth: COLLECTION_GRID_CARD_RENDER.width,
       coverRenderHeight: COLLECTION_GRID_CARD_RENDER.height,
       coverRenderQuality: COLLECTION_GRID_CARD_RENDER.quality,
@@ -19790,8 +19918,12 @@
     const resolveCoverItemForHover = () => {
       const active = media.querySelector(".card__swatch.is-active");
       const ck = active instanceof HTMLElement ? String(active.dataset.variantKey ?? "").trim() : "";
-      if (ck) return itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: ck });
-      return cardCoverItem;
+      if (ck) {
+        return ensureItemMediaCacheBust({
+          ...itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: ck }),
+        });
+      }
+      return cardCoverMediaItem;
     };
     mountCollectionCardGalleryNav(media, img, resolveCoverItemForHover);
     wireCollectionCardHoverGallery(article, media, img, resolveCoverItemForHover);
@@ -23414,10 +23546,11 @@
 
       colourGrid.appendChild(variantsWrap);
 
-      const fabIn = document.createElement("input");
-      fabIn.type = "text";
+      const fabIn = document.createElement("textarea");
       fabIn.id = "item-edit-fabric";
-      fabIn.maxLength = 80;
+      fabIn.className = "textarea-autosize";
+      fabIn.rows = 2;
+      fabIn.maxLength = 1000;
       fabIn.value = String(item.fabric ?? "");
 
       const wtIn = document.createElement("input");
@@ -23438,6 +23571,7 @@
       appendItemEditField(matStrip, "Specs / weight (optional)", wtIn, { width: "compact" });
       appendItemEditField(matStrip, "Size (optional)", sizeIn, { width: "compact" });
       materialGrid.appendChild(matStrip);
+      wireTextareaAutosize(fabIn);
 
       const purchaseIn = document.createElement("input");
       purchaseIn.type = "date";
@@ -28006,50 +28140,50 @@
     const fastCollectionFromHome = false;
     /* Collection should feel immediate: keep brand cue but shorten enforced loader timings. */
     const minMs = fastCollectionFromHome
+      ? 20
+      : fastCollectionPaint
+        ? 30
+        : isLoginPage
+          ? 30
+          : isCollectionGridPage
+            ? 60
+            : isItemPdpPage
+              ? 40
+              : 60;
+    const logoInMs = fastCollectionFromHome
+      ? 10
+      : fastCollectionPaint
+        ? 20
+        : isLoginPage
+          ? 20
+          : isCollectionGridPage
+            ? 30
+            : isItemPdpPage
+              ? 20
+              : 30;
+    const fadeOutMs = fastCollectionFromHome
       ? 80
       : fastCollectionPaint
-        ? 140
+        ? 90
         : isLoginPage
-          ? 120
+          ? 90
           : isCollectionGridPage
-            ? 420
+            ? 100
             : isItemPdpPage
-              ? 180
-              : 400;
-    const logoInMs = fastCollectionFromHome
-      ? 60
-      : fastCollectionPaint
-        ? 120
-        : isLoginPage
-          ? 80
-          : isCollectionGridPage
-            ? 280
-            : isItemPdpPage
-              ? 120
-              : 250;
-    const fadeOutMs = fastCollectionFromHome
-      ? 140
-      : fastCollectionPaint
-        ? 200
-        : isLoginPage
-          ? 160
-          : isCollectionGridPage
-            ? 280
-            : isItemPdpPage
-              ? 240
-              : 280;
+              ? 100
+              : 100;
     /* Item PDP: one reveal step (loader out) — skip second main fade that felt like a double flash. */
     const mainInMs = fastCollectionFromHome
-      ? 100
+      ? 40
       : fastCollectionPaint
-        ? 160
+        ? 60
         : isLoginPage
-          ? 120
+          ? 60
           : isCollectionGridPage
-            ? 220
+            ? 70
             : isItemPdpPage
               ? 0
-              : 200;
+              : 70;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));

@@ -11843,9 +11843,11 @@ input[type="search"],
 .add-item-form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value),
 .add-item-form input[type="date"],
 .add-item-form input[type="number"],
+.add-item-form textarea,
 .item-detail__form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value),
 .item-detail__form input[type="date"],
-.item-detail__form input[type="number"] {
+.item-detail__form input[type="number"],
+.item-detail__form textarea {
   font: inherit;
   color: var(--ink);
   background: var(--bg-elevated);
@@ -11879,9 +11881,11 @@ input[type="search"]:focus-visible,
 .add-item-form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value):focus-visible,
 .add-item-form input[type="date"]:focus-visible,
 .add-item-form input[type="number"]:focus-visible,
+.add-item-form textarea:focus-visible,
 .item-detail__form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value):focus-visible,
 .item-detail__form input[type="date"]:focus-visible,
-.item-detail__form input[type="number"]:focus-visible {
+.item-detail__form input[type="number"]:focus-visible,
+.item-detail__form textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
@@ -11893,9 +11897,11 @@ input[type="search"]:focus-visible,
   .add-item-form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value):focus-visible,
   .add-item-form input[type="date"]:focus-visible,
   .add-item-form input[type="number"]:focus-visible,
+  .add-item-form textarea:focus-visible,
   .item-detail__form input[type="text"]:not(.measured-dims-row__label):not(.measured-dims-row__value):focus-visible,
   .item-detail__form input[type="date"]:focus-visible,
-  .item-detail__form input[type="number"]:focus-visible {
+  .item-detail__form input[type="number"]:focus-visible,
+  .item-detail__form textarea:focus-visible {
     border-color: var(--accent);
   }
 }
@@ -14918,6 +14924,21 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   .item-detail__root--page .item-detail__media--hero-enlarge-desktop .item-detail__hero-img--enlarge-desktop,
   .item-detail__root--edit .item-detail__media--hero-enlarge-desktop .card__media-img,
   .item-detail__root--edit .item-detail__media--hero-enlarge-desktop .item-detail__hero-img--enlarge-desktop {
+    cursor: none;
+  }
+
+  .item-detail__root--page
+    .item-detail__media.item-detail__media--zoomable.item-detail__media--hero-enlarge-desktop
+    .item-detail__hero-img--zoomable.item-detail__hero-img--enlarge-desktop,
+  .item-detail__root--edit
+    .item-detail__media.item-detail__media--zoomable.item-detail__media--hero-enlarge-desktop
+    .item-detail__hero-img--zoomable.item-detail__hero-img--enlarge-desktop,
+  .item-detail__root--page
+    .item-detail__gallery-stage.item-detail__media--zoomable.item-detail__media--hero-enlarge-desktop
+    .card__media-img,
+  .item-detail__root--edit
+    .item-detail__gallery-stage.item-detail__media--zoomable.item-detail__media--hero-enlarge-desktop
+    .card__media-img {
     cursor: none;
   }
 
@@ -22021,7 +22042,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 #tw-page-loader.tw-page-loader.tw-page-loader--exiting {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 520ms ease;
+  transition: opacity 100ms ease-out;
 }
 
 #tw-page-loader.tw-page-loader.tw-page-loader--off {
@@ -22048,10 +22069,10 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   object-fit: contain;
   object-position: center;
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.985);
   transition:
-    opacity 1000ms ease-out,
-    transform 1000ms ease-out;
+    opacity 90ms ease-out,
+    transform 120ms ease-out;
 }
 
 #tw-page-loader.tw-page-loader--brand-visible .tw-page-loader__mark {
@@ -22067,7 +22088,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   text-transform: uppercase;
   color: var(--tw-brand-green);
   opacity: 0;
-  transition: opacity 1000ms ease-out;
+  transition: opacity 90ms ease-out;
 }
 
 #tw-page-loader.tw-page-loader--brand-visible .tw-page-loader__wordmark {
@@ -22094,7 +22115,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 @keyframes tw-main-reveal {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(5px);
   }
 
   to {
@@ -22106,12 +22127,12 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 body.tw-page-loader-main-pending #main,
 body.tw-page-loader-main-pending #item-page-main {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(5px);
 }
 
 body.tw-page-loader-main-reveal #main,
 body.tw-page-loader-main-reveal #item-page-main {
-  animation: tw-main-reveal 500ms ease both;
+  animation: tw-main-reveal 120ms ease-out both;
 }
 
 /* Item PDP: single-step loader exit — no second main fade (see completeTwInitialPageLoader mainInMs=0). */
