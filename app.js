@@ -25917,10 +25917,13 @@
 
   /** @type {ReturnType<typeof setTimeout> | null} */
     let closeTimer = null;
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let openTimer = null;
     let headerSubmenuSwitchAnimTimer = 0;
     /** @type {(() => void) | null} */
     let headerSubmenuCloseAbort = null;
     const HEADER_SUBMENU_HOVER_HIDE_MS = 120;
+    const HEADER_SUBMENU_HOVER_OPEN_MS = 170;
     const HEADER_SUBMENU_OPEN_MOTION_MS = 300;
     const HEADER_SUBMENU_CLOSE_MOTION_MS = 120;
 
@@ -25959,8 +25962,15 @@
       closeTimer = null;
     };
 
+    const cancelOpenMegaMenu = () => {
+      if (!openTimer) return;
+      clearTimeout(openTimer);
+      openTimer = null;
+    };
+
     const scheduleCloseMegaMenu = () => {
       cancelCloseMegaMenu();
+      cancelOpenMegaMenu();
       closeTimer = setTimeout(() => {
         closeTimer = null;
         hideHeaderSubmenu();
@@ -25969,6 +25979,7 @@
 
     const closeMegaMenuNow = () => {
       cancelCloseMegaMenu();
+      cancelOpenMegaMenu();
       hideHeaderSubmenu();
     };
 
@@ -26909,7 +26920,17 @@
 
     const openMegaMenu = (category) => {
       cancelCloseMegaMenu();
+      cancelOpenMegaMenu();
       showHeaderSubmenuForCategory(category);
+    };
+
+    const scheduleOpenMegaMenu = (category) => {
+      cancelCloseMegaMenu();
+      cancelOpenMegaMenu();
+      openTimer = setTimeout(() => {
+        openTimer = null;
+        showHeaderSubmenuForCategory(category);
+      }, HEADER_SUBMENU_HOVER_OPEN_MS);
     };
 
     const divisionHoverZoneRef = document.querySelector(".site-header__division-hover-zone");
@@ -26955,7 +26976,7 @@
           if (isHeaderCompactViewport()) return;
           closeHeaderSearch();
           const jump = String(link.getAttribute("data-category-jump") ?? "").trim();
-          if (jump) openMegaMenu(jump);
+          if (jump) scheduleOpenMegaMenu(jump);
         });
       });
     }

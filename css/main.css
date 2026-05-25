@@ -4646,7 +4646,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-header__submenu {
   @apply ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] mt-0 mb-0;
     position: absolute;
-    top: 100%;
+    top: calc(100% + var(--site-header-submenu-gap, 0.65rem));
     left: 0;
     right: 0;
     width: 100vw;
@@ -4720,7 +4720,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 
   .site-header__submenu.desktop-mega-menu {
   @apply mt-0;
-    top: 100%;
+    top: calc(100% + var(--site-header-submenu-gap, 0.65rem));
     display: flex;
     flex-direction: column;
     align-items: stretch;
