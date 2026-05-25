@@ -4884,6 +4884,7 @@
     Watches: "Watches",
     Accessories: "Accessories",
     "Small accessories": "Objects",
+    "Small Goods": "Objects",
     "Objects": "Objects",
     Bags: "Bags",
     Hats: "Caps & Hats",
@@ -5306,7 +5307,7 @@
     )
       return SLOT_ACCESSORIES;
     if (cat === "Footwear") return SLOT_ACCESSORIES;
-    if (cat === "Objects" || cat === "Small accessories") return SLOT_ACCESSORIES;
+    if (cat === "Objects" || cat === "Small Goods" || cat === "Small accessories") return SLOT_ACCESSORIES;
     if (cat === "Future") return SLOT_ACCESSORIES;
     return SLOT_ACCESSORIES;
   }
@@ -5320,7 +5321,7 @@
       return LEGACY_UNSPEC_CATEGORY_TO_SLOT[rawCat];
     }
 
-    if (rawCat === "Objects" || rawCat === "Small accessories") return SLOT_ACCESSORIES;
+    if (rawCat === "Objects" || rawCat === "Small Goods" || rawCat === "Small accessories") return SLOT_ACCESSORIES;
     if (
       rawCat === "Bags" ||
       rawCat === "Hats" ||
@@ -5467,6 +5468,7 @@
     Ring: 14,
     Accessories: 13,
     "Small accessories": 13,
+    "Small Goods": 13,
     "Objects": 13,
     Bags: 12,
     Footwear: 13,
@@ -5520,6 +5522,7 @@
     Ring: 8,
     Accessories: 9,
     "Small accessories": 9,
+    "Small Goods": 9,
     "Objects": 9,
     Eyewear: 10,
     Sunglasses: 10,
@@ -13791,7 +13794,7 @@
       if (raw === "Sunglasses" || raw === "Glasses" || raw === "Eyeglasses") raw = "Eyewear";
       raw = mapJewelleryFutureToConcreteDrillKey(raw);
       if (raw === "Footwear") return "Footwear";
-      if (raw === "Small accessories") return "Objects";
+      if (raw === "Small Goods" || raw === "Small accessories") return "Objects";
       if (raw === "帽子") return "Hats";
       if (WATCH_RECORD_TYPE_KEYS_LEAKED.includes(raw)) {
         return "Hats";
@@ -13916,7 +13919,7 @@
     if (r === "Daywear") return "Day";
     if (r === "項鏈" || r === "手鏈" || r === "戒指") return "Jewellery";
     if (r === "潛水錶") return "Dive";
-    if (r === "Small accessories") return "Objects";
+    if (r === "Small Goods" || r === "Small accessories") return "Objects";
     if (r === "帽子") return "Hats";
     return r;
   }
