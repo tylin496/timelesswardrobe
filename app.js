@@ -575,6 +575,17 @@
     delete input.dataset.inferred;
   }
 
+  function setItemEditColourFieldValue(input, value, opts = {}) {
+    if (!(input instanceof HTMLInputElement)) return;
+    input.value = String(value ?? "");
+    if (input.value.trim()) markItemEditColourFieldUserEdited(input);
+    else {
+      delete input.dataset.userEdited;
+      delete input.dataset.inferred;
+    }
+    if (opts.dispatch !== false) input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
   function itemEditColourNameSuggestedPlaceholder(input) {
     if (!(input instanceof HTMLInputElement)) return "";
     const ph = String(input.placeholder ?? "").trim();
@@ -590,21 +601,16 @@
     return String(input.value ?? "").trim();
   }
 
-  /**
-   * Value to persist on save — user input wins; otherwise commit auto-suggest from placeholder.
-   * @param {HTMLInputElement | null | undefined} input
-   */
+  /** Value to persist on save — user-typed colour name only. */
   function itemEditColourNameCommittedValue(input) {
     if (!(input instanceof HTMLInputElement)) return "";
-    const typed = itemEditColourNameSaveValue(input);
-    if (typed) return typed;
-    if (input.dataset.inferred === "1") return itemEditColourNameSuggestedPlaceholder(input);
-    return "";
+    return itemEditColourNameSaveValue(input);
   }
 
-  /** For broad-colour Auto hints while editing — same as committed (includes grey placeholder suggest). */
+  /** For preview / broad-colour Auto hints — includes grey placeholder suggest, never written as colour name. */
   function itemEditColourNameForInference(input) {
-    return itemEditColourNameCommittedValue(input);
+    if (!(input instanceof HTMLInputElement)) return "";
+    return itemEditColourNameSaveValue(input) || itemEditColourNameSuggestedPlaceholder(input);
   }
 
   function itemEditColourCodeSaveValue(input) {
@@ -1015,8 +1021,7 @@
     };
 
     const commit = () => {
-      codeInput.value = pendingHex;
-      codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      setItemEditColourFieldValue(codeInput, pendingHex);
       codeInput.focus();
     };
 
@@ -1035,8 +1040,7 @@
     };
 
     const restore = () => {
-      codeInput.value = snapshot;
-      codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      setItemEditColourFieldValue(codeInput, snapshot);
     };
 
     const cleanup = () => {
@@ -1108,9 +1112,7 @@
       const dropper = new window.EyeDropper();
       const result = await dropper.open();
       if (result?.sRGBHex) {
-        codeInput.value = result.sRGBHex;
-        markItemEditColourFieldUserEdited(codeInput);
-        codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        setItemEditColourFieldValue(codeInput, result.sRGBHex);
         codeInput.focus();
         return true;
       }
@@ -1572,10 +1574,10 @@
     const secCode = secCodeIn instanceof HTMLInputElement ? secCodeIn.value : "";
     const secBasic = secBasicSel instanceof HTMLSelectElement ? secBasicSel.value : "";
 
-    colourNameInput.value = secName;
-    colourCodeInput.value = secCode;
-    if (secNameIn instanceof HTMLInputElement) secNameIn.value = priName;
-    if (secCodeIn instanceof HTMLInputElement) secCodeIn.value = priCode;
+    setItemEditColourFieldValue(colourNameInput, secName, { dispatch: false });
+    setItemEditColourFieldValue(colourCodeInput, secCode, { dispatch: false });
+    setItemEditColourFieldValue(secNameIn, priName, { dispatch: false });
+    setItemEditColourFieldValue(secCodeIn, priCode, { dispatch: false });
     if (basicSel instanceof HTMLSelectElement) basicSel.value = secBasic;
     if (secBasicSel instanceof HTMLSelectElement) secBasicSel.value = priBasic;
 
@@ -23455,10 +23457,10 @@
           const secCodeIn = /** @type {HTMLInputElement | null} */ (
             colourSingleField.querySelector("#item-edit-secondary-colour-code")
           );
-          if (colourNameEl) colourNameEl.value = firstColour || firstLabel || colourNameEl.value;
-          if (codeIn) codeIn.value = firstCode || codeIn.value;
-          if (secNameEl) secNameEl.value = firstSecondary;
-          if (secCodeIn) secCodeIn.value = firstSecondaryCode;
+          setItemEditColourFieldValue(colourNameEl, firstColour || firstLabel || colourNameEl?.value || "");
+          setItemEditColourFieldValue(codeIn, firstCode || codeIn?.value || "");
+          setItemEditColourFieldValue(secNameEl, firstSecondary);
+          setItemEditColourFieldValue(secCodeIn, firstSecondaryCode);
           const firstBasic = /** @type {HTMLSelectElement | null} */ (firstRow.querySelector(".item-edit-variant-basic-colour"));
           const firstSecBasic = /** @type {HTMLSelectElement | null} */ (
             firstRow.querySelector(".item-edit-variant-secondary-basic-colour")
