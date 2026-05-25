@@ -2443,6 +2443,23 @@
     return local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
   }
 
+  function twAccountGreetingName() {
+    const name = String(twEditorSession?.name ?? "").trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
+    return twEditorDisplayName() || "TY";
+  }
+
+  async function signOutTwAccountAndReturnHome() {
+    if (twAccountBusy) return;
+    await signOutGoogleEditor();
+    try {
+      globalThis.location.assign("/");
+    } catch {
+      globalThis.location.href = "/";
+    }
+  }
+
   function isCollectionPagePathname(pathname) {
     const path = String(pathname ?? "").replace(/\/$/, "") || "/";
     return path === "/collection" || path === "/collection.html" || /^\/collection(?:\.html)?\//i.test(path);
@@ -2901,6 +2918,216 @@
     }
   }
 
+  function isTwAccountPage() {
+    try {
+      const path = String(globalThis.location?.pathname ?? "").replace(/\/$/, "") || "/";
+      return path === "/account" || path === "/account.html";
+    } catch {
+      return false;
+    }
+  }
+
+  function updateTwAccountStatus(text, variant = "pending", { hidden = false } = {}) {
+    const v = variant === "success" || variant === "error" ? variant : "pending";
+    const status = document.getElementById("account-status");
+    const statusText = document.getElementById("account-status-text");
+    if (statusText) statusText.textContent = text;
+    else if (status) status.textContent = text;
+    if (status instanceof HTMLElement) {
+      status.classList.remove(
+        "login-page-main__status--pending",
+        "login-page-main__status--success",
+        "login-page-main__status--error"
+      );
+      status.classList.add(`login-page-main__status--${v}`);
+      status.hidden = Boolean(hidden);
+    }
+  }
+
+  /** Distinct non-empty brands across all items, with usage counts, sorted A→Z. */
+  function twDistinctBrandCounts() {
+    const counts = new Map();
+    for (const it of items) {
+      const b = String(it?.brand ?? "").trim();
+      if (!b) continue;
+      counts.set(b, (counts.get(b) || 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }
+
+  let twAccountBusy = false;
+
+  async function handleTwAccountPage() {
+    if (!isTwAccountPage()) return;
+    if (!isTwLocalDevHost() && !isSupabaseReady()) {
+      updateTwAccountStatus("Account management is not available on this deployment.", "error");
+      return;
+    }
+    if (!isTwLocalDevHost() && !isTwEditorUser()) {
+      if (twEditorSession?.denied) {
+        updateTwAccountStatus("This Google account cannot manage this wardrobe.", "error");
+        return;
+      }
+      updateTwAccountStatus("Redirecting to sign-in…", "pending");
+      redirectToTwLogin("/account");
+      return;
+    }
+    if (twAccountBusy) return;
+    updateTwAccountStatus("Loading brands…", "pending");
+    try {
+      if (isCloudModeActive()) await refreshCloudBackedCustomItems();
+    } catch (e) {
+      console.warn("[account] cloud refresh failed:", e);
+    }
+    renderTwAccountView();
+  }
+
+  /** Batch-apply brand renames to the cloud, mirroring the single-item edit save path. */
+  async function applyTwBrandRenames(renames) {
+    let updated = 0;
+    let failed = 0;
+    const savedRows = [];
+    for (const { from, to } of renames) {
+      const affected = items.filter((it) => String(it?.brand ?? "").trim() === from);
+      for (const it of affected) {
+        const next = { ...it, brand: to };
+        try {
+          if (isSupabaseReady()) {
+            const saved = await saveWardrobeItemToCloud(next);
+            upsertWardrobeBaseRowInMemory(saved);
+            savedRows.push(saved);
+          } else {
+            upsertWardrobeBaseRowInMemory(next);
+          }
+          updated++;
+        } catch (e) {
+          console.warn("[account] brand rename save failed:", it?.id, e);
+          failed++;
+        }
+      }
+    }
+    if (savedRows.length && isCloudModeActive()) {
+      try {
+        await refreshCloudBackedCustomItems({ pinnedRows: savedRows });
+      } catch {
+        mergeWardrobeFromSources();
+      }
+    } else {
+      mergeWardrobeFromSources();
+    }
+    return { updated, failed };
+  }
+
+  function renderTwAccountView() {
+    const body = document.getElementById("account-body");
+    if (!body) return;
+    const title = document.querySelector(".account-page-main .login-page-main__title");
+    if (title) title.textContent = `Welcome back, ${twAccountGreetingName()}`;
+    const heroSignOut = document.getElementById("account-signout");
+    if (heroSignOut instanceof HTMLButtonElement) {
+      heroSignOut.hidden = false;
+      heroSignOut.onclick = signOutTwAccountAndReturnHome;
+    }
+    updateTwAccountStatus("", "success", { hidden: true });
+
+    body.replaceChildren();
+    body.hidden = false;
+
+    const card = document.createElement("section");
+    card.className = "account-card";
+    const h2 = document.createElement("h2");
+    h2.className = "account-card__title";
+    h2.textContent = "Manage brands";
+    card.appendChild(h2);
+
+    const brands = twDistinctBrandCounts();
+    const totalPieces = brands.reduce((n, b) => n + b.count, 0);
+    const hint = document.createElement("p");
+    hint.className = "account-card__hint";
+    hint.textContent = `Rename a brand to update every piece that uses it. ${brands.length} brands · ${totalPieces} pieces.`;
+    card.appendChild(hint);
+
+    const form = document.createElement("form");
+    form.className = "account-brand-form";
+    const list = document.createElement("ul");
+    list.className = "account-brand-list";
+    for (const { name: brand, count } of brands) {
+      const li = document.createElement("li");
+      li.className = "account-brand-row";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "account-brand-input";
+      input.value = brand;
+      input.dataset.brandOriginal = brand;
+      input.setAttribute("aria-label", `Brand name (${count} pieces)`);
+      const countEl = document.createElement("span");
+      countEl.className = "account-brand-count";
+      countEl.textContent = String(count);
+      li.append(input, countEl);
+      list.appendChild(li);
+    }
+    form.appendChild(list);
+
+    const actions = document.createElement("div");
+    actions.className = "account-brand-actions";
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "submit";
+    saveBtn.className = "btn btn--small";
+    saveBtn.textContent = "Save changes";
+    const feedback = document.createElement("span");
+    feedback.className = "account-brand-feedback";
+    feedback.setAttribute("aria-live", "polite");
+    actions.append(saveBtn, feedback);
+    form.appendChild(actions);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (twAccountBusy) return;
+      const renames = [];
+      const seen = new Set();
+      for (const input of list.querySelectorAll(".account-brand-input")) {
+        const from = String(input.dataset.brandOriginal ?? "");
+        const to = String(input.value ?? "").trim();
+        if (!from || from === to) continue;
+        if (!to) {
+          feedback.textContent = `Brand name can’t be empty (was “${from}”).`;
+          return;
+        }
+        if (seen.has(from)) continue;
+        seen.add(from);
+        renames.push({ from, to });
+      }
+      if (!renames.length) {
+        feedback.textContent = "No changes to save.";
+        return;
+      }
+      const summary = renames.map((r) => `“${r.from}” → “${r.to}”`).join("\n");
+      if (!globalThis.confirm(`Apply these brand changes across the collection?\n\n${summary}`)) return;
+
+      twAccountBusy = true;
+      saveBtn.disabled = true;
+      feedback.textContent = "Saving…";
+      try {
+        const res = await applyTwBrandRenames(renames);
+        feedback.textContent = res.failed
+          ? `Updated ${res.updated} piece(s); ${res.failed} failed — see console.`
+          : `Updated ${res.updated} piece(s).`;
+      } catch (err) {
+        console.warn("[account] brand rename failed:", err);
+        feedback.textContent = "Save failed — see console.";
+      } finally {
+        twAccountBusy = false;
+        renderTwAccountView();
+      }
+    });
+
+    card.appendChild(form);
+    body.appendChild(card);
+
+  }
+
   function twSiteBaseUrl() {
     const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
     if (configured) return configured;
@@ -2986,6 +3213,7 @@
       twEditorSession = null;
       installTwEditorAuthUi();
       await handleTwLoginPage();
+      await handleTwAccountPage();
       return;
     }
     const { data, error } = await supabaseClient.auth.getSession();
@@ -3001,6 +3229,10 @@
       if (isTwEditorUser() || twEditorSession?.denied) clearTwLoginOAuthPending();
       applyTwAdminModeUi();
       installTwEditorAuthUi();
+      if (isTwAccountPage()) {
+        void handleTwAccountPage();
+        return;
+      }
       if (isTwLoginPage() && isTwEditorUser()) {
         updateLoginPageStatus("Signed in successfully. Redirecting to the collection…", { variant: "success" });
         completeTwLoginPageRedirect(900);
@@ -3054,6 +3286,7 @@
       }
     }
     await handleTwLoginPage();
+    await handleTwAccountPage();
   }
 
   /** Swap the mobile nav login row between "Sign in" and "Welcome, <name>!". */
@@ -3066,9 +3299,11 @@
       const name = twEditorDisplayName();
       label.textContent = name ? `Welcome, ${name}!` : "Welcome!";
       link.dataset.loggedIn = "1";
+      if (link instanceof HTMLAnchorElement) link.href = "/account";
     } else {
       label.textContent = "Sign in";
       delete link.dataset.loggedIn;
+      if (link instanceof HTMLAnchorElement) link.href = twLoginUrl();
     }
   }
 
@@ -6560,6 +6795,18 @@
     if (cloudRow) return base;
     if (!isSupabaseReady()) return mergeMissingFrozenSeedGalleryPaths(id, base);
     return base;
+  }
+
+  /**
+   * Collection cards can show local catalogue seed frames even when the cloud row is present.
+   * This keeps compact-grid hover previews from losing older file-backed gallery images while
+   * leaving editor/PDP source-of-truth behavior in `resolvedItemGalleryList` unchanged.
+   */
+  function collectionDisplayGalleryList(item) {
+    const id = String(item?.id ?? "").trim();
+    const base = resolvedItemGalleryList(item);
+    if (!id || !isLocalCatalogueItemId(id) || getItemColourVariants(item)) return base;
+    return mergeMissingFrozenSeedGalleryPaths(id, base);
   }
 
   /** @param {string} url */
@@ -14570,7 +14817,7 @@
     /** @type {string[]} */
     const out = [];
     const id = String(item?.id ?? "").trim();
-    const gallerySource = resolvedItemGalleryList(item);
+    const gallerySource = collectionDisplayGalleryList(item);
     for (const raw of gallerySource) {
       const x = String(raw ?? "").trim();
       if (!x || !isDisplayableCloudImageUrl(x)) continue;
@@ -25885,7 +26132,9 @@
       loginLink.href = twLoginUrl();
       loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
       loginLink.innerHTML = `<span class="site-mobile-nav__login-lead"><svg class="site-mobile-nav__login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"></path></svg><span class="site-mobile-nav__label" data-mobile-nav-login-label>Sign in</span></span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
-      loginLink.addEventListener("pointerdown", () => { loginLink.href = twLoginUrl(); });
+      loginLink.addEventListener("pointerdown", () => {
+        loginLink.href = isTwEditorUser() ? "/account" : twLoginUrl();
+      });
       loginLink.addEventListener("click", () => closeMobileCategoryPanel());
       loginLi.appendChild(loginLink);
       rootList.appendChild(loginLi);

@@ -2,39 +2,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Timeless Wardrobe — a private archive of classic menswear">
   <defs>
     <linearGradient id="page-wash" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#faf7f0"/>
-      <stop offset="48%" stop-color="#f7f4ed"/>
-      <stop offset="100%" stop-color="#efe9dc"/>
+      <stop offset="0%" stop-color="#fbf8f1"/>
+      <stop offset="52%" stop-color="#f7f4ed"/>
+      <stop offset="100%" stop-color="#ede7da"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="40%" r="62%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>
+    <radialGradient id="center-lift" cx="50%" cy="46%" r="58%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.56"/>
+      <stop offset="62%" stop-color="#ffffff" stop-opacity="0.2"/>
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
-    <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#163229" flood-opacity="0.1"/>
+    <pattern id="paper-grain" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M0 11.5H12M11.5 0V12" fill="none" stroke="#163229" stroke-opacity="0.018" stroke-width="1"/>
+    </pattern>
+    <filter id="mark-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#163229" flood-opacity="0.09"/>
     </filter>
   </defs>
 
   <rect width="1200" height="630" fill="url(#page-wash)"/>
-  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#center-lift)"/>
+  <rect width="1200" height="630" fill="url(#paper-grain)"/>
 
-  <rect x="28" y="28" width="1144" height="574" fill="none" stroke="#163229" stroke-opacity="0.12" stroke-width="1"/>
-  <line x1="28" y1="92" x2="1172" y2="92" stroke="#163229" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="34" y="34" width="1132" height="562" fill="none" stroke="#163229" stroke-opacity="0.18" stroke-width="1"/>
+  <rect x="52" y="52" width="1096" height="526" fill="none" stroke="#163229" stroke-opacity="0.075" stroke-width="1"/>
 
-  <rect width="1200" height="44" fill="#1b352d"/>
-  <text x="72" y="28" fill="#f7f4ed" font-family="Helvetica, Arial, sans-serif" font-size="9.5" font-weight="500" letter-spacing="0.2em">INDICIO ET CONSTANTIA</text>
-  <text x="600" y="28" text-anchor="middle" fill="#f7f4ed" font-family="Helvetica, Arial, sans-serif" font-size="9.5" font-weight="400" letter-spacing="0.16em" opacity="0.9">Only What Endures</text>
-  <text x="1128" y="28" text-anchor="end" fill="#f7f4ed" font-family="Helvetica, Arial, sans-serif" font-size="9.5" font-weight="500" letter-spacing="0.18em">Since 2020</text>
+  <text x="104" y="92" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="500" letter-spacing="0.22em" opacity="0.64">INDICIO ET CONSTANTIA</text>
+  <text x="1096" y="92" text-anchor="end" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="500" letter-spacing="0.2em" opacity="0.64">SINCE 2020</text>
 
-  <g filter="url(#soft-shadow)">
-    <image xlink:href="monogram.png" x="522" y="118" width="156" height="156" preserveAspectRatio="xMidYMid meet"/>
+  <line x1="104" y1="128" x2="444" y2="128" stroke="#163229" stroke-opacity="0.16" stroke-width="1"/>
+  <line x1="756" y1="128" x2="1096" y2="128" stroke="#163229" stroke-opacity="0.16" stroke-width="1"/>
+
+  <g filter="url(#mark-shadow)" opacity="0.96">
+    <image xlink:href="monogram.png" x="535" y="74" width="130" height="130" preserveAspectRatio="xMidYMid meet"/>
   </g>
 
-  <text x="600" y="338" text-anchor="middle" fill="#163229" font-family="Georgia, 'Times New Roman', serif" font-size="56" letter-spacing="0.34em">TIMELESS</text>
-  <text x="600" y="396" text-anchor="middle" fill="#163229" font-family="Georgia, 'Times New Roman', serif" font-size="56" letter-spacing="0.34em">WARDROBE</text>
+  <text x="600" y="301" text-anchor="middle" fill="#163229" font-family="Georgia, 'Times New Roman', serif" font-size="43" letter-spacing="0.3em">TIMELESS WARDROBE</text>
+  <line x1="410" y1="340" x2="790" y2="340" stroke="#163229" stroke-opacity="0.2" stroke-width="1"/>
 
-  <line x1="456" y1="422" x2="744" y2="422" stroke="#163229" stroke-opacity="0.22" stroke-width="1"/>
+  <text x="600" y="392" text-anchor="middle" fill="#203a31" font-family="Helvetica, Arial, sans-serif" font-size="23" font-weight="400" letter-spacing="0.035em" opacity="0.9">A private archive of classic menswear</text>
+  <text x="600" y="451" text-anchor="middle" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="0.24em" opacity="0.56">CURATED BY T. Y. LIN</text>
 
-  <text x="600" y="468" text-anchor="middle" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="21" letter-spacing="0.02em" opacity="0.9">A private archive of classic menswear</text>
-  <text x="600" y="502" text-anchor="middle" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" letter-spacing="0.2em" opacity="0.58">CURATED BY T. Y. LIN</text>
+  <text x="600" y="542" text-anchor="middle" fill="#163229" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="500" letter-spacing="0.22em" opacity="0.46">ONLY WHAT ENDURES</text>
 </svg>

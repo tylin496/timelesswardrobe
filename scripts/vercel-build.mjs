@@ -37,6 +37,7 @@ const rootFiles = [
   "collection.html",
   "item.html",
   "login.html",
+  "account.html",
   "app.js",
   "styles.css",
   "favicon.png",

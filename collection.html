@@ -124,6 +124,14 @@
                 </svg>
               </span>
             </button>
+            <a class="site-header__account-link" href="/account" aria-label="Open account" title="Account">
+              <span class="site-header__account-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle class="site-header__tool-glyph site-header__tool-glyph--cap-round" cx="8" cy="4.45" r="2.05"/>
+                  <path class="site-header__tool-glyph site-header__tool-glyph--cap-round" d="M3.15 13C3.55 9.75 5.35 8.15 8 8.15C10.65 8.15 12.45 9.75 12.85 13"/>
+                </svg>
+              </span>
+            </a>
             <button
               type="button"
               id="site-header-saved-toggle"
@@ -847,12 +855,27 @@
       </div>
     </div>
 
-    <footer class="site-footer" aria-label="Site">
-      <div class="site-footer__brand">
-        <p class="site-footer__wordmark">Timeless Wardrobe</p>
-        <p class="site-footer__lede">A private archive of classic menswear</p>
+    <footer class="site-footer" aria-label="Site footer">
+      <div class="site-footer__inner">
+        <div class="site-footer__brand">
+          <a class="site-footer__brand-link" href="/" aria-label="Timeless Wardrobe home">
+            <span class="site-footer__mark" aria-hidden="true"></span>
+            <span class="site-footer__wordmark">Timeless Wardrobe</span>
+          </a>
+          <p class="site-footer__lede">A private archive of classic menswear</p>
+          <p class="site-footer__motto">Only What Endures</p>
+        </div>
+        <nav class="site-footer__nav" aria-label="Footer navigation">
+          <a href="/collection/clothing">Clothing</a>
+          <a href="/collection/accessories">Accessories</a>
+          <a href="/collection/watches">Watches</a>
+          <a href="/collection/fragrance">Fragrance</a>
+        </nav>
+        <div class="site-footer__meta">
+          <span>Curated by T. Y. Lin</span>
+          <span>Since 2020</span>
+        </div>
       </div>
-      <p class="site-footer__credit">Curated by T. Y. Lin</p>
     </footer>
 
     <dialog id="add-item-dialog" class="add-item-dialog tw-admin-only" hidden aria-labelledby="add-item-heading" aria-modal="true">

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Manage the Timeless Wardrobe collection." />
+    <title>Account · Timeless Wardrobe</title>
+    <link rel="icon" href="./icons/favicon-16.png" sizes="16x16" type="image/png" />
+    <link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="./icons/favicon-180.png" sizes="180x180" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <script src="js/tw-page-theme-boot.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="js/tw-admin-boot.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="login-page account-page theme-catalogue">
+    <a class="skip-link" href="#account-main">Skip to account</a>
+
+    <div class="site-header-shell site-header-shell--compact">
+      <div class="site-utility-bar" role="note" aria-label="Brand masthead">
+        <div class="site-utility-bar__inner">
+          <span class="site-utility-bar__left">INDICIO ET CONSTANTIA</span>
+          <span class="site-utility-bar__center">Only What Endures</span>
+          <span class="site-utility-bar__right">Since 2020</span>
+        </div>
+      </div>
+      <header class="site-header site-header--solid">
+        <div class="site-header__container site-header__inner">
+          <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
+            <p class="site-title site-brand">
+              <a href="/" class="site-title__primary">
+                <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
+                <span class="site-title__text-stack site-brand-wordmark">
+                  <span class="site-title__wordmark-line">Timeless</span>
+                  <span class="site-title__wordmark-line">Wardrobe</span>
+                </span>
+              </a>
+            </p>
+            <div class="site-header__tools">
+              <div id="tw-editor-auth" class="site-header__editor-auth" hidden></div>
+            </div>
+          </div>
+        </div>
+      </header>
+    </div>
+
+    <main id="account-main" class="login-page-main account-page-main" role="main">
+      <div class="account-page-hero">
+        <div class="account-page-hero__copy">
+          <h1 class="login-page-main__title">Welcome back</h1>
+          <div
+            id="account-status"
+            class="login-page-main__status login-page-main__status--pending"
+            role="status"
+            aria-live="polite"
+          >
+            <span id="account-status-text" class="login-page-main__status-text">Loading…</span>
+          </div>
+        </div>
+        <button id="account-signout" type="button" class="account-signout account-signout--hero" hidden>
+          Sign Out
+        </button>
+      </div>
+      <div id="account-body" class="account-body" hidden></div>
+    </main>
+
+    <script src="data/wardrobe.js"></script>
+    <script src="js/tw-supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
