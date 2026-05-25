@@ -1086,7 +1086,7 @@
     ui.hexField.addEventListener("blur", onHexCommit);
     ui.hexField.addEventListener("input", onHexInput);
     ui.cancelBtn.addEventListener("click", onCancel);
-    ui.screenBtn.addEventListener("click", () => void onScreenPick());
+    ui.screenBtn.addEventListener("click", onScreenPick);
     ui.applyBtn.addEventListener("click", onApply);
     dlg.addEventListener("cancel", onDialogCancel);
     dlg.addEventListener("close", onDialogClose);
@@ -5863,7 +5863,7 @@
       category: String(row.category ?? "").trim(),
       season: normalizeStoredItemSeason(row.season),
       colour: String(row.colour ?? row.color ?? "").trim(),
-      colourCode: String(row.colour_code ?? row.color_code ?? "").trim(),
+      colourCode: String(row.colour_code ?? row.color_code ?? row.colourCode ?? row.colorCode ?? "").trim(),
       fabric: String(row.fabric ?? "").trim(),
       weight: String(row.weight ?? "").trim(),
       size: String(row.size ?? "").trim(),
