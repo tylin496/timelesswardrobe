@@ -6744,7 +6744,11 @@
   function wardrobeGalleryLogicalKey(url) {
     const key = wardrobeMediaPathKey(url) || String(url ?? "").trim().split("?")[0];
     if (!key) return "";
-    return key.replace(/(\/gallery\/\d{1,2})\.[a-z0-9]+$/i, "$1");
+    // Normalize simple numeric filenames: /gallery/02.png → /gallery/02
+    // Also normalize CDN timestamp-based filenames: /gallery/{ts}-gallery-02.png → /gallery/02
+    return key
+      .replace(/(\/gallery\/\d{1,2})\.[a-z0-9]+$/i, "$1")
+      .replace(/\/gallery\/[^/]*-gallery-(\d{2})\.[a-z0-9]+$/i, "/gallery/$1");
   }
 
   /** @param {string[]} urls */
@@ -6825,13 +6829,34 @@
     const id = String(item?.id ?? "").trim();
     const base = resolvedItemGalleryList(item);
     if (!id || !isLocalCatalogueItemId(id) || getItemColourVariants(item)) return base;
+    const ov = loadCollectionOverrides()[id];
+    // When no explicit media-edit override, filter out CDN gallery URLs at slots
+    // beyond the seed's gallery slots — prevents stale Supabase ghost uploads from
+    // appearing in collection cards for frozen catalogue items.
+    if (!(Number(ov?.__mediaEditedAt) > 0)) {
+      const seed = catalogueSeedRow(id);
+      if (seed) {
+        const seedSlots = new Set(
+          itemGalleryList(seed).map((u) => gallerySlotIndexFromMediaUrl(u)).filter(Boolean)
+        );
+        const filtered = base.filter((u) => {
+          const str = String(u ?? "").trim();
+          if (!str || !/^https?:\/\//i.test(str)) return true;
+          const slot = gallerySlotIndexFromMediaUrl(str);
+          return slot === 0 || seedSlots.has(slot);
+        });
+        return mergeMissingFrozenSeedGalleryPaths(id, filtered);
+      }
+    }
     return mergeMissingFrozenSeedGalleryPaths(id, base);
   }
 
   /** @param {string} url */
   function gallerySlotIndexFromMediaUrl(url) {
     const key = wardrobeMediaPathKey(url) || String(url ?? "").trim().split("?")[0];
-    const m = /\/gallery\/(\d{1,2})\./i.exec(key);
+    let m = /\/gallery\/(\d{1,2})\./i.exec(key);
+    if (m) return parseInt(m[1], 10);
+    m = /\/gallery\/[^/]*-gallery-(\d{2})\./i.exec(key);
     return m ? parseInt(m[1], 10) : 0;
   }
 
@@ -19826,6 +19851,7 @@
         simg.decoding = "async";
         simg.draggable = false;
         simg.src = entry.url;
+        simg.addEventListener("error", () => { slide.hidden = true; }, { once: true });
         slide.appendChild(simg);
         track.appendChild(slide);
       });
