@@ -17432,7 +17432,7 @@
     const galleryWrap = previewCol?.querySelector(".item-detail__gallery");
     const thumbs = galleryWrap?.querySelector(".item-detail__gallery-thumbs");
     const stage = galleryWrap?.querySelector(".item-detail__gallery-stage");
-    const heroImg = galleryWrap?.querySelector(".card__media-img");
+    const heroImg = stage?.querySelector(":scope > .card__media-img");
     if (
       !(galleryWrap instanceof HTMLElement) ||
       !(thumbs instanceof HTMLElement) ||
@@ -23286,6 +23286,7 @@
     const usePdpGalleryLayout = isItemPageView || isPageEdit;
     detailItemId = item.id;
     root.innerHTML = "";
+    root.classList.toggle("item-detail__root--edit", isPageEdit);
     /*
      * Variant items keep their gallery under each `colourVariants[].gallery` with an empty
      * row-level `gallery`. Project the default colour (the one whose cover matches the row
@@ -23368,8 +23369,6 @@
         mountHeroGalleryStrip(media, img, itemForMedia);
       }
     }
-
-    if (isPageEdit) root.classList.add("item-detail__root--edit");
 
     /** @type {HTMLElement | null} */
     let editPreviewCol = null;
