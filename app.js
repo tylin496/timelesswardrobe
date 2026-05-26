@@ -26900,6 +26900,30 @@
     openEditorialCropUi(file, aspectW, aspectH, onConfirm);
   }
 
+  function readEditorialImageDimensions(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objUrl);
+        resolve({ width: img.naturalWidth || 0, height: img.naturalHeight || 0 });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objUrl);
+        reject(new Error("Could not read image dimensions"));
+      };
+      img.src = objUrl;
+    });
+  }
+
+  async function fileMatchesEditorialAspect(file, aspectW, aspectH) {
+    const dims = await readEditorialImageDimensions(file);
+    if (!dims.width || !dims.height) return false;
+    const expected = aspectW / aspectH;
+    const actual = dims.width / dims.height;
+    return Math.abs(actual - expected) <= 0.01;
+  }
+
   /**
    * Opens a drag-to-pan crop UI. `onConfirm` receives a cropped Blob (JPEG).
    * @param {File} file
@@ -27241,10 +27265,18 @@
       }
     };
 
-    thumbnailFileInput.addEventListener("change", () => {
+    thumbnailFileInput.addEventListener("change", async () => {
       const file = thumbnailFileInput.files?.[0];
       thumbnailFileInput.value = "";
       if (!file) return;
+      try {
+        if (await fileMatchesEditorialAspect(file, 4, 5)) {
+          await saveThumbnailBlob(file);
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not inspect thumbnail aspect ratio.", err);
+      }
       openEditorialCropUi(file, 4, 5, saveThumbnailBlob);
     });
 
