@@ -162,6 +162,101 @@ export async function fetchWardrobeItems(client, excludeIds = []) {
   }
 }
 
+/** @param {Record<string, unknown>} row */
+function mapRowToEditorialStory(row) {
+  const pieceIds = Array.isArray(row.piece_ids)
+    ? row.piece_ids
+    : Array.isArray(row.pieceIds)
+      ? row.pieceIds
+      : [];
+  return {
+    slug: String(row.slug ?? "").trim(),
+    label: String(row.label ?? "").trim(),
+    title: String(row.title ?? "").trim(),
+    subtitle: String(row.subtitle ?? "").trim(),
+    heroImage: row.hero_image == null ? null : String(row.hero_image).trim() || null,
+    pieceIds: pieceIds.map((x) => String(x ?? "").trim()).filter(Boolean),
+  };
+}
+
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @returns {Promise<{ ok: true, stories: object[] } | { ok: false, error: string }>}
+ */
+export async function fetchEditorialStories(client) {
+  try {
+    return await withNetworkRetries("fetchEditorialStories", async () => {
+      const { data, error } = await client
+        .from("editorial_stories")
+        .select("slug, label, title, subtitle, hero_image, piece_ids, sort_order")
+        .order("sort_order", { ascending: true })
+        .order("title", { ascending: true });
+      if (error) {
+        if (isProbablyTransientFetchFailure(error.message)) throw new Error(error.message);
+        return { ok: false, error: error.message };
+      }
+      const stories = (data || []).map(mapRowToEditorialStory).filter((s) => s.slug && s.title);
+      return { ok: true, stories };
+    });
+  } catch (e) {
+    const msg = typeof e?.message === "string" ? e.message : String(e ?? "");
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Replaces the editorial story list with the supplied ordered array.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ slug: string, label?: string, title: string, subtitle?: string, heroImage?: string | null, pieceIds?: string[] }[]} stories
+ */
+export async function replaceEditorialStories(client, stories) {
+  const rows = (Array.isArray(stories) ? stories : [])
+    .map((story, sort_order) => {
+      const slug = String(story?.slug ?? "").trim();
+      const title = String(story?.title ?? "").trim();
+      if (!slug || !title) return null;
+      return {
+        slug,
+        label: String(story.label ?? "").trim(),
+        title,
+        subtitle: String(story.subtitle ?? "").trim(),
+        hero_image: story.heroImage ? String(story.heroImage).trim() : null,
+        piece_ids: Array.isArray(story.pieceIds)
+          ? story.pieceIds.map((x) => String(x ?? "").trim()).filter(Boolean)
+          : [],
+        sort_order,
+        updated_at: new Date().toISOString(),
+      };
+    })
+    .filter(Boolean);
+
+  if (rows.length) {
+    const { error: upsertError } = await client.from("editorial_stories").upsert(rows, { onConflict: "slug" });
+    if (upsertError) return { ok: false, error: upsertError.message };
+  }
+
+  const keepSlugs = rows.map((row) => row.slug);
+  if (keepSlugs.length) {
+    const { error: deleteError } = await client
+      .from("editorial_stories")
+      .delete()
+      .not("slug", "in", formatPostgrestInList(keepSlugs));
+    if (deleteError) return { ok: false, error: deleteError.message };
+  } else {
+    const { error: deleteError } = await client.from("editorial_stories").delete().neq("slug", "");
+    if (deleteError) return { ok: false, error: deleteError.message };
+  }
+
+  const verify = await fetchEditorialStories(client);
+  if (!verify.ok) return verify;
+  const expected = JSON.stringify(rows.map(mapRowToEditorialStory));
+  const actual = JSON.stringify(verify.stories);
+  if (expected !== actual) {
+    return { ok: false, error: "Cloud editorial save did not persist the expected story list." };
+  }
+  return { ok: true };
+}
+
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
  * @returns {Promise<{ ok: true, outfits: { id: string, name: string, slots: { itemId: string, colourKey?: string }[], createdAt: string }[] } | { ok: false, error: string }>}

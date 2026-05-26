@@ -6286,6 +6286,7 @@
 
   const WARDROBE_TABLE = "wardrobe_items";
   const WARDROBE_IMAGE_BUCKET = "wardrobe-images";
+  const EDITORIAL_IMAGE_BUCKET = "editorial-images";
 
   function isSupabaseReady() {
     return Boolean(supabaseClient?.from && supabaseClient?.storage?.from);
@@ -26254,6 +26255,13 @@
     return storyItems.find((it) => buildCoverCandidates(it).length > 0) ?? storyItems[0] ?? null;
   }
 
+  function editorialMediaSrc(path) {
+    const raw = String(path ?? "").trim();
+    if (!raw) return "";
+    if (/^(?:https?:|data:|blob:)/i.test(raw)) return raw;
+    return raw.startsWith("/") ? raw : "/" + raw;
+  }
+
   function renderEditorialCardImage(img, media, item) {
     if (!item) {
       media.classList.add("editorial-card__media--missing");
@@ -26347,7 +26355,7 @@
       img.decoding = "async";
       img.loading = "lazy";
       if (story.heroImage) {
-        img.src = story.heroImage.startsWith("/") ? story.heroImage : "/" + story.heroImage;
+        img.src = editorialMediaSrc(story.heroImage);
       } else {
         renderEditorialCardImage(img, media, coverItem);
       }
@@ -26428,7 +26436,7 @@
       heroImg.alt = "";
       heroImg.decoding = "async";
       heroImg.setAttribute("aria-hidden", "true");
-      heroImg.src = story.heroImage.startsWith("/") ? story.heroImage : "/" + story.heroImage;
+      heroImg.src = editorialMediaSrc(story.heroImage);
       hero.prepend(heroImg);
     } else if (coverItem) {
       const heroImg = document.createElement("img");
@@ -26535,7 +26543,35 @@
     } catch {}
   }
 
+  async function loadEditorialStoriesFromCloud() {
+    if (!isSupabaseReady()) return false;
+    try {
+      const api = await getSupabaseApiModule();
+      const res = await api.fetchEditorialStories(supabaseClient);
+      if (res.ok && Array.isArray(res.stories) && res.stories.length) {
+        editorialStories = res.stories;
+        return true;
+      }
+      if (!res.ok && !isSupabaseSchemaTableMissingError(res.error, "editorial_stories")) {
+        console.warn("Supabase editorial_stories:", res.error);
+      }
+    } catch (e) {
+      console.warn("Could not load Supabase editorial stories.", e);
+    }
+    return false;
+  }
+
   async function persistEditorialStories() {
+    if (isSupabaseReady()) {
+      try {
+        const api = await getSupabaseApiModule();
+        const res = await api.replaceEditorialStories(supabaseClient, editorialStories);
+        if (res.ok) return true;
+        console.warn("Supabase editorial save failed:", res.error);
+      } catch (e) {
+        console.warn("Supabase editorial save failed:", e);
+      }
+    }
     try {
       const r = await fetch("/api/editorial-stories", {
         method: "PUT",
@@ -26558,13 +26594,25 @@
 
   async function uploadEditorialHeroImage(slug, blob) {
     const ext = blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
+    const storagePath = `${editorialSlugify(slug || "story")}-${Date.now()}.${ext}`;
+    if (isSupabaseReady()) {
+      const { error } = await supabaseClient.storage
+        .from(EDITORIAL_IMAGE_BUCKET)
+        .upload(storagePath, blob, {
+          cacheControl: "31536000",
+          contentType: blob.type || "image/jpeg",
+          upsert: true,
+        });
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from(EDITORIAL_IMAGE_BUCKET).getPublicUrl(storagePath);
+      return data?.publicUrl || "";
+    }
     const reader = new FileReader();
     const dataUrl = await new Promise((res, rej) => {
       reader.onload = () => res(reader.result);
       reader.onerror = rej;
       reader.readAsDataURL(blob);
     });
-    const storagePath = `${slug}.${ext}`;
     const r = await fetch("/api/editorial/hero-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -26790,7 +26838,7 @@
         heroPreview.classList.remove("ed-editor-hero-preview--empty");
         const img = document.createElement("img");
         img.className = "ed-editor-hero-img";
-        img.src = (draft.heroImage.startsWith("/") ? "" : "/") + draft.heroImage + "?cb=" + Date.now();
+        img.src = editorialMediaSrc(draft.heroImage) + "?cb=" + Date.now();
         img.alt = "";
         heroPreview.appendChild(img);
       } else {
@@ -27037,7 +27085,8 @@
     if (!root) return;
 
     syncEditorialNavActiveState();
-    await loadEditorialStoriesFromFile();
+    const loadedFromCloud = await loadEditorialStoriesFromCloud();
+    if (!loadedFromCloud) await loadEditorialStoriesFromFile();
 
     const slug = editorialSlugFromUrl();
     if (slug) {

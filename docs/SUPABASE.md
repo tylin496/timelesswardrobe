@@ -60,13 +60,14 @@ The migration enables RLS with **prototype** policies:
 3. **Redirect URLs:** `http://127.0.0.1:8787/**`, `http://localhost:8787/**`, `https://timeless-wardrobe.vercel.app/**`, optional `https://tylin496.github.io/timeless-wardrobe/**` if you use GitHub Pages.
 4. In `js/tw-supabase-config.js`, set `SITE_ORIGIN` to the same URL (OAuth return base).
 5. Run `supabase/migrations/20260520120000_wardrobe_editor_auth.sql` in the SQL editor.
-6. Insert your Gmail into `wardrobe_editors`:
+6. Run `supabase/migrations/20260526120000_editorial_stories.sql` to enable cloud-backed Editorial editing and hero image uploads.
+7. Insert your Gmail into `wardrobe_editors`:
 
    ```sql
    insert into public.wardrobe_editors (email) values ('you@gmail.com');
    ```
 
-7. Set the same address in `js/tw-supabase-config.js` → `EDITOR_ALLOWED_EMAILS`.
+8. Set the same address in `js/tw-supabase-config.js` → `EDITOR_ALLOWED_EMAILS`.
 
 **Editing on production:**
 
