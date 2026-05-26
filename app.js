@@ -5763,6 +5763,76 @@
 
   const EDITORIAL_RHYTHM_GROUPS = new Set(["navy_dark", "earth", "grey", "green"]);
 
+  const EDITORIAL_ARCHIVE_FIXED_CORE_IDS = [
+    "sage-beaufort-waxed-jacket",
+    "balmacaan-coat",
+    "tank-solo",
+    "tassel-loafer",
+    "camel-hair-polo-coat",
+    "golden-fleece-navy-blazer",
+    "signet-ring",
+    "black-bay-58",
+    "pembroke",
+    "ventile-harrington",
+    "herringbone-tweed-jacket",
+    "aran-cable-knit-jumper",
+    "ligne-2",
+    "ruby-gypsy-ring",
+    "navy-double-breasted-blazer",
+    "polo-bear-jumper",
+    "anthony",
+    "cordovan-l-zip-wallet-regular-price",
+    "chukka",
+    "houndstooth-tweed-jacket",
+    "v-neck-cardigan",
+    "fox-umbrellas-gt1-hardwood-umbrella",
+    "prx-quartz",
+    "ocbd-shirt",
+    "corduroy-trousers",
+    "glen-check-tweed-jacket",
+    "fair-isle-vest",
+    "fujifilm-x100vi",
+    "achilles-low",
+    "grand-soir",
+  ];
+
+  const EDITORIAL_ARCHIVE_FIXED_CORE_RANK = new Map(
+    EDITORIAL_ARCHIVE_FIXED_CORE_IDS.map((id, index) => [id, index])
+  );
+
+  const EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES = [
+    ["barbour", "beaufort"],
+    ["burberrys", "balmacaan"],
+    ["cartier", "tank solo"],
+    ["alden", "tassel loafer"],
+    ["spier mackay", "camel hair polo coat"],
+    ["brooks brothers", "golden fleece navy blazer"],
+    ["bespoke", "signet ring"],
+    ["tudor", "black bay 58"],
+    ["crockett jones", "pembroke"],
+    ["private white vc", "ventile harrington"],
+    ["j press", "herringbone tweed jacket"],
+    ["muji", "aran cable knit jumper"],
+    ["s t dupont", "ligne 2"],
+    ["bespoke", "ruby gypsy ring"],
+    ["cultum", "navy double breasted blazer"],
+    ["polo ralph lauren", "polo bear jumper"],
+    ["mulberry", "anthony"],
+    ["tsuchiya kaban", "cordovan l zip wallet"],
+    ["crockett jones", "chukka"],
+    ["brooks brothers", "houndstooth tweed jacket"],
+    ["muji", "v neck cardigan"],
+    ["fox umbrellas", "gt1 hardwood umbrella"],
+    ["tissot", "prx quartz"],
+    ["uniqlo", "ocbd shirt"],
+    ["l l bean", "corduroy trousers"],
+    ["cultum", "glen check tweed jacket"],
+    ["the engineer", "fair isle vest"],
+    ["fujifilm", "x100vi"],
+    ["common projects", "achilles low"],
+    ["maison francis kurkdjian", "grand soir"],
+  ];
+
   /** @param {object} item */
   function editorialPrioritySource(item) {
     const id = String(item?.id ?? "").trim();
@@ -5830,6 +5900,58 @@
     return ka.localeCompare(kb, undefined, { sensitivity: "base" });
   }
 
+  function normalizeEditorialArchiveText(raw) {
+    return String(raw ?? "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\band\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function editorialArchiveItemText(item) {
+    return normalizeEditorialArchiveText(
+      [item?.id, item?.brand, item?.name, item?.category, item?.section].map((x) => String(x ?? "")).join(" ")
+    );
+  }
+
+  function fixedCoreArchiveRank(item) {
+    const id = String(item?.id ?? "").trim();
+    if (EDITORIAL_ARCHIVE_FIXED_CORE_RANK.has(id)) return EDITORIAL_ARCHIVE_FIXED_CORE_RANK.get(id);
+    const text = editorialArchiveItemText(item);
+    for (let i = 0; i < EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES.length; i++) {
+      const [brand, name] = EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES[i];
+      if (text.includes(normalizeEditorialArchiveText(brand)) && text.includes(normalizeEditorialArchiveText(name))) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  function isFuturePiece(item) {
+    const meta =
+      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    const text = editorialArchiveItemText({
+      id: item?.id,
+      brand: item?.brand,
+      name: item?.name,
+      category: item?.category,
+      section: item?.section,
+    });
+    const ownership = normalizeEditorialArchiveText(
+      item?.ownership_status ?? item?.ownershipStatus ?? item?.status ?? meta?.ownership_status ?? meta?.ownershipStatus
+    );
+    return (
+      text.includes("future piece") ||
+      text.includes("future pieces") ||
+      ownership.includes("future") ||
+      ownership.includes("wishlist")
+    );
+  }
+
   /** @param {object} item */
   function inferItemColourGroup(item) {
     const blob = [
@@ -5889,17 +6011,72 @@
     ].join("\x1e");
   }
 
+  function editorialFormalityRank(item) {
+    const text = editorialArchiveItemText(item);
+    if (/\b(tank solo|dress watch|signet|golden fleece|navy blazer|double breasted|polo coat|balmacaan)\b/.test(text)) {
+      return 0;
+    }
+    if (/\b(blazer|tailoring|loafer|pembroke|chukka|tweed|overcoat|coat|harrington)\b/.test(text)) return 1;
+    if (/\b(cardigan|jumper|vest|ocbd|shirt|trousers|wallet|bag|watch)\b/.test(text)) return 2;
+    if (/\b(jeans|sneaker|achilles|rugby|t shirt|shorts|fleece|cap|hat|sandal)\b/.test(text)) return 4;
+    return 3;
+  }
+
+  function editorialVersatilityRank(item) {
+    const text = editorialArchiveItemText(item);
+    const season = editorialSeasonRank(item);
+    if (/\b(navy blazer|ocbd|corduroy trousers|loafer|chukka|wallet|tank solo|black bay|beaufort|balmacaan)\b/.test(text)) {
+      return 0;
+    }
+    if (season === 1) return 1;
+    if (/\b(tweed|cardigan|jumper|polo|trousers|eyewear|bag|watch)\b/.test(text)) return 2;
+    if (/\b(linen|shorts|panama|fragrance|jewellery|jewelry|hat)\b/.test(text)) return 4;
+    return 3;
+  }
+
+  function editorialColourNeutralityRank(item) {
+    const g = itemColourGroup(item);
+    if (g === "navy_dark" || g === "grey" || g === "neutral" || g === "earth") return 0;
+    if (g === "green" || g === "blue" || g === "light") return 1;
+    if (g === "gold") return 2;
+    return 3;
+  }
+
+  function editorialSeasonSpecificityRank(item) {
+    const season = editorialSeasonRank(item);
+    if (season === 1) return 0;
+    if (season === 0) return 1;
+    return 2;
+  }
+
+  function editorialCasualnessRank(item) {
+    const text = editorialArchiveItemText(item);
+    if (/\b(sneaker|achilles|jeans|rugby|t shirt|shorts|fleece|cap|hat|boat and tote|helmet bag)\b/.test(text)) return 3;
+    if (/\b(knit polo|polo bear|breton|camp collar|linen|sunglasses|fragrance)\b/.test(text)) return 2;
+    if (/\b(cardigan|jumper|vest|ocbd|chukka|bag|wallet)\b/.test(text)) return 1;
+    return 0;
+  }
+
+  function editorialNoveltyRank(item) {
+    const text = editorialArchiveItemText(item);
+    if (/\b(american flag|polo bear|ruby|sapphire|wedding|grand soir|ligne 2|x100vi|camera)\b/.test(text)) return 3;
+    if (/\b(fair isle|cricket|breton|panama|sunglasses|fragrance|gold|bracelet|chain|ring)\b/.test(text)) return 2;
+    if (/\b(tweed|linen|corduroy|harrington|wallet|bag)\b/.test(text)) return 1;
+    return 0;
+  }
+
+  function editorialOwnershipRank(item) {
+    return isFuturePiece(item) ? 99 : 0;
+  }
+
   /**
-   * Default collection order — curated personal archive (not newest-first).
-   * season → featured_rank (heroes) → category → manual_sort_rank → canonical_score → colour → created_at
+   * Automatic default order after the fixed core — editorial archive, not inventory.
+   * category → canonicality → formality → versatility → colour neutrality → season specificity
+   * → casualness → novelty → ownership status → stable fallbacks.
    * @param {object} a
    * @param {object} b
    */
   function compareEditorialArchiveItems(a, b) {
-    const sea = editorialSeasonRank(a) - editorialSeasonRank(b);
-    if (sea !== 0) return sea;
-    const fr = itemFeaturedRank(b) - itemFeaturedRank(a);
-    if (fr !== 0) return fr;
     const cat = editorialRecordCategoryRank(a) - editorialRecordCategoryRank(b);
     if (cat !== 0) return cat;
     const slot = browseSlotRank(a) - browseSlotRank(b);
@@ -5908,6 +6085,20 @@
     if (manual !== 0) return manual;
     const cs = itemCanonicalScore(b) - itemCanonicalScore(a);
     if (cs !== 0) return cs;
+    const formal = editorialFormalityRank(a) - editorialFormalityRank(b);
+    if (formal !== 0) return formal;
+    const versatile = editorialVersatilityRank(a) - editorialVersatilityRank(b);
+    if (versatile !== 0) return versatile;
+    const neutral = editorialColourNeutralityRank(a) - editorialColourNeutralityRank(b);
+    if (neutral !== 0) return neutral;
+    const seasonal = editorialSeasonSpecificityRank(a) - editorialSeasonSpecificityRank(b);
+    if (seasonal !== 0) return seasonal;
+    const casual = editorialCasualnessRank(a) - editorialCasualnessRank(b);
+    if (casual !== 0) return casual;
+    const novelty = editorialNoveltyRank(a) - editorialNoveltyRank(b);
+    if (novelty !== 0) return novelty;
+    const ownership = editorialOwnershipRank(a) - editorialOwnershipRank(b);
+    if (ownership !== 0) return ownership;
     const cg = editorialColourGroupRank(a) - editorialColourGroupRank(b);
     if (cg !== 0) return cg;
     const created = editorialCreatedAtSortMs(a) - editorialCreatedAtSortMs(b);
@@ -5944,7 +6135,24 @@
 
   /** @param {object[]} list */
   function sortItemsEditorialArchive(list) {
-    return applyEditorialColourRhythm([...list].sort(compareEditorialArchiveItems));
+    const fixed = [];
+    const automatic = [];
+    const future = [];
+    for (const item of Array.isArray(list) ? list : []) {
+      if (isFuturePiece(item)) {
+        future.push(item);
+      } else if (fixedCoreArchiveRank(item) != null) {
+        fixed.push(item);
+      } else {
+        automatic.push(item);
+      }
+    }
+    fixed.sort((a, b) => fixedCoreArchiveRank(a) - fixedCoreArchiveRank(b));
+    return [
+      ...fixed,
+      ...applyEditorialColourRhythm(automatic.sort(compareEditorialArchiveItems)),
+      ...future.sort(compareEditorialArchiveItems),
+    ];
   }
 
   /**
