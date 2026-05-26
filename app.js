@@ -25924,6 +25924,408 @@
     );
   }
 
+  // ─── Editorial page ────────────────────────────────────────────────────────
+
+  const EDITORIAL_STORIES = [
+    {
+      slug: "english-rain",
+      label: "A/W",
+      title: "English Rain",
+      subtitle: "Waxed cotton, gabardine, corduroy, and polished leather for wet weather.",
+      pieceIds: [
+        "sage-beaufort-waxed-jacket",
+        "balmacaan-coat",
+        "pembroke",
+        "corduroy-trousers",
+        "tank-solo",
+        "chukka",
+      ],
+    },
+    {
+      slug: "gold-after-dark",
+      label: "Evening",
+      title: "Gold After Dark",
+      subtitle: "Evening objects in yellow gold, amber, ruby, and black leather.",
+      pieceIds: [
+        "tank-solo",
+        "ligne-2",
+        "ruby-gypsy-ring",
+        "curb-bracelet",
+        "signet-ring",
+        "grand-soir",
+      ],
+    },
+    {
+      slug: "mediterranean-leisure",
+      label: "S/S",
+      title: "Mediterranean Leisure",
+      subtitle: "Linen, open collars, pale cotton, and summer objects.",
+      pieceIds: [
+        "linen-safari-jacket",
+        "basket-weave-linen-jacket",
+        "linen-camp-collar-shirt",
+        "linen-loop-collar-shirt",
+        "panama-hat",
+        "ferret",
+      ],
+    },
+    {
+      slug: "ivy-weekend",
+      label: "S/S",
+      title: "Ivy Weekend",
+      subtitle: "Washed rugby, cricket knit, oxford cloth, tassel loafers, and casual tailoring.",
+      pieceIds: [
+        "washed-rugby-shirt",
+        "cricket-cable-knit-jumper-vest",
+        "ocbd-shirt",
+        "tassel-loafer",
+        "golden-fleece-navy-blazer",
+        "boat-and-tote",
+      ],
+    },
+    {
+      slug: "travel-objects",
+      label: "Objects",
+      title: "Travel Objects",
+      subtitle: "Personal objects for movement, writing, weather, and memory.",
+      pieceIds: [
+        "cordovan-l-zip-wallet-regular-price",
+        "ligne-2",
+        "grand-soir",
+        "panama-hat",
+        "tank-solo",
+        "kingsman-0847-sunglasses",
+      ],
+    },
+  ];
+
+  function isEditorialPageContext() {
+    return document.body.classList.contains("editorial-page");
+  }
+
+  function editorialSlugFromUrl() {
+    const path = String(globalThis.location?.pathname ?? "").trim();
+    const m = path.match(/^\/editorial\/([a-z0-9-]+)/i);
+    return m ? m[1].toLowerCase() : "";
+  }
+
+  function editorialStoryItems(story) {
+    if (!story?.pieceIds?.length) return [];
+    return story.pieceIds.map((id) => itemById.get(id)).filter(Boolean);
+  }
+
+  function editorialCoverItem(story) {
+    const storyItems = editorialStoryItems(story);
+    return storyItems.find((it) => buildCoverCandidates(it).length > 0) ?? storyItems[0] ?? null;
+  }
+
+  function renderEditorialCardImage(img, media, item) {
+    if (!item) {
+      media.classList.add("editorial-card__media--missing");
+      return;
+    }
+    wireCoverImageWithFallbacks(img, item, {
+      host: media,
+      missingClass: "editorial-card__media--missing",
+      coverRenderWidth: 480,
+      coverRenderHeight: 600,
+      coverRenderQuality: 88,
+      coverRenderResize: "cover",
+    });
+  }
+
+  function renderEditorialIndex(root) {
+    root.replaceChildren();
+
+    const hero = document.createElement("div");
+    hero.className = "editorial-hero";
+    const heroScrim = document.createElement("div");
+    heroScrim.className = "editorial-hero__scrim";
+    heroScrim.setAttribute("aria-hidden", "true");
+    const heroInner = document.createElement("div");
+    heroInner.className = "editorial-hero__inner";
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "editorial-hero__eyebrow";
+    eyebrow.textContent = "Timeless Wardrobe";
+    const heroTitle = document.createElement("h1");
+    heroTitle.className = "editorial-hero__title";
+    heroTitle.textContent = "Editorial";
+    const heroSub = document.createElement("p");
+    heroSub.className = "editorial-hero__subtitle";
+    heroSub.textContent = "Curated scenes from the archive.";
+    heroInner.append(eyebrow, heroTitle, heroSub);
+    hero.append(heroScrim, heroInner);
+
+    // Use first available cover item as hero background
+    const firstCoverItem = EDITORIAL_STORIES.map(editorialCoverItem).find(Boolean);
+    if (firstCoverItem) {
+      const heroImg = document.createElement("img");
+      heroImg.className = "editorial-hero__img";
+      heroImg.alt = "";
+      heroImg.decoding = "async";
+      heroImg.setAttribute("aria-hidden", "true");
+      wireCoverImageWithFallbacks(heroImg, firstCoverItem, {
+        coverRenderWidth: 1600,
+        coverRenderHeight: 700,
+        coverRenderQuality: 85,
+        coverRenderResize: "cover",
+      });
+      hero.prepend(heroImg);
+    }
+
+    root.appendChild(hero);
+
+    const section = document.createElement("section");
+    section.className = "editorial-index";
+    section.setAttribute("aria-label", "Editorial stories");
+
+    const inner = document.createElement("div");
+    inner.className = "editorial-inner";
+
+    const countLine = document.createElement("p");
+    countLine.className = "editorial-index__count";
+    countLine.textContent = `${EDITORIAL_STORIES.length} stories`;
+    inner.appendChild(countLine);
+
+    const grid = document.createElement("div");
+    grid.className = "editorial-index__grid";
+    grid.setAttribute("role", "list");
+
+    for (const story of EDITORIAL_STORIES) {
+      const storyItems = editorialStoryItems(story);
+      const coverItem = editorialCoverItem(story);
+
+      const a = document.createElement("a");
+      a.href = `/editorial/${story.slug}`;
+      a.className = "editorial-card";
+      a.setAttribute("role", "listitem");
+      a.setAttribute("aria-label", story.title);
+
+      const media = document.createElement("div");
+      media.className = "editorial-card__media";
+      const img = document.createElement("img");
+      img.className = "editorial-card__img";
+      img.alt = "";
+      img.decoding = "async";
+      img.loading = "lazy";
+      renderEditorialCardImage(img, media, coverItem);
+      media.appendChild(img);
+
+      const body = document.createElement("div");
+      body.className = "editorial-card__body";
+
+      const label = document.createElement("span");
+      label.className = "editorial-card__label";
+      label.textContent = story.label;
+
+      const title = document.createElement("h2");
+      title.className = "editorial-card__title";
+      title.textContent = story.title;
+
+      const desc = document.createElement("p");
+      desc.className = "editorial-card__desc";
+      desc.textContent = story.subtitle;
+
+      const count = document.createElement("span");
+      count.className = "editorial-card__count";
+      count.textContent = `${storyItems.length} piece${storyItems.length === 1 ? "" : "s"}`;
+
+      body.append(label, title, desc, count);
+      a.append(media, body);
+      grid.appendChild(a);
+    }
+
+    inner.appendChild(grid);
+    section.appendChild(inner);
+    root.appendChild(section);
+  }
+
+  function renderEditorialDetail(root, story) {
+    root.replaceChildren();
+
+    const storyItems = editorialStoryItems(story);
+    const coverItem = editorialCoverItem(story);
+
+    // Hero
+    const hero = document.createElement("div");
+    hero.className = "editorial-detail__hero";
+    const heroScrim = document.createElement("div");
+    heroScrim.className = "editorial-detail__hero-scrim";
+    heroScrim.setAttribute("aria-hidden", "true");
+    hero.appendChild(heroScrim);
+
+    if (coverItem) {
+      const heroImg = document.createElement("img");
+      heroImg.className = "editorial-detail__hero-img";
+      heroImg.alt = "";
+      heroImg.decoding = "async";
+      heroImg.setAttribute("aria-hidden", "true");
+      wireCoverImageWithFallbacks(heroImg, coverItem, {
+        coverRenderWidth: 1600,
+        coverRenderHeight: 900,
+        coverRenderQuality: 85,
+        coverRenderResize: "cover",
+      });
+      hero.prepend(heroImg);
+    }
+
+    root.appendChild(hero);
+
+    const detail = document.createElement("div");
+    detail.className = "editorial-detail";
+
+    const inner = document.createElement("div");
+    inner.className = "editorial-inner";
+
+    // Header
+    const header = document.createElement("div");
+    header.className = "editorial-detail__header";
+
+    const back = document.createElement("a");
+    back.href = "/editorial";
+    back.className = "editorial-detail__back";
+    back.innerHTML = '<span class="editorial-detail__back-arrow" aria-hidden="true">←</span> Editorial';
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "editorial-detail__label";
+    labelEl.textContent = story.label;
+
+    const titleEl = document.createElement("h1");
+    titleEl.className = "editorial-detail__title";
+    titleEl.textContent = story.title;
+
+    const subtitleEl = document.createElement("p");
+    subtitleEl.className = "editorial-detail__subtitle";
+    subtitleEl.textContent = story.subtitle;
+
+    header.append(back, labelEl, titleEl, subtitleEl);
+    inner.appendChild(header);
+
+    // Pieces
+    const pieces = document.createElement("div");
+    pieces.className = "editorial-detail__pieces";
+
+    const piecesHeading = document.createElement("h2");
+    piecesHeading.className = "editorial-detail__pieces-heading";
+    piecesHeading.textContent = `Selected pieces · ${storyItems.length}`;
+
+    const pieceGrid = document.createElement("div");
+    pieceGrid.className = "editorial-detail__grid";
+    pieceGrid.setAttribute("role", "list");
+
+    for (const item of storyItems) {
+      pieceGrid.appendChild(createCard(item, { skipEnterAnimation: true }));
+    }
+
+    pieces.append(piecesHeading, pieceGrid);
+    inner.appendChild(pieces);
+    detail.appendChild(inner);
+    root.appendChild(detail);
+  }
+
+  function renderEditorialNotFound(root) {
+    root.replaceChildren();
+    const wrap = document.createElement("div");
+    wrap.className = "editorial-not-found";
+    const t = document.createElement("h1");
+    t.className = "editorial-not-found__title";
+    t.textContent = "Story not found";
+    const h = document.createElement("p");
+    h.className = "editorial-not-found__hint";
+    h.textContent = "This editorial story doesn't exist or may have moved.";
+    const b = document.createElement("a");
+    b.href = "/editorial";
+    b.className = "editorial-not-found__back";
+    b.textContent = "Back to Editorial";
+    wrap.append(t, h, b);
+    root.appendChild(wrap);
+  }
+
+  function syncEditorialNavActiveState() {
+    const isEd = isEditorialPageContext();
+    document.querySelectorAll("[data-editorial-nav]").forEach((el) => {
+      el.classList.toggle("is-active", isEd);
+      if (isEd) el.setAttribute("aria-current", "page");
+      else el.removeAttribute("aria-current");
+    });
+    if (isEd) {
+      document.querySelectorAll(".site-header__nav-link[data-category-jump]").forEach((el) => {
+        el.classList.remove("is-active");
+        el.removeAttribute("aria-current");
+      });
+    }
+  }
+
+  function initEditorialPage() {
+    const root = document.getElementById("editorial-root");
+    if (!root) return;
+
+    syncEditorialNavActiveState();
+
+    const slug = editorialSlugFromUrl();
+    if (slug) {
+      const story = EDITORIAL_STORIES.find((s) => s.slug === slug) ?? null;
+      if (story) {
+        document.title = `${story.title} · Editorial · Timeless Wardrobe`;
+        renderEditorialDetail(root, story);
+      } else {
+        renderEditorialNotFound(root);
+      }
+    } else {
+      renderEditorialIndex(root);
+    }
+
+    // Wire editorial card clicks for index → detail navigation
+    root.addEventListener("click", (e) => {
+      const card = e.target.closest(".editorial-card[href]");
+      if (!card) return;
+      const href = card.getAttribute("href") ?? "";
+      if (!href.startsWith("/editorial/")) return;
+      e.preventDefault();
+      const newSlug = href.replace("/editorial/", "");
+      const newStory = EDITORIAL_STORIES.find((s) => s.slug === newSlug) ?? null;
+      globalThis.history.pushState(null, "", href);
+      if (newStory) {
+        document.title = `${newStory.title} · Editorial · Timeless Wardrobe`;
+        renderEditorialDetail(root, newStory);
+      } else {
+        renderEditorialNotFound(root);
+      }
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // Wire back link for detail → index navigation
+    root.addEventListener("click", (e) => {
+      const back = e.target.closest(".editorial-detail__back[href='/editorial']");
+      if (!back) return;
+      e.preventDefault();
+      globalThis.history.pushState(null, "", "/editorial");
+      document.title = "Editorial · Timeless Wardrobe";
+      renderEditorialIndex(root);
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // popstate: handle browser back/forward
+    globalThis.addEventListener("popstate", () => {
+      if (!isEditorialPageContext()) return;
+      const newSlug = editorialSlugFromUrl();
+      if (newSlug) {
+        const s = EDITORIAL_STORIES.find((st) => st.slug === newSlug) ?? null;
+        if (s) {
+          document.title = `${s.title} · Editorial · Timeless Wardrobe`;
+          renderEditorialDetail(root, s);
+        } else {
+          renderEditorialNotFound(root);
+        }
+      } else {
+        document.title = "Editorial · Timeless Wardrobe";
+        renderEditorialIndex(root);
+      }
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+
   function wireEvents() {
     initNavigationPrefetch();
     const collectionMainHref = () => collectionHrefForBrowseState();
@@ -28862,11 +29264,15 @@
       });
     }
 
+    const isEditorialPage = isEditorialPageContext();
     const itemRoot = document.getElementById("item-detail-root");
     const hasCollectionGrid = Boolean(document.getElementById("grid"));
     const pageId = parseItemPageRoute().id;
     const isStandaloneItemPage = Boolean(itemRoot && pageId && !hasCollectionGrid);
-    if (isStandaloneItemPage) {
+    if (isEditorialPage) {
+      syncOutfitSaveButtonLabel();
+      initEditorialPage();
+    } else if (isStandaloneItemPage) {
       normalizeLegacyItemPagePath();
       initItemDetailRootDelegates();
       initFilters();

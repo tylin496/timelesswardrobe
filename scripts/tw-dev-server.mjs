@@ -262,6 +262,8 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     rel = "login.html";
   } else if (pathname === "/account" || pathname === "/account.html") {
     rel = "account.html";
+  } else if (pathname === "/editorial" || pathname === "/editorial.html" || pathname.startsWith("/editorial/")) {
+    rel = "editorial.html";
   } else if (pathname === "/collection" || pathname === "/collection.html") {
     rel = "collection.html";
   } else if (pathname.startsWith("/collection/")) {

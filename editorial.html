@@ -6,30 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
     <meta
       name="description"
-      content="A private archive of classic menswear. Curated by T. Y. Lin."
+      content="Editorial — curated scenes from the archive. Timeless Wardrobe."
     />
+    <link rel="canonical" href="https://timeless-wardrobe.vercel.app/editorial" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Timeless Wardrobe" />
-    <meta property="og:title" content="Timeless Wardrobe" />
-    <meta
-      property="og:description"
-      content="A private archive of classic menswear. Curated by T. Y. Lin."
-    />
-    <meta property="og:url" content="https://timeless-wardrobe.vercel.app/" />
+    <meta property="og:title" content="Editorial · Timeless Wardrobe" />
+    <meta property="og:description" content="Curated scenes from the archive." />
+    <meta property="og:url" content="https://timeless-wardrobe.vercel.app/editorial" />
     <meta property="og:image" content="https://timeless-wardrobe.vercel.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Timeless Wardrobe — a private archive of classic menswear" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Timeless Wardrobe" />
-    <meta
-      name="twitter:description"
-      content="A private archive of classic menswear. Curated by T. Y. Lin."
-    />
+    <meta name="twitter:title" content="Editorial · Timeless Wardrobe" />
+    <meta name="twitter:description" content="Curated scenes from the archive." />
     <meta name="twitter:image" content="https://timeless-wardrobe.vercel.app/og-image.png" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f4ed" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141312" />
-    <title>Timeless Wardrobe</title>
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161514" />
+    <title>Editorial · Timeless Wardrobe</title>
     <link rel="icon" href="./icons/favicon-16.png" sizes="16x16" type="image/png" />
     <link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="./icons/favicon-180.png" sizes="180x180" />
@@ -44,12 +38,9 @@
       rel="stylesheet"
     />
   </head>
-  <body class="item-page theme-catalogue">
-    <a class="skip-link" href="#item-page-main">Skip to main content</a>
+  <body class="theme-catalogue editorial-page">
+    <a class="skip-link" href="#editorial-root">Skip to editorial</a>
     <a class="skip-link" href="#filter-search">Skip to search</a>
-    <a class="skip-link" href="#item-detail-heading">Skip to title</a>
-    <a class="skip-link" href="#item-detail-actions">Skip to actions</a>
-    <a class="skip-link" href="#item-detail-root">Skip to piece</a>
     <a class="skip-link" href="#site-header-primary-nav">Skip to categories</a>
 
     <div class="site-header-shell">
@@ -64,84 +55,55 @@
       <div class="site-header__container site-header__inner">
         <div class="site-header__flyout">
         <div class="site-header__bar site-header__brand-nav" aria-label="Primary header">
-            <a
-              href="/collection"
-              id="item-page-collection-back"
-              class="site-header__collection-back"
-              aria-label="Back to collection"
-            >
-              <span class="site-header__collection-back-icon" aria-hidden="true"></span>
-              <span class="site-header__collection-back-label">Collection</span>
+          <div class="site-title site-brand">
+            <a href="/" id="site-header-home" class="site-title__primary">
+              <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
+              <span class="site-title__text-stack site-brand-wordmark">
+                <span class="site-title__wordmark-line">Timeless</span>
+                <span class="site-title__wordmark-line">Wardrobe</span>
+              </span>
             </a>
-            <h1 class="site-title site-brand">
-              <a href="/" id="site-header-home" class="site-title__primary">
-                <span class="site-title__mark" role="img" aria-label="Timeless Wardrobe"></span>
-                <span class="site-title__text-stack site-brand-wordmark">
-                  <span class="site-title__wordmark-line">Timeless</span>
-                  <span class="site-title__wordmark-line">Wardrobe</span>
-                </span>
-              </a>
-            </h1>
-            <div class="site-header__division-hover-zone">
-              <nav
-                id="site-header-primary-nav"
-                class="site-header__primary-nav main-nav"
-                aria-label="Main categories"
-              >
-                <a href="/collection/clothing" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
-                <a href="/collection/accessories" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
-                <a href="/collection/watches" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
-                <a href="/collection/fragrance" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
-                <a href="/editorial" class="site-header__nav-link site-header__nav-link--editorial" data-editorial-nav="1">Editorial</a>
-              </nav>
-            </div>
-            <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
-            <div class="site-header__tools">
-              <div class="site-header__season-mini" id="season-nav-mini" aria-label="Season quick filter">
-                <button
-                  type="button"
-                  class="site-header__season-mini-tab season-toggle"
-                  data-season-filter="S/S"
-                  id="season-mini-ss"
-                  aria-label="S/S"
-                >
-                  S/S
-                </button>
-                <button
-                  type="button"
-                  class="site-header__season-mini-tab season-toggle"
-                  data-season-filter="A/W"
-                  id="season-mini-aw"
-                  aria-label="A/W"
-                >
-                  A/W
-                </button>
-              </div>
-              <button
-                type="button"
-                id="site-header-search-btn"
-                class="site-header__search-btn"
-                aria-expanded="false"
-                aria-controls="site-header-search-wrap"
-                aria-label="Open search"
-                title="Search"
-              >
-                <span class="site-header__search-icon" aria-hidden="true">
-                  <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>
-                    <line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>
-                  </svg>
-                </span>
-              </button>
-              <a class="site-header__account-link" href="/account" aria-label="Open account" title="Account">
-                <span class="site-header__account-icon" aria-hidden="true">
-                  <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <circle class="site-header__tool-glyph site-header__tool-glyph--cap-round" cx="8" cy="4.45" r="2.05"/>
-                    <path class="site-header__tool-glyph site-header__tool-glyph--cap-round" d="M3.15 13C3.55 9.75 5.35 8.15 8 8.15C10.65 8.15 12.45 9.75 12.85 13"/>
-                  </svg>
-                </span>
-              </a>
-              <button
+          </div>
+          <div class="site-header__division-hover-zone">
+            <nav
+              id="site-header-primary-nav"
+              class="site-header__primary-nav main-nav"
+              aria-label="Main categories"
+            >
+              <a href="/collection/clothing" class="site-header__nav-link" data-category-jump="Clothing">Clothing</a>
+              <a href="/collection/accessories" class="site-header__nav-link" data-category-jump="Accessories">Accessories</a>
+              <a href="/collection/watches" class="site-header__nav-link" data-category-jump="Watches">Watches</a>
+              <a href="/collection/fragrance" class="site-header__nav-link" data-category-jump="Fragrance">Fragrance</a>
+              <a href="/editorial" class="site-header__nav-link site-header__nav-link--editorial" data-editorial-nav="1">Editorial</a>
+            </nav>
+          </div>
+          <div class="site-header__nav-submenu-dismiss" aria-hidden="true"></div>
+          <div class="site-header__tools">
+            <button
+              type="button"
+              id="site-header-search-btn"
+              class="site-header__search-btn"
+              aria-expanded="false"
+              aria-controls="site-header-search-wrap"
+              aria-label="Open search"
+              title="Search"
+            >
+              <span class="site-header__search-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>
+                  <line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>
+                </svg>
+              </span>
+            </button>
+            <a class="site-header__account-link" href="/account" aria-label="Open account" title="Account">
+              <span class="site-header__account-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle class="site-header__tool-glyph site-header__tool-glyph--cap-round" cx="8" cy="4.45" r="2.05"/>
+                  <path class="site-header__tool-glyph site-header__tool-glyph--cap-round" d="M3.15 13C3.55 9.75 5.35 8.15 8 8.15C10.65 8.15 12.45 9.75 12.85 13"/>
+                </svg>
+              </span>
+            </a>
+            <button
               type="button"
               id="site-header-saved-toggle"
               class="site-header__styling-board-btn"
@@ -152,14 +114,8 @@
             >
               <span class="site-header__styling-board-icon" aria-hidden="true">
                 <svg class="styling-board-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path
-                    class="site-header__tool-glyph site-header__tool-glyph--cap-round"
-                    d="M8 6.1V4.4C8 3.45 9.4 3.45 9.4 4.4 9.4 4.85 9.05 4.95 8.85 4.85"
-                  />
-                  <path
-                    class="site-header__tool-glyph site-header__tool-glyph--cap-round"
-                    d="M8 6.1C5.5 7 2 10 1.7 11.5C1.45 11.7 1.55 12 1.85 12H14.15C14.45 12 14.55 11.7 14.3 11.5C14 10 10.5 7 8 6.1Z"
-                  />
+                  <path class="site-header__tool-glyph site-header__tool-glyph--cap-round" d="M8 6.1V4.4C8 3.45 9.4 3.45 9.4 4.4 9.4 4.85 9.05 4.95 8.85 4.85"/>
+                  <path class="site-header__tool-glyph site-header__tool-glyph--cap-round" d="M8 6.1C5.5 7 2 10 1.7 11.5C1.45 11.7 1.55 12 1.85 12H14.15C14.45 12 14.55 11.7 14.3 11.5C14 10 10.5 7 8 6.1Z"/>
                 </svg>
               </span>
               <span class="site-header__styling-board-label-wrap">
@@ -167,48 +123,48 @@
                 <span id="styling-board-count" class="site-header__styling-board-count" hidden></span>
               </span>
             </button>
-              <button
-                type="button"
-                id="site-header-menu-btn"
-                class="site-header__menu-btn"
-                aria-expanded="false"
-                aria-controls="site-mobile-shell"
-                aria-label="Open categories menu"
-                title="Open categories"
-              >
-                <span class="site-header__menu-icon" aria-hidden="true">
-                  <svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <g class="site-header__menu-glyph-bars">
-                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.5" y1="5" x2="13.5" y2="5"/>
-                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--mid" x1="2.5" y1="8" x2="13.5" y2="8"/>
-                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.5" y1="11" x2="13.5" y2="11"/>
-                    </g>
-                  </svg>
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              id="site-header-menu-btn"
+              class="site-header__menu-btn"
+              aria-expanded="false"
+              aria-controls="site-mobile-shell"
+              aria-label="Open categories menu"
+              title="Open categories"
+            >
+              <span class="site-header__menu-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <g class="site-header__menu-glyph-bars">
+                    <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.5" y1="5" x2="13.5" y2="5"/>
+                    <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--mid" x1="2.5" y1="8" x2="13.5" y2="8"/>
+                    <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.5" y1="11" x2="13.5" y2="11"/>
+                  </g>
+                </svg>
+              </span>
+            </button>
           </div>
-          <div
-            id="site-header-submenu"
-            class="site-header__submenu mega-menu desktop-mega-menu"
-            data-submenu-state="closed"
-            aria-hidden="true"
-            hidden
-          >
-            <div class="desktop-mega-menu-inner mega-menu-inner site-header__submenu-body">
-              <aside
-                id="site-header-submenu-links"
-                class="desktop-mega-menu-left mega-menu-left site-header__submenu-links site-header__submenu-zone site-header__submenu-zone--nav"
-                aria-label="Browse types"
-              ></aside>
-              <section
-                class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
-                aria-label="Category preview"
-              >
-                <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
-              </section>
-            </div>
+        </div>
+        <div
+          id="site-header-submenu"
+          class="site-header__submenu mega-menu desktop-mega-menu"
+          data-submenu-state="closed"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="desktop-mega-menu-inner mega-menu-inner site-header__submenu-body">
+            <aside
+              id="site-header-submenu-links"
+              class="desktop-mega-menu-left mega-menu-left site-header__submenu-links site-header__submenu-zone site-header__submenu-zone--nav"
+              aria-label="Browse types"
+            ></aside>
+            <section
+              class="desktop-mega-menu-content mega-menu-content site-header__submenu-content site-header__submenu-zone site-header__submenu-zone--preview"
+              aria-label="Category preview"
+            >
+              <div id="site-header-submenu-preview" class="site-header__submenu-preview"></div>
+            </section>
           </div>
+        </div>
         </div>
         <div
           id="site-header-search-wrap"
@@ -255,15 +211,15 @@
                     </span>
                   </label>
                 </div>
-                </div>
+              </div>
               <button
-                  type="button"
-                  id="site-header-search-close"
-                  class="site-header__search-close"
-                  aria-label="Close search"
-                >
-                  <span aria-hidden="true">×</span>
-                </button>
+                type="button"
+                id="site-header-search-close"
+                class="site-header__search-close"
+                aria-label="Close search"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
             </div>
               <div id="site-header-search-browse" class="site-header__search-browse">
                 <div class="site-header__search-dropdown-body">
@@ -337,36 +293,12 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </header>
     </div>
 
-    <aside
-      id="local-data-risk-banner"
-      class="local-data-risk-banner tw-admin-only"
-      hidden=""
-      aria-label="Browser-only storage reminder"
-    >
-      <div class="local-data-risk-banner__inner">
-        <p class="local-data-risk-banner__text"></p>
-        <div class="local-data-risk-banner__actions">
-          <button type="button" class="btn btn--small" id="local-data-backup-json">Download backup JSON</button>
-          <button type="button" class="btn btn--small btn--ghost" id="local-data-risk-dismiss">Dismiss</button>
-        </div>
-      </div>
-    </aside>
-
-    <main id="item-page-main" class="item-page-main" tabindex="-1">
-      <div id="item-detail-root" class="item-detail__root item-detail__root--page"></div>
-    </main>
-
-    <footer class="site-footer" aria-label="Site">
-      <div class="site-footer__brand">
-        <p class="site-footer__wordmark">Timeless Wardrobe</p>
-        <p class="site-footer__lede">A private archive of classic menswear</p>
-      </div>
-      <p class="site-footer__credit">Curated by T. Y. Lin</p>
-    </footer>
+    <main id="editorial-root" tabindex="-1" aria-label="Editorial"></main>
 
     <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
       <button
@@ -444,23 +376,11 @@
             >
               <label class="field field--inline">
                 <span class="field__label">Outfit name</span>
-                <input
-                  id="outfit-name"
-                  type="text"
-                  maxlength="80"
-                  placeholder="e.g. Monday · tonal layers"
-                  autocomplete="off"
-                />
+                <input id="outfit-name" type="text" maxlength="80" placeholder="e.g. Monday · tonal layers" autocomplete="off" />
               </label>
               <label class="field field--notes">
                 <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
-                <textarea
-                  id="outfit-notes"
-                  class="textarea-autosize styling-board__notes"
-                  rows="2"
-                  maxlength="500"
-                  placeholder="Occasion, weather, or styling notes"
-                ></textarea>
+                <textarea id="outfit-notes" class="textarea-autosize styling-board__notes" rows="2" maxlength="500" placeholder="Occasion, weather, or styling notes"></textarea>
               </label>
             </div>
           </section>
@@ -473,40 +393,23 @@
           </section>
         </div>
         <footer class="styling-board-drawer__footer">
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
-            Save Outfit
-          </button>
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
-            Continue Browsing
-          </button>
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">Save Outfit</button>
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">Continue Browsing</button>
         </footer>
       </div>
       <p id="outfit-toast" class="styling-board-drawer__toast outfit-toast" role="status" aria-live="polite" hidden></p>
     </div>
-    <dialog id="outfit-variant-dialog" class="add-item-dialog" aria-labelledby="outfit-variant-heading" aria-modal="true">
-      <div class="add-item-dialog__inner">
-        <div class="add-item-dialog__toolbar">
-          <h2 id="outfit-variant-heading" class="add-item-panel__title">Choose a colour</h2>
-          <button type="button" class="btn btn--ghost" id="outfit-variant-cancel" aria-label="Close">
-            Close
-          </button>
-        </div>
-        <div class="add-item-panel add-item-panel--dialog">
-          <p id="outfit-variant-title" class="add-item-panel__hint"></p>
-          <label class="field">
-            <span class="field__label">Colour for this outfit</span>
-            <select id="outfit-variant-select" class="outfit-variant-select"></select>
-          </label>
-          <div class="add-item-form__actions">
-            <button type="button" class="btn" id="outfit-variant-confirm">Add to Outfits</button>
-          </div>
-        </div>
+
+    <footer class="site-footer" aria-label="Site">
+      <div class="site-footer__brand">
+        <p class="site-footer__wordmark">Timeless Wardrobe</p>
+        <p class="site-footer__lede">A private archive of classic menswear</p>
       </div>
-    </dialog>
+      <p class="site-footer__credit">Curated by T. Y. Lin</p>
+    </footer>
+
+    <script src="js/supabase-client.js" type="module"></script>
     <script src="data/wardrobe.js"></script>
-    <script src="data/editorial-priorities.js"></script>
-    <script src="js/tw-supabase-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js" type="module"></script>
   </body>
 </html>
