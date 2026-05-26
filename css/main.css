@@ -23419,6 +23419,31 @@ body.editorial-page {
   padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 5vw, 5rem);
 }
 
+.editorial-hero__edit-btn {
+  position: absolute;
+  z-index: 2;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  border: 1px solid rgba(244, 241, 234, 0.65);
+  background: rgba(22, 50, 41, 0.72);
+  color: #f4f1ea;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 0.45rem 0.75rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.editorial-hero__edit-btn:hover,
+.editorial-hero__edit-btn:focus-visible {
+  background: rgba(22, 50, 41, 0.92);
+  border-color: #f4f1ea;
+}
+
 .editorial-hero__eyebrow {
   font-family: "DM Sans", sans-serif;
   font-size: clamp(0.55rem, 0.75vw, 0.62rem);

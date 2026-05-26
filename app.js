@@ -8541,6 +8541,9 @@
   let collectionOverridesState = {};
   /** @type {Set<string>} */
   let collectionHiddenState = new Set();
+  /** @type {Record<string, unknown>} */
+  let wardrobeAppMetadataState = {};
+  let wardrobeAppStateSupportsMetadata = true;
 
   function readCollectionOverridesFromLocalStorageRaw() {
     try {
@@ -8565,10 +8568,14 @@
     }
   }
 
-  function installCollectionStateFromPayload(overrides, hiddenIds) {
+  function installCollectionStateFromPayload(overrides, hiddenIds, metadata = wardrobeAppMetadataState) {
     collectionOverridesState =
       overrides && typeof overrides === "object" && !Array.isArray(overrides) ? { ...overrides } : {};
     collectionHiddenState = new Set(Array.isArray(hiddenIds) ? hiddenIds.map((x) => String(x)) : []);
+    wardrobeAppMetadataState =
+      metadata && typeof metadata === "object" && !Array.isArray(metadata)
+        ? { .../** @type {Record<string, unknown>} */ (metadata) }
+        : {};
   }
 
   function applySeasonNavFromLocalStorage() {
@@ -8629,7 +8636,7 @@
 
   /** @param {Record<string, unknown> | null | undefined} data */
   function parseWardrobeAppStateRow(data) {
-    if (!data || typeof data !== "object") return { overrides: {}, hidden: [] };
+    if (!data || typeof data !== "object") return { overrides: {}, hidden: [], metadata: {} };
     const overrides =
       data.collection_overrides &&
       typeof data.collection_overrides === "object" &&
@@ -8645,7 +8652,11 @@
       : Array.isArray(data.archive_hidden_ids)
         ? data.archive_hidden_ids
         : [];
-    return { overrides, hidden: hiddenRaw.map((x) => String(x)) };
+    const metadata =
+      data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
+        ? { .../** @type {Record<string, unknown>} */ (data.metadata) }
+        : {};
+    return { overrides, hidden: hiddenRaw.map((x) => String(x)), metadata };
   }
 
   async function fetchWardrobeAppStateFromCloud() {
@@ -8677,9 +8688,10 @@
     const updated_at = new Date().toISOString();
     const hidden = [...collectionHiddenState];
     const overrides = collectionOverridesState;
+    const metadata = wardrobeAppMetadataState;
 
-    const buildRow = (legacy) =>
-      legacy
+    const buildRow = (legacy, includeMetadata = wardrobeAppStateSupportsMetadata) => {
+      const row = legacy
         ? {
             id: "default",
             archive_overrides: overrides,
@@ -8692,13 +8704,26 @@
             collection_hidden_ids: hidden,
             updated_at,
           };
+      if (includeMetadata) row.metadata = metadata;
+      return row;
+    };
 
     let row = buildRow(wardrobeAppStateUsesLegacyColumns);
     let { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
+    if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
+      wardrobeAppStateSupportsMetadata = false;
+      row = buildRow(wardrobeAppStateUsesLegacyColumns, false);
+      ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
+    }
     if (error && wardrobeAppStateColumnMissingError(error)) {
       wardrobeAppStateUsesLegacyColumns = !wardrobeAppStateUsesLegacyColumns;
       row = buildRow(wardrobeAppStateUsesLegacyColumns);
       ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
+      if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
+        wardrobeAppStateSupportsMetadata = false;
+        row = buildRow(wardrobeAppStateUsesLegacyColumns, false);
+        ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
+      }
     }
     if (error) throw error;
 
@@ -8712,6 +8737,13 @@
     const gotOverrides = JSON.stringify(parsed.overrides ?? {});
     if (expectOverrides !== gotOverrides || expectHidden.join("|") !== gotHidden.join("|")) {
       throw new Error("Cloud app-state write did not persist collection overrides/hidden ids.");
+    }
+    if (wardrobeAppStateSupportsMetadata) {
+      const expectMetadata = JSON.stringify(metadata ?? {});
+      const gotMetadata = JSON.stringify(parsed.metadata ?? {});
+      if (expectMetadata !== gotMetadata) {
+        throw new Error("Cloud app-state write did not persist metadata.");
+      }
     }
   }
 
@@ -8756,7 +8788,7 @@
       migrated = true;
     }
 
-    installCollectionStateFromPayload(overrides, hidden);
+    installCollectionStateFromPayload(overrides, hidden, parsed.metadata);
     applySeasonNavFromLocalStorage();
 
     if (migrated) {
@@ -26301,6 +26333,9 @@
 
   // ─── Editorial page ────────────────────────────────────────────────────────
 
+  const EDITORIAL_INDEX_HERO_DEFAULT_IMAGE = "images/editorial/hero-english-rain.png";
+  const EDITORIAL_INDEX_HERO_LOCAL_KEY = "timeless-wardrobe-editorial-hero-image-v1";
+
   let editorialStories = [
     {
       slug: "english-rain",
@@ -26401,6 +26436,43 @@
     return raw.startsWith("/") ? raw : "/" + raw;
   }
 
+  function readEditorialIndexHeroImageFromLocalStorage() {
+    try {
+      return String(localStorage.getItem(EDITORIAL_INDEX_HERO_LOCAL_KEY) ?? "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function editorialIndexHeroImage() {
+    const metaImage = String(wardrobeAppMetadataState.editorialHeroImage ?? "").trim();
+    return metaImage || readEditorialIndexHeroImageFromLocalStorage() || EDITORIAL_INDEX_HERO_DEFAULT_IMAGE;
+  }
+
+  async function persistEditorialIndexHeroImage(path) {
+    const heroImage = String(path ?? "").trim();
+    wardrobeAppMetadataState = { ...wardrobeAppMetadataState, editorialHeroImage: heroImage };
+    if (isSupabaseReady()) {
+      try {
+        await flushWardrobeAppStateToSupabase();
+        try {
+          localStorage.removeItem(EDITORIAL_INDEX_HERO_LOCAL_KEY);
+        } catch {
+          /* ignore */
+        }
+        return true;
+      } catch (e) {
+        console.warn("Editorial hero image cloud save failed:", e);
+      }
+    }
+    try {
+      localStorage.setItem(EDITORIAL_INDEX_HERO_LOCAL_KEY, heroImage);
+    } catch {
+      /* ignore */
+    }
+    return false;
+  }
+
   function renderEditorialCardImage(img, media, item) {
     if (!item) {
       media.classList.add("editorial-card__media--missing");
@@ -26439,16 +26511,16 @@
     heroInner.append(eyebrow, heroTitle, heroSub);
     hero.append(heroScrim, heroInner);
 
-    const firstStory = editorialStories[0];
+    const indexHeroImage = editorialIndexHeroImage();
     const firstCoverItem = editorialStories.map(editorialCoverItem).find(Boolean);
-    if (firstStory?.heroImage || firstCoverItem) {
+    if (indexHeroImage || firstCoverItem) {
       const heroImg = document.createElement("img");
       heroImg.className = "editorial-hero__img";
       heroImg.alt = "";
       heroImg.decoding = "async";
       heroImg.setAttribute("aria-hidden", "true");
-      if (firstStory?.heroImage) {
-        heroImg.src = editorialMediaSrc(firstStory.heroImage);
+      if (indexHeroImage) {
+        heroImg.src = editorialMediaSrc(indexHeroImage);
       } else {
         wireCoverImageWithFallbacks(heroImg, firstCoverItem, {
           coverRenderWidth: 1600,
@@ -26458,6 +26530,15 @@
         });
       }
       hero.prepend(heroImg);
+    }
+
+    if (adminMode) {
+      const heroEditBtn = document.createElement("button");
+      heroEditBtn.type = "button";
+      heroEditBtn.className = "editorial-hero__edit-btn tw-admin-only";
+      heroEditBtn.textContent = "Edit hero photo";
+      heroEditBtn.addEventListener("click", () => openEditorialIndexHeroImagePicker(root, heroEditBtn));
+      hero.appendChild(heroEditBtn);
     }
 
     root.appendChild(hero);
@@ -26767,6 +26848,45 @@
     return "images/editorial/" + json.path.replace(/^editorial\//, "");
   }
 
+  function openEditorialIndexHeroImagePicker(root, trigger) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.hidden = true;
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      input.remove();
+      if (!file) return;
+      openEditorialCropUi(file, 16, 7, async (blob) => {
+        const btn = trigger instanceof HTMLButtonElement ? trigger : null;
+        const prevText = btn?.textContent ?? "";
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Uploading...";
+        }
+        try {
+          const imgPath = await uploadEditorialHeroImage("editorial-hero", blob);
+          const cloudSaved = await persistEditorialIndexHeroImage(imgPath);
+          if (!cloudSaved) {
+            showToast?.("Editorial hero saved locally. Run the app-state metadata migration for cloud sync.");
+          } else {
+            showToast?.("Editorial hero updated.");
+          }
+          renderEditorialIndex(root);
+        } catch (err) {
+          console.error("Editorial hero upload error", err);
+          showToast?.("Editorial hero upload failed.");
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = prevText || "Edit hero photo";
+          }
+        }
+      });
+    });
+    document.body.appendChild(input);
+    input.click();
+  }
+
   /**
    * Opens a drag-to-pan crop UI. `onConfirm` receives a cropped Blob (JPEG).
    * @param {File} file
@@ -26971,7 +27091,7 @@
     heroSection.className = "ed-editor-section";
     const heroSectionLabel = document.createElement("p");
     heroSectionLabel.className = "ed-editor-section__label";
-    heroSectionLabel.textContent = "Hero Image";
+    heroSectionLabel.textContent = "Story Image";
 
     const heroPreview = document.createElement("div");
     heroPreview.className = "ed-editor-hero-preview" + (draft.heroImage ? "" : " ed-editor-hero-preview--empty");
@@ -26987,7 +27107,7 @@
         heroPreview.appendChild(img);
       } else {
         heroPreview.classList.add("ed-editor-hero-preview--empty");
-        heroPreview.textContent = "No hero image — uses first piece cover";
+        heroPreview.textContent = "No story image — uses first piece cover";
       }
     }
     refreshHeroPreview();
