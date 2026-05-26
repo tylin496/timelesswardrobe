@@ -2509,7 +2509,7 @@
 
   /** Collection-wide admin tools (add piece, export, duplicate on PDP, etc.). */
   function isTwAdminMode() {
-    return isTwEditorUser();
+    return isTwLocalDevHost() || isTwEditorUser();
   }
 
   /** Item page route: `?id=<slug>` and optional `?edit=1` (legacy `/edit` paths normalized on load). */
@@ -2539,6 +2539,7 @@
   function installTwEditorAuthUi() {
     const tools = document.querySelector(".site-header__tools");
     if (!tools) return;
+    /* Legacy placeholder — kept for compat. */
     let wrap = document.getElementById("tw-editor-auth");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -2548,7 +2549,57 @@
     }
     wrap.replaceChildren();
     wrap.hidden = true;
-    /* Signed-out editors use `/login` (no header sign-in / sign-out control). */
+
+    /* ── Desktop account hover flyout ─────────────────────────────── */
+    const accountLink = document.querySelector(".site-header__account-link");
+    if (!accountLink) return;
+
+    /* Wrap only once. */
+    let flyoutWrap = accountLink.closest(".account-flyout-wrap");
+    if (!flyoutWrap) {
+      flyoutWrap = document.createElement("div");
+      flyoutWrap.className = "account-flyout-wrap";
+      accountLink.parentNode.insertBefore(flyoutWrap, accountLink);
+      flyoutWrap.appendChild(accountLink);
+    }
+
+    let flyout = flyoutWrap.querySelector(".account-flyout");
+    if (!flyout) {
+      flyout = document.createElement("div");
+      flyout.className = "account-flyout";
+      flyout.setAttribute("role", "dialog");
+      flyout.setAttribute("aria-label", "Account");
+      flyoutWrap.appendChild(flyout);
+
+      /* Position flyout via fixed coords on each hover — escapes header overflow:clip. */
+      flyoutWrap.addEventListener("mouseenter", () => {
+        const rect = flyoutWrap.getBoundingClientRect();
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        flyout.style.top = (rect.bottom + rem * 0.65) + "px";
+        flyout.style.right = (window.innerWidth - rect.right - rem * 0.75) + "px";
+      });
+    }
+
+    const isEditor = isTwEditorUser();
+    if (!isEditor) {
+      flyout.innerHTML = `
+        <p class="account-flyout__label">Editor Access</p>
+        <button type="button" class="account-flyout__signin-btn">Sign in with Google</button>
+      `;
+      flyout.querySelector(".account-flyout__signin-btn").addEventListener("click", () => {
+        signInWithGoogleEditor();
+      });
+    } else {
+      const email = twEditorSession?.email ?? "";
+      flyout.innerHTML = `
+        <p class="account-flyout__email">${email}</p>
+        <a href="/account" class="account-flyout__link">Account</a>
+        <button type="button" class="account-flyout__signout-btn">Sign out</button>
+      `;
+      flyout.querySelector(".account-flyout__signout-btn").addEventListener("click", () => {
+        signOutTwAccountAndReturnHome();
+      });
+    }
   }
 
   /** Vercel production default origin. */
