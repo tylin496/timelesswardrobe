@@ -18813,6 +18813,18 @@ a.item-detail__breadcrumb-current {
   color: color-mix(in srgb, var(--ink) 38%, var(--ink-muted));
 }
 
+.editorial-page .site-footer::after {
+  content: "Objects, garments, and memories collected over time.";
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.55rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--ink) 24%, transparent);
+  margin-top: 0.25rem;
+}
+
 .collection-actions {
   @apply m-0;
   display: flex;
@@ -23392,6 +23404,8 @@ body.editorial-page {
   overflow: hidden;
   display: flex;
   align-items: flex-end;
+  /* Push text ~7% up from bottom — less caption overlay, more lookbook */
+  padding-bottom: 7%;
   background: #0d0d0d;
 }
 
@@ -23401,14 +23415,18 @@ body.editorial-page {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%;
-  opacity: 0.88;
+  object-position: center 25%;
+  opacity: 0.70;
 }
 
 .editorial-hero__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0.08) 55%, transparent 100%);
+  /* Bottom lift + top seal + radial vignette for spatial depth */
+  background:
+    linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.22) 38%, transparent 62%),
+    linear-gradient(to bottom, rgba(0,0,0,0.32) 0%, transparent 30%),
+    radial-gradient(ellipse 140% 100% at 50% 48%, transparent 20%, rgba(0,0,0,0.50) 100%);
   pointer-events: none;
 }
 
@@ -23482,26 +23500,31 @@ body.editorial-page {
 .editorial-index__count {
   font-family: "DM Sans", sans-serif;
   font-size: 0.6rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--ink-faint, #7f8d87);
-  margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+  color: var(--ink-muted, #5f6f68);
+  margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
 }
 
 .editorial-index__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(1rem, 2.5vw, 2.25rem) clamp(0.875rem, 2vw, 1.75rem);
+  gap: clamp(1.75rem, 3.5vw, 3rem) clamp(1rem, 2vw, 1.75rem);
 }
 
 @media (max-width: 640px) {
   .editorial-index__grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 2.5rem;
   }
   .editorial-hero {
     aspect-ratio: 4 / 3;
     max-height: none;
+    padding-bottom: 5%;
+  }
+  /* On single-column mobile, restore uniform card height */
+  .editorial-index__grid .editorial-card-wrap:nth-child(n) .editorial-card__media {
+    aspect-ratio: 4 / 5;
   }
 }
 
@@ -23521,7 +23544,7 @@ body.editorial-page {
 .editorial-card__media {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: #e8e5de;
   margin-bottom: 1rem;
@@ -23551,6 +23574,25 @@ body.editorial-page {
   .editorial-card:hover .editorial-card__img {
     transform: scale(1.035);
   }
+}
+
+/* Intentional rhythm breaks — real editorial grids are never perfectly even */
+.editorial-index__grid .editorial-card-wrap:nth-child(3n+1) .editorial-card__media {
+  aspect-ratio: 3 / 4;
+}
+.editorial-index__grid .editorial-card-wrap:nth-child(3n+2) .editorial-card__media {
+  aspect-ratio: 5 / 7;
+  margin-bottom: 0.75rem;
+}
+.editorial-index__grid .editorial-card-wrap:nth-child(3n) .editorial-card__media {
+  aspect-ratio: 2 / 3;
+}
+.editorial-index__grid .editorial-card-wrap:nth-child(3n) .editorial-card__img {
+  object-position: center 12%;
+  filter: brightness(0.91);
+}
+.editorial-index__grid .editorial-card-wrap:nth-child(3n+2) .editorial-card__img {
+  object-position: center 40%;
 }
 
 .editorial-card__body {
