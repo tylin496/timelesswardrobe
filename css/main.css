@@ -23115,7 +23115,7 @@ body.editorial-page {
   overflow: hidden;
   display: flex;
   align-items: flex-end;
-  background: #1b2e27;
+  background: #0d0d0d;
 }
 
 .editorial-hero__img {
@@ -23125,13 +23125,13 @@ body.editorial-page {
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  opacity: 0.48;
+  opacity: 0.88;
 }
 
 .editorial-hero__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(22,50,41,0.72) 0%, rgba(22,50,41,0.12) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0.08) 55%, transparent 100%);
   pointer-events: none;
 }
 
