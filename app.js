@@ -2449,6 +2449,21 @@
     return twEditorDisplayName() || "Thomas";
   }
 
+  function twAccountEditActions() {
+    return [
+      { label: "Add piece", href: "/collection?additem=1" },
+      { label: "Editorial stories", href: "/editorial" },
+      { label: "Manage brands", href: "/account#manage-brands" },
+      { label: "Collection", href: "/collection" },
+    ];
+  }
+
+  function twAccountEditActionsHtml(className) {
+    return twAccountEditActions()
+      .map((action) => `<a class="${className}" href="${action.href}">${action.label}</a>`)
+      .join("");
+  }
+
   async function signOutTwAccountAndReturnHome() {
     if (twAccountBusy) return;
     await signOutGoogleEditor();
@@ -2464,7 +2479,7 @@
     return path === "/collection" || path === "/collection.html" || /^\/collection(?:\.html)?\//i.test(path);
   }
 
-  /** Strip legacy `?additem` / `/collection/additem` / `id=…/edit` bookmarks from the address bar. */
+  /** Strip legacy `/collection/additem` / `?editor=1` / `id=.../edit` bookmarks from the address bar. */
   function normalizeLegacyEditorUrls() {
     try {
       const u = new URL(globalThis.location.href);
@@ -2474,12 +2489,14 @@
         const legacySegment = /^\/collection(?:\.html)?\/(?:additem|editor)$/i.test(
           u.pathname.replace(/\/$/, "") || "/"
         );
+        if (u.searchParams.has("additem")) {
+          twPendingAddItemIntent = true;
+        }
         if (legacySegment) {
           u.pathname = COLLECTION_PAGE_FILE;
           changed = true;
         }
-        if (u.searchParams.has("additem") || u.searchParams.get("editor") === "1") {
-          u.searchParams.delete("additem");
+        if (u.searchParams.get("editor") === "1") {
           u.searchParams.delete("editor");
           changed = true;
         }
@@ -2580,8 +2597,8 @@
       });
     }
 
-    const isEditor = isTwEditorUser();
-    if (!isEditor) {
+    const canEdit = isTwAdminMode();
+    if (!canEdit) {
       flyout.innerHTML = `
         <p class="account-flyout__label">Editor Access</p>
         <button type="button" class="account-flyout__signin-btn">Sign in with Google</button>
@@ -2590,10 +2607,14 @@
         signInWithGoogleEditor();
       });
     } else {
-      const email = twEditorSession?.email ?? "";
+      const email = twEditorSession?.email ?? (isTwLocalDevHost() ? "Local editor" : "");
       flyout.innerHTML = `
         <p class="account-flyout__email">${email}</p>
         <a href="/account" class="account-flyout__link">Account</a>
+        <div class="account-flyout__edit-menu" aria-label="Common edit actions">
+          <p class="account-flyout__section-label">Edit</p>
+          ${twAccountEditActionsHtml("account-flyout__link account-flyout__link--edit")}
+        </div>
         <button type="button" class="account-flyout__signout-btn">Sign out</button>
       `;
       flyout.querySelector(".account-flyout__signout-btn").addEventListener("click", () => {
@@ -2991,11 +3012,11 @@
 
   async function handleTwAccountPage() {
     if (!isTwAccountPage()) return;
-    if (!isSupabaseReady()) {
+    if (!isSupabaseReady() && !isTwLocalDevHost()) {
       updateTwAccountStatus("Account management is not available on this deployment.", "error");
       return;
     }
-    if (!isTwEditorUser()) {
+    if (!isTwAdminMode()) {
       if (twEditorSession?.denied) {
         updateTwAccountStatus("This Google account cannot manage this wardrobe.", "error");
         return;
@@ -3084,7 +3105,28 @@
     body.replaceChildren();
     body.hidden = false;
 
+    const quickCard = document.createElement("section");
+    quickCard.className = "account-card account-card--quick-actions";
+    const quickTitle = document.createElement("h2");
+    quickTitle.className = "account-card__title";
+    quickTitle.textContent = "Quick edits";
+    const quickHint = document.createElement("p");
+    quickHint.className = "account-card__hint";
+    quickHint.textContent = "Common wardrobe editing areas.";
+    const quickList = document.createElement("div");
+    quickList.className = "account-quick-actions";
+    for (const action of twAccountEditActions()) {
+      const a = document.createElement("a");
+      a.className = "account-quick-action";
+      a.href = action.href;
+      a.textContent = action.label;
+      quickList.appendChild(a);
+    }
+    quickCard.append(quickTitle, quickHint, quickList);
+    body.appendChild(quickCard);
+
     const card = document.createElement("section");
+    card.id = "manage-brands";
     card.className = "account-card";
     const h2 = document.createElement("h2");
     h2.className = "account-card__title";
@@ -3369,9 +3411,9 @@
     if (!(link instanceof HTMLElement)) return;
     const label = link.querySelector("[data-mobile-nav-login-label]");
     if (!label) return;
-    if (isTwEditorUser()) {
+    if (isTwAdminMode()) {
       const name = twEditorDisplayName();
-      label.textContent = name ? `Welcome, ${name}!` : "Welcome!";
+      label.textContent = name ? `Welcome, ${name}!` : "My account";
       link.dataset.loggedIn = "1";
       if (link instanceof HTMLAnchorElement) link.href = "/account";
     } else {
@@ -3379,6 +3421,28 @@
       delete link.dataset.loggedIn;
       if (link instanceof HTMLAnchorElement) link.href = twLoginUrl();
     }
+    syncMobileAccountEditMenu();
+  }
+
+  function syncMobileAccountEditMenu() {
+    const loginItem = document.querySelector(".site-mobile-nav__item--login");
+    if (!(loginItem instanceof HTMLElement)) return;
+    let menu = document.querySelector(".site-mobile-nav__account-edit");
+    if (!isTwAdminMode()) {
+      menu?.remove();
+      return;
+    }
+    if (!(menu instanceof HTMLElement)) {
+      menu = document.createElement("li");
+      menu.className = "site-mobile-nav__item site-mobile-nav__account-edit";
+      loginItem.insertAdjacentElement("afterend", menu);
+    }
+    menu.innerHTML = `
+      <p class="site-mobile-nav__account-edit-label">Edit</p>
+      <div class="site-mobile-nav__account-edit-links">
+        ${twAccountEditActionsHtml("site-mobile-nav__account-edit-link")}
+      </div>
+    `;
   }
 
   function applyTwAdminModeUi() {
@@ -19122,6 +19186,7 @@
 
   /** @type {boolean} */
   let addItemFormWired = false;
+  let twPendingAddItemIntent = false;
 
   function initAddItemForm() {
     if (!isTwAdminMode()) return;
@@ -19233,6 +19298,29 @@
     });
 
     resetAddItemMeasurementBlock();
+  }
+
+  function openRequestedAddItemDialog() {
+    if (!isTwAdminMode()) return;
+    let shouldOpen = false;
+    try {
+      shouldOpen = twPendingAddItemIntent || new URL(globalThis.location.href).searchParams.has("additem");
+    } catch {
+      shouldOpen = false;
+    }
+    if (!shouldOpen) return;
+    twPendingAddItemIntent = false;
+    const openAdd = document.getElementById("add-item-open");
+    if (openAdd instanceof HTMLButtonElement) {
+      openAdd.click();
+    }
+    try {
+      const u = new URL(globalThis.location.href);
+      u.searchParams.delete("additem");
+      globalThis.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
+    } catch {
+      /* ignore */
+    }
   }
 
   function isCollectionCardCoarsePointer() {
@@ -30174,6 +30262,7 @@
       initFilters();
       syncOutfitSaveButtonLabel();
       initAddItemForm();
+      openRequestedAddItemDialog();
       renderGrid();
       if (!hasStylingBoardUi) {
         renderOutfitStrip();
