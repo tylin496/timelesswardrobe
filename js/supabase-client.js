@@ -175,8 +175,15 @@ function mapRowToEditorialStory(row) {
     title: String(row.title ?? "").trim(),
     subtitle: String(row.subtitle ?? "").trim(),
     heroImage: row.hero_image == null ? null : String(row.hero_image).trim() || null,
+    thumbnailImage: row.thumbnail_image == null ? null : String(row.thumbnail_image).trim() || null,
     pieceIds: pieceIds.map((x) => String(x ?? "").trim()).filter(Boolean),
   };
+}
+
+function isMissingEditorialThumbnailColumn(error) {
+  const msg = String(error?.message ?? error ?? "").toLowerCase();
+  const code = String(error?.code ?? "");
+  return (code === "PGRST204" || code === "42703" || /column/.test(msg)) && /thumbnail_image/.test(msg);
 }
 
 /**
@@ -186,11 +193,18 @@ function mapRowToEditorialStory(row) {
 export async function fetchEditorialStories(client) {
   try {
     return await withNetworkRetries("fetchEditorialStories", async () => {
-      const { data, error } = await client
+      let { data, error } = await client
         .from("editorial_stories")
-        .select("slug, label, title, subtitle, hero_image, piece_ids, sort_order")
+        .select("slug, label, title, subtitle, hero_image, thumbnail_image, piece_ids, sort_order")
         .order("sort_order", { ascending: true })
         .order("title", { ascending: true });
+      if (error && isMissingEditorialThumbnailColumn(error)) {
+        ({ data, error } = await client
+          .from("editorial_stories")
+          .select("slug, label, title, subtitle, hero_image, piece_ids, sort_order")
+          .order("sort_order", { ascending: true })
+          .order("title", { ascending: true }));
+      }
       if (error) {
         if (isProbablyTransientFetchFailure(error.message)) throw new Error(error.message);
         return { ok: false, error: error.message };
@@ -207,10 +221,10 @@ export async function fetchEditorialStories(client) {
 /**
  * Replaces the editorial story list with the supplied ordered array.
  * @param {import('@supabase/supabase-js').SupabaseClient} client
- * @param {{ slug: string, label?: string, title: string, subtitle?: string, heroImage?: string | null, pieceIds?: string[] }[]} stories
+ * @param {{ slug: string, label?: string, title: string, subtitle?: string, heroImage?: string | null, thumbnailImage?: string | null, pieceIds?: string[] }[]} stories
  */
 export async function replaceEditorialStories(client, stories) {
-  const rows = (Array.isArray(stories) ? stories : [])
+  const sourceRows = (Array.isArray(stories) ? stories : [])
     .map((story, sort_order) => {
       const slug = String(story?.slug ?? "").trim();
       const title = String(story?.title ?? "").trim();
@@ -221,6 +235,7 @@ export async function replaceEditorialStories(client, stories) {
         title,
         subtitle: String(story.subtitle ?? "").trim(),
         hero_image: story.heroImage ? String(story.heroImage).trim() : null,
+        thumbnail_image: story.thumbnailImage ? String(story.thumbnailImage).trim() : null,
         piece_ids: Array.isArray(story.pieceIds)
           ? story.pieceIds.map((x) => String(x ?? "").trim()).filter(Boolean)
           : [],
@@ -229,9 +244,14 @@ export async function replaceEditorialStories(client, stories) {
       };
     })
     .filter(Boolean);
+  let rows = sourceRows;
 
   if (rows.length) {
-    const { error: upsertError } = await client.from("editorial_stories").upsert(rows, { onConflict: "slug" });
+    let { error: upsertError } = await client.from("editorial_stories").upsert(rows, { onConflict: "slug" });
+    if (upsertError && isMissingEditorialThumbnailColumn(upsertError)) {
+      rows = sourceRows.map(({ thumbnail_image, ...row }) => row);
+      ({ error: upsertError } = await client.from("editorial_stories").upsert(rows, { onConflict: "slug" }));
+    }
     if (upsertError) return { ok: false, error: upsertError.message };
   }
 

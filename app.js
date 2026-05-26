@@ -26488,6 +26488,12 @@
     });
   }
 
+  function editorialStoryThumbnailImage(story) {
+    const thumbnail = String(story?.thumbnailImage ?? "").trim();
+    if (thumbnail) return thumbnail;
+    return String(story?.heroImage ?? "").trim();
+  }
+
   function renderEditorialIndex(root) {
     root.replaceChildren();
     const adminMode = isTwAdminMode();
@@ -26579,8 +26585,9 @@
       img.alt = "";
       img.decoding = "async";
       img.loading = "lazy";
-      if (story.heroImage) {
-        img.src = editorialMediaSrc(story.heroImage);
+      const thumbnailImage = editorialStoryThumbnailImage(story);
+      if (thumbnailImage) {
+        img.src = editorialMediaSrc(thumbnailImage);
       } else {
         renderEditorialCardImage(img, media, coverItem);
       }
@@ -26650,11 +26657,6 @@
 
     const hero = document.createElement("div");
     hero.className = "editorial-detail__hero";
-    const heroScrim = document.createElement("div");
-    heroScrim.className = "editorial-detail__hero-scrim";
-    heroScrim.setAttribute("aria-hidden", "true");
-    hero.appendChild(heroScrim);
-
     if (story.heroImage) {
       const heroImg = document.createElement("img");
       heroImg.className = "editorial-detail__hero-img";
@@ -26673,7 +26675,7 @@
         coverRenderWidth: 1600,
         coverRenderHeight: 900,
         coverRenderQuality: 85,
-        coverRenderResize: "cover",
+        coverRenderResize: "contain",
       });
       hero.prepend(heroImg);
     }
@@ -26887,6 +26889,17 @@
     input.click();
   }
 
+  async function openEditorialCropUiFromPath(path, aspectW, aspectH, onConfirm) {
+    const src = editorialMediaSrc(path);
+    if (!src) throw new Error("No image to crop");
+    const res = await fetch(src, { mode: "cors" });
+    if (!res.ok) throw new Error("Could not load image for cropping");
+    const blob = await res.blob();
+    const ext = blob.type === "image/png" ? "png" : blob.type === "image/webp" ? "webp" : "jpg";
+    const file = new File([blob], `editorial-crop-source.${ext}`, { type: blob.type || "image/jpeg" });
+    openEditorialCropUi(file, aspectW, aspectH, onConfirm);
+  }
+
   /**
    * Opens a drag-to-pan crop UI. `onConfirm` receives a cropped Blob (JPEG).
    * @param {File} file
@@ -27020,7 +27033,7 @@
     const isNew = !story;
     const draft = story
       ? { ...story, pieceIds: [...(story.pieceIds ?? [])] }
-      : { slug: "", label: "", title: "", subtitle: "", heroImage: null, pieceIds: [] };
+      : { slug: "", label: "", title: "", subtitle: "", heroImage: null, thumbnailImage: null, pieceIds: [] };
 
     const overlay = document.createElement("div");
     overlay.className = "ed-editor-overlay";
@@ -27122,23 +27135,29 @@
     heroUploadLabel.appendChild(heroFileInput);
     const heroStatus = document.createElement("span");
     heroStatus.className = "ed-editor-hero-status";
+    const setHeroUploadText = (text) => {
+      heroUploadLabel.textContent = text;
+      heroUploadLabel.appendChild(heroFileInput);
+    };
 
     heroFileInput.addEventListener("change", () => {
       const file = heroFileInput.files?.[0];
       heroFileInput.value = "";
       if (!file) return;
       openEditorialCropUi(file, 16, 7, async (blob) => {
-        heroUploadLabel.textContent = "Uploading…";
+        setHeroUploadText("Uploading...");
         heroStatus.textContent = "";
         try {
           const slug = editorialSlugify(titleInput.value || draft.slug || "story");
           const imgPath = await uploadEditorialHeroImage(slug, blob);
           draft.heroImage = imgPath;
           refreshHeroPreview();
-          heroUploadLabel.textContent = "Replace Image";
-          heroStatus.textContent = "✓ Uploaded";
+          refreshThumbnailPreview();
+          thumbnailRecropBtn.disabled = !(draft.thumbnailImage || draft.heroImage);
+          setHeroUploadText("Replace Image");
+          heroStatus.textContent = "Uploaded";
         } catch (err) {
-          heroUploadLabel.textContent = "Upload Image";
+          setHeroUploadText("Upload Image");
           heroStatus.textContent = "Upload failed";
           console.error("Hero upload error", err);
         }
@@ -27146,6 +27165,104 @@
     });
 
     heroSection.append(heroSectionLabel, heroPreview, heroUploadLabel, heroStatus);
+
+    // Story card thumbnail
+    const thumbnailSection = document.createElement("div");
+    thumbnailSection.className = "ed-editor-section";
+    const thumbnailSectionLabel = document.createElement("p");
+    thumbnailSectionLabel.className = "ed-editor-section__label";
+    thumbnailSectionLabel.textContent = "Thumbnail Image";
+
+    const thumbnailPreview = document.createElement("div");
+    thumbnailPreview.className =
+      "ed-editor-thumbnail-preview" + (draft.thumbnailImage ? "" : " ed-editor-thumbnail-preview--empty");
+
+    function refreshThumbnailPreview() {
+      thumbnailPreview.innerHTML = "";
+      const previewImage = draft.thumbnailImage || draft.heroImage;
+      if (previewImage) {
+        thumbnailPreview.classList.remove("ed-editor-thumbnail-preview--empty");
+        const img = document.createElement("img");
+        img.className = "ed-editor-thumbnail-img";
+        img.src = editorialMediaSrc(previewImage) + "?cb=" + Date.now();
+        img.alt = "";
+        thumbnailPreview.appendChild(img);
+      } else {
+        thumbnailPreview.classList.add("ed-editor-thumbnail-preview--empty");
+        thumbnailPreview.textContent = "No thumbnail image";
+      }
+    }
+    refreshThumbnailPreview();
+
+    const thumbnailActions = document.createElement("div");
+    thumbnailActions.className = "ed-editor-thumbnail-actions";
+
+    const thumbnailUploadLabel = document.createElement("label");
+    thumbnailUploadLabel.className = "btn btn--small ed-editor-hero-upload-btn";
+    thumbnailUploadLabel.textContent = draft.thumbnailImage ? "Replace Thumbnail" : "Upload Thumbnail";
+    const thumbnailFileInput = document.createElement("input");
+    thumbnailFileInput.type = "file";
+    thumbnailFileInput.accept = "image/*";
+    thumbnailFileInput.hidden = true;
+    thumbnailUploadLabel.appendChild(thumbnailFileInput);
+    const setThumbnailUploadText = (text) => {
+      thumbnailUploadLabel.textContent = text;
+      thumbnailUploadLabel.appendChild(thumbnailFileInput);
+    };
+
+    const thumbnailRecropBtn = document.createElement("button");
+    thumbnailRecropBtn.type = "button";
+    thumbnailRecropBtn.className = "btn btn--small btn--ghost";
+    thumbnailRecropBtn.textContent = "Re-crop Thumbnail";
+    thumbnailRecropBtn.disabled = !(draft.thumbnailImage || draft.heroImage);
+
+    const thumbnailStatus = document.createElement("span");
+    thumbnailStatus.className = "ed-editor-hero-status";
+
+    const saveThumbnailBlob = async (blob) => {
+      setThumbnailUploadText("Uploading...");
+      thumbnailRecropBtn.disabled = true;
+      thumbnailStatus.textContent = "";
+      try {
+        const slug = editorialSlugify(titleInput.value || draft.slug || "story");
+        const imgPath = await uploadEditorialHeroImage(`${slug}-thumbnail`, blob);
+        draft.thumbnailImage = imgPath;
+        refreshThumbnailPreview();
+        setThumbnailUploadText("Replace Thumbnail");
+        thumbnailRecropBtn.disabled = false;
+        thumbnailStatus.textContent = "Uploaded";
+      } catch (err) {
+        setThumbnailUploadText(draft.thumbnailImage ? "Replace Thumbnail" : "Upload Thumbnail");
+        thumbnailRecropBtn.disabled = !(draft.thumbnailImage || draft.heroImage);
+        thumbnailStatus.textContent = "Upload failed";
+        console.error("Thumbnail upload error", err);
+      }
+    };
+
+    thumbnailFileInput.addEventListener("change", () => {
+      const file = thumbnailFileInput.files?.[0];
+      thumbnailFileInput.value = "";
+      if (!file) return;
+      openEditorialCropUi(file, 4, 5, saveThumbnailBlob);
+    });
+
+    thumbnailRecropBtn.addEventListener("click", async () => {
+      const source = draft.thumbnailImage || draft.heroImage;
+      if (!source) return;
+      thumbnailStatus.textContent = "Loading image...";
+      thumbnailRecropBtn.disabled = true;
+      try {
+        await openEditorialCropUiFromPath(source, 4, 5, saveThumbnailBlob);
+        thumbnailStatus.textContent = "";
+      } catch (err) {
+        thumbnailStatus.textContent = "Could not load image";
+        thumbnailRecropBtn.disabled = false;
+        console.error("Thumbnail recrop error", err);
+      }
+    });
+
+    thumbnailActions.append(thumbnailUploadLabel, thumbnailRecropBtn, thumbnailStatus);
+    thumbnailSection.append(thumbnailSectionLabel, thumbnailPreview, thumbnailActions);
 
     // Pieces
     const piecesSection = document.createElement("div");
@@ -27237,7 +27354,7 @@
     pieceSearch.append(pieceSearchInput, pieceSearchResults);
     piecesSection.append(piecesSectionLabel, piecesList, pieceSearch);
 
-    body.append(metaSection, heroSection, piecesSection);
+    body.append(metaSection, thumbnailSection, heroSection, piecesSection);
 
     // Footer
     const footer = document.createElement("div");
@@ -27283,6 +27400,7 @@
         title: newTitle,
         subtitle: subtitleInput.value.trim(),
         heroImage: draft.heroImage ?? null,
+        thumbnailImage: draft.thumbnailImage ?? null,
         pieceIds: draft.pieceIds,
       };
       if (isNew) {

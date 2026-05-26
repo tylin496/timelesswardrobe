@@ -23609,7 +23609,7 @@ body.editorial-page {
   min-height: 260px;
   max-height: 640px;
   overflow: hidden;
-  background: #1b2e27;
+  background: #ece8df;
 }
 
 .editorial-detail__hero-img {
@@ -23617,16 +23617,13 @@ body.editorial-page {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 25%;
-  opacity: 0.52;
+  object-fit: contain;
+  object-position: center;
+  opacity: 1;
 }
 
 .editorial-detail__hero-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(22,50,41,0.55) 100%);
-  pointer-events: none;
+  display: none;
 }
 
 @media (max-width: 640px) {
@@ -24063,6 +24060,36 @@ body.editorial-page {
   object-fit: cover;
   object-position: center;
   display: block;
+}
+.ed-editor-thumbnail-preview {
+  width: min(12rem, 100%);
+  aspect-ratio: 4 / 5;
+  background: #e8e5de;
+  overflow: hidden;
+  position: relative;
+}
+.ed-editor-thumbnail-preview--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  color: var(--ink-faint, #7f8d87);
+  text-align: center;
+}
+.ed-editor-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.ed-editor-thumbnail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
 }
 .ed-editor-hero-upload-btn {
   cursor: pointer;

@@ -5,6 +5,7 @@
     "title": "English Rain",
     "subtitle": "Waxed cotton, gabardine, corduroy, and polished leather for wet weather.",
     "heroImage": "images/editorial/hero-english-rain.png",
+    "thumbnailImage": null,
     "pieceIds": [
       "sage-beaufort-waxed-jacket",
       "balmacaan-coat",
@@ -20,6 +21,7 @@
     "title": "Gold After Dark",
     "subtitle": "Evening objects in yellow gold, amber, ruby, and black leather.",
     "heroImage": null,
+    "thumbnailImage": null,
     "pieceIds": [
       "tank-solo",
       "ligne-2",
@@ -35,6 +37,7 @@
     "title": "Mediterranean Leisure",
     "subtitle": "Linen, open collars, pale cotton, and summer objects.",
     "heroImage": null,
+    "thumbnailImage": null,
     "pieceIds": [
       "linen-safari-jacket",
       "basket-weave-linen-jacket",
@@ -50,6 +53,7 @@
     "title": "Ivy Weekend",
     "subtitle": "Washed rugby, cricket knit, oxford cloth, tassel loafers, and casual tailoring.",
     "heroImage": null,
+    "thumbnailImage": null,
     "pieceIds": [
       "washed-rugby-shirt",
       "cricket-cable-knit-jumper-vest",
@@ -65,6 +69,7 @@
     "title": "Travel Objects",
     "subtitle": "Personal objects for movement, writing, weather, and memory.",
     "heroImage": null,
+    "thumbnailImage": null,
     "pieceIds": [
       "cordovan-l-zip-wallet-regular-price",
       "ligne-2",
