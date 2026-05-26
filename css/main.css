@@ -23435,3 +23435,74 @@ body.editorial-page {
   border-bottom: 1px solid var(--ink, #163229);
   padding-bottom: 2px;
 }
+
+/* ── Homepage editorial entry ─────────────────────────────────────── */
+.ed-lp__editorial-entry {
+  width: 100%;
+  background: #1b2e27;
+}
+
+.ed-lp__editorial-entry-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(3.5rem, 8vw, 7rem) clamp(1.5rem, 5vw, 4rem);
+  text-decoration: none;
+  color: inherit;
+}
+
+.ed-lp__editorial-entry-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ed-lp__editorial-entry-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7a8c81;
+  margin: 0 0 1.5rem;
+}
+
+.ed-lp__editorial-entry-title {
+  font-family: 'Cormorant Garamond', Cormorant, Georgia, serif;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 300;
+  line-height: 1;
+  color: #f4f1ea;
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.02em;
+  transition: opacity 0.3s ease;
+}
+
+.ed-lp__editorial-entry-link:hover .ed-lp__editorial-entry-title,
+.ed-lp__editorial-entry-link:focus-visible .ed-lp__editorial-entry-title {
+  opacity: 0.75;
+}
+
+.ed-lp__editorial-entry-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: #8d9e94;
+  margin: 0 0 2rem;
+  letter-spacing: 0.02em;
+}
+
+.ed-lp__editorial-entry-cta {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f4f1ea;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.3);
+  padding-bottom: 2px;
+  transition: border-color 0.25s ease;
+}
+
+.ed-lp__editorial-entry-link:hover .ed-lp__editorial-entry-cta,
+.ed-lp__editorial-entry-link:focus-visible .ed-lp__editorial-entry-cta {
+  border-color: rgba(244, 241, 234, 0.8);
+}
