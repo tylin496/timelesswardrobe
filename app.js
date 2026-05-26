@@ -26918,6 +26918,8 @@
 
     const frameEl = document.createElement("div");
     frameEl.className = "ed-crop-frame";
+    frameEl.style.setProperty("--ed-crop-aspect", `${aspectW} / ${aspectH}`);
+    frameEl.style.setProperty("--ed-crop-ratio", String(aspectW / aspectH));
 
     const imgEl = document.createElement("img");
     imgEl.className = "ed-crop-img";

@@ -24216,8 +24216,9 @@ body.editorial-page {
 .ed-crop-overlay.is-open { opacity: 1; }
 
 .ed-crop-frame {
-  width: min(100%, calc(100vh * 16 / 7 - 8rem));
-  aspect-ratio: 16 / 7;
+  width: min(100%, calc((100dvh - 8rem) * var(--ed-crop-ratio, 2.285714)));
+  max-height: calc(100dvh - 8rem);
+  aspect-ratio: var(--ed-crop-aspect, 16 / 7);
   position: relative;
   overflow: hidden;
   cursor: grab;
