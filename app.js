@@ -26300,19 +26300,24 @@
     heroInner.append(eyebrow, heroTitle, heroSub);
     hero.append(heroScrim, heroInner);
 
+    const firstStory = editorialStories[0];
     const firstCoverItem = editorialStories.map(editorialCoverItem).find(Boolean);
-    if (firstCoverItem) {
+    if (firstStory?.heroImage || firstCoverItem) {
       const heroImg = document.createElement("img");
       heroImg.className = "editorial-hero__img";
       heroImg.alt = "";
       heroImg.decoding = "async";
       heroImg.setAttribute("aria-hidden", "true");
-      wireCoverImageWithFallbacks(heroImg, firstCoverItem, {
-        coverRenderWidth: 1600,
-        coverRenderHeight: 700,
-        coverRenderQuality: 85,
-        coverRenderResize: "cover",
-      });
+      if (firstStory?.heroImage) {
+        heroImg.src = editorialMediaSrc(firstStory.heroImage);
+      } else {
+        wireCoverImageWithFallbacks(heroImg, firstCoverItem, {
+          coverRenderWidth: 1600,
+          coverRenderHeight: 700,
+          coverRenderQuality: 85,
+          coverRenderResize: "cover",
+        });
+      }
       hero.prepend(heroImg);
     }
 
