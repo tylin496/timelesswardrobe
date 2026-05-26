@@ -3124,6 +3124,31 @@
     card.appendChild(form);
     body.appendChild(card);
 
+    const editCard = document.createElement("section");
+    editCard.className = "account-card account-card--edit-mode";
+    const editH2 = document.createElement("h2");
+    editH2.className = "account-card__title";
+    editH2.textContent = "Edit mode";
+    editCard.appendChild(editH2);
+    const editHint = document.createElement("p");
+    editHint.className = "account-card__hint";
+    editHint.textContent = "Show edit controls across the site (pieces, editorial stories).";
+    editCard.appendChild(editHint);
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "account-edit-mode-btn";
+    const refreshEditBtn = () => {
+      editBtn.textContent = isTwAdminMode() ? "Turn off edit mode" : "Turn on edit mode";
+      editBtn.dataset.active = isTwAdminMode() ? "1" : "";
+    };
+    refreshEditBtn();
+    editBtn.addEventListener("click", () => {
+      setTwAdminMode(!isTwAdminMode());
+      refreshEditBtn();
+    });
+    editCard.appendChild(editBtn);
+    body.appendChild(editCard);
+
   }
 
   function twSiteBaseUrl() {
@@ -26531,14 +26556,14 @@
       .replace(/^-|-$/g, "");
   }
 
-  async function uploadEditorialHeroImage(slug, file) {
+  async function uploadEditorialHeroImage(slug, blob) {
+    const ext = blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
     const reader = new FileReader();
     const dataUrl = await new Promise((res, rej) => {
       reader.onload = () => res(reader.result);
       reader.onerror = rej;
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(blob);
     });
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const storagePath = `${slug}.${ext}`;
     const r = await fetch("/api/editorial/hero-image", {
       method: "POST",
@@ -26548,6 +26573,135 @@
     if (!r.ok) throw new Error("Upload failed");
     const json = await r.json();
     return "images/editorial/" + json.path.replace(/^editorial\//, "");
+  }
+
+  /**
+   * Opens a drag-to-pan crop UI. `onConfirm` receives a cropped Blob (JPEG).
+   * @param {File} file
+   * @param {number} aspectW
+   * @param {number} aspectH
+   * @param {(blob: Blob) => void} onConfirm
+   */
+  function openEditorialCropUi(file, aspectW, aspectH, onConfirm) {
+    const cropOverlay = document.createElement("div");
+    cropOverlay.className = "ed-crop-overlay";
+
+    const img = new Image();
+    let imgNW = 0, imgNH = 0;
+    let scale = 1;
+    let ox = 0, oy = 0; // offset of image top-left relative to frame top-left
+
+    const frameEl = document.createElement("div");
+    frameEl.className = "ed-crop-frame";
+
+    const imgEl = document.createElement("img");
+    imgEl.className = "ed-crop-img";
+    imgEl.draggable = false;
+    frameEl.appendChild(imgEl);
+
+    const hint = document.createElement("p");
+    hint.className = "ed-crop-hint";
+    hint.textContent = "Drag to reposition";
+
+    const controls = document.createElement("div");
+    controls.className = "ed-crop-controls";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn btn--ghost";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => cropOverlay.remove());
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.type = "button";
+    confirmBtn.className = "btn";
+    confirmBtn.textContent = "Use Photo";
+    controls.append(cancelBtn, confirmBtn);
+
+    cropOverlay.append(frameEl, hint, controls);
+    document.body.appendChild(cropOverlay);
+
+    function clampOffset(x, y) {
+      const frameW = frameEl.clientWidth;
+      const frameH = frameEl.clientHeight;
+      const imgW = imgNW * scale;
+      const imgH = imgNH * scale;
+      return {
+        x: Math.min(0, Math.max(frameW - imgW, x)),
+        y: Math.min(0, Math.max(frameH - imgH, y)),
+      };
+    }
+
+    function applyOffset() {
+      imgEl.style.transform = `translate(${ox}px, ${oy}px)`;
+    }
+
+    function initLayout() {
+      const frameW = frameEl.clientWidth;
+      const frameH = frameEl.clientHeight;
+      if (!imgNW || !imgNH || !frameW || !frameH) return;
+      // Scale image so it fully covers the frame
+      scale = Math.max(frameW / imgNW, frameH / imgNH);
+      imgEl.style.width = `${imgNW * scale}px`;
+      imgEl.style.height = `${imgNH * scale}px`;
+      // Center
+      const c = clampOffset((frameW - imgNW * scale) / 2, (frameH - imgNH * scale) / 2);
+      ox = c.x; oy = c.y;
+      applyOffset();
+    }
+
+    // Drag (pointer events — works for both mouse and touch)
+    let dragging = false, lastPX = 0, lastPY = 0;
+    frameEl.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      lastPX = e.clientX; lastPY = e.clientY;
+      frameEl.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    frameEl.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastPX;
+      const dy = e.clientY - lastPY;
+      lastPX = e.clientX; lastPY = e.clientY;
+      const c = clampOffset(ox + dx, oy + dy);
+      ox = c.x; oy = c.y;
+      applyOffset();
+    });
+    frameEl.addEventListener("pointerup", () => { dragging = false; });
+    frameEl.addEventListener("pointercancel", () => { dragging = false; });
+
+    confirmBtn.addEventListener("click", () => {
+      const frameW = frameEl.clientWidth;
+      const frameH = frameEl.clientHeight;
+      const srcX = (-ox) / scale;
+      const srcY = (-oy) / scale;
+      const srcW = frameW / scale;
+      const srcH = frameH / scale;
+      const outW = Math.round(Math.min(srcW, imgNW));
+      const outH = Math.round(outW * aspectH / aspectW);
+      const canvas = document.createElement("canvas");
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+      canvas.toBlob((blob) => {
+        cropOverlay.remove();
+        if (blob) onConfirm(blob);
+      }, "image/jpeg", 0.9);
+    });
+
+    const objUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      imgNW = img.naturalWidth;
+      imgNH = img.naturalHeight;
+      imgEl.src = objUrl;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          initLayout();
+          requestAnimationFrame(() => cropOverlay.classList.add("is-open"));
+        });
+      });
+    };
+    img.src = objUrl;
   }
 
   function openEditorialStoryEditor(story, root) {
@@ -26657,23 +26811,26 @@
     const heroStatus = document.createElement("span");
     heroStatus.className = "ed-editor-hero-status";
 
-    heroFileInput.addEventListener("change", async () => {
+    heroFileInput.addEventListener("change", () => {
       const file = heroFileInput.files?.[0];
+      heroFileInput.value = "";
       if (!file) return;
-      heroUploadLabel.textContent = "Uploading…";
-      heroStatus.textContent = "";
-      try {
-        const slug = editorialSlugify(titleInput.value || draft.slug || "story");
-        const imgPath = await uploadEditorialHeroImage(slug, file);
-        draft.heroImage = imgPath;
-        refreshHeroPreview();
-        heroUploadLabel.textContent = "Replace Image";
-        heroStatus.textContent = "✓ Uploaded";
-      } catch (err) {
-        heroUploadLabel.textContent = "Upload Image";
-        heroStatus.textContent = "Upload failed";
-        console.error("Hero upload error", err);
-      }
+      openEditorialCropUi(file, 16, 7, async (blob) => {
+        heroUploadLabel.textContent = "Uploading…";
+        heroStatus.textContent = "";
+        try {
+          const slug = editorialSlugify(titleInput.value || draft.slug || "story");
+          const imgPath = await uploadEditorialHeroImage(slug, blob);
+          draft.heroImage = imgPath;
+          refreshHeroPreview();
+          heroUploadLabel.textContent = "Replace Image";
+          heroStatus.textContent = "✓ Uploaded";
+        } catch (err) {
+          heroUploadLabel.textContent = "Upload Image";
+          heroStatus.textContent = "Upload failed";
+          console.error("Hero upload error", err);
+        }
+      });
     });
 
     heroSection.append(heroSectionLabel, heroPreview, heroUploadLabel, heroStatus);
