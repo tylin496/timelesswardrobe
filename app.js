@@ -2394,7 +2394,6 @@
   const WARDROBE_SAVE_PIN_TTL_MS = 3 * 60 * 1000;
   /** Full wardrobe text snapshot for offline review (browser localStorage). */
   const WARDROBE_TEXT_LOCAL_KEY = "timeless-wardrobe-text-local-v1";
-  const TW_ADMIN_MODE_STORAGE_KEY = "adminMode";
   /** @type {{ email: string, denied?: boolean } | null} */
   let twEditorSession = null;
   let twEditorAuthListenerInstalled = false;
@@ -2510,19 +2509,6 @@
 
   /** Collection-wide admin tools (add piece, export, duplicate on PDP, etc.). */
   function isTwAdminMode() {
-    if (isTwLocalDevHost()) {
-      try {
-        if (new URLSearchParams(globalThis.location.search).get("admin") === "true") return true;
-      } catch {
-        /* */
-      }
-      try {
-        if (localStorage.getItem(TW_ADMIN_MODE_STORAGE_KEY) === "true") return true;
-      } catch {
-        /* private mode */
-      }
-      return true;
-    }
     return isTwEditorUser();
   }
 
@@ -2878,15 +2864,6 @@
       twLoginOAuthKickoff = false;
       return;
     }
-    if (isTwLocalDevHost()) {
-      updateLoginPageStatus("Local dev does not require sign-in. Redirecting…", { variant: "success" });
-      try {
-        globalThis.location.replace(new URL(twLoginNextUrl(), globalThis.location.origin).href);
-      } catch {
-        globalThis.location.replace("/");
-      }
-      return;
-    }
     if (!isSupabaseReady()) {
       updateLoginPageStatus("Sign-in is not configured on this deployment.", { showRetry: false, variant: "error" });
       return;
@@ -2961,11 +2938,11 @@
 
   async function handleTwAccountPage() {
     if (!isTwAccountPage()) return;
-    if (!isTwLocalDevHost() && !isSupabaseReady()) {
+    if (!isSupabaseReady()) {
       updateTwAccountStatus("Account management is not available on this deployment.", "error");
       return;
     }
-    if (!isTwLocalDevHost() && !isTwEditorUser()) {
+    if (!isTwEditorUser()) {
       if (twEditorSession?.denied) {
         updateTwAccountStatus("This Google account cannot manage this wardrobe.", "error");
         return;
@@ -3366,46 +3343,22 @@
   }
 
   function setTwAdminMode(enabled) {
-    if (!isTwLocalDevHost()) {
-      if (enabled) {
-        if (!isTwEditorUser()) {
-          const path = `${globalThis.location.pathname || "/"}${globalThis.location.search || ""}`;
-          redirectToTwLogin(path);
-        }
-      } else {
-        void signOutGoogleEditor();
+    if (enabled) {
+      if (!isTwEditorUser()) {
+        const path = `${globalThis.location.pathname || "/"}${globalThis.location.search || ""}`;
+        redirectToTwLogin(path);
+        return;
       }
+      applyTwAdminModeUi();
       return;
     }
-    const on = Boolean(enabled);
-    try {
-      if (on) localStorage.setItem(TW_ADMIN_MODE_STORAGE_KEY, "true");
-      else localStorage.removeItem(TW_ADMIN_MODE_STORAGE_KEY);
-    } catch {
-      /* */
-    }
-    applyTwAdminModeUi();
-    if (on) {
-      installLocalDataRiskBanner();
-      installWardrobeTextLocalExportActions();
-      initAddItemForm();
-    }
+    void signOutGoogleEditor();
     if (typeof showToast === "function") {
-      showToast(on ? "Admin mode on — management tools visible." : "Admin mode off — public view.");
+      showToast("Admin mode off — public view.");
     }
   }
 
   function initTwAdminMode() {
-    if (isTwLocalDevHost()) {
-      try {
-        const p = new URLSearchParams(globalThis.location.search);
-        if (p.get("admin") === "true") {
-          localStorage.setItem(TW_ADMIN_MODE_STORAGE_KEY, "true");
-        }
-      } catch {
-        /* */
-      }
-    }
     applyTwAdminModeUi();
     installTwEditorAuthUi();
     if (document.body.dataset.twAdminShortcutWired === "1") return;
@@ -24743,7 +24696,7 @@
     if (wantEditRequested && !allowEdit) {
       if (!isSupabaseReady()) {
         showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
-      } else if (!isTwLocalDevHost() && !isTwEditorUser()) {
+      } else if (!isTwEditorUser()) {
         const next = buildItemPageUrl(item.id, { edit: true });
         globalThis.location.replace(twLoginUrl(`${next.pathname}${next.search}`));
         return;
