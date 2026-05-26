@@ -2565,9 +2565,11 @@
     }
   }
 
-  /** @param {string} [nextPath] Same-origin path to return to after sign-in. */
+  /** @param {string} [nextPath] Same-origin path to return to after sign-in. Defaults to current pathname. */
   function twLoginUrl(nextPath) {
-    const next = String(nextPath ?? "").trim() || "/collection.html";
+    const currentPath = String(globalThis.location?.pathname || "/").trim();
+    const fallback = currentPath === "/login" || currentPath === "/login.html" ? "/collection.html" : currentPath || "/collection.html";
+    const next = String(nextPath ?? "").trim() || fallback;
     try {
       const u = new URL("/login", globalThis.location.origin);
       const safe = next.startsWith("/") ? next : `/${next}`;
