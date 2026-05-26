@@ -26134,7 +26134,7 @@
 
   // ─── Editorial page ────────────────────────────────────────────────────────
 
-  const EDITORIAL_STORIES = [
+  let editorialStories = [
     {
       slug: "english-rain",
       label: "A/W",
@@ -26244,6 +26244,7 @@
 
   function renderEditorialIndex(root) {
     root.replaceChildren();
+    const adminMode = isTwAdminMode();
 
     const hero = document.createElement("div");
     hero.className = "editorial-hero";
@@ -26264,8 +26265,7 @@
     heroInner.append(eyebrow, heroTitle, heroSub);
     hero.append(heroScrim, heroInner);
 
-    // Use first available cover item as hero background
-    const firstCoverItem = EDITORIAL_STORIES.map(editorialCoverItem).find(Boolean);
+    const firstCoverItem = editorialStories.map(editorialCoverItem).find(Boolean);
     if (firstCoverItem) {
       const heroImg = document.createElement("img");
       heroImg.className = "editorial-hero__img";
@@ -26292,21 +26292,24 @@
 
     const countLine = document.createElement("p");
     countLine.className = "editorial-index__count";
-    countLine.textContent = `${EDITORIAL_STORIES.length} stories`;
+    countLine.textContent = `${editorialStories.length} ${editorialStories.length === 1 ? "story" : "stories"}`;
     inner.appendChild(countLine);
 
     const grid = document.createElement("div");
     grid.className = "editorial-index__grid";
     grid.setAttribute("role", "list");
 
-    for (const story of EDITORIAL_STORIES) {
+    for (const story of editorialStories) {
       const storyItems = editorialStoryItems(story);
       const coverItem = editorialCoverItem(story);
+
+      const wrap = document.createElement("div");
+      wrap.className = "editorial-card-wrap";
+      wrap.setAttribute("role", "listitem");
 
       const a = document.createElement("a");
       a.href = `/editorial/${story.slug}`;
       a.className = "editorial-card";
-      a.setAttribute("role", "listitem");
       a.setAttribute("aria-label", story.title);
 
       const media = document.createElement("div");
@@ -26316,7 +26319,11 @@
       img.alt = "";
       img.decoding = "async";
       img.loading = "lazy";
-      renderEditorialCardImage(img, media, coverItem);
+      if (story.heroImage) {
+        img.src = story.heroImage.startsWith("/") ? story.heroImage : "/" + story.heroImage;
+      } else {
+        renderEditorialCardImage(img, media, coverItem);
+      }
       media.appendChild(img);
 
       const body = document.createElement("div");
@@ -26340,21 +26347,47 @@
 
       body.append(label, title, desc, count);
       a.append(media, body);
-      grid.appendChild(a);
+      wrap.appendChild(a);
+
+      if (adminMode) {
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "editorial-card__edit-btn tw-admin-only";
+        editBtn.setAttribute("aria-label", `Edit ${story.title}`);
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openEditorialStoryEditor(story, root);
+        });
+        wrap.appendChild(editBtn);
+      }
+
+      grid.appendChild(wrap);
     }
 
     inner.appendChild(grid);
+
+    if (adminMode) {
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "editorial-add-story-btn tw-admin-only";
+      addBtn.textContent = "+ New Story";
+      addBtn.addEventListener("click", () => openEditorialStoryEditor(null, root));
+      inner.appendChild(addBtn);
+    }
+
     section.appendChild(inner);
     root.appendChild(section);
   }
 
   function renderEditorialDetail(root, story) {
     root.replaceChildren();
+    const adminMode = isTwAdminMode();
 
     const storyItems = editorialStoryItems(story);
     const coverItem = editorialCoverItem(story);
 
-    // Hero
     const hero = document.createElement("div");
     hero.className = "editorial-detail__hero";
     const heroScrim = document.createElement("div");
@@ -26362,7 +26395,15 @@
     heroScrim.setAttribute("aria-hidden", "true");
     hero.appendChild(heroScrim);
 
-    if (coverItem) {
+    if (story.heroImage) {
+      const heroImg = document.createElement("img");
+      heroImg.className = "editorial-detail__hero-img";
+      heroImg.alt = "";
+      heroImg.decoding = "async";
+      heroImg.setAttribute("aria-hidden", "true");
+      heroImg.src = story.heroImage.startsWith("/") ? story.heroImage : "/" + story.heroImage;
+      hero.prepend(heroImg);
+    } else if (coverItem) {
       const heroImg = document.createElement("img");
       heroImg.className = "editorial-detail__hero-img";
       heroImg.alt = "";
@@ -26385,7 +26426,6 @@
     const inner = document.createElement("div");
     inner.className = "editorial-inner";
 
-    // Header
     const header = document.createElement("div");
     header.className = "editorial-detail__header";
 
@@ -26406,10 +26446,18 @@
     subtitleEl.className = "editorial-detail__subtitle";
     subtitleEl.textContent = story.subtitle;
 
-    header.append(back, labelEl, titleEl, subtitleEl);
+    if (adminMode) {
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "editorial-detail__edit-btn tw-admin-only";
+      editBtn.textContent = "Edit Story";
+      editBtn.addEventListener("click", () => openEditorialStoryEditor(story, root));
+      header.append(back, editBtn, labelEl, titleEl, subtitleEl);
+    } else {
+      header.append(back, labelEl, titleEl, subtitleEl);
+    }
     inner.appendChild(header);
 
-    // Pieces
     const pieces = document.createElement("div");
     pieces.className = "editorial-detail__pieces";
 
@@ -26449,6 +26497,367 @@
     root.appendChild(wrap);
   }
 
+  // ── Editorial admin: load / save / editor ────────────────────────────
+
+  async function loadEditorialStoriesFromFile() {
+    try {
+      const r = await fetch("/data/editorial-stories.json?_=" + Date.now());
+      if (!r.ok) return;
+      const arr = await r.json();
+      if (Array.isArray(arr) && arr.length) editorialStories = arr;
+    } catch {}
+  }
+
+  async function persistEditorialStories() {
+    try {
+      const r = await fetch("/api/editorial-stories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editorialStories, null, 2),
+      });
+      return r.status === 204;
+    } catch {
+      return false;
+    }
+  }
+
+  function editorialSlugify(text) {
+    return String(text)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  async function uploadEditorialHeroImage(slug, file) {
+    const reader = new FileReader();
+    const dataUrl = await new Promise((res, rej) => {
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = `${slug}.${ext}`;
+    const r = await fetch("/api/editorial/hero-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storagePath, dataUrl }),
+    });
+    if (!r.ok) throw new Error("Upload failed");
+    const json = await r.json();
+    return "images/editorial/" + json.path.replace(/^editorial\//, "");
+  }
+
+  function openEditorialStoryEditor(story, root) {
+    const isNew = !story;
+    const draft = story
+      ? { ...story, pieceIds: [...(story.pieceIds ?? [])] }
+      : { slug: "", label: "", title: "", subtitle: "", heroImage: null, pieceIds: [] };
+
+    const overlay = document.createElement("div");
+    overlay.className = "ed-editor-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", isNew ? "New Story" : `Edit: ${story.title}`);
+
+    const modal = document.createElement("div");
+    modal.className = "ed-editor-modal";
+
+    // Toolbar
+    const toolbar = document.createElement("div");
+    toolbar.className = "ed-editor-toolbar";
+    const toolbarTitle = document.createElement("h2");
+    toolbarTitle.className = "ed-editor-toolbar__title";
+    toolbarTitle.textContent = isNew ? "New Story" : "Edit Story";
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "ed-editor-close";
+    closeBtn.setAttribute("aria-label", "Close editor");
+    closeBtn.innerHTML = "&#x2715;";
+    toolbar.append(toolbarTitle, closeBtn);
+
+    // Body
+    const body = document.createElement("div");
+    body.className = "ed-editor-body";
+
+    function makeField(labelText, input) {
+      const wrap = document.createElement("label");
+      wrap.className = "ed-editor-field";
+      const lbl = document.createElement("span");
+      lbl.className = "ed-editor-field__label";
+      lbl.textContent = labelText;
+      wrap.append(lbl, input);
+      return wrap;
+    }
+
+    // Meta
+    const metaSection = document.createElement("div");
+    metaSection.className = "ed-editor-section";
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.className = "ed-editor-input";
+    titleInput.placeholder = "Story title";
+    titleInput.value = draft.title;
+
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.className = "ed-editor-input";
+    labelInput.placeholder = "Label (A/W, S/S, Evening…)";
+    labelInput.value = draft.label;
+
+    const subtitleInput = document.createElement("textarea");
+    subtitleInput.className = "ed-editor-textarea";
+    subtitleInput.placeholder = "Short description";
+    subtitleInput.rows = 3;
+    subtitleInput.value = draft.subtitle;
+
+    metaSection.append(
+      makeField("Title", titleInput),
+      makeField("Label", labelInput),
+      makeField("Description", subtitleInput)
+    );
+
+    // Hero image
+    const heroSection = document.createElement("div");
+    heroSection.className = "ed-editor-section";
+    const heroSectionLabel = document.createElement("p");
+    heroSectionLabel.className = "ed-editor-section__label";
+    heroSectionLabel.textContent = "Hero Image";
+
+    const heroPreview = document.createElement("div");
+    heroPreview.className = "ed-editor-hero-preview" + (draft.heroImage ? "" : " ed-editor-hero-preview--empty");
+
+    function refreshHeroPreview() {
+      heroPreview.innerHTML = "";
+      if (draft.heroImage) {
+        heroPreview.classList.remove("ed-editor-hero-preview--empty");
+        const img = document.createElement("img");
+        img.className = "ed-editor-hero-img";
+        img.src = (draft.heroImage.startsWith("/") ? "" : "/") + draft.heroImage + "?cb=" + Date.now();
+        img.alt = "";
+        heroPreview.appendChild(img);
+      } else {
+        heroPreview.classList.add("ed-editor-hero-preview--empty");
+        heroPreview.textContent = "No hero image — uses first piece cover";
+      }
+    }
+    refreshHeroPreview();
+
+    const heroUploadLabel = document.createElement("label");
+    heroUploadLabel.className = "btn btn--small ed-editor-hero-upload-btn";
+    heroUploadLabel.textContent = draft.heroImage ? "Replace Image" : "Upload Image";
+    const heroFileInput = document.createElement("input");
+    heroFileInput.type = "file";
+    heroFileInput.accept = "image/*";
+    heroFileInput.hidden = true;
+    heroUploadLabel.appendChild(heroFileInput);
+    const heroStatus = document.createElement("span");
+    heroStatus.className = "ed-editor-hero-status";
+
+    heroFileInput.addEventListener("change", async () => {
+      const file = heroFileInput.files?.[0];
+      if (!file) return;
+      heroUploadLabel.textContent = "Uploading…";
+      heroStatus.textContent = "";
+      try {
+        const slug = editorialSlugify(titleInput.value || draft.slug || "story");
+        const imgPath = await uploadEditorialHeroImage(slug, file);
+        draft.heroImage = imgPath;
+        refreshHeroPreview();
+        heroUploadLabel.textContent = "Replace Image";
+        heroStatus.textContent = "✓ Uploaded";
+      } catch (err) {
+        heroUploadLabel.textContent = "Upload Image";
+        heroStatus.textContent = "Upload failed";
+        console.error("Hero upload error", err);
+      }
+    });
+
+    heroSection.append(heroSectionLabel, heroPreview, heroUploadLabel, heroStatus);
+
+    // Pieces
+    const piecesSection = document.createElement("div");
+    piecesSection.className = "ed-editor-section";
+    const piecesSectionLabel = document.createElement("p");
+    piecesSectionLabel.className = "ed-editor-section__label";
+    piecesSectionLabel.textContent = "Pieces";
+
+    const piecesList = document.createElement("div");
+    piecesList.className = "ed-editor-pieces-list";
+
+    function refreshPiecesList() {
+      piecesList.innerHTML = "";
+      if (!draft.pieceIds.length) {
+        const empty = document.createElement("p");
+        empty.className = "ed-editor-pieces-empty";
+        empty.textContent = "No pieces added yet.";
+        piecesList.appendChild(empty);
+        return;
+      }
+      for (const id of draft.pieceIds) {
+        const it = itemById.get(id);
+        const chip = document.createElement("div");
+        chip.className = "ed-editor-piece-chip";
+        const nm = document.createElement("span");
+        nm.className = "ed-editor-piece-chip__name";
+        nm.textContent = it ? [it.brand, it.name].filter(Boolean).join(" · ") : id;
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "ed-editor-piece-chip__remove";
+        rm.setAttribute("aria-label", `Remove ${nm.textContent}`);
+        rm.innerHTML = "&#x2715;";
+        rm.addEventListener("click", () => {
+          draft.pieceIds = draft.pieceIds.filter((x) => x !== id);
+          refreshPiecesList();
+        });
+        chip.append(nm, rm);
+        piecesList.appendChild(chip);
+      }
+    }
+    refreshPiecesList();
+
+    const pieceSearch = document.createElement("div");
+    pieceSearch.className = "ed-editor-piece-search";
+    const pieceSearchInput = document.createElement("input");
+    pieceSearchInput.type = "search";
+    pieceSearchInput.className = "ed-editor-input";
+    pieceSearchInput.placeholder = "Search pieces to add…";
+    const pieceSearchResults = document.createElement("div");
+    pieceSearchResults.className = "ed-editor-piece-results";
+    pieceSearchResults.hidden = true;
+
+    pieceSearchInput.addEventListener("input", () => {
+      const q = pieceSearchInput.value.trim().toLowerCase();
+      if (!q) { pieceSearchResults.hidden = true; return; }
+      const matches = items
+        .filter((it) => {
+          if (draft.pieceIds.includes(it.id)) return false;
+          return `${it.brand ?? ""} ${it.name ?? ""} ${it.id}`.toLowerCase().includes(q);
+        })
+        .slice(0, 10);
+      pieceSearchResults.innerHTML = "";
+      if (!matches.length) {
+        const none = document.createElement("div");
+        none.className = "ed-editor-piece-result ed-editor-piece-result--none";
+        none.textContent = "No results";
+        pieceSearchResults.appendChild(none);
+      } else {
+        for (const it of matches) {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = "ed-editor-piece-result";
+          row.textContent = [it.brand, it.name].filter(Boolean).join(" · ") || it.id;
+          row.addEventListener("click", () => {
+            draft.pieceIds = [...draft.pieceIds, it.id];
+            refreshPiecesList();
+            pieceSearchInput.value = "";
+            pieceSearchResults.hidden = true;
+          });
+          pieceSearchResults.appendChild(row);
+        }
+      }
+      pieceSearchResults.hidden = false;
+    });
+    pieceSearchInput.addEventListener("blur", () => {
+      setTimeout(() => { pieceSearchResults.hidden = true; }, 200);
+    });
+
+    pieceSearch.append(pieceSearchInput, pieceSearchResults);
+    piecesSection.append(piecesSectionLabel, piecesList, pieceSearch);
+
+    body.append(metaSection, heroSection, piecesSection);
+
+    // Footer
+    const footer = document.createElement("div");
+    footer.className = "ed-editor-footer";
+
+    if (!isNew) {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "btn btn--ghost ed-editor-delete-btn";
+      deleteBtn.textContent = "Delete Story";
+      deleteBtn.addEventListener("click", async () => {
+        if (!confirm(`Delete "${story.title}"? This cannot be undone.`)) return;
+        editorialStories = editorialStories.filter((s) => s.slug !== story.slug);
+        await persistEditorialStories();
+        closeOverlay();
+        renderEditorialIndex(root);
+      });
+      footer.appendChild(deleteBtn);
+    }
+
+    const spacer = document.createElement("span");
+    spacer.style.flex = "1";
+    footer.appendChild(spacer);
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn btn--ghost";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", closeOverlay);
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "btn";
+    saveBtn.textContent = "Save";
+
+    saveBtn.addEventListener("click", async () => {
+      const newTitle = titleInput.value.trim();
+      if (!newTitle) { titleInput.focus(); return; }
+      const newSlug = isNew ? editorialSlugify(newTitle) : story.slug;
+      const updated = {
+        slug: newSlug,
+        label: labelInput.value.trim(),
+        title: newTitle,
+        subtitle: subtitleInput.value.trim(),
+        heroImage: draft.heroImage ?? null,
+        pieceIds: draft.pieceIds,
+      };
+      if (isNew) {
+        editorialStories = [...editorialStories, updated];
+      } else {
+        const idx = editorialStories.findIndex((s) => s.slug === story.slug);
+        if (idx >= 0) editorialStories[idx] = updated;
+        else editorialStories = [...editorialStories, updated];
+      }
+      saveBtn.textContent = "Saving…";
+      saveBtn.disabled = true;
+      const ok = await persistEditorialStories();
+      if (!ok) {
+        saveBtn.textContent = "Save";
+        saveBtn.disabled = false;
+        saveBtn.title = "Server unavailable — changes kept in memory only.";
+      } else {
+        closeOverlay();
+      }
+      const currentSlug = editorialSlugFromUrl();
+      if (currentSlug && currentSlug === updated.slug) {
+        renderEditorialDetail(root, updated);
+      } else {
+        renderEditorialIndex(root);
+      }
+    });
+
+    footer.append(cancelBtn, saveBtn);
+    modal.append(toolbar, body, footer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => overlay.classList.add("is-open"));
+    titleInput.focus();
+
+    function closeOverlay() {
+      overlay.classList.remove("is-open");
+      overlay.addEventListener("transitionend", () => overlay.remove(), { once: true });
+    }
+
+    closeBtn.addEventListener("click", closeOverlay);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeOverlay(); });
+    const keyHandler = (e) => { if (e.key === "Escape") { closeOverlay(); document.removeEventListener("keydown", keyHandler); } };
+    document.addEventListener("keydown", keyHandler);
+  }
+
   function syncEditorialNavActiveState() {
     const isEd = isEditorialPageContext();
     document.querySelectorAll("[data-editorial-nav]").forEach((el) => {
@@ -26464,15 +26873,16 @@
     }
   }
 
-  function initEditorialPage() {
+  async function initEditorialPage() {
     const root = document.getElementById("editorial-root");
     if (!root) return;
 
     syncEditorialNavActiveState();
+    await loadEditorialStoriesFromFile();
 
     const slug = editorialSlugFromUrl();
     if (slug) {
-      const story = EDITORIAL_STORIES.find((s) => s.slug === slug) ?? null;
+      const story = editorialStories.find((s) => s.slug === slug) ?? null;
       if (story) {
         document.title = `${story.title} · Editorial · Timeless Wardrobe`;
         renderEditorialDetail(root, story);
@@ -26491,7 +26901,7 @@
       if (!href.startsWith("/editorial/")) return;
       e.preventDefault();
       const newSlug = href.replace("/editorial/", "");
-      const newStory = EDITORIAL_STORIES.find((s) => s.slug === newSlug) ?? null;
+      const newStory = editorialStories.find((s) => s.slug === newSlug) ?? null;
       globalThis.history.pushState(null, "", href);
       if (newStory) {
         document.title = `${newStory.title} · Editorial · Timeless Wardrobe`;
@@ -26518,7 +26928,7 @@
       if (!isEditorialPageContext()) return;
       const newSlug = editorialSlugFromUrl();
       if (newSlug) {
-        const s = EDITORIAL_STORIES.find((st) => st.slug === newSlug) ?? null;
+        const s = editorialStories.find((st) => st.slug === newSlug) ?? null;
         if (s) {
           document.title = `${s.title} · Editorial · Timeless Wardrobe`;
           renderEditorialDetail(root, s);
@@ -29479,7 +29889,7 @@
     const isStandaloneItemPage = Boolean(itemRoot && pageId && !hasCollectionGrid);
     if (isEditorialPage) {
       syncOutfitSaveButtonLabel();
-      initEditorialPage();
+      await initEditorialPage();
     } else if (isStandaloneItemPage) {
       normalizeLegacyItemPagePath();
       initItemDetailRootDelegates();
