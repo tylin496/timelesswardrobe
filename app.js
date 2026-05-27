@@ -2443,6 +2443,8 @@
   }
 
   function twAccountGreetingName() {
+    const preferred = String(globalThis.APP_CONFIG?.PREFERRED_GREETING_NAME ?? "").trim();
+    if (preferred) return preferred;
     const name = String(twEditorSession?.name ?? "").trim();
     const parts = name.split(/\s+/).filter(Boolean);
     if (parts.length >= 1) return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
@@ -2600,8 +2602,12 @@
     const canEdit = isTwAdminMode();
     if (!canEdit) {
       flyout.innerHTML = `
-        <p class="account-flyout__label">Editor Access</p>
-        <button type="button" class="account-flyout__signin-btn">Sign in with Google</button>
+        <div class="account-flyout__head">
+          <p class="account-flyout__greeting">Editor Access</p>
+        </div>
+        <div class="account-flyout__body">
+          <button type="button" class="account-flyout__signin-btn">Sign in with Google</button>
+        </div>
       `;
       flyout.querySelector(".account-flyout__signin-btn").addEventListener("click", () => {
         signInWithGoogleEditor();
@@ -2609,13 +2615,17 @@
     } else {
       const email = twEditorSession?.email ?? (isTwLocalDevHost() ? "Local editor" : "");
       flyout.innerHTML = `
-        <p class="account-flyout__email">${email}</p>
-        <a href="/account" class="account-flyout__link">Account</a>
-        <div class="account-flyout__edit-menu" aria-label="Common edit actions">
-          <p class="account-flyout__section-label">Edit</p>
-          ${twAccountEditActionsHtml("account-flyout__link account-flyout__link--edit")}
+        <div class="account-flyout__head">
+          <div>
+            <p class="account-flyout__greeting">Welcome, ${twAccountGreetingName()}!</p>
+            <p class="account-flyout__email">${email}</p>
+          </div>
+          <button type="button" class="account-flyout__signout-btn">Sign Out</button>
         </div>
-        <button type="button" class="account-flyout__signout-btn">Sign out</button>
+        <nav class="account-flyout__nav" aria-label="Account actions">
+          <a href="/account" class="account-flyout__link">Account</a>
+          ${twAccountEditActionsHtml("account-flyout__link")}
+        </nav>
       `;
       flyout.querySelector(".account-flyout__signout-btn").addEventListener("click", () => {
         signOutTwAccountAndReturnHome();
@@ -3412,13 +3422,15 @@
     const label = link.querySelector("[data-mobile-nav-login-label]");
     if (!label) return;
     if (isTwAdminMode()) {
-      const name = twEditorDisplayName();
+      const name = twAccountGreetingName();
       label.textContent = name ? `Welcome, ${name}!` : "My account";
       link.dataset.loggedIn = "1";
-      if (link instanceof HTMLAnchorElement) link.href = "/account";
+      link.dataset.mobileNavAccount = "1";
+      if (link instanceof HTMLAnchorElement) link.href = "#";
     } else {
       label.textContent = "Sign in";
       delete link.dataset.loggedIn;
+      delete link.dataset.mobileNavAccount;
       if (link instanceof HTMLAnchorElement) link.href = twLoginUrl();
     }
     syncMobileAccountEditMenu();
@@ -11265,6 +11277,58 @@
     mountHomeRecentlyViewedRail(items);
 
     syncCategoryTabUI();
+    mountHomeEditorialEntry();
+  }
+
+  function refreshHomeEditorialEntryImage(section) {
+    const img = editorialIndexHeroImage();
+    const src = editorialMediaSrc(img);
+    if (src) {
+      section.style.backgroundImage = `linear-gradient(rgba(18,28,23,.18),rgba(18,28,23,.18)), url("${src}")`;
+    }
+  }
+
+  function mountHomeEditorialEntry() {
+    const section = /** @type {HTMLElement|null} */ (document.querySelector(".ed-lp__editorial-entry"));
+    if (!section) return;
+    refreshHomeEditorialEntryImage(section);
+    if (!isTwAdminMode()) return;
+    if (section.querySelector(".ed-lp__editorial-entry-edit-btn")) return;
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "ed-lp__editorial-entry-edit-btn tw-admin-only";
+    editBtn.textContent = "Edit photo";
+    editBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.hidden = true;
+      input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        input.remove();
+        if (!file) return;
+        openEditorialCropUi(file, 21, 9, async (blob) => {
+          editBtn.disabled = true;
+          editBtn.textContent = "Uploading…";
+          try {
+            const imgPath = await uploadEditorialHeroImage("editorial-hero", blob);
+            await persistEditorialIndexHeroImage(imgPath);
+            refreshHomeEditorialEntryImage(section);
+            showToast?.("Editorial photo updated.");
+          } catch (err) {
+            console.error("Home editorial image upload error", err);
+            showToast?.("Upload failed.");
+          } finally {
+            editBtn.disabled = false;
+            editBtn.textContent = "Edit photo";
+          }
+        });
+      });
+      document.body.appendChild(input);
+      input.click();
+    });
+    section.appendChild(editBtn);
   }
 
   function wireEditorialLandingPageCollectionLinks() {
@@ -26859,7 +26923,7 @@
       const file = input.files?.[0];
       input.remove();
       if (!file) return;
-      openEditorialCropUi(file, 16, 7, async (blob) => {
+      openEditorialCropUi(file, 21, 9, async (blob) => {
         const btn = trigger instanceof HTMLButtonElement ? trigger : null;
         const prevText = btn?.textContent ?? "";
         if (btn) {
@@ -27170,7 +27234,7 @@
       const file = heroFileInput.files?.[0];
       heroFileInput.value = "";
       if (!file) return;
-      openEditorialCropUi(file, 16, 7, async (blob) => {
+      openEditorialCropUi(file, 21, 9, async (blob) => {
         setHeroUploadText("Uploading...");
         heroStatus.textContent = "";
         try {
@@ -27496,6 +27560,38 @@
     }
   }
 
+  function initEditorialHeroHeader() {
+    const siteHeader = document.querySelector(".site-header");
+    if (!siteHeader) return;
+    const update = () => {
+      const heroEl = document.querySelector(".editorial-hero, .editorial-detail__hero");
+      if (!heroEl) {
+        siteHeader.classList.remove("site-header--overlay");
+        siteHeader.classList.add("site-header--solid");
+        return;
+      }
+      const solid = heroEl.getBoundingClientRect().bottom <= siteHeader.offsetHeight + 4;
+      siteHeader.classList.toggle("site-header--overlay", !solid);
+      siteHeader.classList.toggle("site-header--solid", solid);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    const mo = new MutationObserver(update);
+    mo.observe(document.getElementById("editorial-root") ?? document.body, {
+      childList: true,
+      subtree: false,
+    });
+    initEditorialHeroHeader._teardown = () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      mo.disconnect();
+      siteHeader.classList.remove("site-header--overlay");
+      siteHeader.classList.add("site-header--solid");
+    };
+    return update;
+  }
+
   async function initEditorialPage() {
     const root = document.getElementById("editorial-root");
     if (!root) return;
@@ -27534,6 +27630,7 @@
         renderEditorialNotFound(root);
       }
       root.scrollIntoView({ behavior: "smooth", block: "start" });
+      refreshHeader?.();
     });
 
     // Wire back link for detail → index navigation
@@ -27545,6 +27642,7 @@
       document.title = "Editorial · Timeless Wardrobe";
       renderEditorialIndex(root);
       root.scrollIntoView({ behavior: "smooth", block: "start" });
+      refreshHeader?.();
     });
 
     // popstate: handle browser back/forward
@@ -27563,7 +27661,10 @@
         document.title = "Editorial · Timeless Wardrobe";
         renderEditorialIndex(root);
       }
+      refreshHeader?.();
     });
+
+    const refreshHeader = initEditorialHeroHeader();
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -27777,9 +27878,17 @@
       loginLink.className = "site-mobile-nav__row site-mobile-nav__row--login";
       loginLink.innerHTML = `<span class="site-mobile-nav__login-lead"><svg class="site-mobile-nav__login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.6 8-6.6s8 2.6 8 6.6"></path></svg><span class="site-mobile-nav__label" data-mobile-nav-login-label>Sign in</span></span><span class="site-mobile-nav__chevron" aria-hidden="true"></span>`;
       loginLink.addEventListener("pointerdown", () => {
-        loginLink.href = isTwEditorUser() ? "/account" : twLoginUrl();
+        if (!loginLink.dataset.mobileNavAccount) {
+          loginLink.href = isTwEditorUser() ? "/account" : twLoginUrl();
+        }
       });
-      loginLink.addEventListener("click", () => closeMobileCategoryPanel());
+      loginLink.addEventListener("click", (e) => {
+        if (loginLink.dataset.mobileNavAccount) {
+          e.preventDefault();
+          return;
+        }
+        closeMobileCategoryPanel();
+      });
       loginLi.appendChild(loginLink);
       rootList.appendChild(loginLi);
       syncMobileNavLoginRow();
@@ -28469,6 +28578,104 @@
         portal.classList.remove("is-closing");
         finalizeMobileNavDrillReset({ focusMain });
       }, ["transform"]);
+    }
+
+    function openMobileNavAccountDrill() {
+      const shell = document.getElementById("site-mobile-shell");
+      const nav = document.getElementById("site-mobile-nav");
+      const root = document.getElementById("site-mobile-nav-root");
+      const drill = document.getElementById("site-mobile-nav-drill");
+      const list = document.getElementById("site-mobile-nav-drill-list");
+      const { back, title } = ensureMobileNavDrillChrome();
+      if (!nav || !root || !drill || !title || !list) return;
+
+      const email = String(twEditorSession?.email ?? "");
+      const greetingName = twAccountGreetingName();
+      title.textContent = greetingName ? greetingName.toUpperCase() : "ACCOUNT";
+      list.replaceChildren();
+
+      // Email
+      if (email) {
+        const emailLi = document.createElement("li");
+        emailLi.className = "site-mobile-nav__item site-mobile-nav__account-email-item";
+        const emailEl = document.createElement("span");
+        emailEl.className = "site-mobile-nav__account-email";
+        emailEl.textContent = email;
+        emailLi.appendChild(emailEl);
+        list.appendChild(emailLi);
+      }
+
+      // Account link
+      const accountLi = document.createElement("li");
+      accountLi.className = "site-mobile-nav__item";
+      const accountA = document.createElement("a");
+      accountA.href = "/account";
+      accountA.className = "site-mobile-nav__subrow";
+      accountA.textContent = "Account";
+      accountA.addEventListener("click", () => closeMobileCategoryPanel());
+      accountLi.appendChild(accountA);
+      list.appendChild(accountLi);
+
+      // Edit section divider + label
+      const editDivLi = document.createElement("li");
+      editDivLi.className = "site-mobile-nav__item site-mobile-nav__account-section-item";
+      editDivLi.innerHTML = '<span class="site-mobile-nav__account-section-label">Edit</span>';
+      list.appendChild(editDivLi);
+
+      // Edit actions
+      for (const action of twAccountEditActions()) {
+        const li = document.createElement("li");
+        li.className = "site-mobile-nav__item";
+        const a = document.createElement("a");
+        a.href = action.href;
+        a.className = "site-mobile-nav__subrow";
+        a.textContent = action.label;
+        a.addEventListener("click", () => closeMobileCategoryPanel());
+        li.appendChild(a);
+        list.appendChild(li);
+      }
+
+      // Sign out
+      const signOutLi = document.createElement("li");
+      signOutLi.className = "site-mobile-nav__item site-mobile-nav__account-signout-item";
+      const signOutBtn = document.createElement("button");
+      signOutBtn.type = "button";
+      signOutBtn.className = "site-mobile-nav__subrow site-mobile-nav__account-signout-btn";
+      signOutBtn.textContent = "Sign out";
+      signOutBtn.addEventListener("click", async () => {
+        closeMobileCategoryPanel();
+        await signOutGoogleEditor();
+      });
+      signOutLi.appendChild(signOutBtn);
+      list.appendChild(signOutLi);
+
+      syncMobileShellTop();
+      const portal = mountMobileNavDrillInPortal();
+      ensureMobileNavDrillChrome();
+
+      drill.classList.remove("is-active", "is-closing");
+      nav.classList.remove("site-mobile-nav--drill-open");
+      document.body.classList.remove("collection-ui--mobile-nav-drill");
+      portal.classList.remove("is-open", "is-closing");
+      portal.removeAttribute("hidden");
+      setMobileNavDrillChromeVisible(true);
+
+      const reduceMotion = Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      const revealDrill = () => {
+        if (!document.body.classList.contains("collection-ui--mobile-nav-open")) return;
+        document.body.classList.add("collection-ui--mobile-nav-drill");
+        root.setAttribute("aria-hidden", "true");
+        drill.setAttribute("aria-hidden", "false");
+        nav.classList.add("site-mobile-nav--drill-open");
+        drill.classList.add("is-active");
+        portal.classList.add("is-open");
+        portal.removeAttribute("aria-hidden");
+        back?.focus();
+      };
+
+      if (reduceMotion) { revealDrill(); return; }
+      void portal.offsetWidth;
+      requestAnimationFrame(revealDrill);
     }
 
     function openMobileNavDrill(slot) {
@@ -29253,6 +29460,11 @@
       }
       const row = /** @type {HTMLElement | null} */ (e.target.closest(".site-mobile-nav__row"));
       if (row) {
+        if (row.dataset.mobileNavAccount) {
+          e.preventDefault();
+          openMobileNavAccountDrill();
+          return;
+        }
         const slot = String(row.dataset.mobileNavSlot ?? "").trim();
         if (SLOT_OPTIONS.includes(slot)) openMobileNavDrill(slot);
         return;
