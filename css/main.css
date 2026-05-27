@@ -23930,10 +23930,10 @@ body.editorial-page {
   background-size: cover;
   background-position: center;
 
-  margin-top: 0;
+  margin-top: 10px;
 
   border-top: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
-  padding-top: clamp(0.4rem, 0.8vw, 0.65rem);
+  padding-top: 10px;
 }
 
 .ed-lp__editorial-entry-edit-btn {
