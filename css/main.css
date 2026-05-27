@@ -23515,6 +23515,10 @@ body.editorial-page {
   /* Push text ~7% up from bottom — less caption overlay, more lookbook */
   padding-bottom: 7%;
   background: #0d0d0d;
+  /* Pull hero up behind the transparent sticky header */
+  margin-top: calc(-1 * var(--site-header-row-height, 5rem));
+  /* Compensate: keep bottom content clear of the hero undercut */
+  margin-bottom: 0;
 }
 
 .editorial-hero__img {
