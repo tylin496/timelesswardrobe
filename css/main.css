@@ -914,10 +914,16 @@ body {
 
 body.home-page .site-header__inner,
 body.home-page .site-header__container,
-body.home-page .site-header__container.site-header__inner {
+body.home-page .site-header__container.site-header__inner,
+body.collection-page .site-header__inner,
+body.collection-page .site-header__container,
+body.collection-page .site-header__container.site-header__inner,
+body.item-page .site-header__inner,
+body.item-page .site-header__container,
+body.item-page .site-header__container.site-header__inner {
   max-width: none;
-  padding-left: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
-  padding-right: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
+  padding-left: clamp(2rem, 8vw, 8.5rem);
+  padding-right: clamp(2rem, 8vw, 8.5rem);
 }
 
 .site-header__brand-nav {
@@ -21491,13 +21497,12 @@ video.ed-lp__hero-layer-video {
 
 /* Division rail — horizontal gallery picks (Ralph Lauren shop-by-category). */
 .ed-lp__division-rail {
-  position: relative;
-  z-index: 1;
+  box-sizing: border-box;
   width: 100%;
-  padding: clamp(2.5rem, 5vw, 3.5rem) 0;
-  background-color: var(--tw-brand-page);
-  background-image: none;
-  --ed-lp-division-rail-pad-left: max(var(--space-page-inline), env(safe-area-inset-left, 0px));
+  padding-left: var(--catalogue-plp-inline-x);
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ed-lp__division-rail-inner {
@@ -21523,10 +21528,10 @@ video.ed-lp__hero-layer-video {
   @apply m-0 mb-[clamp(1.75rem,3vw,2.5rem)];
   margin-top: var(--ed-lp-philosophy-to-title-gap, clamp(1.2rem, 2.5vw, 1.85rem));
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2rem, 1.5rem + 1.8vw, 3rem);
+  font-size: clamp(1.6rem, 1.2rem + 1vw, 2.35rem);
   font-weight: 500;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.08;
   color: var(--ink);
 }
 
@@ -22099,10 +22104,10 @@ body.home-page .ed-lp__band--muted {
 .ed-lp__h2 {
   @apply m-0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2rem, 1.5rem + 1.8vw, 3rem);
+  font-size: clamp(1.6rem, 1.2rem + 1vw, 2.35rem);
   font-weight: 500;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.08;
   color: var(--ink);
 }
 
@@ -22117,8 +22122,8 @@ body.home-page .ed-lp__band--muted {
 
 /* Lifestyle gallery mode — two large editorial frames per row (no cutout/gallery mix). */
 .ed-lp__product-grid--gallery {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(1.35rem, 3vw, 2.35rem);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 1.6vw, 1.75rem);
 }
 
 .ed-lp__pcard {
@@ -23928,9 +23933,7 @@ body.editorial-page {
     url("/images/editorial/hero-english-rain.png") center center / cover no-repeat;
   background-size: cover;
   background-position: center;
-
-  margin-top: 0;
-
+  margin-top: 8px;
   padding-top: 0;
 }
 
