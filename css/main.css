@@ -23929,7 +23929,11 @@ body.editorial-page {
     url("/images/editorial/hero-english-rain.png") center center / cover no-repeat;
   background-size: cover;
   background-position: center;
-  margin-top: clamp(2.5rem, 4vw, 3.5rem);
+
+  margin-top: 0;
+
+  border-top: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+  padding-top: clamp(0.4rem, 0.8vw, 0.65rem);
 }
 
 .ed-lp__editorial-entry-edit-btn {
