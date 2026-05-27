@@ -912,6 +912,14 @@ body {
   text-align: left;
 }
 
+body.home-page .site-header__inner,
+body.home-page .site-header__container,
+body.home-page .site-header__container.site-header__inner {
+  max-width: none;
+  padding-left: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
+  padding-right: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
+}
+
 .site-header__brand-nav {
   display: flex;
   align-items: center;
@@ -20850,7 +20858,7 @@ body.home-page .ed-lp__band-head {  @apply mb-[var(--ed-lp-section-title-gap)];
   position: relative;
   display: block;
   /* RL FY25 homepage rhythm — narrow duo gutter, portrait tiles. */
-  --ed-lp-season-duo-gutter: clamp(10px, 0.85vw, 12px);
+  --ed-lp-season-duo-gutter: 0px;
   --ed-lp-season-duo-aspect: 4 / 5;
   --ed-lp-season-duo-copy-x: 9%;
   --ed-lp-season-duo-copy-b: 11%;
@@ -21370,7 +21378,7 @@ video.ed-lp__hero-layer-video {
   position: relative;
   z-index: 1;
   width: 100%;
-  margin-top: var(--ed-lp-season-duo-gutter, 12px);
+  margin-top: 0;
   padding-top: 0;
   background-color: var(--tw-brand-page);
   background-image: none;
@@ -22530,6 +22538,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     max-height: none;
     min-height: 0;
     align-self: start;
+    margin-bottom: 0;
   }
 }
 
@@ -23920,9 +23929,9 @@ body.editorial-page {
   background-size: cover;
   background-position: center;
 
-  margin-top: 10px;
+  margin-top: 0;
 
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .ed-lp__editorial-entry-edit-btn {
@@ -24024,7 +24033,7 @@ body.editorial-page {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #ffffff;
-  border-bottom: 1px solid color-mix(in srgb, #ffffff 72%, transparent);
+  border-bottom: 1px solid rgba(255,255,255,0.18);
   padding-bottom: 0.28rem;
   transition: border-color 0.25s ease;
 }
