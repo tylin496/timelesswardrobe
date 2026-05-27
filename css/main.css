@@ -899,8 +899,17 @@ body {
 
 .site-header__inner,
 .site-header__container {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  width: 100%;
+  max-width: var(--chrome-content-max);
+  padding-top: 0.5rem;
+  padding-bottom: 0.55rem;
   padding-left: 0;
   padding-right: 0;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .site-header__brand-nav {
@@ -913,13 +922,6 @@ body {
   z-index: 3;
 }
 
-body.home-page .site-header__brand-nav {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: none;
-  padding-left: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
-  padding-right: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
-}
 
 /* Desktop: flex bridge between category links and tools — hover closes mega submenu (see app.js). */
 .site-header__nav-submenu-dismiss {
