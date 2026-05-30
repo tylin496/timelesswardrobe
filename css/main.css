@@ -767,7 +767,7 @@ body {
   max-width: none;
   /* Fallback matches `.site-header__inner` so the home page (no theme-catalogue)
      still inset-aligns with the logo. */
-  padding-inline: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
+  padding-inline: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
   cursor: default;
   user-select: none;
 }
@@ -19296,7 +19296,7 @@ body.collection-page .collection-container > .collection-actions {
   body.theme-catalogue:not(.home-page) {
 
   /* Header / utility chrome */
-  --chrome-inline-x: clamp(1rem, 2vw, 2.2rem);
+  --chrome-inline-x: clamp(2rem, 4vw, 5rem);
 
   /* PLP content rail */
   --catalogue-plp-inline-x: clamp(2rem, 4vw, 5rem);
@@ -19325,8 +19325,8 @@ body.collection-page .collection-container > .collection-actions {
   body.editorial-page .site-header__container,
   body.editorial-page .site-header__container.site-header__inner {
     max-width: none;
-    padding-left: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
-    padding-right: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
+    padding-left: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
+    padding-right: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
 }
 
   body.collection-page {
@@ -20782,20 +20782,20 @@ body.home-page .ed-lp__band-inner {
   @apply m-0;
   max-width: none;
   /* Match the header logo column so all home sections share one left edge. */
-  padding-left: max(var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)), env(safe-area-inset-right, 0px));
+  padding-left: max(var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-right, 0px));
 }
 
 body.home-page .ed-lp__division-rail {
   --ed-lp-division-rail-pad-left: max(
-    var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)),
+    var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
 }
 
 body.home-page .ed-lp__viewed-rail {
   --ed-lp-viewed-rail-pad-left: max(
-    var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)),
+    var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
 }
@@ -21607,7 +21607,7 @@ video.ed-lp__hero-layer-video {
   body.home-page .ed-lp__division-rail {
     --ed-lp-division-rail-card-gap: clamp(8px, 0.6vw, 10px);
     --ed-lp-division-rail-cards-visible: 4.18;
-    --ed-lp-division-rail-pad-left: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
+    --ed-lp-division-rail-pad-left: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
   }
 
   /* Desktop hard lock: wheel cannot natively move this rail; drag logic still scrolls via JS scrollLeft. */
