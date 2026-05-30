@@ -20744,7 +20744,13 @@ body.home-page {
   --ed-chalk: #ffffff;
   --ed-paper-ink: rgba(38, 32, 24, 0.1);
   --ed-paper-shadow: rgba(38, 32, 24, 0.09);
-  --ed-lp-section-inline: max(var(--catalogue-plp-inline-x), env(safe-area-inset-left, 0px));
+  /* Direct clamp fallback — `--catalogue-plp-inline-x` resolves invalid on
+     home page (calc(var * var) parser quirk), so without this the rails and
+     bands collapsed to padding 0 and ran flush with the viewport edge. */
+  --ed-lp-section-inline: max(
+    var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)),
+    env(safe-area-inset-left, 0px)
+  );
   /* Global homepage vertical rhythm — one token for all inter-section gaps. */
   --section-space: clamp(5rem, 9vw, 8rem);
   --ed-lp-section-pad-y: var(--section-space);
@@ -20775,16 +20781,23 @@ body.home-page #main.ed-lp {
 body.home-page .ed-lp__band-inner {
   @apply m-0;
   max-width: none;
-  padding-left: max(var(--ed-lp-section-inline), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--ed-lp-section-inline), env(safe-area-inset-right, 0px));
+  /* Match the header logo column so all home sections share one left edge. */
+  padding-left: max(var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)), env(safe-area-inset-right, 0px));
 }
 
 body.home-page .ed-lp__division-rail {
-  --ed-lp-division-rail-pad-left: max(var(--catalogue-plp-inline-x), env(safe-area-inset-left, 0px));
+  --ed-lp-division-rail-pad-left: max(
+    var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)),
+    env(safe-area-inset-left, 0px)
+  );
 }
 
 body.home-page .ed-lp__viewed-rail {
-  --ed-lp-viewed-rail-pad-left: max(var(--catalogue-plp-inline-x), env(safe-area-inset-left, 0px));
+  --ed-lp-viewed-rail-pad-left: max(
+    var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem)),
+    env(safe-area-inset-left, 0px)
+  );
 }
 
 body.home-page .ed-lp__hero-inner {
@@ -20795,8 +20808,8 @@ body.home-page .ed-lp__hero-inner {
 
 body.home-page .ed-lp__season-grid {
   max-width: none;
-  padding-left: max(var(--catalogue-plp-inline-x), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--catalogue-plp-inline-x), env(safe-area-inset-right, 0px));
+  padding-left: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-right, 0px));
 }
 
 body.home-page .ed-lp__division-rail {
@@ -21588,12 +21601,13 @@ video.ed-lp__hero-layer-video {
 }
 
 @media (min-width: 901px) {
-  /* Desktop: 4 category tiles, edge-to-edge tight layout. */
+  /* Desktop: 4 category tiles. Pad-left aligns with the header logo column so
+     the section heading sits in the same column as the rest of the page. */
   .ed-lp__division-rail,
   body.home-page .ed-lp__division-rail {
     --ed-lp-division-rail-card-gap: clamp(8px, 0.6vw, 10px);
     --ed-lp-division-rail-cards-visible: 4.18;
-    --ed-lp-division-rail-pad-left: clamp(0.5rem, 1vw, 0.75rem);
+    --ed-lp-division-rail-pad-left: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
   }
 
   /* Desktop hard lock: wheel cannot natively move this rail; drag logic still scrolls via JS scrollLeft. */
