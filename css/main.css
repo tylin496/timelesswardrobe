@@ -765,7 +765,9 @@ body {
   box-sizing: border-box;
   width: 100%;
   max-width: none;
-  padding-inline: var(--chrome-inline-x);
+  /* Fallback matches `.site-header__inner` so the home page (no theme-catalogue)
+     still inset-aligns with the logo. */
+  padding-inline: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
   cursor: default;
   user-select: none;
 }
