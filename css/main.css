@@ -19320,7 +19320,10 @@ body.collection-page .collection-container > .collection-actions {
   body.collection-page .site-header__container.site-header__inner,
   body.item-page .site-header__inner,
   body.item-page .site-header__container,
-  body.item-page .site-header__container.site-header__inner {
+  body.item-page .site-header__container.site-header__inner,
+  body.editorial-page .site-header__inner,
+  body.editorial-page .site-header__container,
+  body.editorial-page .site-header__container.site-header__inner {
     max-width: none;
     padding-left: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
     padding-right: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
