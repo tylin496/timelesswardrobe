@@ -7718,7 +7718,23 @@
     if (!raw) return "";
     if (raw.startsWith("blob:") || raw.startsWith("data:")) return raw;
     const existing = storagePathFromWardrobeImageUrl(raw);
-    if (existing) return withWardrobeImageCacheBust(raw.split("?")[0], item);
+    if (existing) {
+      // Supabase URL whose object path matches a file we ship locally — redirect to
+      // the static CDN (saves Storage egress). Also follows `.png` → `.webp` swaps.
+      const localHit = lookupFrozenLocalWardrobePath(`/images/wardrobe/${existing}`);
+      if (localHit) return localHit;
+      return withWardrobeImageCacheBust(raw.split("?")[0], item);
+    }
+    // Local /images/wardrobe/... ships in the Vercel deploy — serve from the static
+    // CDN (free egress) rather than rewriting to Supabase Storage. Upload filenames
+    // carry their own timestamp suffix, so no cache-bust query is needed.
+    if (/^\/?images\/wardrobe\//i.test(raw)) {
+      const split = raw.split("?")[0];
+      // Catalogue rows that still reference `.png`/`.jpg` should now serve `.webp`
+      // when the converted file is on disk.
+      const upgraded = lookupFrozenLocalWardrobePath(split);
+      return upgraded || split;
+    }
     const objPath = wardrobeImageObjectPath(raw);
     if (objPath) {
       const cloud = supabasePublicObjectUrlForWardrobePath(objPath, item);
@@ -7781,7 +7797,7 @@
     const raw = String(url ?? "").trim();
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
-    if (!transport || !storagePathFromWardrobeImageUrl(transport)) return raw;
+    if (!transport || !storagePathFromWardrobeImageUrl(transport)) return transport || raw;
     const w = Math.max(1, Math.floor(width));
     const h = Math.max(1, Math.floor(height));
     let u;
@@ -7804,10 +7820,11 @@
     u.searchParams.set("resize", resizeMode);
 
     const quality = transformOpts?.quality;
-    if (typeof quality === "number" && Number.isFinite(quality)) {
-      const q = Math.min(100, Math.max(20, Math.round(quality)));
-      u.searchParams.set("quality", String(q));
-    }
+    const q =
+      typeof quality === "number" && Number.isFinite(quality)
+        ? Math.min(100, Math.max(20, Math.round(quality)))
+        : 72;
+    u.searchParams.set("quality", String(q));
 
     const zoom = transformOpts?.zoom;
     if (typeof zoom === "number" && Number.isFinite(zoom) && zoom > 1 && zoom <= 3) {
@@ -15196,7 +15213,7 @@
     for (const u of variantUrls) add(u);
     if (primaryDisplayable && !primaryOwned) add(primary);
 
-    return out.map((u) => withWardrobeImageCacheBust(u, item));
+    return out.map((u) => resolveWardrobeImageTransportUrl(u, item) || withWardrobeImageCacheBust(u, item));
   }
 
   /**
@@ -15230,7 +15247,7 @@
     ) {
       add(primary);
     }
-    return out.map((u) => withWardrobeImageCacheBust(u, item));
+    return out.map((u) => resolveWardrobeImageTransportUrl(u, item) || withWardrobeImageCacheBust(u, item));
   }
 
   /**
@@ -26676,7 +26693,10 @@
       count.className = "editorial-card__count";
       count.textContent = `${storyItems.length} piece${storyItems.length === 1 ? "" : "s"}`;
 
-      body.append(label, title, desc, count);
+      const titleRow = document.createElement("div");
+      titleRow.className = "editorial-card__title-row";
+      titleRow.append(title, label);
+      body.append(titleRow, desc, count);
       a.append(media, body);
       wrap.appendChild(a);
 
@@ -26827,7 +26847,7 @@
 
   async function loadEditorialStoriesFromFile() {
     try {
-      const r = await fetch("/data/editorial-stories.json?_=" + Date.now());
+      const r = await fetch("/data/editorial-stories.json");
       if (!r.ok) return;
       const arr = await r.json();
       if (Array.isArray(arr) && arr.length) editorialStories = arr;
@@ -27597,8 +27617,13 @@
     if (!root) return;
 
     syncEditorialNavActiveState();
-    const loadedFromCloud = await loadEditorialStoriesFromCloud();
-    if (!loadedFromCloud) await loadEditorialStoriesFromFile();
+    // File first (free Vercel CDN); only fall back to Supabase if the bundled JSON
+    // is missing or empty. Run `db:freeze-catalogue` (or the equivalent editorial
+    // export) before deploying after edits in the admin UI.
+    await loadEditorialStoriesFromFile();
+    if (!editorialStories || editorialStories.length === 0) {
+      await loadEditorialStoriesFromCloud();
+    }
 
     const slug = editorialSlugFromUrl();
     if (slug) {
@@ -29933,6 +29958,50 @@
       const id = String(row?.id ?? "").trim();
       if (id) catalogueSeedById.set(id, { ...row });
     }
+    frozenLocalImagePathsSet = null;
+  }
+
+  /**
+   * Paths (`images/wardrobe/...`, no leading slash) of frozen cover + gallery files that
+   * ship in the deploy. Used to redirect Supabase URLs to the static CDN when a local
+   * copy exists (covers cases where the cloud row stored a Supabase URL after edit).
+   * @type {Set<string> | null}
+   */
+  let frozenLocalImagePathsSet = null;
+
+  function rebuildFrozenLocalImagePathsSet() {
+    const set = new Set();
+    /** @param {unknown} u */
+    function addIfLocal(u) {
+      const s = String(u ?? "").trim().split("?")[0];
+      if (/^\/?images\/wardrobe\//i.test(s)) set.add(s.replace(/^\/+/, ""));
+    }
+    for (const row of catalogueSeedById.values()) {
+      addIfLocal(row?.image);
+      if (Array.isArray(row?.gallery)) for (const g of row.gallery) addIfLocal(g);
+      const vars = Array.isArray(row?.colourVariants) ? row.colourVariants : [];
+      for (const v of vars) {
+        addIfLocal(v?.image);
+        if (Array.isArray(v?.gallery)) for (const g of v.gallery) addIfLocal(g);
+      }
+    }
+    frozenLocalImagePathsSet = set;
+  }
+
+  /**
+   * @param {string} localPath e.g. "/images/wardrobe/foo/main/cover.png"
+   * @returns {string} normalized seed path (possibly with `.webp` swapped in), or "".
+   */
+  function lookupFrozenLocalWardrobePath(localPath) {
+    if (!frozenLocalImagePathsSet) rebuildFrozenLocalImagePathsSet();
+    const key = String(localPath ?? "").trim().replace(/^\/+/, "").split("?")[0];
+    if (!key) return "";
+    if (frozenLocalImagePathsSet.has(key)) return "/" + key;
+    // The seed may have been migrated to `.webp` while a cloud row still stores the
+    // original `.png` / `.jpg` URL — try the WebP equivalent.
+    const webp = key.replace(/\.(png|jpe?g)$/i, ".webp");
+    if (webp !== key && frozenLocalImagePathsSet.has(webp)) return "/" + webp;
+    return "";
   }
 
   function catalogueSeedRow(itemId) {

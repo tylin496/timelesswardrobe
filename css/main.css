@@ -490,7 +490,7 @@ body.item-page {
   --collection-plp-margin-scale: 2.09;
 
   /* Shared desktop/content nesting baseline (home + collection + item). */
-  --collection-plp-nest-step: 1.5rem;
+  --collection-plp-nest-step: clamp(2.2rem, 3vw, 4.5rem);
 
   --catalogue-plp-inline-x: min(
     calc(var(--header-x) * var(--collection-plp-margin-scale)),
@@ -737,8 +737,8 @@ body {
   width: 100%;
   box-sizing: border-box;
   min-height: 40px;
-  padding-left: 0;
-  padding-right: 0;
+  /* Inset lives on `.site-utility-bar__inner` so the content edge matches
+     `.site-header__inner` (single chrome-inline-x, not doubled). */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -765,7 +765,7 @@ body {
   box-sizing: border-box;
   width: 100%;
   max-width: none;
-  padding-inline: clamp(2rem, 8vw, 8.5rem);
+  padding-inline: var(--chrome-inline-x);
   cursor: default;
   user-select: none;
 }
@@ -922,8 +922,8 @@ body.item-page .site-header__inner,
 body.item-page .site-header__container,
 body.item-page .site-header__container.site-header__inner {
   max-width: none;
-  padding-left: clamp(2rem, 8vw, 8.5rem);
-  padding-right: clamp(2rem, 8vw, 8.5rem);
+  padding-left: var(--catalogue-plp-inline-x);
+  padding-right: var(--catalogue-plp-inline-x);
 }
 
 .site-header__brand-nav {
@@ -19292,34 +19292,37 @@ body.collection-page .collection-container > .collection-actions {
 
   /* Catalogue chrome: header rail + flyout tier (`--chrome-x`). */
   body.theme-catalogue:not(.home-page) {
-    --header-x: calc(var(--page-gutter) * var(--header-margin-scale));
-    --collection-x: var(--header-x);
-    --content-inline: var(--header-x);
-    --chrome-x: max(
-      calc(var(--header-x) + var(--chrome-inset-beyond-header)),
-      var(--chrome-inset-floor)
-    );
-    --search-x: var(--chrome-x);
-    --mega-x: var(--chrome-x);
-  }
+
+  /* Header / utility chrome */
+  --chrome-inline-x: clamp(1rem, 2vw, 2.2rem);
+
+  /* PLP content rail */
+  --catalogue-plp-inline-x: clamp(2rem, 4vw, 5rem);
+
+  --header-x: var(--chrome-inline-x);
+  --collection-x: var(--catalogue-plp-inline-x);
+  --content-inline: var(--catalogue-plp-inline-x);
+
+  --chrome-x: var(--chrome-inline-x);
+
+  --search-x: var(--chrome-inline-x);
+  --mega-x: var(--chrome-inline-x);
+}
 
 
-  body.collection-page,
-  body.home-page,
-  body.item-page {
-    /*
-     * PLP tier 3 — same centered chrome box as header (`--chrome-content-max`), then pad inward.
-     * Home editorial copy uses the same rail as collection PLP toolbar / title.
-     */
-    --catalogue-plp-box-gutter: max(0px, (100vw - var(--chrome-content-max)) / 2);
-    --collection-plp-tier3-inner: calc(
-      var(--chrome-content-inset-left) + var(--collection-plp-nest-step, 1.15rem)
-    );
-    --catalogue-plp-inline-x: calc(
-      var(--catalogue-plp-box-gutter) + var(--collection-plp-tier3-inner)
-    );
-    --header-flyout-inline-x: var(--catalogue-plp-inline-x);
-  }
+  body.home-page .site-header__inner,
+  body.home-page .site-header__container,
+  body.home-page .site-header__container.site-header__inner,
+  body.collection-page .site-header__inner,
+  body.collection-page .site-header__container,
+  body.collection-page .site-header__container.site-header__inner,
+  body.item-page .site-header__inner,
+  body.item-page .site-header__container,
+  body.item-page .site-header__container.site-header__inner {
+    max-width: none;
+    padding-left: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
+    padding-right: var(--chrome-inline-x, clamp(1rem, 2vw, 2.2rem));
+}
 
   body.collection-page {
     --collection-plp-gap-eyebrow-title: 8px;
@@ -19344,7 +19347,7 @@ body.collection-page .collection-container > .collection-actions {
     body.collection-page,
     body.item-page {
       /* Collection / item PDP: header inset + extra nest (never less than logo rail). */
-      --collection-plp-nest-step: clamp(1.35rem, 1.65vw, 2.15rem);
+      --collection-plp-nest-step: clamp(2.2rem, 3vw, 4.5rem);
       --collection-plp-tier3-inner: calc(
         var(--chrome-content-inset-left) + var(--collection-plp-nest-step)
       );
@@ -19360,7 +19363,7 @@ body.collection-page .collection-container > .collection-actions {
 
     body.home-page {
       /* Home rail matches Collection PLP tier-3 inset exactly. */
-      --collection-plp-nest-step: clamp(1.35rem, 1.65vw, 2.15rem);
+      --collection-plp-nest-step: clamp(2.2rem, 3vw, 4.5rem);
       --collection-plp-tier3-inner: calc(
         var(--chrome-content-inset-left) + var(--collection-plp-nest-step)
       );
@@ -23537,7 +23540,7 @@ body.editorial-page #editorial-root {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 25%;
+  object-position: center 28%;
   opacity: 0.70;
 }
 
