@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --site-header-row-height: clamp(4.75rem, 4.35vw, 5.15rem);
   /* Timeless Wardrobe — signature chrome only (utility bar, monogram). */
   --tw-brand-green: #163229;
   --tw-brand-monogram-green: var(--tw-brand-green);
