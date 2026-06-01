@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   --site-header-row-height: clamp(4.75rem, 4.35vw, 5.15rem);
+  --site-header-mobile-row-height: 44px;
   /* Timeless Wardrobe — signature chrome only (utility bar, monogram). */
   --tw-brand-green: #163229;
   --tw-brand-monogram-green: var(--tw-brand-green);
@@ -23658,6 +23659,14 @@ body.editorial-page #editorial-root {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: clamp(1.75rem, 3.5vw, 3rem) clamp(1rem, 2vw, 1.75rem);
+}
+
+@media (max-width: 900px) {
+  .editorial-hero,
+  .editorial-detail__hero {
+    /* row height (44px) + container vertical padding (0.5rem top + 0.5rem bottom) */
+    margin-top: calc(-1 * (var(--site-header-mobile-row-height, 44px) + 1rem));
+  }
 }
 
 @media (max-width: 640px) {
