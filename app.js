@@ -20739,12 +20739,7 @@
       const heroVar = variants.find((v) => String(v.key) === variantKeyForHero);
       if (heroVar) colourLabel = variantDisplayColourName(heroVar);
     }
-    const purchaseLabel = item.purchaseDate
-      ? formatPurchaseDateForDisplay(item.purchaseDate)
-      : "";
-    metaLine.textContent = [colourLabel, item.size ? String(item.size).trim() : "", purchaseLabel]
-      .filter(Boolean)
-      .join(" · ");
+    metaLine.textContent = colourLabel || "";
 
     body.appendChild(title);
     body.appendChild(brand);
@@ -20777,24 +20772,16 @@
     mountCollectionCardGalleryNav(media, img, resolveCoverItemForHover);
     wireCollectionCardHoverGallery(article, media, img, resolveCoverItemForHover);
 
-    const specs = document.createElement("ul");
-    specs.className = "card__specs card__specs--hover";
-    specParts(item, { forGridCard: true }).filter(Boolean).forEach((part) => {
-      const li = document.createElement("li");
-      li.textContent = part;
-      specs.appendChild(li);
-    });
-    if (specs.children.length) body.appendChild(specs);
-
     {
+      const size = item.size ? String(item.size).trim() : "";
       const priceBrief = formattedCollectionPriceLine(item, { brief: true });
-      if (priceBrief) {
-        const priceEl = document.createElement("p");
-        priceEl.className = "card__price-subtle card__price-subtle--hover";
-        priceEl.textContent = priceBrief;
+      if (size || priceBrief) {
+        const hoverLine = document.createElement("p");
+        hoverLine.className = "card__price-subtle card__price-subtle--hover";
+        hoverLine.textContent = [size, priceBrief].filter(Boolean).join(" · ");
         const priceFull = formattedCollectionPriceLine(item);
-        if (priceFull !== priceBrief) priceEl.title = priceFull;
-        body.appendChild(priceEl);
+        if (priceFull && priceFull !== priceBrief) hoverLine.title = priceFull;
+        body.appendChild(hoverLine);
       }
     }
 
