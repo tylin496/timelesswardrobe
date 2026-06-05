@@ -31,9 +31,11 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/1930s-half-belt/main/gallery/06.png",
       "/images/wardrobe/1930s-half-belt/main/gallery/07.png"
     ],
-    "notes": "* Vicenza Seal\n* Match Stitch\n* Brown Drill\n* Waldes Grommet Brass\n* Ball & Chain\n* No Inside Pocket",
+    "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "metadata": {
-      "basicColour": "brown"
+      "basicColour": "brown",
+      "price": 1591.82,
+      "priceCurrency": "USD"
     }
   },
 
