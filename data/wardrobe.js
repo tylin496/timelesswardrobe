@@ -15,6 +15,25 @@
 
 const WARDROBE_ITEMS = [
   {
+    "id": "1930s-half-belt",
+    "category": "Outerwear",
+    "brand": "Aero Leather Clothing",
+    "name": "1930s Half Belt",
+    "colour": "Vicenza Seal",
+    "colourCode": "#56382e",
+    "image": "/images/wardrobe/1930s-half-belt/main/cover.png",
+    "gallery": [
+      "/images/wardrobe/1930s-half-belt/main/gallery/01.jpg",
+      "/images/wardrobe/1930s-half-belt/main/gallery/02.png",
+      "/images/wardrobe/1930s-half-belt/main/gallery/03.png"
+    ],
+    "notes": "* Vicenza Seal\n* Match Stitch\n* Brown Drill\n* Waldes Grommet Brass\n* Ball & Chain\n* No Inside Pocket",
+    "metadata": {
+      "basicColour": "brown"
+    }
+  },
+
+  {
     "id": "tassel-loafer",
     "category": "Footwear",
     "brand": "Alden",
