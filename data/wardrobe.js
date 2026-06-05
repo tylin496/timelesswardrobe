@@ -663,8 +663,8 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/wedding-bands/main/gallery/05.webp",
       "/images/wardrobe/wedding-bands/main/gallery/02.webp",
-      "/images/wardrobe/wedding-bands/main/gallery/03.webp",
-      "/images/wardrobe/wedding-bands/main/gallery/04.webp"
+      "/images/wardrobe/wedding-bands/main/gallery/03.png",
+      "/images/wardrobe/wedding-bands/main/gallery/04.png"
     ],
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
     "metadata": {
