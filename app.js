@@ -11651,12 +11651,13 @@
       heroImg.classList.add("item-detail__hero-img--enlarge-desktop");
     }
 
-    const resetZoom = () => {
+    const resetZoom = ({ showCursor = true } = {}) => {
       media.classList.remove("item-detail__media--zoomed");
       heroImg.classList.remove("item-detail__hero-img--zoomed");
       heroImg.style.removeProperty("--hero-zoom-x");
       heroImg.style.removeProperty("--hero-zoom-y");
       heroImg.style.removeProperty("--hero-zoom-scale");
+      if (showCursor) cursor?.show();
     };
 
     const zoomScaleForImage = () => {
@@ -11689,6 +11690,7 @@
       media.classList.add("item-detail__media--zoomed");
       heroImg.classList.add("item-detail__hero-img--zoomed");
       setPanOrigin(ev.clientX, ev.clientY);
+      cursor?.hide();
     };
 
     const onEnter = (ev) => {
@@ -11705,7 +11707,7 @@
 
     const onLeave = () => {
       cursor?.hide();
-      resetZoom();
+      resetZoom({ showCursor: false });
     };
 
     const onClick = (ev) => {
