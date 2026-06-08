@@ -1717,7 +1717,7 @@ const WARDROBE_ITEMS = [
     "fabric": "Tweed",
     "weight": "620 gsm",
     "size": "58B",
-    "measuredDimensions": "Back Length: 79\nSleeve Length: 64.4\nShoulder Width: 51.8\nChest: 120\nWaist: 111",
+    "measuredDimensions": "Shoulder: 51.8\nChest: 120\nSleeve: 64.4\nLength: 79\nWaist: 111",
     "purchaseDate": "2025-11-22",
     "image": "/images/wardrobe/glen-check-tweed-jacket/main/cover.webp",
     "gallery": [
