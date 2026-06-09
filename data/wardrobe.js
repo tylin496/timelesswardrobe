@@ -64,7 +64,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "sage-beaufort-waxed-jacket",
+    "id": "beaufort-waxed-jacket",
     "category": "Outerwear",
     "brand": "Barbour",
     "name": "Beaufort Waxed Jacket",
@@ -74,13 +74,13 @@ const WARDROBE_ITEMS = [
     "fabric": "Waxed cotton",
     "size": "44",
     "purchaseDate": "2025-08-01",
-    "image": "/images/wardrobe/sage-beaufort-waxed-jacket/main/1.webp",
+    "image": "/images/wardrobe/beaufort-waxed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/2.webp",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/3.webp",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/4.webp",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/5.webp",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/6.webp"
+      "/images/wardrobe/beaufort-waxed-jacket/main/2.webp",
+      "/images/wardrobe/beaufort-waxed-jacket/main/3.webp",
+      "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
+      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
+      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp"
     ],
     "metadata": {
       "price": 43200,
@@ -354,7 +354,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "copy",
+    "id": "fluid-boot-cut-trousers",
     "category": "Bottoms",
     "brand": "Cultum",
     "name": "Fluid Boot-Cut Trousers",
@@ -366,11 +366,11 @@ const WARDROBE_ITEMS = [
     "size": "W36",
     "measuredDimensions": "Waist: 94 cm\nHip: 124 cm\nFront Rise: 35.3 cm\nBack Rise: 47.9 cm\nThigh Width: 77.6 cm\nLeg Opening: 58 cm\nOutseam Length: 114 cm",
     "purchaseDate": "2026-05-25",
-    "image": "/images/wardrobe/copy/main/1.webp",
+    "image": "/images/wardrobe/fluid-boot-cut-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/copy/main/2.webp",
-      "/images/wardrobe/copy/main/3.webp",
-      "/images/wardrobe/copy/main/4.webp"
+      "/images/wardrobe/fluid-boot-cut-trousers/main/2.webp",
+      "/images/wardrobe/fluid-boot-cut-trousers/main/3.webp",
+      "/images/wardrobe/fluid-boot-cut-trousers/main/4.webp"
     ],
     "metadata": {
       "price": 211.88,
@@ -431,7 +431,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "white-jeans",
+    "id": "wide-leg-white-jeans",
     "category": "Bottoms",
     "brand": "Cultum",
     "name": "Wide-Leg White Jeans",
@@ -442,9 +442,9 @@ const WARDROBE_ITEMS = [
     "size": "W36",
     "measuredDimensions": "Waist: 94 cm\nHip: 115 cm\nFront Rise: 34.5 cm\nBack Rise: 47 cm\nThigh: 73 cm\nKnee: 58 cm\nLeg Opening: 53 cm\nOutseam: 110 cm",
     "purchaseDate": "2026-05-25",
-    "image": "/images/wardrobe/white-jeans/main/1.webp",
+    "image": "/images/wardrobe/wide-leg-white-jeans/main/1.webp",
     "gallery": [
-      "/images/wardrobe/white-jeans/main/2.webp"
+      "/images/wardrobe/wide-leg-white-jeans/main/2.webp"
     ],
     "metadata": {
       "price": 151.08,
@@ -559,18 +559,18 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "x100vi",
+    "id": "x100vi-camera",
     "category": "Objects",
     "brand": "Fujifilm",
     "name": "X100VI Camera",
     "season": "All-season",
     "colour": "Black",
     "purchaseDate": "2024-10-24",
-    "image": "/images/wardrobe/x100vi/main/1.webp",
+    "image": "/images/wardrobe/x100vi-camera/main/1.webp",
     "gallery": [
-      "/images/wardrobe/x100vi/main/2.webp",
-      "/images/wardrobe/x100vi/main/3.webp",
-      "/images/wardrobe/x100vi/main/4.webp"
+      "/images/wardrobe/x100vi-camera/main/2.webp",
+      "/images/wardrobe/x100vi-camera/main/3.webp",
+      "/images/wardrobe/x100vi-camera/main/4.webp"
     ],
     "metadata": {
       "price": 14117,
@@ -622,7 +622,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "dw-5600",
+    "id": "dw-5600e",
     "category": "Beater",
     "brand": "G-Shock",
     "name": "DW-5600E",
@@ -630,9 +630,9 @@ const WARDROBE_ITEMS = [
     "colour": "Black",
     "colourCode": "#121212",
     "purchaseDate": "2020-04-09",
-    "image": "/images/wardrobe/dw-5600/main/1.webp",
+    "image": "/images/wardrobe/dw-5600e/main/1.webp",
     "gallery": [
-      "/images/wardrobe/dw-5600/main/2.webp"
+      "/images/wardrobe/dw-5600e/main/2.webp"
     ],
     "notes": "The Casio DW-5600E preserves the original square-form design language established by the first G-Shock models of the 1980s. Although positioned within the collection as the dedicated beater watch, it remains one of the defining forms of the modern digital watch, with a design language that has remained essentially unchanged for decades.",
     "metadata": {
@@ -1126,21 +1126,21 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "original-wayfarer-sunglasses",
+    "id": "wayfarer-sunglasses",
     "category": "Eyewear",
     "brand": "Ray-Ban",
-    "name": "Original Wayfarer Sunglasses",
+    "name": "Wayfarer Sunglasses",
     "season": "All-season",
     "colour": "Tortoise, G-15 Green",
     "colourCode": "#332720",
     "purchaseDate": "2025-08-08",
-    "image": "/images/wardrobe/original-wayfarer-sunglasses/main/1.webp",
+    "image": "/images/wardrobe/wayfarer-sunglasses/main/1.webp",
     "gallery": [
-      "/images/wardrobe/original-wayfarer-sunglasses/main/2.webp",
-      "/images/wardrobe/original-wayfarer-sunglasses/main/3.webp",
-      "/images/wardrobe/original-wayfarer-sunglasses/main/4.webp",
-      "/images/wardrobe/original-wayfarer-sunglasses/main/5.webp",
-      "/images/wardrobe/original-wayfarer-sunglasses/main/6.webp"
+      "/images/wardrobe/wayfarer-sunglasses/main/2.webp",
+      "/images/wardrobe/wayfarer-sunglasses/main/3.webp",
+      "/images/wardrobe/wayfarer-sunglasses/main/4.webp",
+      "/images/wardrobe/wayfarer-sunglasses/main/5.webp",
+      "/images/wardrobe/wayfarer-sunglasses/main/6.webp"
     ],
     "metadata": {
       "price": 6490,
@@ -1282,7 +1282,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "cordovan-l-zip-wallet-regular-price-copy",
+    "id": "cordovan-l-zip-wallet",
     "category": "Objects",
     "brand": "Tsuchiya Kaban",
     "name": "Cordovan L Zip Wallet",
@@ -1291,10 +1291,10 @@ const WARDROBE_ITEMS = [
     "colourCode": "#7c371b",
     "size": "Cordovan",
     "purchaseDate": "2024-12-26",
-    "image": "/images/wardrobe/cordovan-l-zip-wallet-regular-price-copy/main/1.webp",
+    "image": "/images/wardrobe/cordovan-l-zip-wallet/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cordovan-l-zip-wallet-regular-price-copy/main/2.webp",
-      "/images/wardrobe/cordovan-l-zip-wallet-regular-price-copy/main/3.webp"
+      "/images/wardrobe/cordovan-l-zip-wallet/main/2.webp",
+      "/images/wardrobe/cordovan-l-zip-wallet/main/3.webp"
     ],
     "notes": "Crafted from aniline-dyed Japanese cordovan, this minimalist wallet offers sleek design and efficient functionality. The luxuriously smooth leather has striking presence in a streamlined profile that slips effortlessly into any pocket. Over time, it develops a rich, gem-like luster—the perfect companion for an intentional lifestyle.",
     "metadata": {
@@ -1328,7 +1328,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "leather-gloves-with-cashmere-lining",
+    "id": "three-point-cashmere-lined-gloves",
     "category": "Objects",
     "brand": "Unbranded",
     "name": "Three-Point Cashmere-Lined Gloves",
@@ -1336,9 +1336,9 @@ const WARDROBE_ITEMS = [
     "colour": "Dark Brown",
     "colourCode": "#3a241d",
     "purchaseDate": "2025-02-17",
-    "image": "/images/wardrobe/leather-gloves-with-cashmere-lining/main/1.webp",
+    "image": "/images/wardrobe/three-point-cashmere-lined-gloves/main/1.webp",
     "gallery": [
-      "/images/wardrobe/leather-gloves-with-cashmere-lining/main/2.webp"
+      "/images/wardrobe/three-point-cashmere-lined-gloves/main/2.webp"
     ],
     "metadata": {
       "price": 225,
@@ -2007,7 +2007,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "american-flag-hat",
+    "id": "american-flag-cap",
     "pillar": "Accessories",
     "section": "Accessories",
     "category": "Hats",
@@ -2018,12 +2018,12 @@ const WARDROBE_ITEMS = [
     "colourCode": "#5E829A",
     "measuredDimensions": "Circumference: 22.45 cm cm cm cm\nTop to Side: : 6.65 cm cm cm cm\nBrim: 2.9 cm cm cm cm",
     "purchaseDate": "2026-05-11",
-    "image": "/images/wardrobe/american-flag-hat/main/1.webp",
+    "image": "/images/wardrobe/american-flag-cap/main/1.webp",
     "gallery": [
       
       
-      "/images/wardrobe/american-flag-hat/main/2.webp",
-      "/images/wardrobe/american-flag-hat/main/3.webp"
+      "/images/wardrobe/american-flag-cap/main/2.webp",
+      "/images/wardrobe/american-flag-cap/main/3.webp"
     ],
     "notes": "Our six panel cotton twill hats are adorned with our signature 100% hand-stitched needlepoint. Each hat is adjustable by a nickel slide on the back of the hat.\n\n-100% hand-stitched needlepoint\n-Stitched with French cotton thread\n-Six Panel Construction\n-Washed Cotton Twill\n-Adjustable. One size fits most adults.",
     "metadata": {

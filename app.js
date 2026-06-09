@@ -51,7 +51,7 @@
   const LEGACY_ITEM_ID_MAP = new Map([
     ["acme-cultum-navy-double-breasted-super-120s-blazer", "navy-double-breasted-blazer"],
     ["alden-563-tassel-loafer-color-8-cordovan", "tassel-loafer"],
-    ["barbour-sage-beaufort-waxed-jacket", "sage-beaufort-waxed-jacket"],
+    ["barbour-beaufort-waxed-jacket", "beaufort-waxed-jacket"],
     ["brooks-brothers-golden-fleece-navy-twill-blazer", "golden-fleece-navy-blazer"],
     ["brooks-brothers-light-brown-houndstooth-tweed-jacket", "houndstooth-tweed-jacket"],
     ["burberrys-beige-single-breasted-balmacaan-coat", "balmacaan-coat"],
@@ -63,16 +63,16 @@
     ["custom-11c5213e-a24b-4840-8fcf-8bafccdbde06", "pleated-trousers"],
     ["custom-1a53223b-b4fc-4da3-91b1-c4dffdac6b40", "rib-knit-polo-shirt-dark-chocolate"],
     ["custom-207c8109-cc63-4c01-987e-af5b0201df46", "cordovan-l-zip-wallet-regular-price"],
-    ["custom-2aeb4687-58b4-4a4b-90be-43492ca9e1cb", "dw-5600"],
+    ["custom-2aeb4687-58b4-4a4b-90be-43492ca9e1cb", "dw-5600e"],
     ["custom-49cb4503-d1f7-4a7d-b0b2-dc60a5549976", "sapphire-three-stone-ring"],
     ["custom-684a379c-0d9f-48a4-ae3a-f098d31ca842", "anthony"],
     ["custom-69db120c-9ec2-4f76-a08c-744a42777fb3", "kingsman-0847-sunglasses"],
     ["custom-7bdd5e7c-546b-4360-b725-1741c8c274f4", "structured-knit-polo-shirt"],
     ["custom-85878caf-3b5c-4307-9fa4-4d76d3776d8f", "panama-hat"],
     ["custom-86c016e3-006a-4785-98f2-0f61bd952439", "helmet-bag"],
-    ["custom-90145ca5-c982-4d0d-8e0e-3a772a21ff53", "american-flag-hat"],
+    ["custom-90145ca5-c982-4d0d-8e0e-3a772a21ff53", "american-flag-cap"],
     ["custom-b1b60797-6d7a-4cc6-b294-b3a82e1c0712", "boat-and-tote"],
-    ["custom-b5af381a-752a-4e09-a1d5-434ab96efda0", "original-wayfarer-sunglasses"],
+    ["custom-b5af381a-752a-4e09-a1d5-434ab96efda0", "wayfarer-sunglasses"],
     ["custom-c60ef29b-7596-4b2c-aac2-6d1dcedbd74c", "smoke-olive-acetate-optical"],
     ["custom-c6f7f72c-01dd-42fc-a5aa-4aa79a135d67", "ligne-2"],
     ["custom-f5c105c7-9ca8-486f-b726-e7aa8b8fd416", "boston-metal-frames"],
@@ -5918,7 +5918,7 @@
   const EDITORIAL_RHYTHM_GROUPS = new Set(["navy_dark", "earth", "grey", "green"]);
 
   const EDITORIAL_ARCHIVE_FIXED_CORE_IDS = [
-    "sage-beaufort-waxed-jacket",
+    "beaufort-waxed-jacket",
     "balmacaan-coat",
     "tank-solo",
     "tassel-loafer",
@@ -5945,7 +5945,7 @@
     "corduroy-trousers",
     "glen-check-tweed-jacket",
     "fair-isle-vest",
-    "x100vi",
+    "x100vi-camera",
     "achilles-low",
     "grand-soir",
   ];
@@ -5982,7 +5982,7 @@
     ["l l bean", "corduroy trousers"],
     ["cultum", "glen check tweed jacket"],
     ["the engineer", "fair isle vest"],
-    ["fujifilm", "x100vi"],
+    ["fujifilm", "x100vi-camera"],
     ["common projects", "achilles low"],
     ["maison francis kurkdjian", "grand soir"],
   ];
@@ -6213,7 +6213,7 @@
 
   function editorialNoveltyRank(item) {
     const text = editorialArchiveItemText(item);
-    if (/\b(american flag|polo bear|ruby|sapphire|wedding|grand soir|ligne 2|x100vi|camera)\b/.test(text)) return 3;
+    if (/\b(american flag|polo bear|ruby|sapphire|wedding|grand soir|ligne 2|x100vi-camera|camera)\b/.test(text)) return 3;
     if (/\b(fair isle|cricket|breton|panama|sunglasses|fragrance|gold|bracelet|chain|ring)\b/.test(text)) return 2;
     if (/\b(tweed|linen|corduroy|harrington|wallet|bag)\b/.test(text)) return 1;
     return 0;
@@ -26414,7 +26414,7 @@
       title: "English Rain",
       subtitle: "Waxed cotton, gabardine, corduroy, and polished leather for wet weather.",
       pieceIds: [
-        "sage-beaufort-waxed-jacket",
+        "beaufort-waxed-jacket",
         "balmacaan-coat",
         "pembroke",
         "corduroy-trousers",
