@@ -20724,7 +20724,12 @@
     title.textContent = displayNameWithoutLeadingColour(item);
     title.title = openHint;
     title.tabIndex = 0;
-    title.addEventListener("click", openCardDetail);
+    let titleMouseDownX = 0, titleMouseDownY = 0;
+    title.addEventListener("mousedown", (ev) => { titleMouseDownX = ev.clientX; titleMouseDownY = ev.clientY; });
+    title.addEventListener("click", (ev) => {
+      if (Math.abs(ev.clientX - titleMouseDownX) > 4 || Math.abs(ev.clientY - titleMouseDownY) > 4) return;
+      openCardDetail(ev);
+    });
     title.addEventListener("keydown", (ev) => {
       if (ev.key !== "Enter" && ev.key !== " ") return;
       ev.preventDefault();
