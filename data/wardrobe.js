@@ -1431,7 +1431,8 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "White",
         "gallery": [
-          "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
+          "/images/wardrobe/ocbd-shirt/variants/white/2.webp",
+          "/images/wardrobe/ocbd-shirt/variants/white/3.webp"
         ],
         "colourCode": "#F5F5F9",
         "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
@@ -1443,8 +1444,7 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Blue",
         "gallery": [
-          "/images/wardrobe/ocbd-shirt/variants/blue/2.webp",
-          "/images/wardrobe/ocbd-shirt/variants/blue/3.webp"
+          "/images/wardrobe/ocbd-shirt/variants/blue/2.webp"
         ],
         "colourCode": "#BAC9EF",
         "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
@@ -1494,8 +1494,7 @@ const WARDROBE_ITEMS = [
           "notes": "",
           "colour": "Blue",
           "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/blue/2.webp",
-            "/images/wardrobe/ocbd-shirt/variants/blue/3.webp"
+            "/images/wardrobe/ocbd-shirt/variants/blue/2.webp"
           ],
           "colourCode": "#BAC9EF",
           "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
