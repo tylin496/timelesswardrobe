@@ -1829,7 +1829,7 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Grey",
         "gallery": [
-          "/images/wardrobe/pleated-trousers/main/gallery/01.jpg"
+          "/images/wardrobe/pleated-trousers/main/gallery/usgoods_06_462429_3x4.jpg"
         ],
         "colourCode": "#5F5F62",
         "basicColour": "grey",
@@ -1858,7 +1858,7 @@ const WARDROBE_ITEMS = [
           "notes": "",
           "colour": "Grey",
           "gallery": [
-            "/images/wardrobe/pleated-trousers/main/gallery/01.jpg"
+            "/images/wardrobe/pleated-trousers/main/gallery/usgoods_06_462429_3x4.jpg"
           ],
           "colourCode": "#5F5F62",
           "basicColour": "grey",
