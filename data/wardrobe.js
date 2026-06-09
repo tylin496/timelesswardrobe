@@ -25,7 +25,6 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/1930s-half-belt/main/gallery/01.jpg",
       "/images/wardrobe/1930s-half-belt/main/gallery/02.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/03.png",
       "/images/wardrobe/1930s-half-belt/main/gallery/04.jpg",
       "/images/wardrobe/1930s-half-belt/main/gallery/05.png",
       "/images/wardrobe/1930s-half-belt/main/gallery/06.png",
