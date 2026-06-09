@@ -20777,10 +20777,11 @@
     {
       const size = item.size ? String(item.size).trim() : "";
       const priceBrief = formattedCollectionPriceLine(item, { brief: true });
-      if (size || priceBrief) {
+      const dateBrief = item.purchaseDate ? formatPurchaseDateForDisplay(String(item.purchaseDate).trim()) : "";
+      if (size || priceBrief || dateBrief) {
         const hoverLine = document.createElement("p");
         hoverLine.className = "card__price-subtle card__price-subtle--hover";
-        hoverLine.textContent = [size, priceBrief].filter(Boolean).join(" · ");
+        hoverLine.textContent = [size, priceBrief, dateBrief].filter(Boolean).join(" · ");
         const priceFull = formattedCollectionPriceLine(item);
         if (priceFull && priceFull !== priceBrief) hoverLine.title = priceFull;
         body.appendChild(hoverLine);
