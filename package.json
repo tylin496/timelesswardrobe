@@ -20,12 +20,14 @@
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
     "storage:prune-orphans": "node scripts/prune_wardrobe_storage_orphans.mjs",
     "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs",
-    "db:resync-photos": "node scripts/resync_wardrobe_photos_to_cloud.mjs"
+    "db:resync-photos": "node scripts/resync_wardrobe_photos_to_cloud.mjs",
+    "db:migrate-to-r2": "node scripts/migrate_images_to_r2.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1064.0",
     "@tailwindcss/cli": "^4.3.0",
     "image-size": "^2.0.2",
     "sharp": "^0.34.2",
