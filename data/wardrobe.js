@@ -1132,7 +1132,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-08",
     "image": "/images/wardrobe/original-wayfarer-sunglasses/main/cover.webp",
     "gallery": [
-      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/05.webp",
+      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/How_the_Saratoga_Became_Legendary_Image_3.jpg",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/01.webp",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/02.webp",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/03.webp",
