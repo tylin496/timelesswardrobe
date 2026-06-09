@@ -2273,5 +2273,34 @@ const WARDROBE_ITEMS = [
         }
       ]
     }
+  },
+
+  {
+    "id": "mm-driver-knit",
+    "pillar": "Clothing",
+    "section": "A/W – Country Classics",
+    "category": "Mid Layer",
+    "brand": "Maison Margiela",
+    "name": "Driver Knit Zip-Up Jumper",
+    "season": "A/W",
+    "colour": "Grey",
+    "colourCode": "#6B6B6B",
+    "fabric": "Wool",
+    "size": "XL",
+    "measuredDimensions": "Length: 74\nSleeve: 73\nChest: 128\nShoulder: 47",
+    "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
+    "gallery": [
+      "/images/wardrobe/mm-driver-knit/main/gallery/01.png",
+      "/images/wardrobe/mm-driver-knit/main/gallery/02.jpg"
+    ],
+    "metadata": {
+      "basicColour": "grey",
+      "measurementRows": [
+        { "label": "Length", "value": "74" },
+        { "label": "Sleeve", "value": "73" },
+        { "label": "Chest", "value": "128" },
+        { "label": "Shoulder", "value": "47" }
+      ]
+    }
   }
 ];
