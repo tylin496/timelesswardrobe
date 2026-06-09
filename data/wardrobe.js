@@ -362,7 +362,7 @@ const WARDROBE_ITEMS = [
     "weight": "345 gsm",
     "size": "W36",
     "measuredDimensions": "Waist: 94 cm\nHip: 124 cm\nFront Rise: 35.3 cm\nBack Rise: 47.9 cm\nOutseam Length: 114 cm\nThigh Width: 77.6 cm\nLeg Opening: 58 cm",
-    "purchaseDate": "2026-06-25",
+    "purchaseDate": "2026-05-25",
     "image": "/images/wardrobe/copy/main/1779727431483-jccst3-cover-edit.webp",
     "gallery": [
       "/images/wardrobe/copy/main/1779723202155-ax5rke-cover-edit.webp",
@@ -438,7 +438,7 @@ const WARDROBE_ITEMS = [
     "weight": "470 gsm",
     "size": "W36",
     "measuredDimensions": "Waist: 94 cm\nHip: 115 cm\nFront Rise: 34.5 cm\nBack Rise: 47 cm\nThigh: 73 cm\nKnee: 58 cm\nLeg Opening: 53 cm\nOutseam: 110 cm",
-    "purchaseDate": "2026-06-25",
+    "purchaseDate": "2026-05-25",
     "image": "/images/wardrobe/white-jeans/main/1779712484801-3hnc98-cover-edit.webp",
     "gallery": [
       "/images/wardrobe/white-jeans/main/gallery/01.webp"
