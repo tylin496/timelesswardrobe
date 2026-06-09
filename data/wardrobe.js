@@ -1307,6 +1307,20 @@ const WARDROBE_ITEMS = [
   },
 
   {
+    "id": "seiko-datejust-36-mod",
+    "category": "Dress watch",
+    "brand": "Seiko",
+    "name": "Datejust 36 Mod",
+    "season": "All-season",
+    "colour": "Silver",
+    "colourCode": "#e8e8e8",
+    "size": "36 mm",
+    "image": "/images/wardrobe/seiko-datejust-36-mod/main/1.webp",
+    "gallery": [],
+    "metadata": {}
+  },
+
+  {
     "id": "three-point-cashmere-lined-gloves",
     "category": "Objects",
     "brand": "Unbranded",
