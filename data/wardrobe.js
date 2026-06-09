@@ -540,7 +540,7 @@ const WARDROBE_ITEMS = [
     "name": "GT1 Hardwood Umbrella",
     "season": "All-season",
     "colour": "Black",
-    "purchaseDate": "2026-01-11",
+    "purchaseDate": "2025-01-11",
     "image": "/images/wardrobe/gt1-hardwood-umbrella/main/1779749315137-pjd8if-cover-edit.webp",
     "gallery": [
       "/images/wardrobe/gt1-hardwood-umbrella/main/gallery/1779749317922-ims43k-gallery-01.webp",
