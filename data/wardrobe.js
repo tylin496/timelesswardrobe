@@ -2287,6 +2287,7 @@ const WARDROBE_ITEMS = [
     "colourCode": "#6B6B6B",
     "fabric": "Wool",
     "size": "XL",
+    "purchaseDate": "2026-06-09",
     "measuredDimensions": "Length: 74\nSleeve: 73\nChest: 128\nShoulder: 47",
     "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
     "gallery": [
