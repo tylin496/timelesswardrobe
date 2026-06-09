@@ -15294,8 +15294,9 @@
       if (!x || !isDisplayableCloudImageUrl(x)) continue;
       const key = x.split("?")[0];
       if (!key || seen.has(key) || key === coverKey) continue;
-      /* Explicit gallery/ paths are editorial frames even when PNG. */
-      if (imageSourceLooksAlphaCapable(null, x) && !/\/gallery\//i.test(key)) continue;
+      /* Explicit gallery/ paths or numbered files (2+) are editorial frames even when PNG. */
+      const isGalleryExtra = /\/gallery\//i.test(key) || /\/(?:[2-9]|\d{2,})\.[a-z]+$/i.test(key);
+      if (imageSourceLooksAlphaCapable(null, x) && !isGalleryExtra) continue;
       seen.add(key);
       out.push(x);
     }
