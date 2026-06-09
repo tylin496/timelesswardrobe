@@ -2295,6 +2295,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/mm-driver-knit/main/gallery/02.jpg"
     ],
     "metadata": {
+      "price": 175.925,
+      "priceCurrency": "CNY",
       "basicColour": "grey",
       "measurementRows": [
         { "label": "Length", "value": "74" },
