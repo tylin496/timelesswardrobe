@@ -1315,9 +1315,13 @@ const WARDROBE_ITEMS = [
     "colour": "Silver",
     "colourCode": "#e8e8e8",
     "size": "36 mm",
+    "purchaseDate": "2026-06-10",
     "image": "/images/wardrobe/seiko-datejust-36-mod/main/1.webp",
     "gallery": [],
-    "metadata": {}
+    "metadata": {
+      "price": 591,
+      "priceCurrency": "CNY"
+    }
   },
 
   {
