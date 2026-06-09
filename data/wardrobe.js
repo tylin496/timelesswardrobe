@@ -2014,7 +2014,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       
       
-      "/images/wardrobe/american-flag-hat/main/gallery/1.webp",
+      "/images/wardrobe/american-flag-hat/main/gallery/1.jpg",
       "/images/wardrobe/american-flag-hat/main/gallery/2.webp"
     ],
     "notes": "Our six panel cotton twill hats are adorned with our signature 100% hand-stitched needlepoint. Each hat is adjustable by a nickel slide on the back of the hat.\n\n-100% hand-stitched needlepoint\n-Stitched with French cotton thread\n-Six Panel Construction\n-Washed Cotton Twill\n-Adjustable. One size fits most adults.",
