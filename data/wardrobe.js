@@ -18,7 +18,7 @@ const WARDROBE_ITEMS = [
     "id": "1930s-half-belt",
     "category": "Outerwear",
     "brand": "Aero Leather Clothing",
-    "name": "1930s Half Belt",
+    "name": "1930s Half-Belt Leather Jacket",
     "colour": "Vicenza Seal",
     "colourCode": "#56382e",
     "image": "/images/wardrobe/1930s-half-belt/main/cover.png",
