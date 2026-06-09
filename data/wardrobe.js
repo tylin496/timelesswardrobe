@@ -1417,13 +1417,25 @@ const WARDROBE_ITEMS = [
     "brand": "UNIQLO",
     "name": "OCBD Shirt",
     "season": "All-season",
-    "colour": "Blue",
-    "colourCode": "#BAC9EF",
+    "colour": "White",
+    "colourCode": "#F5F5F9",
     "fabric": "Cotton",
     "size": "XL",
     "purchaseDate": "2020-01-01",
-    "image": "/images/wardrobe/ocbd-shirt/main/1.webp",
+    "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
     "colourVariants": [
+      {
+        "key": "white",
+        "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+        "label": "White",
+        "notes": "",
+        "colour": "White",
+        "gallery": [
+          "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
+        ],
+        "colourCode": "#F5F5F9",
+        "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
+      },
       {
         "key": "blue",
         "image": "/images/wardrobe/ocbd-shirt/variants/blue/1.webp",
@@ -1436,18 +1448,6 @@ const WARDROBE_ITEMS = [
         ],
         "colourCode": "#BAC9EF",
         "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
-      },
-      {
-        "key": "white",
-        "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
-        "label": "White",
-        "notes": "",
-        "colour": "White",
-        "gallery": [
-          "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
-        ],
-        "colourCode": "#F5F5F9",
-        "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
       },
       {
         "key": "pink-stripe",
@@ -1476,6 +1476,18 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "colourVariants": [
         {
+          "key": "white",
+          "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+          "label": "White",
+          "notes": "",
+          "colour": "White",
+          "gallery": [
+            "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
+          ],
+          "colourCode": "#F5F5F9",
+          "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
+        },
+        {
           "key": "blue",
           "image": "/images/wardrobe/ocbd-shirt/variants/blue/1.webp",
           "label": "Blue",
@@ -1487,18 +1499,6 @@ const WARDROBE_ITEMS = [
           ],
           "colourCode": "#BAC9EF",
           "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
-        },
-        {
-          "key": "white",
-          "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
-          "label": "White",
-          "notes": "",
-          "colour": "White",
-          "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
-          ],
-          "colourCode": "#F5F5F9",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
         },
         {
           "key": "pink-stripe",
