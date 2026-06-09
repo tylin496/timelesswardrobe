@@ -303,48 +303,6 @@ const WARDROBE_ITEMS = [
     }
   },
 
-  {
-    "id": "funnel-neck-knitted-wool-jacket",
-    "category": "Outerwear",
-    "brand": "COS",
-    "name": "Funnel-Neck Knitted Wool Jacket",
-    "season": "All-season",
-    "colour": "Charcoal",
-    "colourCode": "#4e4e50",
-    "fabric": "Wool",
-    "size": "XL",
-    "measuredDimensions": "51.5 cm\n122 cm\n45.5 cm\n64 cm",
-    "purchaseDate": "2026-06-23",
-    "image": "/images/wardrobe/funnel-neck-knitted-wool-jacket/main/1779727406820-zngvl9-cover-edit.webp",
-    "gallery": [
-      "/images/wardrobe/funnel-neck-knitted-wool-jacket/main/gallery/01.webp",
-      "/images/wardrobe/funnel-neck-knitted-wool-jacket/main/gallery/1779712063546-y4a466-gallery-02.webp",
-      "/images/wardrobe/funnel-neck-knitted-wool-jacket/main/gallery/1779712067243-s4mdvc-gallery-03.webp",
-      "/images/wardrobe/funnel-neck-knitted-wool-jacket/main/gallery/1779712069188-69w47n-gallery-04.webp"
-    ],
-    "metadata": {
-      "price": 366.1,
-      "priceCurrency": "CNY",
-      "measurementRows": [
-        {
-          "label": "",
-          "value": "51.5"
-        },
-        {
-          "label": "",
-          "value": "122"
-        },
-        {
-          "label": "",
-          "value": "45.5"
-        },
-        {
-          "label": "",
-          "value": "64"
-        }
-      ]
-    }
-  },
 
   {
     "id": "chukka",
