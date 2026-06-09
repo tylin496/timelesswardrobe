@@ -2223,7 +2223,7 @@ const WARDROBE_ITEMS = [
     "id": "driver-knit-zip-up-jumper",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Mid Layer",
+    "category": "Outerwear",
     "brand": "Maison Margiela",
     "name": "Driver Knit Zip-Up Jumper",
     "season": "All-season",
