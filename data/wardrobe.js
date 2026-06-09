@@ -575,20 +575,6 @@ const WARDROBE_ITEMS = [
     }
   },
 
-  {
-    "id": "a-2-leather-jacket",
-    "category": "Outerwear",
-    "brand": "Future Piece",
-    "name": "A-2 Leather Jacket",
-    "season": "A/W",
-    "colour": "Dark Brown",
-    "colourCode": "#312525",
-    "fabric": "Horsehide",
-    "image": "/images/wardrobe/a-2-leather-jacket/main/cover.webp",
-    "gallery": [
-      "/images/wardrobe/a-2-leather-jacket/main/gallery/01.webp"
-    ]
-  },
 
   {
     "id": "sapphire-ring",
