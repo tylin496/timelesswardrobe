@@ -28,7 +28,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/1930s-half-belt/main/gallery/02.png",
       "/images/wardrobe/1930s-half-belt/main/gallery/05.png",
       "/images/wardrobe/1930s-half-belt/main/gallery/06.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/07.png"
+      "/images/wardrobe/1930s-half-belt/main/gallery/07.png",
+      "/images/wardrobe/1930s-half-belt/main/gallery/08.jpg"
     ],
     "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "metadata": {
@@ -78,7 +79,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/01.webp",
       "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/02.webp",
       "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/04.webp",
-      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/03.webp"
+      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/03.webp",
+      "/images/wardrobe/sage-beaufort-waxed-jacket/main/gallery/05.jpg"
     ],
     "metadata": {
       "price": 43200,
@@ -197,7 +199,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-01",
     "image": "/images/wardrobe/golden-fleece-navy-blazer/1778693552701-cover-edit.webp",
     "gallery": [
-      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.webp"
+      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/01.webp",
+      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/02.jpg",
+      "/images/wardrobe/golden-fleece-navy-blazer/main/gallery/03.jpg"
     ],
     "metadata": {
       "price": 55,
@@ -674,7 +678,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-11",
     "image": "/images/wardrobe/wide-straight-trousers/main/cover.webp",
     "gallery": [
-      "/images/wardrobe/wide-straight-trousers/main/gallery/01.avif"
+      "/images/wardrobe/wide-straight-trousers/main/gallery/01.jpg"
     ],
     "notes": "ワイドスラックス+EC(丈長め78.5cm)",
     "metadata": {
@@ -1132,11 +1136,11 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-08",
     "image": "/images/wardrobe/original-wayfarer-sunglasses/main/cover.webp",
     "gallery": [
-      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/How_the_Saratoga_Became_Legendary_Image_3.jpg",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/01.webp",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/02.webp",
       "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/03.webp",
-      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/04.webp"
+      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/04.webp",
+      "/images/wardrobe/original-wayfarer-sunglasses/main/gallery/How_the_Saratoga_Became_Legendary_Image_3.jpg"
     ],
     "metadata": {
       "price": 6490,
@@ -1440,7 +1444,9 @@ const WARDROBE_ITEMS = [
         "label": "White",
         "notes": "",
         "colour": "White",
-        "gallery": [],
+        "gallery": [
+          "/images/wardrobe/ocbd-shirt/variants/white/gallery/01.png"
+        ],
         "colourCode": "#F5F5F9",
         "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
       },
@@ -1489,7 +1495,9 @@ const WARDROBE_ITEMS = [
           "label": "White",
           "notes": "",
           "colour": "White",
-          "gallery": [],
+          "gallery": [
+            "/images/wardrobe/ocbd-shirt/variants/white/gallery/01.png"
+          ],
           "colourCode": "#F5F5F9",
           "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
         },
@@ -1664,6 +1672,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-11-22",
     "image": "/images/wardrobe/glen-check-tweed-jacket/main/cover.webp",
     "gallery": [
+      "/images/wardrobe/glen-check-tweed-jacket/main/gallery/00.jpg",
       "/images/wardrobe/glen-check-tweed-jacket/main/gallery/01.webp",
       "/images/wardrobe/glen-check-tweed-jacket/main/gallery/02.webp",
       "/images/wardrobe/glen-check-tweed-jacket/main/gallery/03.webp"
@@ -2235,8 +2244,8 @@ const WARDROBE_ITEMS = [
     "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
     "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
     "gallery": [
-      "/images/wardrobe/mm-driver-knit/main/gallery/01.jpg",
-      "/images/wardrobe/mm-driver-knit/main/gallery/02.jpg"
+      "/images/wardrobe/mm-driver-knit/main/gallery/1.jpg",
+      "/images/wardrobe/mm-driver-knit/main/gallery/2.png"
     ],
     "metadata": {
       "price": 175.925,
