@@ -15,21 +15,21 @@
 
 const WARDROBE_ITEMS = [
   {
-    "id": "1930s-half-belt",
+    "id": "1930s-half-belt-leather-jacket",
     "category": "Outerwear",
     "brand": "Aero Leather Clothing",
     "name": "1930s Half-Belt Leather Jacket",
     "colour": "Vicenza Seal",
     "colourCode": "#56382e",
-    "image": "/images/wardrobe/1930s-half-belt/main/cover.png",
+    "image": "/images/wardrobe/1930s-half-belt-leather-jacket/main/cover.png",
     "gallery": [
-      "/images/wardrobe/1930s-half-belt/main/gallery/04.jpg",
-      "/images/wardrobe/1930s-half-belt/main/gallery/image.jpg",
-      "/images/wardrobe/1930s-half-belt/main/gallery/02.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/05.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/06.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/07.png",
-      "/images/wardrobe/1930s-half-belt/main/gallery/08.jpg"
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/04.jpg",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/image.jpg",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/02.png",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/05.png",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/06.png",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/07.png",
+      "/images/wardrobe/1930s-half-belt-leather-jacket/main/gallery/08.jpg"
     ],
     "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "metadata": {
@@ -2229,7 +2229,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "mm-driver-knit",
+    "id": "driver-knit-zip-up-jumper",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Mid Layer",
@@ -2242,10 +2242,10 @@ const WARDROBE_ITEMS = [
     "size": "XL",
     "purchaseDate": "2026-06-09",
     "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
-    "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
+    "image": "/images/wardrobe/driver-knit-zip-up-jumper/main/cover.png",
     "gallery": [
-      "/images/wardrobe/mm-driver-knit/main/gallery/1.jpg",
-      "/images/wardrobe/mm-driver-knit/main/gallery/2.png"
+      "/images/wardrobe/driver-knit-zip-up-jumper/main/gallery/1.jpg",
+      "/images/wardrobe/driver-knit-zip-up-jumper/main/gallery/2.png"
     ],
     "metadata": {
       "price": 175.925,
