@@ -2246,7 +2246,7 @@ const WARDROBE_ITEMS = [
     "fabric": "Wool",
     "size": "XL",
     "purchaseDate": "2026-06-09",
-    "measuredDimensions": "Length: 74\nSleeve: 73\nChest: 128\nShoulder: 47",
+    "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
     "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
     "gallery": [
       "/images/wardrobe/mm-driver-knit/main/gallery/01.png",
@@ -2257,10 +2257,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "basicColour": "grey",
       "measurementRows": [
-        { "label": "Length", "value": "74" },
-        { "label": "Sleeve", "value": "73" },
+        { "label": "Shoulder", "value": "47" },
         { "label": "Chest", "value": "128" },
-        { "label": "Shoulder", "value": "47" }
+        { "label": "Sleeve", "value": "73" },
+        { "label": "Length", "value": "74" }
       ]
     }
   }
