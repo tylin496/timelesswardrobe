@@ -688,27 +688,6 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "hole-knit-polo-shirt",
-    "category": "Shirts",
-    "brand": "H&M",
-    "name": "Hole-Knit Polo Shirt",
-    "season": "S/S",
-    "colour": "Oatmeal Beige",
-    "colourCode": "#D6C6B4",
-    "fabric": "Knit",
-    "size": "XL",
-    "purchaseDate": "2025-07-28",
-    "image": "/images/wardrobe/hole-knit-polo-shirt/main/1.webp",
-    "gallery": [
-      "/images/wardrobe/hole-knit-polo-shirt/main/2.webp"
-    ],
-    "metadata": {
-      "price": 2499,
-      "priceCurrency": "JPY"
-    }
-  },
-
-  {
     "id": "linen-pleated-shorts",
     "category": "Bottoms",
     "brand": "H&M",
