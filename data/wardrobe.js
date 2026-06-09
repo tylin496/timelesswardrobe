@@ -2235,7 +2235,7 @@ const WARDROBE_ITEMS = [
     "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
     "image": "/images/wardrobe/mm-driver-knit/main/cover.png",
     "gallery": [
-      "/images/wardrobe/mm-driver-knit/main/gallery/01.png",
+      "/images/wardrobe/mm-driver-knit/main/gallery/01.jpg",
       "/images/wardrobe/mm-driver-knit/main/gallery/02.jpg"
     ],
     "metadata": {
