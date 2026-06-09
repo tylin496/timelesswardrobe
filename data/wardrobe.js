@@ -1317,7 +1317,10 @@ const WARDROBE_ITEMS = [
     "size": "36 mm",
     "purchaseDate": "2026-06-10",
     "image": "/images/wardrobe/seiko-datejust-36-mod/main/1.webp",
-    "gallery": [],
+    "gallery": [
+      "/images/wardrobe/seiko-datejust-36-mod/main/2.webp",
+      "/images/wardrobe/seiko-datejust-36-mod/main/3.webp"
+    ],
     "metadata": {
       "price": 591,
       "priceCurrency": "CNY"
