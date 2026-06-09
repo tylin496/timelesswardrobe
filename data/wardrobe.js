@@ -1307,7 +1307,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "seiko-datejust-36-mod",
+    "id": "datejust-36-mod",
     "category": "Dress watch",
     "brand": "Seiko",
     "name": "Datejust 36 Mod",
@@ -1316,10 +1316,10 @@ const WARDROBE_ITEMS = [
     "colourCode": "#e8e8e8",
     "size": "36 mm",
     "purchaseDate": "2026-06-10",
-    "image": "/images/wardrobe/seiko-datejust-36-mod/main/1.webp",
+    "image": "/images/wardrobe/datejust-36-mod/main/1.webp",
     "gallery": [
-      "/images/wardrobe/seiko-datejust-36-mod/main/2.webp",
-      "/images/wardrobe/seiko-datejust-36-mod/main/3.webp"
+      "/images/wardrobe/datejust-36-mod/main/2.webp",
+      "/images/wardrobe/datejust-36-mod/main/3.webp"
     ],
     "metadata": {
       "price": 591,
