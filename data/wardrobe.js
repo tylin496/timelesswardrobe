@@ -2282,7 +2282,7 @@ const WARDROBE_ITEMS = [
     "category": "Mid Layer",
     "brand": "Maison Margiela",
     "name": "Driver Knit Zip-Up Jumper",
-    "season": "A/W",
+    "season": "All-season",
     "colour": "Grey",
     "colourCode": "#6B6B6B",
     "fabric": "Wool",
