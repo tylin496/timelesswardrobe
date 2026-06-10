@@ -1852,7 +1852,9 @@ const WARDROBE_ITEMS = [
         "label": "Beige",
         "notes": "",
         "colour": "Beige",
-        "gallery": [],
+        "gallery": [
+          "/images/wardrobe/pleated-trousers/variants/beige/2.webp"
+        ],
         "colourCode": "#CEBEA6",
         "basicColour": "beige",
         "previewImage": "/images/wardrobe/pleated-trousers/variants/beige/preview.webp"
@@ -1881,7 +1883,9 @@ const WARDROBE_ITEMS = [
           "label": "Beige",
           "notes": "",
           "colour": "Beige",
-          "gallery": [],
+          "gallery": [
+            "/images/wardrobe/pleated-trousers/variants/beige/2.webp"
+          ],
           "colourCode": "#CEBEA6",
           "basicColour": "beige",
           "previewImage": "/images/wardrobe/pleated-trousers/variants/beige/preview.webp"
