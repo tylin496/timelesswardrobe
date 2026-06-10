@@ -2540,10 +2540,13 @@
     let wantEdit = params.get("edit") === "1";
     try {
       const path = String(globalThis.location?.pathname ?? "");
-      const m = path.match(/\/item(?:\.html)?\/([^/]+)\/edit\/?$/i);
-      if (m) {
-        id = decodeURIComponent(m[1]);
+      const mEdit = path.match(/\/item(?:\.html)?\/([^/]+)\/edit\/?$/i);
+      const mClean = !mEdit && path.match(/\/item\/([^/]+)\/?$/i);
+      if (mEdit) {
+        id = decodeURIComponent(mEdit[1]);
         wantEdit = true;
+      } else if (mClean && !id) {
+        id = decodeURIComponent(mClean[1]);
       }
     } catch {
       /* ignore */
@@ -3541,12 +3544,14 @@
   const ITEM_PAGE_PATH = "/item.html";
 
   function buildItemPageUrl(id, { edit = false } = {}) {
-    const u = new URL(ITEM_PAGE_PATH, globalThis.location.origin);
     const clean = String(id).replace(/\/edit$/i, "");
-    u.searchParams.set("id", clean);
-    if (edit) u.searchParams.set("edit", "1");
-    else u.searchParams.delete("edit");
-    return u;
+    if (edit) {
+      const u = new URL(ITEM_PAGE_PATH, globalThis.location.origin);
+      u.searchParams.set("id", clean);
+      u.searchParams.set("edit", "1");
+      return u;
+    }
+    return new URL(`/item/${encodeURIComponent(clean)}`, globalThis.location.origin);
   }
 
   /** Legacy links used `/collection/item.html` when opened from `/collection/:division`. */

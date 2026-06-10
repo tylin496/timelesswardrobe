@@ -43,6 +43,7 @@
     { "source": "/editorial/:slug", "destination": "/editorial.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/account", "destination": "/account.html" },
+    { "source": "/item/:id", "destination": "/item.html?id=:id" },
     { "source": "/collection/item.html", "destination": "/item.html" },
     { "source": "/collection/item", "destination": "/item.html" },
     { "source": "/collection", "destination": "/collection.html" },
