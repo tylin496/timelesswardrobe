@@ -422,6 +422,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-11-06",
     "image": "/images/wardrobe/navy-double-breasted-blazer/main/1.webp",
     "gallery": [
+      "/images/wardrobe/navy-double-breasted-blazer/main/2.png",
       "/images/wardrobe/navy-double-breasted-blazer/main/2.webp"
     ],
     "metadata": {
