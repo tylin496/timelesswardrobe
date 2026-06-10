@@ -356,7 +356,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "fluid-boot-cut-trousers",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "Cultum",
     "name": "Fluid Boot-Cut Trousers",
     "season": "All-season",
@@ -435,7 +435,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "wide-leg-white-jeans",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "Cultum",
     "name": "Wide-Leg White Jeans",
     "season": "All-season",
@@ -669,7 +669,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "wide-straight-trousers",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "GU",
     "name": "Wide-Straight Trousers",
     "season": "All-season",
@@ -692,7 +692,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "linen-pleated-shorts",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "H&M",
     "name": "Linen Pleated Shorts",
     "season": "S/S",
@@ -781,7 +781,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "corduroy-trousers",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "L.L.Bean",
     "name": "Corduroy Trousers",
     "season": "A/W",
@@ -965,7 +965,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "wide-leg-jeans",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "MUJI",
     "name": "Wide-Leg Jeans",
     "season": "All-season",
@@ -1353,7 +1353,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "jwa-straight-jeans",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "Uniqlo",
     "name": "JWA Straight Jeans",
     "season": "All-season",
@@ -1822,7 +1822,7 @@ const WARDROBE_ITEMS = [
     "id": "pleated-trousers",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Bottoms",
+    "category": "Trousers",
     "brand": "UNIQLO",
     "name": "Pleated Trousers",
     "season": "All-season",
