@@ -424,7 +424,8 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/navy-double-breasted-blazer/main/1.webp",
     "gallery": [
       "/images/wardrobe/navy-double-breasted-blazer/main/2.png",
-      "/images/wardrobe/navy-double-breasted-blazer/main/2.webp"
+      "/images/wardrobe/navy-double-breasted-blazer/main/2.webp",
+      "/images/wardrobe/navy-double-breasted-blazer/main/3.png"
     ],
     "metadata": {
       "price": 1284.65,
