@@ -124,6 +124,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain/main/1.webp",
     "gallery": [
+      "/images/wardrobe/rolo-chain/main/IMG_2238.JPG",
       "/images/wardrobe/rolo-chain/main/2.webp"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
