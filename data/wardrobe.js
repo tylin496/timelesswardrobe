@@ -188,7 +188,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "golden-fleece-navy-blazer",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "Brooks Brothers",
     "name": "Golden Fleece Navy Blazer",
     "season": "A/W",
@@ -212,7 +212,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "houndstooth-tweed-jacket",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "Brooks Brothers",
     "name": "Houndstooth Tweed Jacket",
     "season": "A/W",
@@ -261,7 +261,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "tank-solo",
-    "category": "Dress watch",
+    "category": "Dress",
     "brand": "Cartier",
     "name": "Tank Solo",
     "season": "All-season",
@@ -411,7 +411,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "navy-double-breasted-blazer",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "Cultum",
     "name": "Navy Double-Breasted  Blazer",
     "season": "A/W",
@@ -647,7 +647,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "cable-knit-polo",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "GU",
     "name": "Cable-Knit Polo",
     "season": "S/S",
@@ -714,7 +714,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "striped-camp-collar-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "H&M",
     "name": "Striped Camp Collar Shirt",
     "season": "S/S",
@@ -737,7 +737,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "herringbone-tweed-jacket",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "J. Press",
     "name": "Herringbone Tweed Jacket",
     "season": "A/W",
@@ -888,7 +888,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "aran-cable-knit-jumper",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "Muji",
     "name": "Aran Cable-Knit Jumper",
     "season": "A/W",
@@ -911,7 +911,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "fine-knit-t-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Muji",
     "name": "Fine Knit T-Shirt",
     "season": "S/S",
@@ -941,7 +941,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "v-neck-cardigan",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "Muji",
     "name": "V-Neck Cardigan",
     "season": "A/W",
@@ -1033,7 +1033,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "basket-weave-linen-jacket",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "Polo Ralph Lauren",
     "name": "Basket-Weave Linen Jacket",
     "season": "S/S",
@@ -1057,7 +1057,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "polo-bear-jumper",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "Polo Ralph Lauren",
     "name": "Polo Bear Jumper",
     "season": "A/W",
@@ -1083,7 +1083,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "washed-rugby-shirt",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "Polo Ralph Lauren",
     "name": "Washed Rugby Shirt",
     "season": "A/W",
@@ -1156,7 +1156,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "fair-isle-vest",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "The Engineer",
     "name": "Fair Isle Vest",
     "season": "A/W",
@@ -1177,7 +1177,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "knit-long-sleeve-polo",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "The Engineer",
     "name": "Knit Long-Sleeve Polo",
     "season": "A/W",
@@ -1313,7 +1313,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "datejust-36-mod",
-    "category": "Dress watch",
+    "category": "Dress",
     "brand": "Seiko",
     "name": "Datejust 36 Mod",
     "season": "All-season",
@@ -1375,7 +1375,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "kataaze-knit-mock-neck",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Uniqlo",
     "name": "Kataaze Knit Mock Neck",
     "season": "A/W",
@@ -1396,7 +1396,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "linen-camp-collar-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Uniqlo",
     "name": "Linen Camp Collar Shirt",
     "season": "S/S",
@@ -1418,7 +1418,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "ocbd-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "UNIQLO",
     "name": "OCBD Shirt",
     "season": "All-season",
@@ -1531,7 +1531,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "cutwork-knit-polo-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Cutwork Knit Polo Shirt",
     "season": "S/S",
@@ -1555,7 +1555,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "linen-loop-collar-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Linen Loop-Collar Shirt",
     "season": "S/S",
@@ -1576,7 +1576,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "purl-knit-t-shirt",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Purl-Knit T-Shirt",
     "season": "S/S",
@@ -1596,7 +1596,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "rib-knit-polo-shirt-dusty-ice-blue",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Rib Knit Polo Shirt",
     "season": "S/S",
@@ -1662,7 +1662,7 @@ const WARDROBE_ITEMS = [
     "id": "glen-check-tweed-jacket",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Jackets",
+    "category": "Tailoring",
     "brand": "Cultum",
     "name": "Glen Check Tweed Jacket",
     "season": "A/W",
@@ -1691,7 +1691,7 @@ const WARDROBE_ITEMS = [
     "id": "boa-fleece-vest",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "Muji",
     "name": "Boa Fleece Vest",
     "season": "A/W",
@@ -1717,7 +1717,7 @@ const WARDROBE_ITEMS = [
     "id": "rib-knit-roll-neck-neck-jumper",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Muji",
     "name": "Rib Knit Roll-Neck Neck Jumper",
     "season": "A/W",
@@ -1794,7 +1794,7 @@ const WARDROBE_ITEMS = [
     "id": "cricket-cable-knit-jumper-vest",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
-    "category": "Mid Layer",
+    "category": "Layering",
     "brand": "UNIQLO",
     "name": "Cricket Cable-Knit Jumper Vest",
     "season": "A/W",
@@ -2113,7 +2113,7 @@ const WARDROBE_ITEMS = [
     "id": "washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Muji",
     "name": "Washed Breton-Stripe Boat-Neck 3/4 Sleeve T-Shirt",
     "season": "A/W",
@@ -2139,7 +2139,7 @@ const WARDROBE_ITEMS = [
     "id": "baker-neck-knitted-t-shirt",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Baker Neck Knitted T-Shirt",
     "season": "S/S",
@@ -2162,7 +2162,7 @@ const WARDROBE_ITEMS = [
     "id": "rib-knit-polo-shirt-dark-chocolate",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Rib Knit Polo Shirt",
     "season": "S/S",
@@ -2193,7 +2193,7 @@ const WARDROBE_ITEMS = [
     "id": "structured-knit-polo-shirt",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
-    "category": "Shirts",
+    "category": "Tops",
     "brand": "Zara",
     "name": "Structured Knit Polo Shirt",
     "season": "S/S",

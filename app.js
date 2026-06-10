@@ -5248,7 +5248,7 @@
     "Small Goods": "Objects",
     "Objects": "Objects",
     Bags: "Bags",
-    Hats: "Caps & Hats",
+    Hats: "Hats",
     Eyewear: "Eyewear",
     Sunglasses: "Eyewear",
     Glasses: "Eyewear",
