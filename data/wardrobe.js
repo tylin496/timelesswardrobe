@@ -586,7 +586,7 @@ const WARDROBE_ITEMS = [
     "name": "Sapphire Ring",
     "season": "All-season",
     "colour": "Platinum",
-    "colourCode": "#e8e8e8",
+    "colourCode": "#E8E8E8",
     "fabric": "Platinum",
     "image": "/images/wardrobe/sapphire-ring/main/1.webp",
     "gallery": [
@@ -1290,7 +1290,7 @@ const WARDROBE_ITEMS = [
     "name": "Black Bay 58",
     "season": "All-season",
     "colour": "Steel",
-    "colourCode": "#e8e8e8",
+    "colourCode": "#E8E8E8",
     "weight": "M79030N",
     "size": "39 mm",
     "purchaseDate": "2024-10-17",
@@ -1298,7 +1298,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/black-bay-58/main/2.webp"
     ],
-    "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe proportions and detailing of the Tudor Black Bay 58 inherit the design language of the 1958 Tudor / Rolex Submariner references 7924 and 7922, including the narrow bezel and slim mid-case. The red triangle at 12 o’clock echoes the 6538 ‘Big Crown’, while the gilt dial complements the gold jewellery already present within the collection. It remains the only true sports watch in the collection.",
+    "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe Tudor Black Bay 58 draws heavily upon the visual language of the iconic Rolex Submariner 6538 ‘Big Crown’, from the red triangle at 12 o’clock to the restrained proportions that defined the finest diving watches of the 1950s. The gilt dial introduces a welcome warmth that sits comfortably alongside the gold pieces elsewhere in the collection. It remains the collection’s sole dedicated sports watch.",
     "metadata": {
       "price": 82000,
       "basicColour": "silver",
@@ -2081,7 +2081,7 @@ const WARDROBE_ITEMS = [
     "name": "Sapphire Three-Stone Ring",
     "season": "All-season",
     "colour": "Platinum",
-    "colourCode": "#e8e8e8",
+    "colourCode": "#E8E8E8",
     "fabric": "Platinum",
     "image": "/images/wardrobe/sapphire-three-stone-ring/main/1.webp",
     "gallery": [
