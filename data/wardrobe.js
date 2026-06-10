@@ -99,10 +99,10 @@ const WARDROBE_ITEMS = [
     "weight": "18ct yellow gold, 5.2 mm",
     "size": "20.5 cm （8.07inches）",
     "purchaseDate": "2024-10-26",
-    "image": "/images/wardrobe/curb-bracelet/main/1.webp",
+    "image": "/images/wardrobe/curb-bracelet/main/1.png",
     "gallery": [
-      "/images/wardrobe/curb-bracelet/main/2.webp",
-      "/images/wardrobe/curb-bracelet/main/3.webp"
+      "/images/wardrobe/curb-bracelet/main/2.png",
+      "/images/wardrobe/curb-bracelet/main/3.png"
     ],
     "notes": "Size: 20.5 cm （8.07inches）\nWeight: 11.71 g\nGold price: 596 CNY/g (base: 472, +45% vs 2020)\nMaking: 124 CNY/g\nTotal: 6,973 CNY ≈ 31,200 TWD (2024)\nDate: 26 October 2024",
     "metadata": {
