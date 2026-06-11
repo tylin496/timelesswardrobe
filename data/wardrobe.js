@@ -1147,8 +1147,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/ligne-2/main/2.webp",
       "/images/wardrobe/ligne-2/main/3.webp",
       "/images/wardrobe/ligne-2/main/4.webp",
-      "/images/wardrobe/ligne-2/main/5.webp",
-      "/images/wardrobe/ligne-2/main/cover.webp"
+      "/images/wardrobe/ligne-2/main/5.webp"
     ],
     "notes": "Decorated with the iconic house pattern: diamond-pattern tip and yellow gold plating. Associated lighter stone: black (REF 900600). Associated gas refill: yellow (REF 900432).",
     "metadata": {
