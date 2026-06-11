@@ -503,7 +503,8 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/kingsman-0847-sunglasses/main/1.webp",
     "gallery": [
       "/images/wardrobe/kingsman-0847-sunglasses/main/2.webp",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/3.webp"
+      "/images/wardrobe/kingsman-0847-sunglasses/main/3.webp",
+      "/images/wardrobe/kingsman-0847-sunglasses/main/4.png"
     ],
     "metadata": {
       "price": 177.99,
