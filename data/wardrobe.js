@@ -41,7 +41,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "tassel-loafer",
+    "id": "tassel-moccasin-loafer",
     "category": "Footwear",
     "brand": "Alden",
     "name": "Tassel Moccasin Loafer",
@@ -52,9 +52,9 @@ const WARDROBE_ITEMS = [
     "weight": "563",
     "size": "US 10.5 E",
     "purchaseDate": "2023-01-19",
-    "image": "/images/wardrobe/tassel-loafer/main/1.webp",
+    "image": "/images/wardrobe/tassel-moccasin-loafer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tassel-loafer/main/2.webp"
+      "/images/wardrobe/tassel-moccasin-loafer/main/2.webp"
     ],
     "notes": "Sole: Single oak leather outsole \nLast: Aberdeen",
     "metadata": {
@@ -114,7 +114,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "rolo-chain",
+    "id": "rolo-chain-necklace",
     "category": "Jewellery",
     "brand": "Bespoke Tailor",
     "name": "Rolo Chain Necklace",
@@ -124,10 +124,10 @@ const WARDROBE_ITEMS = [
     "weight": "18ct yellow gold, 2.5 mm",
     "size": "50 cm",
     "purchaseDate": "2024-08-20",
-    "image": "/images/wardrobe/rolo-chain/main/1.png",
+    "image": "/images/wardrobe/rolo-chain-necklace/main/1.png",
     "gallery": [
-      "/images/wardrobe/rolo-chain/main/2.JPG",
-      "/images/wardrobe/rolo-chain/main/3.png"
+      "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
+      "/images/wardrobe/rolo-chain-necklace/main/3.png"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
     "metadata": {
@@ -827,7 +827,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "grand-soir",
+    "id": "grand-soir-eau-de-parfum",
     "category": "Evening",
     "brand": "Maison Francis Kurkdjian",
     "name": "Grand Soir Eau de Parfum",
@@ -837,9 +837,9 @@ const WARDROBE_ITEMS = [
     "weight": "Labdanum, benzoin, vanilla, amber",
     "size": "70 ml",
     "purchaseDate": "2025-08-01",
-    "image": "/images/wardrobe/grand-soir/main/1.webp",
+    "image": "/images/wardrobe/grand-soir-eau-de-parfum/main/1.webp",
     "gallery": [
-      "/images/wardrobe/grand-soir/main/2.webp"
+      "/images/wardrobe/grand-soir-eau-de-parfum/main/2.webp"
     ],
     "metadata": {
       "price": 22000,
@@ -849,7 +849,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "ryoma-kakishibu-folding-fan",
+    "id": "ryoma-folding-fan",
     "category": "Objects",
     "brand": "Miyawaki Baisenan",
     "name": "Ryoma Folding Fan",
@@ -857,10 +857,10 @@ const WARDROBE_ITEMS = [
     "colour": "Mustard",
     "colourCode": "#81431b",
     "purchaseDate": "2025-08-22",
-    "image": "/images/wardrobe/ryoma-kakishibu-folding-fan/main/1.webp",
+    "image": "/images/wardrobe/ryoma-folding-fan/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ryoma-kakishibu-folding-fan/main/2.webp",
-      "/images/wardrobe/ryoma-kakishibu-folding-fan/main/3.webp"
+      "/images/wardrobe/ryoma-folding-fan/main/2.webp",
+      "/images/wardrobe/ryoma-folding-fan/main/3.webp"
     ],
     "notes": "Crafted by Miyawaki Baisenan of Kyoto, established in 1823, the fan combines traditional washi paper with kakishibu, a persimmon tannin finish that slowly darkens and develops character through use and age.\n\nSize: 8 sun, approximately 24 cm\nRibs: Bamboo, karaki finish\nFan face: Washi paper",
     "metadata": {
@@ -990,7 +990,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "new-york",
+    "id": "new-york-intense-eau-de-parfum",
     "category": "Day",
     "brand": "Nicolaï",
     "name": "New York Intense Eau de Parfum",
@@ -1000,9 +1000,9 @@ const WARDROBE_ITEMS = [
     "weight": "Bergamot, black pepper, oak moss.",
     "size": "100 ml",
     "purchaseDate": "2025-08-02",
-    "image": "/images/wardrobe/new-york/main/1.webp",
+    "image": "/images/wardrobe/new-york-intense-eau-de-parfum/main/1.webp",
     "gallery": [
-      "/images/wardrobe/new-york/main/2.webp"
+      "/images/wardrobe/new-york-intense-eau-de-parfum/main/2.webp"
     ],
     "metadata": {
       "price": 23000,
@@ -1137,7 +1137,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "ligne-2",
+    "id": "ligne-2-lighter",
     "category": "Objects",
     "brand": "S.T. Dupont",
     "name": "Ligne 2 Lighter",
@@ -1145,12 +1145,12 @@ const WARDROBE_ITEMS = [
     "colour": "Gold Diamond Head",
     "colourCode": "#C9A84C",
     "purchaseDate": "2026-05-19",
-    "image": "/images/wardrobe/ligne-2/main/1.webp",
+    "image": "/images/wardrobe/ligne-2-lighter/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ligne-2/main/2.webp",
-      "/images/wardrobe/ligne-2/main/3.webp",
-      "/images/wardrobe/ligne-2/main/4.webp",
-      "/images/wardrobe/ligne-2/main/5.webp"
+      "/images/wardrobe/ligne-2-lighter/main/2.webp",
+      "/images/wardrobe/ligne-2-lighter/main/3.webp",
+      "/images/wardrobe/ligne-2-lighter/main/4.webp",
+      "/images/wardrobe/ligne-2-lighter/main/5.webp"
     ],
     "notes": "Decorated with the iconic house pattern: diamond-pattern tip and yellow gold plating. Associated lighter stone: black (REF 900600). Associated gas refill: yellow (REF 900432).",
     "metadata": {
@@ -1246,7 +1246,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "silver-arabesque-card-case",
+    "id": "arabesque-card-case",
     "category": "Objects",
     "brand": "Tsubota Pearl",
     "name": "Arabesque Card Case",
@@ -1254,12 +1254,12 @@ const WARDROBE_ITEMS = [
     "colour": "Silver",
     "colourCode": "#E8E8E8",
     "purchaseDate": "2025-03-19",
-    "image": "/images/wardrobe/silver-arabesque-card-case/main/1.webp",
+    "image": "/images/wardrobe/arabesque-card-case/main/1.webp",
     "gallery": [
-      "/images/wardrobe/silver-arabesque-card-case/main/2.webp",
-      "/images/wardrobe/silver-arabesque-card-case/main/3.webp",
-      "/images/wardrobe/silver-arabesque-card-case/main/4.webp",
-      "/images/wardrobe/silver-arabesque-card-case/main/5.webp"
+      "/images/wardrobe/arabesque-card-case/main/2.webp",
+      "/images/wardrobe/arabesque-card-case/main/3.webp",
+      "/images/wardrobe/arabesque-card-case/main/4.webp",
+      "/images/wardrobe/arabesque-card-case/main/5.webp"
     ],
     "notes": "Crafted from stainless steel with a rigid, durable construction.\n\nFeatures a refined silver arabesque pattern and double-sided storage.\n\nOne side can hold business cards, while the other may be used for credit cards or received cards.\n\nCapacity: Approximately 30 standard business cards.\nDimensions: 97 × 66 × 13 mm.",
     "metadata": {
@@ -1339,7 +1339,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "three-point-cashmere-lined-gloves",
+    "id": "three-point-gloves",
     "category": "Objects",
     "brand": "Unbranded",
     "name": "Three-Point Gloves",
@@ -1350,9 +1350,9 @@ const WARDROBE_ITEMS = [
     "size": "M",
     "measuredDimensions": "Hand circumference: 21.4\nMiddle finger length: 8.6\nTotal length: 24",
     "purchaseDate": "2025-02-17",
-    "image": "/images/wardrobe/three-point-cashmere-lined-gloves/main/1.webp",
+    "image": "/images/wardrobe/three-point-gloves/main/1.webp",
     "gallery": [
-      "/images/wardrobe/three-point-cashmere-lined-gloves/main/2.webp"
+      "/images/wardrobe/three-point-gloves/main/2.webp"
     ],
     "metadata": {
       "price": 225,
@@ -1383,7 +1383,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "kataaze-knit-mock-neck",
+    "id": "kataaze-knit-mock-neck-jumper",
     "category": "Tops",
     "brand": "Uniqlo",
     "name": "Kataaze Knit Mock Neck Jumper",
@@ -1393,9 +1393,9 @@ const WARDROBE_ITEMS = [
     "fabric": "Acrylic blend",
     "size": "XL",
     "purchaseDate": "2022-02-13",
-    "image": "/images/wardrobe/kataaze-knit-mock-neck/main/1.webp",
+    "image": "/images/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/kataaze-knit-mock-neck/main/2.webp"
+      "/images/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp"
     ],
     "metadata": {
       "price": 990,
@@ -1723,7 +1723,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "rib-knit-roll-neck-neck-jumper",
+    "id": "rib-knit-roll-neck-jumper",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Tops",
@@ -1735,9 +1735,9 @@ const WARDROBE_ITEMS = [
     "weight": "Lightweight",
     "size": "XL",
     "purchaseDate": "2024-12-17",
-    "image": "/images/wardrobe/rib-knit-roll-neck-neck-jumper/main/1.webp",
+    "image": "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-roll-neck-neck-jumper/main/2.webp"
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp"
     ],
     "notes": "紳士 洗えるウールリブタートルネックセーター",
     "metadata": {
@@ -1747,7 +1747,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "ventile-harrington",
+    "id": "ventile-harrington-jacket",
     "pillar": "Clothing",
     "section": "A/W – Country Classics",
     "category": "Outerwear",
@@ -1759,11 +1759,11 @@ const WARDROBE_ITEMS = [
     "fabric": "Ventile",
     "size": "6=XL",
     "purchaseDate": "2025-12-26",
-    "image": "/images/wardrobe/ventile-harrington/main/1.webp",
+    "image": "/images/wardrobe/ventile-harrington-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ventile-harrington/main/2.webp",
-      "/images/wardrobe/ventile-harrington/main/3.webp",
-      "/images/wardrobe/ventile-harrington/main/4.webp"
+      "/images/wardrobe/ventile-harrington-jacket/main/2.webp",
+      "/images/wardrobe/ventile-harrington-jacket/main/3.webp",
+      "/images/wardrobe/ventile-harrington-jacket/main/4.webp"
     ],
     "notes": "A jacket with soul. First stitched in the 1950s and still made in Manchester, it has dressed rebels, musicians, and silver-screen legends for generations. With its stand collar, copper zip, and waterproof Ventile shell, the Harrington is as it was meant to be - timeless, understated, and unmistakably British.",
     "metadata": {
@@ -1983,7 +1983,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "anthony",
+    "id": "anthony-crossbody-bag",
     "pillar": "Accessories",
     "section": "Accessories",
     "category": "Bags",
@@ -1994,10 +1994,10 @@ const WARDROBE_ITEMS = [
     "colourCode": "#A95B32",
     "measuredDimensions": "Height: 25 cm\nWidth: 21 cm\nThickness: 7 cm\nStrap Width: 4 cm",
     "purchaseDate": "2025-07-27",
-    "image": "/images/wardrobe/anthony/main/1.webp",
+    "image": "/images/wardrobe/anthony-crossbody-bag/main/1.webp",
     "gallery": [
-      "/images/wardrobe/anthony/main/2.webp",
-      "/images/wardrobe/anthony/main/3.webp"
+      "/images/wardrobe/anthony-crossbody-bag/main/2.webp",
+      "/images/wardrobe/anthony-crossbody-bag/main/3.webp"
     ],
     "notes": "Purchased in near-excellent condition, with only one previous use. No visible stains, scratches, or notable signs of wear. Compact everyday messenger proportions with a broad adjustable shoulder strap, consistent with the classic Antony design language.",
     "metadata": {
@@ -2120,7 +2120,7 @@ const WARDROBE_ITEMS = [
   // ——— S/S – Mediterranean Resort ———,
 
   {
-    "id": "washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt",
+    "id": "breton-sailor-shirt",
     "pillar": "Clothing",
     "section": "S/S – Mediterranean Resort",
     "category": "Tops",
@@ -2133,9 +2133,9 @@ const WARDROBE_ITEMS = [
     "weight": "Midweight",
     "size": "XL",
     "purchaseDate": "2025-01-31",
-    "image": "/images/wardrobe/washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt/main/1.webp",
+    "image": "/images/wardrobe/breton-sailor-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/washed-breton-stripe-boat-neck-3-4-sleeve-t-shirt/main/2.webp"
+      "/images/wardrobe/breton-sailor-shirt/main/2.webp"
     ],
     "notes": "紳士 洗いざらし太番手ボートネック九分袖Ｔシャツ",
     "metadata": {
