@@ -8,6 +8,7 @@
     "predev": "node scripts/build-css.mjs",
     "og:build": "node scripts/build-og-image.mjs",
     "build": "node scripts/build-css.mjs && node scripts/build-og-image.mjs && node scripts/vercel-build.mjs",
+    "gallery:sync": "node scripts/sync-wardrobe-gallery.mjs",
     "check:wardrobe-images": "node scripts/check-wardrobe-local-images.mjs",
     "check:urls": "node scripts/check-public-urls.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
