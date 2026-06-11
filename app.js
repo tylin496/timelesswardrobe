@@ -3928,24 +3928,7 @@
 
   /** @returns {Set<string>} */
   function loadPersistedBasicColourFilters() {
-    try {
-      const raw = localStorage.getItem(BASIC_COLOUR_FILTER_KEY);
-      if (!raw) return new Set();
-      const trimmed = String(raw).trim();
-      if (trimmed.startsWith("[")) {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          const keys = parsed
-            .map((x) => String(x).trim().toLowerCase())
-            .filter((k) => BASIC_COLOUR_FAMILY_KEYS.includes(k));
-          return new Set(keys);
-        }
-      }
-      const v = trimmed.toLowerCase();
-      if (BASIC_COLOUR_FAMILY_KEYS.includes(v)) return new Set([v]);
-    } catch {
-      /* */
-    }
+    try { localStorage.removeItem(BASIC_COLOUR_FILTER_KEY); } catch { /* */ }
     return new Set();
   }
 
@@ -3961,12 +3944,6 @@
       .map((x) => String(x).trim().toLowerCase())
       .filter((k) => BASIC_COLOUR_FAMILY_KEYS.includes(k));
     const next = new Set(keys);
-    try {
-      if (keys.length) localStorage.setItem(BASIC_COLOUR_FILTER_KEY, JSON.stringify(keys));
-      else localStorage.removeItem(BASIC_COLOUR_FILTER_KEY);
-    } catch {
-      /* */
-    }
     basicColourFilters = next;
     invalidateCollectionSortedCache();
     return basicColourFilters;
@@ -8508,12 +8485,7 @@
   }
 
   function readSeasonNavFromLocalStorage() {
-    try {
-      const v = localStorage.getItem(SEASON_NAV_STORAGE_KEY);
-      return normalizeSeasonNavToken(v);
-    } catch {
-      /* private mode / disabled */
-    }
+    try { localStorage.removeItem(SEASON_NAV_STORAGE_KEY); } catch { /* */ }
     return null;
   }
 
@@ -8560,14 +8532,9 @@
     return readSeasonNavFromLocalStorage();
   }
 
-  /** Season strip (A/W · S/S · All) stays in localStorage only — ephemeral UI, not synced to Supabase. */
+  /** Season strip (A/W · S/S · All) — not persisted. */
   function persistSeasonNav() {
-    try {
-      if (seasonNavFilter) localStorage.setItem(SEASON_NAV_STORAGE_KEY, seasonNavFilter);
-      else localStorage.removeItem(SEASON_NAV_STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
+    try { localStorage.removeItem(SEASON_NAV_STORAGE_KEY); } catch { /* */ }
   }
 
   /** In-memory collection state; persisted to Supabase when configured (else localStorage). */
@@ -19930,10 +19897,10 @@
       const threshold = Math.min(44, w * 0.14);
       let target = touchStartIndex;
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
-        target = touchStartIndex + (dx < 0 ? 1 : -1);
+        target = touchStartIndex + (dx > 0 ? 1 : -1);
       }
-      if (target > max) target = 0;        // last → cover (fast rewind)
-      else if (target < 0) target = Math.min(1, max); // cover right-swipe → slide 1
+      if (target > max) target = 0;        // last → first (loop)
+      else if (target < 0) target = max;   // first → last (loop)
       else target = Math.max(0, Math.min(max, target));
       releaseToIndex(target, target !== touchStartIndex);
       markSwipingIfGesture(dx, dy);
