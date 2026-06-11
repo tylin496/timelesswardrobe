@@ -32,6 +32,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/1930s-half-belt-leather-jacket/main/8.webp"
     ],
     "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
+    "season": "A/W",
     "metadata": {
       "basicColour": "brown",
       "price": 1591.82,
