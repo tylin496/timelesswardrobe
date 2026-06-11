@@ -1342,6 +1342,7 @@ const WARDROBE_ITEMS = [
     "season": "A/W",
     "colour": "Dark Brown",
     "colourCode": "#3a241d",
+    "fabric": "Lambskin / Cashmere lining",
     "size": "M",
     "measuredDimensions": "Hand circumference: 21.4 cm\nMiddle finger length: 8.6 cm\nTotal length: 24 cm",
     "purchaseDate": "2025-02-17",
@@ -1349,7 +1350,6 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/three-point-cashmere-lined-gloves/main/2.webp"
     ],
-    "notes": "Three-Point Cashmere-Lined",
     "metadata": {
       "price": 225,
       "priceCurrency": "CNY"
