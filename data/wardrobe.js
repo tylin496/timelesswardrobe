@@ -1326,6 +1326,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/datejust-36-mod/main/2.webp",
       "/images/wardrobe/datejust-36-mod/main/3.webp"
     ],
+    "notes": "Inspired by the proportions of the contemporary Datejust 36, this modified Seiko adopts an all-gold configuration no longer found in the current Rolex catalogue, combining modern proportions with an aesthetic more closely associated with earlier generations of the model.",
     "metadata": {
       "price": 591,
       "priceCurrency": "CNY"
