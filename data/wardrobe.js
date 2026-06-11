@@ -115,7 +115,7 @@ const WARDROBE_ITEMS = [
     "id": "rolo-chain",
     "category": "Jewellery",
     "brand": "Bespoke Tailor",
-    "name": "Rolo Chain",
+    "name": "Rolo Chain Necklace",
     "season": "All-season",
     "colour": "Gold",
     "colourCode": "#C9A84C",
