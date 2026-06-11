@@ -2117,7 +2117,7 @@ const WARDROBE_ITEMS = [
     "section": "S/S – Mediterranean Resort",
     "category": "Tops",
     "brand": "Muji",
-    "name": "Washed Breton-Stripe Boat-Neck 3/4 Sleeve T-Shirt",
+    "name": "Breton Sailor Shirt",
     "season": "A/W",
     "colour": "Off-White / Navy",
     "colourCode": "#eeeeef",
