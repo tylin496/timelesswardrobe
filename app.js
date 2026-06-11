@@ -20935,7 +20935,9 @@
 
   /** COLLECTION root — all seasons, no division drill, no narrowing filters. */
   function navigateCollectionCollectionRoot() {
+    const savedSort = collectionSortMode;
     resetAllCollectionFilters();
+    collectionSortMode = persistCollectionSortMode(savedSort);
     syncCollectionUrlFromBrowseState({ replace: true });
     scrollCollectionViewportTop();
   }
