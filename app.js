@@ -24753,6 +24753,7 @@
             overrides.brands != null
               ? String(overrides.brands).trim()
               : serializeFilterListParam(selectedBrandFilters),
+          sort: overrides.sort != null ? String(overrides.sort).trim() : String(collectionSortMode ?? ""),
         })
       );
     } catch {
@@ -24921,6 +24922,10 @@
       selectedBrandFilters = new Set(parseFilterListParam(brandsRaw));
       invalidateCollectionSortedCache();
       syncCollectionBrandFilterChipUi();
+    }
+    const sortRaw = String(o?.sort ?? "").trim();
+    if (COLLECTION_SORT_MODES.includes(sortRaw)) {
+      collectionSortMode = persistCollectionSortMode(sortRaw);
     }
     try {
       persistSeasonNav();
