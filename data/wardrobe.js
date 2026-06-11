@@ -128,7 +128,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/rolo-chain/main/2.JPG",
       "/images/wardrobe/rolo-chain/main/3.webp",
-      "/images/wardrobe/rolo-chain/main/4.webp"
+      "/images/wardrobe/rolo-chain/main/4.png"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
     "metadata": {
@@ -1344,7 +1344,7 @@ const WARDROBE_ITEMS = [
     "brand": "Unbranded",
     "name": "Three-Point Gloves",
     "season": "A/W",
-    "colour": "Dark Brown",
+    "colour": "",
     "colourCode": "#3a241d",
     "fabric": "Lambskin / Cashmere lining",
     "size": "M",
