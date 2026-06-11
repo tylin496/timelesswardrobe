@@ -13428,6 +13428,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   flex-direction: column;
   gap: 0.22rem;
   flex: 1;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .card__actions {
