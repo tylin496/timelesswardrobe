@@ -990,7 +990,7 @@ const WARDROBE_ITEMS = [
     "id": "new-york",
     "category": "Day",
     "brand": "Nicolaï",
-    "name": "New York",
+    "name": "New York Intense Eau de Parfum",
     "season": "All-season",
     "colour": "Gold",
     "colourCode": "#C9A84C",
