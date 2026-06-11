@@ -1136,7 +1136,7 @@ const WARDROBE_ITEMS = [
     "id": "ligne-2",
     "category": "Objects",
     "brand": "S.T. Dupont",
-    "name": "Ligne 2",
+    "name": "Ligne 2 Lighter",
     "season": "All-season",
     "colour": "Gold Diamond Head",
     "colourCode": "#C9A84C",
