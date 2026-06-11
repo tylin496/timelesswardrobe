@@ -1314,7 +1314,7 @@ const WARDROBE_ITEMS = [
 
   {
     "id": "datejust-36-mod",
-    "category": "Dress",
+    "category": "Everyday",
     "brand": "Seiko",
     "name": "Datejust 36 Mod",
     "season": "All-season",
