@@ -1967,9 +1967,10 @@ const WARDROBE_ITEMS = [
     "colourCode": "#e2d8d0",
     "size": "Medium",
     "purchaseDate": "2025-01-01",
-    "image": "/images/wardrobe/boat-and-tote/main/1.webp",
+    "image": "/images/wardrobe/boat-and-tote/main/1.png",
     "gallery": [
-      "/images/wardrobe/boat-and-tote/main/2.webp"
+      "/images/wardrobe/boat-and-tote/main/2.webp",
+      "/images/wardrobe/boat-and-tote/main/3.webp"
     ],
     "notes": "Boat and Tote, Open-Top\nItem No.: TC112636\nType: Medium\nColour: Blue Trim\nHandle: Regular\nMonogram: Yes\nLetter Style: Flare (FT)\nThread Colour: Coastal Gold (120)\nEmbroidered Initials: TLY",
     "metadata": {
