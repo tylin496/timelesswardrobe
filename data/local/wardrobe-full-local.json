@@ -315,7 +315,7 @@
           }
         ],
         "secondaryColour": "Gold",
-        "secondaryColourCode": "#ffe691"
+        "secondaryColourCode": "#C9A84C"
       }
     },
     {
@@ -1117,7 +1117,8 @@
         "/images/wardrobe/meisterstuck-classique-rollerball/main/gallery/1779736509426-6hxfyi-gallery-03.jpg"
       ],
       "metadata": {
-        "secondaryColour": "Gold"
+        "secondaryColour": "Gold",
+        "secondaryColourCode": "#C9A84C"
       }
     },
     {

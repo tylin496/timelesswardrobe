@@ -882,7 +882,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
     ],
     "metadata": {
-      "secondaryColour": "Gold"
+      "secondaryColour": "Gold",
+      "secondaryColourCode": "#C9A84C"
     }
   },
 
@@ -1653,7 +1654,7 @@ const WARDROBE_ITEMS = [
         }
       ],
       "secondaryColour": "Gold",
-      "secondaryColourCode": "#ffe691"
+      "secondaryColourCode": "#C9A84C"
     }
   },
 
