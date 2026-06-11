@@ -15078,8 +15078,6 @@
     if (!forGrid) {
       if (vars?.length) {
         parts.push(`${vars.length} colours: ${vars.map((v) => v.label).join(", ")}`);
-      } else {
-        if (item.colour) parts.push(item.colour);
       }
     }
     if (forGrid) {
