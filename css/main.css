@@ -13183,6 +13183,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 4px 18px var(--card-shadow);
+  user-select: contain;
   transition:
     transform 0.32s var(--ease-luxe),
     box-shadow 0.32s var(--ease-luxe),
