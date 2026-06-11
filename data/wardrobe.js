@@ -274,7 +274,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/tank-solo/main/2.webp"
     ],
-    "notes": "Reference: W5200004\nMovement: Cartier Cal. 690 quartz\nCase: 34.8 × 27.4 mm, 18ct yellow gold\nStrap: Brown square-scale alligator leather with original 18ct yellow gold ardillon buckle\n\nDesigned by Louis Cartier in 1917, the Tank remains one of the purest expressions of modern watch design, defined by geometry, restraint, and exact proportion. In continuous production for over a century, it has remained unmistakable while giving rise to later interpretations including Tank Cintrée, Chinoise, Américaine, and Française. The blue spinel cabochon crown, Roman numerals, and blued-steel hands preserve Cartier’s original design language. At only 5.55 mm thick, it retains the ultra-thin elegance expected of a true dress watch. As the only solid-gold watch in this collection, the Tank serves as its aesthetic anchor—not a variation, but one of the original canonical forms of twentieth-century design.",
+    "notes": "Reference: W5200004\nMovement: Cartier Cal. 690 quartz\nCase: 34.8 × 27.4 mm, 18ct yellow gold\nStrap: Brown square-scale alligator leather with original 18ct yellow gold ardillon buckle\n\nDesigned by Louis Cartier in 1917, the Tank remains one of the defining forms of modern watch design. In continuous production for over a century, it has remained unmistakable while becoming one of the canonical objects of the twentieth century. As the only solid-gold watch in this collection, it serves as its aesthetic anchor.",
     "metadata": {
       "price": 100000,
       "basicColour": "gold",
