@@ -1382,7 +1382,7 @@ const WARDROBE_ITEMS = [
     "id": "kataaze-knit-mock-neck",
     "category": "Tops",
     "brand": "Uniqlo",
-    "name": "Kataaze Knit Mock Neck",
+    "name": "Kataaze Knit Mock Neck Jumper",
     "season": "A/W",
     "colour": "Beige",
     "colourCode": "#d0bcac",
