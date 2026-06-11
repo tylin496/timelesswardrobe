@@ -1748,7 +1748,7 @@ const WARDROBE_ITEMS = [
     "section": "A/W – Country Classics",
     "category": "Outerwear",
     "brand": "Private White VC",
-    "name": "Ventile Harrington",
+    "name": "Ventile Harrington Jacket",
     "season": "A/W",
     "colour": "Midnight Navy",
     "colourCode": "#20252F",
