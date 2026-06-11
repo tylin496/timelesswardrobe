@@ -21156,7 +21156,6 @@
   function applyCategoryNavFilter(nextSlot, { scrollTop = false, skipUrlSync = false } = {}) {
     const slot = String(nextSlot ?? "").trim();
     categoryNavFilter = SLOT_OPTIONS.includes(slot) ? slot : "";
-    clearSubcategoryFilters();
     noteCollectionSearchUserChoseMainSlotFilter();
     syncCategoryTabUI();
     validateSubcategoryFilter();
@@ -27960,16 +27959,12 @@
     }
 
     const jumpHeaderCategory = (jump) => {
-      clearCollectionKeywordColourNarrowing();
-      if (collectionSubmittedSearchNorm) exitCollectionSearchPlpRestoreBrowse({ skipRestore: true });
       if (!document.getElementById("grid")) {
         categoryNavFilter = resolveCategoryJump(jump);
-        clearSubcategoryFilters();
         validateSubcategoryFilter();
         writeCollectionBrowseRestoreSnapshot();
         navigateToCollectionMain({
           category: resolveCategoryJump(jump),
-          subcategory: "",
         });
         return;
       }
@@ -29180,8 +29175,6 @@
       e.preventDefault();
       const jump = String(link.getAttribute("data-category-jump") ?? "").trim();
       const sub = String(link.getAttribute("data-subcategory-jump") ?? "").trim();
-      clearCollectionKeywordColourNarrowing();
-      if (collectionSubmittedSearchNorm) exitCollectionSearchPlpRestoreBrowse({ skipRestore: true });
       categoryNavFilter = resolveCategoryJump(jump);
       setOnlySubcategoryFilter(sub);
       noteCollectionSearchUserChoseMainSlotFilter();
@@ -29376,8 +29369,6 @@
       const jump = String(a.getAttribute("data-category-jump") ?? "").trim();
       const sub = String(a.getAttribute("data-subcategory-jump") ?? "").trim();
       if (sub) {
-        if (collectionSubmittedSearchNorm) exitCollectionSearchPlpRestoreBrowse({ skipRestore: true });
-        clearCollectionKeywordColourNarrowing();
         categoryNavFilter = resolveCategoryJump(jump);
         setOnlySubcategoryFilter(sub);
         noteCollectionSearchUserChoseMainSlotFilter();
