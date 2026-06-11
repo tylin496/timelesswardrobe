@@ -15,6 +15,7 @@ const root = path.resolve(__dirname, "..");
 const wardrobeDir = path.join(root, "images", "wardrobe");
 const QUALITY = 82;
 const CONCURRENCY = 6;
+const DELETE_ORIGINALS = process.argv.includes("--delete-originals");
 
 function walk(dir) {
   const out = [];
@@ -49,7 +50,7 @@ const results = await pMap(candidates, CONCURRENCY, async (src) => {
   if (fs.existsSync(dst)) return { src, dst, status: "skip-exists" };
   try {
     const srcSize = fs.statSync(src).size;
-    await sharp(src).webp({ quality: QUALITY, effort: 5 }).toFile(dst);
+    await sharp(src).toColorspace("srgb").webp({ quality: QUALITY, effort: 5 }).toFile(dst);
     const dstSize = fs.statSync(dst).size;
     return { src, dst, status: "ok", srcSize, dstSize };
   } catch (e) {
@@ -120,3 +121,10 @@ for (const rel of refTargets) {
   }
 }
 console.log(`Total reference updates: ${totalRefs}`);
+
+if (DELETE_ORIGINALS && ok.length) {
+  for (const r of ok) {
+    fs.unlinkSync(r.src);
+  }
+  console.log(`Deleted ${ok.length} original file(s).`);
+}
