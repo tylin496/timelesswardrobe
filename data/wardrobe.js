@@ -288,7 +288,7 @@ const WARDROBE_ITEMS = [
     "id": "achilles-low",
     "category": "Footwear",
     "brand": "Common Projects",
-    "name": "Achilles Leather Sneakers",
+    "name": "Achilles Low",
     "season": "All-season",
     "colour": "White",
     "colourCode": "#f1f1ee",
