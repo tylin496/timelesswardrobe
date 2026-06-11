@@ -13448,6 +13448,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .card__title--opens-detail {
