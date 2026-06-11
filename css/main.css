@@ -13481,6 +13481,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   text-transform: uppercase;
   font-weight: 500;
   color: var(--ink-muted);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .card__meta-line {
