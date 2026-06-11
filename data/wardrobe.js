@@ -361,7 +361,7 @@ const WARDROBE_ITEMS = [
     "name": "Fluid Boot-Cut Trousers",
     "season": "All-season",
     "colour": "Walnut Brown",
-    "colourCode": "#343132",
+    "colourCode": "#322722",
     "fabric": "Fabric: 64.2% Polyester / 19.2% Viscose / 16.6% Wool Lining: 55% Polyester / 45%",
     "weight": "345 gsm",
     "size": "W36",
