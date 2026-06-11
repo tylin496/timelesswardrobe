@@ -128,11 +128,9 @@ const WARDROBE_ITEMS = [
     "weight": "18ct yellow gold, 2.5 mm",
     "size": "50 cm",
     "purchaseDate": "2024-08-20",
-    "image": "/images/wardrobe/rolo-chain-necklace/main/1.png",
+    "image": "/images/wardrobe/rolo-chain-necklace/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain-necklace/main/1.webp",
       "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
-      "/images/wardrobe/rolo-chain-necklace/main/3.png",
       "/images/wardrobe/rolo-chain-necklace/main/3.webp"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
@@ -429,9 +427,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-11-06",
     "image": "/images/wardrobe/navy-double-breasted-blazer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/navy-double-breasted-blazer/main/2.png",
       "/images/wardrobe/navy-double-breasted-blazer/main/2.webp",
-      "/images/wardrobe/navy-double-breasted-blazer/main/3.png",
       "/images/wardrobe/navy-double-breasted-blazer/main/3.webp"
     ],
     "metadata": {
@@ -644,9 +640,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-04-09",
     "image": "/images/wardrobe/dw-5600e/main/1.webp",
     "gallery": [
-      "/images/wardrobe/dw-5600e/main/2.png",
       "/images/wardrobe/dw-5600e/main/2.webp",
-      "/images/wardrobe/dw-5600e/main/3.png",
       "/images/wardrobe/dw-5600e/main/3.webp"
     ],
     "notes": "The Casio DW-5600E preserves the original square-form design language established by the first G-Shock models of the 1980s. Although positioned within the collection as the dedicated beater watch, it remains one of the defining forms of the modern digital watch, with a design language that has remained essentially unchanged for decades.",
