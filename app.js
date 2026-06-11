@@ -20717,8 +20717,8 @@
     }
     metaLine.textContent = colourLabel || "";
 
-    body.appendChild(title);
     body.appendChild(brand);
+    body.appendChild(title);
     body.appendChild(metaLine);
 
     const hasColourTray = Boolean(gridSwatchVariants?.length) && !isFiltersNarrowViewport();
