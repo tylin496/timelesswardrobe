@@ -827,7 +827,7 @@ const WARDROBE_ITEMS = [
     "id": "grand-soir",
     "category": "Evening",
     "brand": "Maison Francis Kurkdjian",
-    "name": "Grand Soir",
+    "name": "Grand Soir Eau de Parfum",
     "season": "All-season",
     "colour": "Gold",
     "colourCode": "#C9A84C",
