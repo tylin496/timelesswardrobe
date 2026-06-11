@@ -1129,7 +1129,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/wayfarer-sunglasses/main/4.webp",
       "/images/wardrobe/wayfarer-sunglasses/main/5.webp",
       "/images/wardrobe/wayfarer-sunglasses/main/6.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/7.webp"
+      "/images/wardrobe/wayfarer-sunglasses/main/7.webp",
+      "/images/wardrobe/wayfarer-sunglasses/main/8.webp"
     ],
     "metadata": {
       "price": 6490,
