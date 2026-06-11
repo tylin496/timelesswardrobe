@@ -1639,7 +1639,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-28",
     "image": "/images/wardrobe/boston-metal-frames/main/1.webp",
     "gallery": [
-      "/images/wardrobe/boston-metal-frames/main/2.webp"
+      "/images/wardrobe/boston-metal-frames/main/2.webp",
+      "/images/wardrobe/boston-metal-frames/main/3.webp"
     ],
     "notes": "A contemporary metal-frame design influenced by modern Asian eyewear trends. The softly rounded Boston shape creates a refined yet relaxed impression, while the slim 0.7 mm metal rim provides both a natural fit and comfortable wear. The polished metal construction adds a subtle jewellery-like character, allowing the frame to function easily as an everyday accessory.\n\nFinished in a dark Havana tortoiseshell pattern with gold temples, the frame balances warmer heritage tones with a lighter metallic accent. The slightly taller lens proportions soften the overall silhouette while adding openness to the face, making it suitable for both casual and more refined styling. Designed with a timeless approach, it remains easy to wear across changing trends.",
     "metadata": {
