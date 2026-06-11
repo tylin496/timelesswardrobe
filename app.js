@@ -214,7 +214,7 @@
 
   /** Broad colour families — collection colour chips + optional per-item / per-variant override. */
   const BASIC_COLOUR_FAMILY_KEYS = ["blue", "brown", "red", "white", "black", "beige", "gold", "silver", "green", "grey"];
-  const GOLD_BASIC_COLOUR_HEX = "#ffe691";
+  const GOLD_BASIC_COLOUR_HEX = "#C9A84C";
 
   /**
    * Stored in `item.basicColour` or `metadata.basicColour`: piece opts out of broad-colour buckets —
