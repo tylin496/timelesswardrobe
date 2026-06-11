@@ -1344,7 +1344,7 @@ const WARDROBE_ITEMS = [
     "colourCode": "#3a241d",
     "fabric": "Lambskin / Cashmere lining",
     "size": "M",
-    "measuredDimensions": "Hand circumference: 21.4 cm\nMiddle finger length: 8.6 cm\nTotal length: 24 cm",
+    "measuredDimensions": "Hand circumference: 21.4\nMiddle finger length: 8.6\nTotal length: 24",
     "purchaseDate": "2025-02-17",
     "image": "/images/wardrobe/three-point-cashmere-lined-gloves/main/1.webp",
     "gallery": [
