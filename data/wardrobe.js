@@ -102,7 +102,8 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/curb-bracelet/main/1.png",
     "gallery": [
       "/images/wardrobe/curb-bracelet/main/2.png",
-      "/images/wardrobe/curb-bracelet/main/3.png"
+      "/images/wardrobe/curb-bracelet/main/3.png",
+      "/images/wardrobe/curb-bracelet/main/4.png"
     ],
     "notes": "Size: 20.5 cm （8.07inches）\nWeight: 11.71 g\nGold price: 596 CNY/g (base: 472, +45% vs 2020)\nMaking: 124 CNY/g\nTotal: 6,973 CNY ≈ 31,200 TWD (2024)\nDate: 26 October 2024",
     "metadata": {
@@ -124,8 +125,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain/main/IMG_2238.JPG",
-      "/images/wardrobe/rolo-chain/main/2.webp"
+      "/images/wardrobe/rolo-chain/main/2.webp",
+      "/images/wardrobe/rolo-chain/main/IMG_2238.JPG"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
     "metadata": {
@@ -176,7 +177,6 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/signet-ring/main/1.webp",
     "gallery": [
       "/images/wardrobe/signet-ring/main/2.webp",
-      "/images/wardrobe/signet-ring/main/4.webp",
       "/images/wardrobe/signet-ring/main/4.webp"
     ],
     "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
@@ -249,7 +249,6 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-12-06",
     "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/balmacaan-coat/main/4.webp",
       "/images/wardrobe/balmacaan-coat/main/3.webp",
       "/images/wardrobe/balmacaan-coat/main/4.webp"
     ],
@@ -792,7 +791,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-01-01",
     "image": "/images/wardrobe/corduroy-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/corduroy-trousers/main/2.webp"
+      "/images/wardrobe/corduroy-trousers/main/2.webp",
+      "/images/wardrobe/corduroy-trousers/main/cover.webp"
     ],
     "metadata": {
       "price": 11000,
@@ -1074,7 +1074,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/polo-bear-jumper/main/4.webp",
       "/images/wardrobe/polo-bear-jumper/main/5.webp",
       "/images/wardrobe/polo-bear-jumper/main/6.webp",
-      "/images/wardrobe/polo-bear-jumper/main/7.webp"
+      "/images/wardrobe/polo-bear-jumper/main/7.webp",
+      "/images/wardrobe/polo-bear-jumper/main/cover.webp"
     ],
     "metadata": {
       "price": 28000,
@@ -1146,7 +1147,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/ligne-2/main/2.webp",
       "/images/wardrobe/ligne-2/main/3.webp",
       "/images/wardrobe/ligne-2/main/4.webp",
-      "/images/wardrobe/ligne-2/main/5.webp"
+      "/images/wardrobe/ligne-2/main/5.webp",
+      "/images/wardrobe/ligne-2/main/cover.webp"
     ],
     "notes": "Decorated with the iconic house pattern: diamond-pattern tip and yellow gold plating. Associated lighter stone: black (REF 900600). Associated gas refill: yellow (REF 900432).",
     "metadata": {
