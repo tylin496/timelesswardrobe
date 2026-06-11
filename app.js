@@ -14243,8 +14243,6 @@
       /* ignore */
     }
     replaceCollectionSeasonQuery(seasonNavFilter);
-    collectionSortMode = persistCollectionSortMode(COLLECTION_DEFAULT_SORT_MODE);
-    syncCollectionSortChipUi();
     syncSeasonTabUI();
     syncCategoryTabUI();
     validateSubcategoryFilter();
@@ -14335,8 +14333,6 @@
     persistSeasonNav();
     replaceCollectionSeasonQuery(seasonNavFilter);
     syncSeasonTabUI();
-    collectionSortMode = persistCollectionSortMode(COLLECTION_DEFAULT_SORT_MODE);
-    syncCollectionSortChipUi();
     document.body.classList.remove("collection-ui--nav-folded");
     if (closeDrawer) closeCollectionFilterDrawer();
     resetNarrowingFilters();
@@ -20935,9 +20931,7 @@
 
   /** COLLECTION root — all seasons, no division drill, no narrowing filters. */
   function navigateCollectionCollectionRoot() {
-    const savedSort = collectionSortMode;
     resetAllCollectionFilters();
-    collectionSortMode = persistCollectionSortMode(savedSort);
     syncCollectionUrlFromBrowseState({ replace: true });
     scrollCollectionViewportTop();
   }
