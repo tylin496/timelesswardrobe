@@ -1338,15 +1338,18 @@ const WARDROBE_ITEMS = [
     "id": "three-point-cashmere-lined-gloves",
     "category": "Objects",
     "brand": "Unbranded",
-    "name": "Three-Point Cashmere-Lined Gloves",
+    "name": "Three-Point Gloves",
     "season": "A/W",
     "colour": "Dark Brown",
     "colourCode": "#3a241d",
+    "size": "M",
+    "measuredDimensions": "Hand circumference: 21.4 cm\nMiddle finger length: 8.6 cm\nTotal length: 24 cm",
     "purchaseDate": "2025-02-17",
     "image": "/images/wardrobe/three-point-cashmere-lined-gloves/main/1.webp",
     "gallery": [
       "/images/wardrobe/three-point-cashmere-lined-gloves/main/2.webp"
     ],
+    "notes": "Three-Point Cashmere-Lined",
     "metadata": {
       "price": 225,
       "priceCurrency": "CNY"
