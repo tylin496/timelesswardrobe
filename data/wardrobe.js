@@ -1983,7 +1983,7 @@ const WARDROBE_ITEMS = [
     "section": "Accessories",
     "category": "Bags",
     "brand": "Mulberry",
-    "name": "Anthony",
+    "name": "Anthony Crossbody Bag",
     "season": "All-season",
     "colour": "Oak",
     "colourCode": "#A95B32",
