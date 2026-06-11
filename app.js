@@ -26247,6 +26247,26 @@
     });
   }
 
+  function initCardSelectionContainment() {
+    const grid = document.getElementById("grid");
+    if (!grid) return;
+    let anchorCard = null;
+    grid.addEventListener("mousedown", (e) => {
+      anchorCard = e.target.closest(".card");
+    });
+    document.addEventListener("selectionchange", () => {
+      if (!anchorCard) return;
+      const sel = globalThis.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      const focusNode = sel.focusNode;
+      if (!focusNode) return;
+      if (!anchorCard.contains(focusNode)) {
+        sel.collapse(sel.anchorNode, sel.anchorOffset);
+      }
+    });
+    document.addEventListener("mouseup", () => { anchorCard = null; });
+  }
+
   /** Scroll fold: hide desktop header chrome while scrolling down on the collection page (`#filters-nav` removed — optional menu state kept for compatibility). */
   function initCollectionNavScrollFold() {
     if (!ENABLE_COLLECTION_NAV_SCROLL_FOLD) {
@@ -29872,6 +29892,7 @@
     initSiteHeaderEnterMotion();
     syncCollectionPageChromeInset();
     initCollectionNavScrollFold();
+    initCardSelectionContainment();
 
     globalThis.addEventListener("pageshow", (e) => {
       const pe = /** @type {PageTransitionEvent} */ (e);
