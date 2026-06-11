@@ -151,8 +151,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-04",
     "image": "/images/wardrobe/ruby-gypsy-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ruby-gypsy-ring/main/2.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/3.webp"
+      "/images/wardrobe/ruby-gypsy-ring/main/2.jpg",
+      "/images/wardrobe/ruby-gypsy-ring/main/3.jpg"
     ],
     "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)       Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\n\nEngraving\nInscription: Ad Meliora . 2024\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
     "metadata": {
