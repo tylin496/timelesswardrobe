@@ -33,6 +33,36 @@ const WARDROBE_ITEMS = [
     ],
     "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "season": "A/W",
+    "colourVariants": [
+      {
+        "key": "seal",
+        "image": "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp",
+        "label": "Seal",
+        "notes": "",
+        "colour": "Vicenza Seal",
+        "gallery": [
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.png",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.png",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
+        ],
+        "colourCode": "#56382e"
+      },
+      {
+        "key": "dark-seal",
+        "image": "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/1.webp",
+        "label": "Dark Seal",
+        "notes": "",
+        "colour": "Dark Seal",
+        "gallery": [
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/2.webp",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/3.webp",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/4.webp"
+        ],
+        "colourCode": "#291F1D"
+      }
+    ],
     "metadata": {
       "basicColour": "brown",
       "price": 1591.82,
