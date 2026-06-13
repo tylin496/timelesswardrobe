@@ -21,14 +21,6 @@ const WARDROBE_ITEMS = [
     "name": "1930s Half-Belt Leather Jacket",
     "colour": "Vicenza Seal",
     "colourCode": "#56382e",
-    "image": "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp",
-    "gallery": [
-      "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.png",
-      "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.png",
-      "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
-      "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
-      "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
-    ],
     "notes": "* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "season": "A/W",
     "colourVariants": [
@@ -1466,7 +1458,6 @@ const WARDROBE_ITEMS = [
     "fabric": "Cotton",
     "size": "XL",
     "purchaseDate": "2020-01-01",
-    "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
     "colourVariants": [
       {
         "key": "white",
@@ -1517,54 +1508,7 @@ const WARDROBE_ITEMS = [
     ],
     "metadata": {
       "price": 3990,
-      "priceCurrency": "JPY",
-      "colourVariants": [
-        {
-          "key": "white",
-          "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
-          "label": "White",
-          "notes": "",
-          "colour": "White",
-          "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/white/2.webp"
-          ],
-          "colourCode": "#F5F5F9",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
-        },
-        {
-          "key": "blue",
-          "image": "/images/wardrobe/ocbd-shirt/variants/blue/1.webp",
-          "label": "Blue",
-          "notes": "",
-          "colour": "Blue",
-          "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/blue/2.webp"
-          ],
-          "colourCode": "#BAC9EF",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
-        },
-        {
-          "key": "pink-stripe",
-          "image": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
-          "label": "Pink stripe",
-          "notes": "",
-          "colour": "Pink stripe",
-          "gallery": [],
-          "colourCode": "#EEE7E4",
-          "basicColour": "red",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
-        },
-        {
-          "key": "blue-striped",
-          "image": "/images/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
-          "label": "Blue striped",
-          "notes": "",
-          "colour": "Blue striped",
-          "gallery": [],
-          "colourCode": "#DCE1F5",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
-        }
-      ]
+      "priceCurrency": "JPY"
     }
   },
 
@@ -1870,7 +1814,6 @@ const WARDROBE_ITEMS = [
     "colourCode": "#5F5F62",
     "size": "XL",
     "purchaseDate": "2023-11-20",
-    "image": "/images/wardrobe/pleated-trousers/main/1.webp",
     "notes": "Fabric details\nBody: 62% Polyester - Recycled Fiber, 29% Viscose, 5% Polyester, 4% Elastane/ Pocket Lining: 65% Polyester, 35% Cotton\nWashing instructions\nMachine wash up to 40 degrees, gentle cycle, Dry Clean, Not suitable for tumble-drying.",
     "colourVariants": [
       {
@@ -1902,35 +1845,7 @@ const WARDROBE_ITEMS = [
     ],
     "metadata": {
       "price": 3990,
-      "priceCurrency": "JPY",
-      "colourVariants": [
-        {
-          "key": "grey",
-          "image": "/images/wardrobe/pleated-trousers/variants/grey/1.webp",
-          "label": "Grey",
-          "notes": "",
-          "colour": "Grey",
-          "gallery": [
-            "/images/wardrobe/pleated-trousers/variants/grey/2.webp"
-          ],
-          "colourCode": "#5F5F62",
-          "basicColour": "grey",
-          "previewImage": "/images/wardrobe/pleated-trousers/variants/grey/preview.webp"
-        },
-        {
-          "key": "beige",
-          "image": "/images/wardrobe/pleated-trousers/variants/beige/1.webp",
-          "label": "Beige",
-          "notes": "",
-          "colour": "Beige",
-          "gallery": [
-            "/images/wardrobe/pleated-trousers/variants/beige/2.webp"
-          ],
-          "colourCode": "#CEBEA6",
-          "basicColour": "beige",
-          "previewImage": "/images/wardrobe/pleated-trousers/variants/beige/preview.webp"
-        }
-      ]
+      "priceCurrency": "JPY"
     }
   },
 
