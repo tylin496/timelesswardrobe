@@ -7023,7 +7023,10 @@
       else if (!prevLocal && isLocal) urlByPath.set(key, u);
     };
 
-    if (cloudAuthoritative && cloudGal.length) {
+    // Cloud gallery is authoritative when explicitly preferred OR when it contains R2 absolute URLs
+    // (meaning the user uploaded new photos — these should replace seed local paths, not merge with them).
+    const cloudGalHasR2 = cloudGal.some((u) => /^https?:\/\//i.test(String(u ?? "").trim()));
+    if ((cloudAuthoritative || cloudGalHasR2) && cloudGal.length) {
       /* Cloud is authoritative: cloud paths are the *only* gallery; seed paths may only swap
        * the URL form (local → CDN) when their key already matches a cloud entry. Adding new
        * seed-only keys here would silently re-introduce photos the user just deleted on cloud. */
@@ -7476,8 +7479,12 @@
 
     const merged = { ...localRow, ...cloudRow, id: itemId };
 
-    const cloudImageInLocalSet = cloudImage && Boolean(lookupFrozenLocalWardrobePath(cloudImage));
-    if (isFileBackedLocalWardrobeUrl(seed, seedImage) && (staleMirror || !useCloudMedia || !cloudImageInLocalSet)) {
+    // `cloudImageInLocalSet` is only meaningful when the cloud image is a local path (not an R2/HTTP URL).
+    // R2 URLs are never in the frozen local set, so we must not treat them as "missing from local set".
+    const cloudImageIsLocalPath = cloudImage && !/^https?:\/\//i.test(cloudImage);
+    const cloudImageInLocalSet = cloudImageIsLocalPath && Boolean(lookupFrozenLocalWardrobePath(cloudImage));
+    const cloudImageMissingFromLocalSet = cloudImageIsLocalPath && !cloudImageInLocalSet;
+    if (isFileBackedLocalWardrobeUrl(seed, seedImage) && (staleMirror || !useCloudMedia || cloudImageMissingFromLocalSet)) {
       merged.image = seedImage;
     } else if (useCloudMedia && cloudImage) {
       merged.image = cloudImage;
