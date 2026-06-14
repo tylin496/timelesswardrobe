@@ -1442,7 +1442,11 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp"
     ],
+    "purchaseDate": "2014-03-10",
+    "notes": "Originally owned by my father.",
     "metadata": {
+      "price": 570,
+      "priceCurrency": "USD",
       "secondaryColour": "Gold",
       "secondaryColourCode": "#C9A84C"
     }
