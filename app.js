@@ -15396,12 +15396,24 @@
     const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
+    if (/^\/?images\//i.test(bust)) {
+      return withVercelImageOptimization(bust, frame.width, frame.quality) || bust;
+    }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
       item,
       resize: frame.resize === "contain" ? "contain" : "cover",
       quality: frame.quality,
       zoom: typeof frame.zoom === "number" && frame.zoom > 1 && frame.zoom <= 3 ? frame.zoom : undefined,
     });
+  }
+
+  function withVercelImageOptimization(url, width, quality) {
+    try { if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return ""; } catch { return ""; }
+    const ALLOWED = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
+    const w = ALLOWED.find((s) => s >= Math.ceil(width)) ?? ALLOWED[ALLOWED.length - 1];
+    const q = typeof quality === "number" && Number.isFinite(quality) ? Math.min(100, Math.max(20, Math.round(quality))) : 80;
+    const path = url.startsWith("/") ? url : "/" + url;
+    return `/_vercel/image?url=${encodeURIComponent(path)}&w=${w}&q=${q}`;
   }
 
   /**
