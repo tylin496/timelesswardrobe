@@ -6885,8 +6885,9 @@
     if (!file) return "";
     const path = wardrobeImageStorageObjectPath(itemId, file, slot);
 
-    // Get Supabase session token for Worker auth
-    const session = supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null;
+    // Get Supabase session token for Worker auth — refresh to avoid expired cached tokens
+    const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
+    const session = refreshed?.data?.session ?? (supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null);
     const token = session?.access_token || "";
     if (!token) throw new Error("Not authenticated.");
 
@@ -17345,7 +17346,7 @@
             imageAspectRatioMatchesCrop(dims.width, dims.height) &&
             !imageSourceLooksAlphaCapable(file)
           ) {
-            resolve(await exportItemPhotoToCropFrame(file));
+            resolve(file);
             return;
           }
         } catch (err) {
@@ -18504,9 +18505,7 @@
           } catch (err) {
             console.warn(err);
             const where = i === 0 ? "cover" : `gallery image #${i}`;
-            setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this existing photo.`, true);
-            if (i === 0 && opts.keepCoverOnFailure && prevCover) image = prevCover;
-            continue;
+            throw new Error(messageForCloudUploadFailure(where, err));
           }
         } else {
           url = String(plan.url ?? plan.source.url ?? "").trim();
@@ -18526,11 +18525,7 @@
                 ? `variant cover (${variantKey})`
                 : "main cover"
               : `gallery image #${i}`;
-          setMsg(`${messageForCloudUploadFailure(where, err)} — skipped this file.`, true);
-          if (i === 0 && opts.keepCoverOnFailure && prevCover) {
-            image = prevCover;
-          }
-          continue;
+          throw new Error(messageForCloudUploadFailure(where, err));
         }
       }
       if (!url) continue;
