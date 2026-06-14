@@ -893,7 +893,7 @@ const WARDROBE_ITEMS = [
     "fabric": "Knit",
     "weight": "Lightweight",
     "size": "XL",
-    "measuredDimensions": "Measurements: XL\t72.0cm\t48.0cm\t120.0cm\t118.0cm\t53.0cm\t27.5cm\t51.5cm\t106.0cm\t60.0cm\t59.0cm cm",
+    "measuredDimensions": "Measurements: XL\t72.0cm\t48.0cm\t120.0cm\t118.0cm\t53.0cm\t27.5cm\t51.5cm\t106.0cm\t60.0cm\t59.0cm",
     "purchaseDate": "2025-04-07",
     "image": "/images/wardrobe/fine-knit-t-shirt/main/1.webp",
     "gallery": [
@@ -1947,7 +1947,7 @@ const WARDROBE_ITEMS = [
     "colourCode": "#3b2425",
     "fabric": "Green Photochromic Lenses",
     "weight": "ZF192014",
-    "measuredDimensions": "Lens width: 52 mm cm cm\nBridge width: 20 mm cm cm\nTemple length: 145 mm cm cm",
+    "measuredDimensions": "Lens width: 52 mm\nBridge width: 20 mm\nTemple length: 145 mm",
     "purchaseDate": "2025-02-28",
     "image": "/images/wardrobe/boston-metal-frames/main/1.webp",
     "gallery": [
@@ -1962,15 +1962,18 @@ const WARDROBE_ITEMS = [
       "measurementRows": [
         {
           "label": "Lens width",
-          "value": "52 mm cm"
+          "value": "52",
+          "unit": "mm"
         },
         {
           "label": "Bridge width",
-          "value": "20 mm cm"
+          "value": "20",
+          "unit": "mm"
         },
         {
           "label": "Temple length",
-          "value": "145 mm cm"
+          "value": "145",
+          "unit": "mm"
         }
       ],
       "secondaryColour": "Gold",
@@ -2087,7 +2090,7 @@ const WARDROBE_ITEMS = [
     "colour": "Bleached White",
     "colourCode": "#fffced",
     "size": "XL:61cm-1cm",
-    "measuredDimensions": "Head Circumference: 61 cm cm cm\nBrim Width: 7 cm cm cm\nFront Crown Height: 9.7 cm cm cm\nCenter Crown Height: 10.7 cm cm cm\nOverall Length: 31.5 cm cm cm",
+    "measuredDimensions": "Head Circumference: 61 cm\nBrim Width: 7 cm\nFront Crown Height: 9.7 cm\nCenter Crown Height: 10.7 cm\nOverall Length: 31.5 cm",
     "purchaseDate": "2025-05-11",
     "image": "/images/wardrobe/panama-hat/main/1.webp",
     "gallery": [
@@ -2103,23 +2106,23 @@ const WARDROBE_ITEMS = [
       "measurementRows": [
         {
           "label": "Head Circumference",
-          "value": "61 cm cm"
+          "value": "61"
         },
         {
           "label": "Brim Width",
-          "value": "7 cm cm"
+          "value": "7"
         },
         {
           "label": "Front Crown Height",
-          "value": "9.7 cm cm"
+          "value": "9.7"
         },
         {
           "label": "Center Crown Height",
-          "value": "10.7 cm cm"
+          "value": "10.7"
         },
         {
           "label": "Overall Length",
-          "value": "31.5 cm cm"
+          "value": "31.5"
         }
       ],
       "secondaryColour": "Black Grosgrain Ribbon"
@@ -2205,7 +2208,7 @@ const WARDROBE_ITEMS = [
     "season": "All-season",
     "colour": "Steel Blue",
     "colourCode": "#5E829A",
-    "measuredDimensions": "Circumference: 22.45 cm cm cm cm\nTop to Side: : 6.65 cm cm cm cm\nBrim: 2.9 cm cm cm cm",
+    "measuredDimensions": "Circumference: 22.45 cm\nTop to Side: 6.65 cm\nBrim: 2.9 cm",
     "purchaseDate": "2026-05-11",
     "image": "/images/wardrobe/american-flag-cap/main/1.webp",
     "gallery": [
@@ -2221,15 +2224,15 @@ const WARDROBE_ITEMS = [
       "measurementRows": [
         {
           "label": "Circumference",
-          "value": "22.45 cm cm cm"
+          "value": "22.45"
         },
         {
           "label": "Top to Side",
-          "value": ": 6.65 cm cm cm"
+          "value": "6.65"
         },
         {
           "label": "Brim",
-          "value": "2.9 cm cm cm"
+          "value": "2.9"
         }
       ]
     }
