@@ -4764,73 +4764,38 @@
     const toggle = sec.querySelector(".item-detail__notes-toggle");
     if (!(textEl instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) return;
 
-    const fullText = String(textEl.textContent ?? "");
-
-    const expand = () => {
-      textEl.textContent = fullText;
-      toggle.textContent = "Read less";
-      toggle.setAttribute("aria-expanded", "true");
-      toggle.hidden = false;
-      sec.appendChild(toggle);
-      sec.classList.add("item-detail__notes-section--expanded");
-      sec.classList.remove("item-detail__notes-section--collapsible");
-    };
-
-    const truncate = () => {
-      // Use CSS clamp temporarily to measure the target height.
-      textEl.textContent = fullText;
+    const sync = () => {
+      if (sec.classList.contains("item-detail__notes-section--expanded")) return;
       textEl.classList.add("item-detail__notes-text--clamped");
-      const clampedH = textEl.clientHeight;
-      textEl.classList.remove("item-detail__notes-text--clamped");
-
-      if (textEl.scrollHeight <= clampedH + 1) {
-        textEl.textContent = fullText;
+      const overflows = textEl.scrollHeight > textEl.clientHeight + 1;
+      if (!overflows) {
+        textEl.classList.remove("item-detail__notes-text--clamped");
         toggle.hidden = true;
         sec.classList.remove("item-detail__notes-section--collapsible");
         return;
       }
-
-      toggle.textContent = "Read more";
-      toggle.setAttribute("aria-expanded", "false");
       toggle.hidden = false;
-
-      // Binary-search for the longest prefix where prefix + "… " + toggle fits.
-      const fits = (n) => {
-        textEl.replaceChildren(
-          document.createTextNode(fullText.slice(0, n) + "… "),
-          toggle
-        );
-        return textEl.scrollHeight <= clampedH + 1;
-      };
-
-      let lo = 0, hi = fullText.length;
-      while (lo < hi - 1) {
-        const mid = Math.floor((lo + hi) / 2);
-        if (fits(mid)) lo = mid; else hi = mid;
-      }
-      fits(lo);
       sec.classList.add("item-detail__notes-section--collapsible");
     };
 
-    requestAnimationFrame(truncate);
+    requestAnimationFrame(sync);
     if (typeof ResizeObserver !== "undefined") {
       const ro = new ResizeObserver(() => {
-        if (!sec.classList.contains("item-detail__notes-section--expanded")) truncate();
+        if (!sec.classList.contains("item-detail__notes-section--expanded")) sync();
       });
       ro.observe(textEl);
     } else {
       globalThis.addEventListener("resize", () => {
-        if (!sec.classList.contains("item-detail__notes-section--expanded")) truncate();
+        if (!sec.classList.contains("item-detail__notes-section--expanded")) sync();
       }, { passive: true });
     }
 
     toggle.addEventListener("click", () => {
-      if (sec.classList.contains("item-detail__notes-section--expanded")) {
-        sec.classList.remove("item-detail__notes-section--expanded");
-        truncate();
-      } else {
-        expand();
-      }
+      const expanded = !sec.classList.contains("item-detail__notes-section--expanded");
+      sec.classList.toggle("item-detail__notes-section--expanded", expanded);
+      textEl.classList.toggle("item-detail__notes-text--clamped", !expanded);
+      toggle.textContent = expanded ? "Read less" : "Read more";
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
     });
   }
 

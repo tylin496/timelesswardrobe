@@ -18709,36 +18709,32 @@ a.item-detail__breadcrumb-current {
   white-space: pre-wrap;
 }
 
-/* Used only for height measurement during JS truncation — never displayed in clamped state. */
 .item-detail__notes-text--clamped {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
   overflow: hidden;
 }
 
 .item-detail__notes-toggle {
-  display: inline;
+  display: block;
+  @apply mt-2;
   padding: 0;
   border: none;
   background: none;
   font-family: var(--font-sans);
-  font-size: inherit;
+  font-size: 0.75rem;
   font-weight: 400;
-  line-height: inherit;
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--ink) 52%, transparent);
+  text-decoration: none;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-/* "Read less" sits on its own line after the full text. */
-.item-detail__notes-section--expanded .item-detail__notes-toggle {
-  display: block;
-  @apply mt-1;
+.item-detail__notes-toggle:hover {
+  color: var(--ink);
 }
 
 .item-detail__notes-head {
@@ -18788,10 +18784,6 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__root--page .item-detail__notes-section--collapsed .item-detail__notes-text[hidden] {
   display: none;
-}
-
-.item-detail__notes-toggle:hover {
-  color: color-mix(in srgb, var(--ink) 72%, var(--tw-brand-green));
 }
 
 .item-detail__notes-toggle:focus-visible {
