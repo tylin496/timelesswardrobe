@@ -16223,7 +16223,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   min-height: 0;
   min-width: 0;
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
