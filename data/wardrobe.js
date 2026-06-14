@@ -568,6 +568,7 @@ const WARDROBE_ITEMS = [
     "name": "GT1 Hardwood Umbrella",
     "season": "All-season",
     "colour": "Black",
+    "colourCode": "#000000",
     "purchaseDate": "2025-01-11",
     "image": "/images/wardrobe/gt1-hardwood-umbrella/main/1.webp",
     "gallery": [
@@ -590,6 +591,7 @@ const WARDROBE_ITEMS = [
     "name": "X100VI Camera",
     "season": "All-season",
     "colour": "Black",
+    "colourCode": "#000000",
     "purchaseDate": "2024-10-24",
     "image": "/images/wardrobe/x100vi-camera/main/1.webp",
     "gallery": [
@@ -653,7 +655,7 @@ const WARDROBE_ITEMS = [
     "name": "DW-5600E",
     "season": "All-season",
     "colour": "Black",
-    "colourCode": "#121212",
+    "colourCode": "#000000",
     "purchaseDate": "2020-04-09",
     "image": "/images/wardrobe/dw-5600e/main/1.webp",
     "gallery": [
@@ -897,6 +899,7 @@ const WARDROBE_ITEMS = [
     "name": "Meisterstück Classique Rollerball",
     "season": "All-season",
     "colour": "Black",
+    "colourCode": "#000000",
     "purchaseDate": "2022-02-20",
     "image": "/images/wardrobe/meisterstuck-classique-rollerball/main/1.webp",
     "gallery": [
@@ -1208,6 +1211,7 @@ const WARDROBE_ITEMS = [
     "name": "Knit Long-Sleeve Polo",
     "season": "A/W",
     "colour": "Black",
+    "colourCode": "#000000",
     "fabric": "Cotton",
     "size": "XXL",
     "purchaseDate": "2024-11-03",
@@ -1705,6 +1709,7 @@ const WARDROBE_ITEMS = [
     "name": "Rib Knit Roll-Neck Jumper",
     "season": "A/W",
     "colour": "Black",
+    "colourCode": "#000000",
     "fabric": "Wool",
     "weight": "Lightweight",
     "size": "XL",
