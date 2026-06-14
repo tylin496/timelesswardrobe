@@ -3261,6 +3261,124 @@
     editCard.appendChild(editBtn);
     body.appendChild(editCard);
 
+    // ── Notes bulk editor ──────────────────────────────────────────────────────
+    const notesCard = document.createElement("section");
+    notesCard.className = "account-card account-card--notes";
+    const notesH2 = document.createElement("h2");
+    notesH2.className = "account-card__title";
+    notesH2.textContent = "Notes";
+    notesCard.appendChild(notesH2);
+
+    const notesHintRow = document.createElement("div");
+    notesHintRow.className = "account-notes-header";
+    const notesHint = document.createElement("p");
+    notesHint.className = "account-card__hint";
+    const itemsWithNotes = items.filter((it) => String(it?.notes ?? "").trim());
+    notesHint.textContent = `${itemsWithNotes.length} piece${itemsWithNotes.length === 1 ? "" : "s"} with notes.`;
+    const copyAllBtn = document.createElement("button");
+    copyAllBtn.type = "button";
+    copyAllBtn.className = "btn btn--small account-notes-copy-btn";
+    copyAllBtn.textContent = "Copy all";
+    copyAllBtn.addEventListener("click", () => {
+      const allText = itemsWithNotes
+        .map((it) => `— ${String(it.name ?? "").trim()} —\n${String(it.notes ?? "").trim()}`)
+        .join("\n\n");
+      navigator.clipboard.writeText(allText).then(
+        () => {
+          const prev = copyAllBtn.textContent;
+          copyAllBtn.textContent = "Copied";
+          setTimeout(() => { copyAllBtn.textContent = prev; }, 1800);
+        },
+        () => { copyAllBtn.textContent = "Copy failed"; }
+      );
+    });
+    notesHintRow.append(notesHint, copyAllBtn);
+    notesCard.appendChild(notesHintRow);
+
+    const notesList = document.createElement("div");
+    notesList.className = "account-notes-list";
+
+    const allItems = [...items].sort((a, b) =>
+      String(a?.name ?? "").localeCompare(String(b?.name ?? ""), undefined, { sensitivity: "base" })
+    );
+
+    const notesFeedback = document.createElement("span");
+    notesFeedback.className = "account-notes-feedback";
+    notesFeedback.setAttribute("aria-live", "polite");
+
+    for (const it of allItems) {
+      const row = document.createElement("div");
+      row.className = "account-notes-row";
+      row.dataset.itemId = String(it.id ?? "");
+
+      const label = document.createElement("div");
+      label.className = "account-notes-row__label";
+      const nameLink = document.createElement("a");
+      nameLink.href = `#item/${encodeURIComponent(String(it.id ?? ""))}`;
+      nameLink.className = "account-notes-row__name";
+      nameLink.textContent = String(it.name ?? "").trim() || String(it.id ?? "");
+      const brandSpan = document.createElement("span");
+      brandSpan.className = "account-notes-row__brand";
+      brandSpan.textContent = String(it.brand ?? "").trim();
+      label.append(nameLink, brandSpan);
+
+      const textarea = document.createElement("textarea");
+      textarea.className = "account-notes-row__textarea";
+      textarea.value = String(it.notes ?? "").trim();
+      textarea.placeholder = "No notes";
+      textarea.rows = 3;
+      textarea.setAttribute("aria-label", `Notes for ${String(it.name ?? it.id ?? "")}`);
+      textarea.addEventListener("input", () => {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      });
+
+      const rowActions = document.createElement("div");
+      rowActions.className = "account-notes-row__actions";
+      const saveRowBtn = document.createElement("button");
+      saveRowBtn.type = "button";
+      saveRowBtn.className = "btn btn--small account-notes-row__save";
+      saveRowBtn.textContent = "Save";
+      saveRowBtn.addEventListener("click", async () => {
+        if (twAccountBusy) return;
+        const newNotes = textarea.value.trim();
+        if (newNotes === String(it.notes ?? "").trim()) {
+          notesFeedback.textContent = "No change.";
+          return;
+        }
+        twAccountBusy = true;
+        saveRowBtn.disabled = true;
+        notesFeedback.textContent = "Saving…";
+        try {
+          const patch = { ...it, notes: newNotes };
+          const saved = await saveWardrobeItemToCloud(patch);
+          upsertWardrobeBaseRowInMemory(saved);
+          it.notes = newNotes;
+          saveRowBtn.disabled = false;
+          notesFeedback.textContent = `Saved "${String(it.name ?? it.id ?? "")}".`;
+        } catch (err) {
+          console.warn("[account] notes save failed:", err);
+          notesFeedback.textContent = "Save failed — see console.";
+          saveRowBtn.disabled = false;
+        } finally {
+          twAccountBusy = false;
+        }
+      });
+      rowActions.appendChild(saveRowBtn);
+
+      row.append(label, textarea, rowActions);
+      notesList.appendChild(row);
+
+      // auto-size on mount
+      requestAnimationFrame(() => {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      });
+    }
+
+    notesCard.appendChild(notesList);
+    notesCard.appendChild(notesFeedback);
+    body.appendChild(notesCard);
   }
 
   function twSiteBaseUrl() {
