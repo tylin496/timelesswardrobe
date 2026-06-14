@@ -270,6 +270,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-12-06",
     "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
+      "/images/wardrobe/balmacaan-coat/main/2.webp",
       "/images/wardrobe/balmacaan-coat/main/3.webp",
       "/images/wardrobe/balmacaan-coat/main/4.webp"
     ],
@@ -1098,8 +1099,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/polo-bear-jumper/main/4.webp",
       "/images/wardrobe/polo-bear-jumper/main/5.webp",
       "/images/wardrobe/polo-bear-jumper/main/6.webp",
-      "/images/wardrobe/polo-bear-jumper/main/7.webp",
-      "/images/wardrobe/polo-bear-jumper/main/cover.webp"
+      "/images/wardrobe/polo-bear-jumper/main/7.webp"
     ],
     "metadata": {
       "price": 28000,
