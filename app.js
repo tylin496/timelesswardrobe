@@ -292,11 +292,12 @@
       }
     }
     /** A colour's gallery image must live under its own `variants/<key>/` folder. */
+    const normalizeVariantSegment = (s) => String(s ?? "").toLowerCase().replace(/\s+/g, "-");
     const galleryUrlIsForeignToVariant = (url, key) => {
       const p = String(url ?? "").split("?")[0];
       if (/\/main\/gallery\//.test(p)) return true;
       const m = p.match(/\/variants\/([^/]+)\//);
-      return Boolean(m && m[1] !== key);
+      return Boolean(m && normalizeVariantSegment(m[1]) !== normalizeVariantSegment(key));
     };
     const out = [];
     for (const v of raw) {
