@@ -15475,12 +15475,12 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   padding-top: 0.25rem;
 }
 
-.account-notes-feedback {
-  display: block;
-  margin-top: 0.75rem;
-  font-size: 0.78rem;
-  color: var(--ink-muted);
-  min-height: 1.2em;
+.account-notes-row__save[data-state="saved"] {
+  background: color-mix(in srgb, var(--ink) 70%, transparent);
+}
+
+.account-notes-row__save[data-state="error"] {
+  background: var(--sb-danger, #8b4545);
 }
 
 @media (max-width: 680px) {

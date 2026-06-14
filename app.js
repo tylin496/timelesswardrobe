@@ -3339,27 +3339,52 @@
       saveRowBtn.type = "button";
       saveRowBtn.className = "btn btn--small account-notes-row__save";
       saveRowBtn.textContent = "Save";
+      let saveResetTimer = 0;
+      const setSaveBtnState = (state) => {
+        clearTimeout(saveResetTimer);
+        saveRowBtn.removeAttribute("data-state");
+        if (state === "saving") {
+          saveRowBtn.textContent = "Saving…";
+          saveRowBtn.disabled = true;
+        } else if (state === "saved") {
+          saveRowBtn.textContent = "Saved";
+          saveRowBtn.dataset.state = "saved";
+          saveRowBtn.disabled = false;
+          saveResetTimer = setTimeout(() => {
+            saveRowBtn.textContent = "Save";
+            saveRowBtn.removeAttribute("data-state");
+          }, 2000);
+        } else if (state === "error") {
+          saveRowBtn.textContent = "Failed";
+          saveRowBtn.dataset.state = "error";
+          saveRowBtn.disabled = false;
+          saveResetTimer = setTimeout(() => {
+            saveRowBtn.textContent = "Save";
+            saveRowBtn.removeAttribute("data-state");
+          }, 3000);
+        } else {
+          saveRowBtn.textContent = "Save";
+          saveRowBtn.disabled = false;
+        }
+      };
       saveRowBtn.addEventListener("click", async () => {
         if (twAccountBusy) return;
         const newNotes = textarea.value.trim();
         if (newNotes === String(it.notes ?? "").trim()) {
-          notesFeedback.textContent = "No change.";
+          setSaveBtnState("saved");
           return;
         }
         twAccountBusy = true;
-        saveRowBtn.disabled = true;
-        notesFeedback.textContent = "Saving…";
+        setSaveBtnState("saving");
         try {
           const patch = { ...it, notes: newNotes };
           const saved = await saveWardrobeItemToCloud(patch);
           upsertWardrobeBaseRowInMemory(saved);
           it.notes = newNotes;
-          saveRowBtn.disabled = false;
-          notesFeedback.textContent = `Saved "${String(it.name ?? it.id ?? "")}".`;
+          setSaveBtnState("saved");
         } catch (err) {
           console.warn("[account] notes save failed:", err);
-          notesFeedback.textContent = "Save failed — see console.";
-          saveRowBtn.disabled = false;
+          setSaveBtnState("error");
         } finally {
           twAccountBusy = false;
         }
@@ -3377,7 +3402,6 @@
     }
 
     notesCard.appendChild(notesList);
-    notesCard.appendChild(notesFeedback);
     body.appendChild(notesCard);
   }
 
