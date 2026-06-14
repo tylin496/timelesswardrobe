@@ -12355,7 +12355,7 @@
       return () => {};
     }
     if (isItemPageDesktopHoverZoom()) {
-      return wireItemDetailHeroDesktopZoomPan(media, heroImg, { plusCursor: false });
+      return wireItemDetailHeroDesktopZoomPan(media, heroImg, { plusCursor: true });
     }
     return () => {};
   }
