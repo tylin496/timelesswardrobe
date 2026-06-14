@@ -15554,7 +15554,13 @@
   /** Ordered PDP / hero frames: cover first, then gallery extras (deduped). */
   function itemDetailGalleryFrames(item) {
     const cover = buildCoverCandidates(item)[0] ?? "";
-    const extras = resolvedItemGalleryList(item).filter(isDisplayableCloudImageUrl);
+    const extrasRaw = resolvedItemGalleryList(item).filter(isDisplayableCloudImageUrl);
+    const isLocalPath = (u) => /^\/?images\//i.test(String(u).split("?")[0]);
+    const localBasename = (u) => String(u).split("?")[0].replace(/.*\//, "");
+    const allLocal = extrasRaw.every(isLocalPath);
+    const extras = allLocal
+      ? [...extrasRaw].sort((a, b) => localBasename(a).localeCompare(localBasename(b), undefined, { numeric: true, sensitivity: "base" }))
+      : extrasRaw;
     /** @type {{ url: string, label: string }[]} */
     const frames = [];
     const seen = new Set();
