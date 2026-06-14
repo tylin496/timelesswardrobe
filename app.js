@@ -4707,8 +4707,9 @@
       .map((r) => {
         const L = String(r.label ?? "").trim();
         const V = String(r.value ?? "").trim();
-        if (L && V) return `${L} ${V} ${u}`;
-        return L || (V ? `${V} ${u}` : "");
+        const unitInV = V && /\b(mm|cm|in|inch|inches|")\b/i.test(V);
+        if (L && V) return unitInV ? `${L} ${V}` : `${L} ${V} ${u}`;
+        return L || (V ? (unitInV ? V : `${V} ${u}`) : "");
       })
       .filter(Boolean)
       .join(" · ");
@@ -4741,7 +4742,8 @@
         const dt = document.createElement("dt");
         const dd = document.createElement("dd");
         dt.textContent = L || "—";
-        dd.textContent = V ? `${V} ${uDisp}` : "—";
+        const unitAlreadyPresent = V && /\b(mm|cm|in|inch|inches|")\b/i.test(V);
+        dd.textContent = V ? (unitAlreadyPresent ? V : `${V} ${uDisp}`) : "—";
         dl.appendChild(dt);
         dl.appendChild(dd);
       }
