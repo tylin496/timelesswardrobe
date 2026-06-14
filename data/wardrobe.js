@@ -271,8 +271,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
       "/images/wardrobe/balmacaan-coat/main/2.webp",
-      "/images/wardrobe/balmacaan-coat/main/3.webp",
-      "/images/wardrobe/balmacaan-coat/main/4.webp"
+      "/images/wardrobe/balmacaan-coat/main/3.webp"
     ],
     "metadata": {
       "price": 83.99,
