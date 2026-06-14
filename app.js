@@ -6873,38 +6873,35 @@
    * @param {string} itemId
    * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string } | { type: "variant_gallery", key: string, index: number }} slot
    */
+  const R2_UPLOAD_WORKER_URL = "https://timeless-wardrobe-upload.tylin496.workers.dev";
+
   async function uploadWardrobeImageFileToCloud(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
-    if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
     if (!file) return "";
     const path = wardrobeImageStorageObjectPath(itemId, file, slot);
 
-    const error = await uploadWardrobeImageFileWithRetry(path, file, {
-      cacheControl: "31536000",
-      upsert: true,
-      contentType: file.type || `image/${fileExtensionFromFile(file)}`,
+    // Get Supabase session token for Worker auth
+    const session = supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null;
+    const token = session?.access_token || "";
+    if (!token) throw new Error("Not authenticated.");
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("path", path);
+
+    const res = await fetch(R2_UPLOAD_WORKER_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
     });
-    if (error) {
-      const where =
-        slot?.type === "main_cover"
-          ? "main cover"
-          : slot?.type === "main_gallery"
-            ? `main gallery #${Math.max(1, Math.floor(Number(slot.index) || 1))}`
-            : slot?.type === "variant_cover"
-              ? `variant cover (${String(slot.key ?? "").trim() || "unknown key"})`
-              : slot?.type === "variant_preview"
-                ? `variant preview (${String(slot.key ?? "").trim() || "unknown key"})`
-                : "image";
-      const detail = formatSupabaseUserMessage(error);
-      throw new Error(
-        `Supabase Storage upload failed at ${where} [${WARDROBE_IMAGE_BUCKET}/${path}]${detail ? `: ${detail}` : ""}`
-      );
+
+    if (!res.ok) {
+      const msg = await res.text().catch(() => String(res.status));
+      throw new Error(`R2 upload failed: ${msg}`);
     }
 
-    await deleteWardrobeImageSiblingExtensions(path);
+    const { url } = await res.json();
     await mirrorWardrobeImageFileToLocalDevServer(file, path);
-
-    const { data } = supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).getPublicUrl(path);
-    return data?.publicUrl || "";
+    return url || "";
   }
 
   /** Derive a stable cache-bust token from a local `/images/wardrobe/…` path (incl. `*-cover-edit` filenames). */
