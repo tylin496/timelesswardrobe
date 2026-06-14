@@ -7523,6 +7523,17 @@
     if (seed?.colourVariants) merged.colourVariants = seed.colourVariants;
     if (seed?.colourCode) merged.colourCode = seed.colourCode;
     if (seed?.colour) merged.colour = seed.colour;
+    const seedMeta = seed?.metadata;
+    if (seedMeta?.secondaryColourCode) {
+      merged.secondaryColourCode = seedMeta.secondaryColourCode;
+      merged.secondary_colour_code = seedMeta.secondaryColourCode;
+      if (merged.metadata && typeof merged.metadata === "object") merged.metadata.secondaryColourCode = seedMeta.secondaryColourCode;
+    }
+    if (seedMeta?.secondaryColour) {
+      merged.secondaryColour = seedMeta.secondaryColour;
+      merged.secondary_colour = seedMeta.secondaryColour;
+      if (merged.metadata && typeof merged.metadata === "object") merged.metadata.secondaryColour = seedMeta.secondaryColour;
+    }
     return merged;
   }
 
