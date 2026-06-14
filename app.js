@@ -15971,6 +15971,26 @@
       thumbsEl.appendChild(btn);
     });
 
+    if (multi) {
+      const makeNav = (dir) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `item-detail__gallery-nav item-detail__gallery-nav--${dir}`;
+        btn.setAttribute("aria-label", dir === "prev" ? "Previous photo" : "Next photo");
+        const glyph = document.createElement("span");
+        glyph.className = "item-detail__gallery-nav__glyph";
+        glyph.setAttribute("aria-hidden", "true");
+        btn.appendChild(glyph);
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFrame(currentIndex + (dir === "prev" ? -1 : 1), true);
+        });
+        return btn;
+      };
+      stageEl.appendChild(makeNav("prev"));
+      stageEl.appendChild(makeNav("next"));
+    }
 
     if (pdpMobileCarousel) {
       wireIndexLockedHorizontalGallerySnap(pdpMobileCarousel, stageEl, {
