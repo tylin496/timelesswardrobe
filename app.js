@@ -7470,7 +7470,8 @@
 
     const merged = { ...localRow, ...cloudRow, id: itemId };
 
-    if (isFileBackedLocalWardrobeUrl(seed, seedImage) && (staleMirror || !useCloudMedia)) {
+    const cloudImageInLocalSet = cloudImage && Boolean(lookupFrozenLocalWardrobePath(cloudImage));
+    if (isFileBackedLocalWardrobeUrl(seed, seedImage) && (staleMirror || !useCloudMedia || !cloudImageInLocalSet)) {
       merged.image = seedImage;
     } else if (useCloudMedia && cloudImage) {
       merged.image = cloudImage;
@@ -7520,8 +7521,8 @@
     if (
       isFileBackedLocalWardrobeUrl(row, localImage) &&
       patchImage &&
-      /^https?:\/\//i.test(patchImage.split("?")[0]) &&
-      !allowRemoteMediaOverride
+      !allowRemoteMediaOverride &&
+      (/^https?:\/\//i.test(patchImage.split("?")[0]) || !lookupFrozenLocalWardrobePath(patchImage))
     ) {
       merged.image = localImage;
     }
@@ -15393,8 +15394,11 @@
     const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
-    if (/^\/?images\//i.test(bust) || bust.includes("r2.dev")) {
+    if (bust.includes("r2.dev")) {
       return withVercelImageOptimization(bust, frame.width, frame.quality) || bust;
+    }
+    if (/^\/?images\//i.test(bust)) {
+      return bust;
     }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
       item,
