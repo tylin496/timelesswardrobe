@@ -4247,10 +4247,10 @@
     brown: "#7b5835",
     red: "#b73a3a",
     white: "#f4f4f1",
-    black: "#1b1b1b",
+    black: "#000000",
     beige: "#d1bfa3",
     gold: GOLD_BASIC_COLOUR_HEX,
-    silver: "#E8E8E8",
+    silver: "#A8AAAD",
     green: "#4f7b56",
     grey: "#8d8e95",
   };
