@@ -7099,16 +7099,7 @@
      */
     if (getItemColourVariants(item)) return base;
     if (!id || !isLocalCatalogueItemId(id)) return base;
-    const ov = loadCollectionOverrides()[id];
-    if (
-      Number(/** @type {any} */ (ov?.__mediaEditedAt)) > 0 &&
-      Array.isArray(ov?.gallery)
-    ) {
-      return dedupeGalleryUrls(
-        String(item?.image ?? "").trim(),
-        ov.gallery.map((x) => String(x ?? "").trim()).filter(Boolean)
-      );
-    }
+    // Local catalogue items: seed gallery is source of truth (set by applyCollectionOverrideToRow).
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === id);
     if (cloudRow) return base;
     if (!isSupabaseReady()) return mergeMissingFrozenSeedGalleryPaths(id, base);
