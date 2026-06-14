@@ -15393,7 +15393,7 @@
     const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
-    if (/^\/?images\//i.test(bust)) {
+    if (/^\/?images\//i.test(bust) || bust.includes("r2.dev")) {
       return withVercelImageOptimization(bust, frame.width, frame.quality) || bust;
     }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
@@ -15409,8 +15409,8 @@
     const ALLOWED = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
     const w = ALLOWED.find((s) => s >= Math.ceil(width)) ?? ALLOWED[ALLOWED.length - 1];
     const q = typeof quality === "number" && Number.isFinite(quality) ? Math.min(100, Math.max(20, Math.round(quality))) : 80;
-    const path = url.startsWith("/") ? url : "/" + url;
-    return `/_vercel/image?url=${encodeURIComponent(path)}&w=${w}&q=${q}`;
+    const encoded = url.startsWith("http") ? encodeURIComponent(url) : encodeURIComponent(url.startsWith("/") ? url : "/" + url);
+    return `/_vercel/image?url=${encoded}&w=${w}&q=${q}`;
   }
 
   /**
