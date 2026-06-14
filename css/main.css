@@ -17389,8 +17389,8 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
 
 .measured-dims-row {
   display: grid;
-  /* Label | value | delete | add — fixed icon columns keep trash aligned on every row. */
-  grid-template-columns: minmax(6.5rem, 1fr) 5.5rem 2rem 2rem;
+  /* Label | value | unit | delete | add */
+  grid-template-columns: minmax(6.5rem, 1fr) 5rem 3.5rem 2rem 2rem;
   gap: 0.35rem 0.5rem;
   align-items: center;
 }
@@ -17402,6 +17402,16 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
+}
+
+.measured-dims-row__unit {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.28rem 0.2rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  text-align: center;
 }
 
 .measured-dims-row__remove-slot,

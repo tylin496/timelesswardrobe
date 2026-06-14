@@ -4365,22 +4365,25 @@
   /** Default label placeholders for empty measurement editors (not saved until value entered). */
   const DEFAULT_MEASUREMENT_LABEL_PLACEHOLDERS = ["Shoulder", "Chest", "Sleeve", "Length"];
 
+  const MEASUREMENT_UNITS = ["cm", "mm", "in", "g", "ct"];
+
   function parseMeasurementUnitInput(raw) {
-    return String(raw ?? "").trim().toLowerCase() === "mm" ? "mm" : "cm";
+    const v = String(raw ?? "").trim().toLowerCase();
+    return MEASUREMENT_UNITS.includes(v) ? v : "cm";
   }
 
   /**
    * @param {object} item
-   * @returns {"cm" | "mm"}
+   * @returns {string}
    */
   function getMeasurementUnit(item) {
     if (!item || typeof item !== "object") return "cm";
     const top = String(item.measurementUnit ?? "").trim().toLowerCase();
-    if (top === "mm") return "mm";
+    if (MEASUREMENT_UNITS.includes(top)) return top;
     const meta =
       item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
     const fromMeta = String(meta?.measurementUnit ?? meta?.measurement_unit ?? "").trim().toLowerCase();
-    if (fromMeta === "mm") return "mm";
+    if (MEASUREMENT_UNITS.includes(fromMeta)) return fromMeta;
     return "cm";
   }
 
@@ -4395,7 +4398,8 @@
       if (!x || typeof x !== "object") continue;
       const label = String(/** @type {any} */ (x).label ?? /** @type {any} */ (x).name ?? "").trim();
       const value = String(/** @type {any} */ (x).value ?? /** @type {any} */ (x).cm ?? "").trim();
-      if (label || value) out.push({ label, value });
+      const unit = String(/** @type {any} */ (x).unit ?? "").trim().toLowerCase();
+      if (label || value) out.push({ label, value, ...(unit ? { unit } : {}) });
     }
     return out;
   }
@@ -4451,15 +4455,18 @@
    * @param {"cm" | "mm"} [unit]
    */
   function measurementRowsToSummaryString(rows, unit = "cm") {
-    const u = parseMeasurementUnitInput(unit);
+    const fallbackU = parseMeasurementUnitInput(unit);
     return cleanMeasurementRows(rows)
       .filter((r) => String(r.value ?? "").trim())
       .map((r) => {
         const L = String(r.label ?? "").trim();
         const V = String(r.value ?? "").trim();
-        if (L && V) return `${L}: ${V} ${u}`;
+        const u = String(/** @type {any} */ (r).unit ?? "").trim() || fallbackU;
+        const unitInV = /\b(mm|cm|in|g|ct|inch|inches|")\b/i.test(V);
+        const valStr = unitInV ? V : `${V} ${u}`;
+        if (L && V) return `${L}: ${valStr}`;
         if (L) return L;
-        return V ? `${V} ${u}` : "";
+        return V ? valStr : "";
       })
       .filter(Boolean)
       .join("\n");
@@ -4506,7 +4513,8 @@
     for (const row of dyn.querySelectorAll(".measured-dims-row[data-tw-meas-row]")) {
       const label = row.querySelector(".measured-dims-row__label")?.value?.trim() ?? "";
       const value = row.querySelector(".measured-dims-row__value")?.value?.trim() ?? "";
-      if (value) out.push({ label, value });
+      const unit = row.querySelector(".measured-dims-row__unit")?.value?.trim() ?? "";
+      if (value) out.push({ label, value, ...(unit ? { unit } : {}) });
     }
     return out;
   }
@@ -4534,7 +4542,7 @@
     unitSel.id = id;
     unitSel.setAttribute("aria-label", "Measurement unit");
     const u0 = parseMeasurementUnitInput(initialUnit);
-    for (const u of ["cm", "mm"]) {
+    for (const u of MEASUREMENT_UNITS) {
       const o = document.createElement("option");
       o.value = u;
       o.textContent = u;
@@ -4620,7 +4628,7 @@
       if (addSlot instanceof HTMLElement) addSlot.appendChild(addBtn);
     }
 
-    function appendRow(label = "", value = "", labelPlaceholder = "") {
+    function appendRow(label = "", value = "", labelPlaceholder = "", unit = "") {
       const row = document.createElement("div");
       row.className = "measured-dims-row";
       row.dataset.twMeasRow = "1";
@@ -4644,9 +4652,20 @@
       valIn.type = "text";
       valIn.className = "measured-dims-row__value";
       valIn.maxLength = 80;
-      valIn.placeholder = unitSel ? parseMeasurementUnitInput(unitSel.value) : "cm";
+      valIn.placeholder = "value";
       valIn.autocomplete = "off";
       valIn.value = value;
+      const rowUnitSel = document.createElement("select");
+      rowUnitSel.className = "measured-dims-row__unit";
+      rowUnitSel.setAttribute("aria-label", "Unit");
+      const rowInitialUnit = parseMeasurementUnitInput(unit || (unitSel ? unitSel.value : "cm"));
+      for (const u of MEASUREMENT_UNITS) {
+        const o = document.createElement("option");
+        o.value = u;
+        o.textContent = u;
+        if (u === rowInitialUnit) o.selected = true;
+        rowUnitSel.appendChild(o);
+      }
       const rm = createItemEditIconButton(
         "item-edit-icon-btn--compact measured-dims-row__remove",
         TW_ITEM_EDIT_ICON.trash,
@@ -4662,7 +4681,7 @@
       rmSlot.appendChild(rm);
       const addSlot = document.createElement("div");
       addSlot.className = "measured-dims-row__add-slot";
-      row.append(labIn, valIn, rmSlot, addSlot);
+      row.append(labIn, valIn, rowUnitSel, rmSlot, addSlot);
       dyn.appendChild(row);
       syncAddBtnPlacement();
     }
@@ -4671,7 +4690,8 @@
       appendRow(
         String(r.label ?? "").trim(),
         String(r.value ?? "").trim(),
-        String(/** @type {{ labelPlaceholder?: string }} */ (r).labelPlaceholder ?? "").trim()
+        String(/** @type {{ labelPlaceholder?: string }} */ (r).labelPlaceholder ?? "").trim(),
+        String(/** @type {any} */ (r).unit ?? "").trim()
       );
     }
 
@@ -4707,9 +4727,10 @@
       .map((r) => {
         const L = String(r.label ?? "").trim();
         const V = String(r.value ?? "").trim();
-        const unitInV = V && /\b(mm|cm|in|inch|inches|")\b/i.test(V);
-        if (L && V) return unitInV ? `${L} ${V}` : `${L} ${V} ${u}`;
-        return L || (V ? (unitInV ? V : `${V} ${u}`) : "");
+        const rowU = String(/** @type {any} */ (r).unit ?? "").trim() || u;
+        const unitInV = V && /\b(mm|cm|in|g|ct|inch|inches|")\b/i.test(V);
+        if (L && V) return unitInV ? `${L} ${V}` : `${L} ${V} ${rowU}`;
+        return L || (V ? (unitInV ? V : `${V} ${rowU}`) : "");
       })
       .filter(Boolean)
       .join(" · ");
@@ -4730,7 +4751,7 @@
     const uDisp = getMeasurementUnit(item);
     const h = document.createElement("h3");
     h.className = "item-detail__measurements-title";
-    h.textContent = `Measurements (${uDisp})`;
+    h.textContent = "Measurements";
     sec.appendChild(h);
     const dl = document.createElement("dl");
     dl.className = "item-detail__measurements-dl";
@@ -4742,8 +4763,9 @@
         const dt = document.createElement("dt");
         const dd = document.createElement("dd");
         dt.textContent = L || "—";
-        const unitAlreadyPresent = V && /\b(mm|cm|in|inch|inches|")\b/i.test(V);
-        dd.textContent = V ? (unitAlreadyPresent ? V : `${V} ${uDisp}`) : "—";
+        const rowUnit = String(/** @type {any} */ (r).unit ?? "").trim() || uDisp;
+        const unitAlreadyPresent = V && /\b(mm|cm|in|g|ct|inch|inches|")\b/i.test(V);
+        dd.textContent = V ? (unitAlreadyPresent ? V : `${V} ${rowUnit}`) : "—";
         dl.appendChild(dt);
         dl.appendChild(dd);
       }
@@ -5785,9 +5807,7 @@
 
   /** Outfit builder: clothing, shoes, watches, and accessories — jewellery and perfume stay collection-only. */
   function itemEligibleForOutfit(item) {
-    if (!item) return false;
-    const s = itemSlot(item);
-    return s === SLOT_CLOTHING || s === SLOT_WATCHES || s === SLOT_ACCESSORIES;
+    return Boolean(item);
   }
 
   /** Browse column order when viewing All (or a main tab without a record-type drill). */
@@ -16370,12 +16390,7 @@
   function pushOutfitSlot(slot) {
     const item = itemById.get(slot.itemId);
     if (!item) return;
-    if (!itemEligibleForOutfit(item)) {
-      showToast(
-        `Only clothing, shoes, watches, and accessories go on ${OUTFITS_UI_NAME.toLowerCase()} — jewellery and perfume stay in the collection.`
-      );
-      return;
-    }
+    if (!item) return;
     const k = outfitSlotKey(slot);
     if (outfitSlotKeySet().has(k)) {
       showToast(`This colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`);
@@ -24632,12 +24647,7 @@
       }
     }
 
-    if (!itemEligibleForOutfit(item)) {
-      const only = document.createElement("p");
-      only.className = "item-detail__collection-only";
-      only.textContent = "Collection entry — not used in the outfit builder.";
-      body.appendChild(only);
-    }
+
 
     const dl = document.createElement("dl");
     dl.className = "item-detail__meta" + (isItemPageView ? " item-detail__specs" : "");
