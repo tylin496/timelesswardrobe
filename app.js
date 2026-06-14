@@ -7797,18 +7797,22 @@
   function storagePathFromWardrobeImageUrl(url) {
     const s = String(url ?? "").trim().split("?")[0];
     if (!s || !/^https?:\/\//i.test(s)) return "";
+    // Supabase Storage public/signed URL
     const esc = WARDROBE_IMAGE_BUCKET.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(
       `/storage/v1/(?:object/public|object/sign|render/image/public)/${esc}/(.+)$`,
       "i"
     );
     const m = s.match(re);
-    if (!m) return "";
-    try {
-      return decodeURIComponent(m[1]);
-    } catch {
-      return m[1];
+    if (m) {
+      try { return decodeURIComponent(m[1]); } catch { return m[1]; }
     }
+    // Cloudflare R2 public URL (pub-*.r2.dev/<path>)
+    const r2m = s.match(/^https?:\/\/[^/]*\.r2\.dev\/(.+)$/i);
+    if (r2m) {
+      try { return decodeURIComponent(r2m[1]); } catch { return r2m[1]; }
+    }
+    return "";
   }
 
   /** Storage path from a Supabase URL or a local `/images/wardrobe/…` path. */
