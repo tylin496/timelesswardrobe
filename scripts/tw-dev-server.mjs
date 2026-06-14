@@ -320,6 +320,19 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     res.end();
     return;
   }
+  // Mirror vercel.json rewrites for clean URLs
+  const itemMatch = pathname.match(/^\/item\/(.+)$/);
+  if (itemMatch) {
+    res.writeHead(302, { Location: `/item.html?id=${encodeURIComponent(itemMatch[1])}` });
+    res.end();
+    return;
+  }
+  const editorialSlugMatch = pathname.match(/^\/editorial\/(.+)$/);
+  if (editorialSlugMatch) {
+    res.writeHead(302, { Location: `/editorial.html` });
+    res.end();
+    return;
+  }
   let rel = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
   if (pathname === "/item.html" || pathname === "/collection/item.html") {
     rel = "item.html";
