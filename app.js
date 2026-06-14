@@ -10233,14 +10233,6 @@
    * @param {object} item
    * @returns {string}
    */
-  function pickHighlightsPreferredGallerySrc(item) {
-    const itemId = String(item?.id ?? "").trim();
-    const galleryPool = homeEditorialGalleryPool(item);
-    if (!galleryPool.length) return "";
-    if (itemId === "balmacaan-coat") return galleryPool[0] || "";
-    return "";
-  }
-
   /**
    * Whole section uses one mode — never mix cutout covers with lifestyle gallery in the same row.
    * @param {object[]} items
@@ -10291,14 +10283,9 @@
 
       if (mode === "gallery") {
         const galleryPool = homeEditorialGalleryPool(item);
-        const preferred = pickHighlightsPreferredGallerySrc(item);
-        if (preferred) {
-          displaySrc = preferred;
-        } else {
-          const available = galleryPool.filter((u) => !usedUrls.has(u));
-          const pickFrom = available.length ? available : galleryPool;
-          displaySrc = pickWeightedHomeEditorialGalleryUrl(pickFrom, cover) || cover;
-        }
+        const available = galleryPool.filter((u) => !usedUrls.has(u));
+        const pickFrom = available.length ? available : galleryPool;
+        displaySrc = pickWeightedHomeEditorialGalleryUrl(pickFrom, cover) || cover;
         displayKind = "gallery";
       }
 
@@ -14430,9 +14417,7 @@
    */
   function mapJewelleryFutureToConcreteDrillKey(raw) {
     const r = String(raw ?? "").trim();
-    if (r === "Future") return "Jewellery";
-    if (r === "Jewellery" || r === "Jewellery") return "Jewellery";
-    if (r === "Necklace" || r === "Bracelet" || r === "Ring") return "Jewellery";
+    if (r === "Future" || r === "Jewellery" || r === "Necklace" || r === "Bracelet" || r === "Ring") return "Jewellery";
     return r;
   }
 
