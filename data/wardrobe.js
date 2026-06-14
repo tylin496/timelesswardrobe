@@ -893,6 +893,26 @@ const WARDROBE_ITEMS = [
   },
 
   {
+    "id": "meisterstuck-legrand-ballpoint-pen",
+    "category": "Objects",
+    "brand": "Montblanc",
+    "name": "Meisterstück LeGrand Ballpoint Pen",
+    "season": "All-season",
+    "colour": "Black",
+    "colourCode": "#000000",
+    "image": "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp",
+    "gallery": [
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp"
+    ],
+    "metadata": {
+      "secondaryColour": "Gold",
+      "secondaryColourCode": "#C9A84C"
+    }
+  },
+
+  {
     "id": "meisterstuck-classique-rollerball",
     "category": "Objects",
     "brand": "Montblanc",
