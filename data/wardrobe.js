@@ -31,8 +31,8 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Vicenza Seal",
         "gallery": [
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.png",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.png",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp",
+          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp",
           "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
           "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
           "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
@@ -171,8 +171,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-04",
     "image": "/images/wardrobe/ruby-gypsy-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ruby-gypsy-ring/main/2.jpg",
-      "/images/wardrobe/ruby-gypsy-ring/main/3.jpg"
+      "/images/wardrobe/ruby-gypsy-ring/main/2.webp",
+      "/images/wardrobe/ruby-gypsy-ring/main/3.webp"
     ],
     "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)       Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\n\nEngraving\nInscription: Ad Meliora . 2024\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
     "metadata": {
@@ -816,8 +816,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-01-01",
     "image": "/images/wardrobe/corduroy-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/corduroy-trousers/main/2.webp",
-      "/images/wardrobe/corduroy-trousers/main/cover.webp"
+      "/images/wardrobe/corduroy-trousers/main/2.webp"
     ],
     "metadata": {
       "price": 11000,
@@ -1328,7 +1327,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/black-bay-58/main/1.webp",
     "gallery": [
       "/images/wardrobe/black-bay-58/main/2.webp",
-      "/images/wardrobe/black-bay-58/main/3.jpg",
+      "/images/wardrobe/black-bay-58/main/3.webp",
       "/images/wardrobe/black-bay-58/main/4.webp"
     ],
     "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe Tudor Black Bay 58 draws heavily upon the visual language of the iconic Rolex Submariner 6538 ‘Big Crown’, from the red triangle at 12 o’clock to the restrained proportions that defined the finest diving watches of the 1950s. The gilt dial introduces a welcome warmth that sits comfortably alongside the gold pieces elsewhere in the collection. It remains the collection’s sole dedicated sports watch.",
