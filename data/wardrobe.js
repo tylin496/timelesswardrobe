@@ -519,7 +519,7 @@ const WARDROBE_ITEMS = [
         { "label": "Length", "value": "74" }
       ]
     }
-  }
+  },
 
   {
     "id": "polo-bear-jumper",
