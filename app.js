@@ -7517,14 +7517,21 @@
     const mediaEditedAt = Number(/** @type {any} */ (patch).__mediaEditedAt);
     const allowRemoteMediaOverride = Number.isFinite(mediaEditedAt) && mediaEditedAt > 0;
     const localImage = String(row.image ?? "").trim();
+    const seedImage = String(catalogueSeedRow(id)?.image ?? localImage).trim();
     const patchImage = String(patch.image ?? "").trim();
-    if (
-      isFileBackedLocalWardrobeUrl(row, localImage) &&
+    // Stale local path: matches /images/wardrobe/ but isn't in the frozen file set
+    const patchImageIsStaleLocal =
       patchImage &&
-      !allowRemoteMediaOverride &&
-      (/^https?:\/\//i.test(patchImage.split("?")[0]) || !lookupFrozenLocalWardrobePath(patchImage))
+      /^\/images\/wardrobe\//i.test(patchImage.split("?")[0]) &&
+      !lookupFrozenLocalWardrobePath(patchImage);
+    if (
+      isFileBackedLocalWardrobeUrl(row, seedImage) &&
+      patchImage &&
+      (patchImageIsStaleLocal ||
+        (!allowRemoteMediaOverride &&
+          (/^https?:\/\//i.test(patchImage.split("?")[0]) || !lookupFrozenLocalWardrobePath(patchImage))))
     ) {
-      merged.image = localImage;
+      merged.image = seedImage;
     }
     const localGallery = fileBackedLocalGalleryUrls(row);
     if (localGallery.length && !allowRemoteMediaOverride) {
@@ -7533,11 +7540,22 @@
       if (patchRemote) {
         const hybridGallery = mergeHybridCatalogueGallery(row, { id, gallery: patchGallery });
         merged.gallery = hybridGallery.length ? hybridGallery : [...localGallery];
+      } else {
+        // patch gallery has only relative/stale paths — restore seed gallery
+        const patchHasValidLocal = patchGallery.some((u) => Boolean(lookupFrozenLocalWardrobePath(String(u ?? ""))));
+        if (!patchHasValidLocal) merged.gallery = [...localGallery];
       }
     }
     if (allowRemoteMediaOverride && Array.isArray(patch.gallery)) {
+      // Filter out stale local paths before applying gallery override
+      const filteredGallery = patch.gallery.filter((u) => {
+        const s = String(u ?? "").trim();
+        if (/^https?:\/\//i.test(s.split("?")[0])) return true;
+        return Boolean(lookupFrozenLocalWardrobePath(s));
+      });
+      const effectiveGallery = filteredGallery.length ? filteredGallery : localGallery.length ? localGallery : patch.gallery;
       merged.gallery = normalizeGalleryFromDb(
-        dedupeGalleryUrls(String(merged.image ?? "").trim(), patch.gallery)
+        dedupeGalleryUrls(String(merged.image ?? "").trim(), effectiveGallery)
       );
     }
     return merged;
