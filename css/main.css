@@ -13558,6 +13558,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 0 6px 0 0;
   overflow-x: auto;
