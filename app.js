@@ -7519,7 +7519,8 @@
     // (name, price, notes, etc.) are still applied via the spread above.
     const seed = catalogueSeedRow(id);
     const localImage = String(row.image ?? "").trim();
-    if (localImage) merged.image = localImage;
+    const firstVariantImage = String(seed?.colourVariants?.[0]?.image ?? "").trim();
+    merged.image = localImage || firstVariantImage || merged.image;
     const localGallery = fileBackedLocalGalleryUrls(row);
     if (localGallery.length) merged.gallery = [...localGallery];
     if (seed?.colourVariants) merged.colourVariants = seed.colourVariants;
