@@ -18709,6 +18709,7 @@ a.item-detail__breadcrumb-current {
   white-space: pre-wrap;
 }
 
+/* Used only for height measurement during JS truncation — never displayed in clamped state. */
 .item-detail__notes-text--clamped {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -18717,34 +18718,27 @@ a.item-detail__breadcrumb-current {
   overflow: hidden;
 }
 
-.item-detail__root--page
-  .item-detail__notes-section--collapsible:not(.item-detail__notes-section--expanded)
-  .item-detail__notes-text--clamped {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
-}
-
-.item-detail__notes-section--expanded .item-detail__notes-text {
-  display: block;
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
-  overflow: visible;
-}
-
 .item-detail__notes-toggle {
-  @apply mt-2;
-  display: inline-block;
+  display: inline;
   padding: 0;
   border: none;
   background: none;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: inherit;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: inherit;
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 0.2em;
+  text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent);
   cursor: pointer;
+  white-space: nowrap;
+}
+
+/* "Read less" sits on its own line after the full text. */
+.item-detail__notes-section--expanded .item-detail__notes-toggle {
+  display: block;
+  @apply mt-1;
 }
 
 .item-detail__notes-head {
