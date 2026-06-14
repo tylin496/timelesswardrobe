@@ -1851,16 +1851,16 @@
 
   /** Refined swatch fills for collection grid tray (editorial, not literal product hues). */
   const LUXURY_SWATCH_HEX = {
-    blue: "#1f3554",
+    blue: "#1B3A6B",
     brown: "#6d4c3b",
     white: "#ede8e0",
-    black: "#121212",
+    black: "#000000",
     beige: "#c9b896",
     grey: "#8c9093",
     green: "#4d5a45",
     red: "#6b2d3b",
     gold: GOLD_BASIC_COLOUR_HEX,
-    silver: "#9ea2a8",
+    silver: "#A8AAAD",
   };
 
   /**
