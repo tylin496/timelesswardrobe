@@ -491,8 +491,91 @@ async function handleGetWardrobeStatus(_req, res) {
   });
 }
 
+/**
+ * Renames local wardrobe gallery files to canonical 1.webp, 2.webp, 3.webp… order.
+ * Body: { itemId: string, orderedPaths: string[] }
+ *   orderedPaths: full URL paths as stored (e.g. ["/images/wardrobe/item/main/2.webp", ...])
+ * Returns: { ok: true, image: string, gallery: string[] }
+ */
+async function handlePostWardrobeRenameGallery(req, res) {
+  let payload;
+  try {
+    payload = JSON.parse(await readRequestBody(req));
+  } catch {
+    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Invalid JSON");
+    return;
+  }
+
+  const itemId = String(payload?.itemId ?? "").trim();
+  const orderedPaths = Array.isArray(payload?.orderedPaths) ? payload.orderedPaths : [];
+  if (!itemId || !orderedPaths.length) {
+    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Expected { itemId, orderedPaths }");
+    return;
+  }
+
+  // Validate and resolve all paths
+  const imageWardrobeRoot = path.join(root, "images", "wardrobe");
+  const resolved = [];
+  for (const p of orderedPaths) {
+    const rel = String(p ?? "").trim().replace(/^\/+/, "");
+    if (!rel || rel.includes("\0") || !rel.startsWith("images/wardrobe/")) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end(`Invalid path: ${p}`);
+      return;
+    }
+    const abs = path.resolve(path.join(root, rel));
+    if (!abs.startsWith(path.resolve(imageWardrobeRoot) + path.sep)) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Path escapes wardrobe root");
+      return;
+    }
+    // All files must be in the same directory
+    if (resolved.length > 0 && path.dirname(abs) !== path.dirname(resolved[0])) {
+      res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("All paths must be in the same directory");
+      return;
+    }
+    resolved.push(abs);
+  }
+
+  const dir = path.dirname(resolved[0]);
+
+  try {
+    // Step 1: rename each file to a temp name to avoid conflicts
+    const tmpPaths = [];
+    for (let i = 0; i < resolved.length; i++) {
+      const tmp = path.join(dir, `__tw_tmp_${i}${path.extname(resolved[i])}`);
+      await fs.rename(resolved[i], tmp);
+      tmpPaths.push(tmp);
+    }
+    // Step 2: rename temp files to canonical 1.webp, 2.webp, ...
+    const finalPaths = [];
+    for (let i = 0; i < tmpPaths.length; i++) {
+      const ext = path.extname(tmpPaths[i]);
+      const canonical = path.join(dir, `${i + 1}${ext}`);
+      await fs.rename(tmpPaths[i], canonical);
+      finalPaths.push("/" + path.relative(root, canonical).replace(/\\/g, "/"));
+    }
+    jsonResponse(res, 200, {
+      ok: true,
+      image: finalPaths[0] ?? "",
+      gallery: finalPaths.slice(1),
+    });
+  } catch (e) {
+    console.error(e);
+    res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Rename failed");
+  }
+}
+
 const server = http.createServer((req, res) => {
   const pathname = req.url?.split("?")[0] || "";
+  if (req.method === "POST" && pathname === "/api/wardrobe/rename-gallery") {
+    void handlePostWardrobeRenameGallery(req, res);
+    return;
+  }
   if (req.method === "GET" && pathname === "/api/wardrobe/status") {
     void handleGetWardrobeStatus(req, res);
     return;

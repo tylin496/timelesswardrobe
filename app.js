@@ -6844,6 +6844,31 @@
     }
   }
 
+  /**
+   * After a reorder-only save on a local catalogue item, rename the local files to canonical
+   * 1.webp, 2.webp, … order so the filesystem stays in sync with the gallery sequence.
+   * Only called when ALL urls are local /images/wardrobe/ paths and the dev server is running.
+   */
+  async function renameLocalGalleryCanonically(itemId, image, gallery) {
+    const orderedPaths = [image, ...gallery];
+    const allLocal = orderedPaths.every((u) => typeof u === "string" && u.startsWith("/images/wardrobe/"));
+    if (!allLocal) return { image, gallery };
+    try {
+      const res = await fetch("/api/wardrobe/rename-gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, orderedPaths }),
+      });
+      if (!res.ok) return { image, gallery };
+      const data = await res.json();
+      if (!data?.ok) return { image, gallery };
+      return { image: String(data.image ?? image), gallery: Array.isArray(data.gallery) ? data.gallery : gallery };
+    } catch (err) {
+      console.warn("rename-gallery failed:", err);
+      return { image, gallery };
+    }
+  }
+
   async function mirrorWardrobeImageFileToLocalDevServer(file, storagePath) {
     if (!file || !storagePath) return false;
     try {
@@ -22976,6 +23001,11 @@
           });
           image = materialized.image;
           gallery = materialized.gallery;
+          if (isLocalCatalogueItemId(id) && image && !hadNewPhotoFiles) {
+            const renamed = await renameLocalGalleryCanonically(id, image, gallery);
+            image = renamed.image;
+            gallery = renamed.gallery;
+          }
         } else {
           setMsg(
             "Could not read the uploaded photo files. Remove them and upload again, then save.",
