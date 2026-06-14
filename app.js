@@ -7521,6 +7521,8 @@
     const localGallery = fileBackedLocalGalleryUrls(row);
     if (localGallery.length) merged.gallery = [...localGallery];
     if (seed?.colourVariants) merged.colourVariants = seed.colourVariants;
+    if (seed?.colourCode) merged.colourCode = seed.colourCode;
+    if (seed?.colour) merged.colour = seed.colour;
     return merged;
   }
 
