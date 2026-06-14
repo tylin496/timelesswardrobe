@@ -7517,21 +7517,23 @@
     const mediaEditedAt = Number(/** @type {any} */ (patch).__mediaEditedAt);
     const allowRemoteMediaOverride = Number.isFinite(mediaEditedAt) && mediaEditedAt > 0;
     const localImage = String(row.image ?? "").trim();
-    const seedImage = String(catalogueSeedRow(id)?.image ?? localImage).trim();
     const patchImage = String(patch.image ?? "").trim();
-    // Stale local path: matches /images/wardrobe/ but isn't in the frozen file set
+    // Stale local path: matches /images/wardrobe/ but absent from the frozen file set
     const patchImageIsStaleLocal =
       patchImage &&
       /^\/images\/wardrobe\//i.test(patchImage.split("?")[0]) &&
       !lookupFrozenLocalWardrobePath(patchImage);
-    if (
-      isFileBackedLocalWardrobeUrl(row, seedImage) &&
+    if (patchImageIsStaleLocal) {
+      // Restore canonical seed image regardless of allowRemoteMediaOverride
+      const seedImg = String(catalogueSeedRow(id)?.image ?? localImage).trim();
+      merged.image = isFileBackedLocalWardrobeUrl({ id }, seedImg) ? seedImg : localImage;
+    } else if (
+      isFileBackedLocalWardrobeUrl(row, localImage) &&
       patchImage &&
-      (patchImageIsStaleLocal ||
-        (!allowRemoteMediaOverride &&
-          (/^https?:\/\//i.test(patchImage.split("?")[0]) || !lookupFrozenLocalWardrobePath(patchImage))))
+      !allowRemoteMediaOverride &&
+      (/^https?:\/\//i.test(patchImage.split("?")[0]) || !lookupFrozenLocalWardrobePath(patchImage))
     ) {
-      merged.image = seedImage;
+      merged.image = localImage;
     }
     const localGallery = fileBackedLocalGalleryUrls(row);
     if (localGallery.length && !allowRemoteMediaOverride) {
@@ -7547,15 +7549,8 @@
       }
     }
     if (allowRemoteMediaOverride && Array.isArray(patch.gallery)) {
-      // Filter out stale local paths before applying gallery override
-      const filteredGallery = patch.gallery.filter((u) => {
-        const s = String(u ?? "").trim();
-        if (/^https?:\/\//i.test(s.split("?")[0])) return true;
-        return Boolean(lookupFrozenLocalWardrobePath(s));
-      });
-      const effectiveGallery = filteredGallery.length ? filteredGallery : localGallery.length ? localGallery : patch.gallery;
       merged.gallery = normalizeGalleryFromDb(
-        dedupeGalleryUrls(String(merged.image ?? "").trim(), effectiveGallery)
+        dedupeGalleryUrls(String(merged.image ?? "").trim(), patch.gallery)
       );
     }
     return merged;
