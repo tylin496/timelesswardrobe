@@ -15373,7 +15373,7 @@
     const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
-    if (bust.includes("r2.dev") || /^\/?images\//i.test(bust)) {
+    if (bust.includes("r2.dev")) {
       return withVercelImageOptimization(bust, frame.width, frame.quality) || bust;
     }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
