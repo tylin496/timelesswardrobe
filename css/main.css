@@ -15388,6 +15388,12 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 /* ── Notes bulk editor ─────────────────────────────────────────────────────── */
 
+.account-card--notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .account-notes-header {
   display: flex;
   align-items: baseline;
