@@ -4813,16 +4813,24 @@
     const sec = document.createElement("section");
     sec.className = "item-detail__notes-section";
     if (pdpAccordion) {
-      sec.classList.add("item-detail__notes-section--accordion", "item-detail__notes-section--expanded");
+      sec.classList.add("item-detail__notes-section--accordion");
       const h = document.createElement("h3");
       h.className = "item-detail__notes-h";
       h.textContent = "Notes";
       const textEl = document.createElement("div");
       textEl.className = "item-detail__notes-text";
       textEl.textContent = text;
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "item-detail__notes-toggle";
+      toggle.textContent = "Read more";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.hidden = true;
       sec.appendChild(h);
       sec.appendChild(textEl);
+      sec.appendChild(toggle);
       host.appendChild(sec);
+      wireItemDetailNotesReadMore(sec);
       return sec;
     }
 
