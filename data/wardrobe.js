@@ -433,6 +433,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-01",
     "image": "/images/wardrobe/golden-fleece-navy-blazer/main/1.webp",
     "gallery": [
+      "/images/wardrobe/golden-fleece-navy-blazer/main/2.PNG",
       "/images/wardrobe/golden-fleece-navy-blazer/main/3.webp",
       "/images/wardrobe/golden-fleece-navy-blazer/main/4.webp"
     ],
