@@ -543,8 +543,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/polo-bear-jumper/main/3.webp",
       "/images/wardrobe/polo-bear-jumper/main/4.webp",
       "/images/wardrobe/polo-bear-jumper/main/5.webp",
-      "/images/wardrobe/polo-bear-jumper/main/6.webp",
-      "/images/wardrobe/polo-bear-jumper/main/7.webp"
+      "/images/wardrobe/polo-bear-jumper/main/6.webp"
     ],
     "metadata": {
       "price": 28000,
