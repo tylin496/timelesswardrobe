@@ -1208,7 +1208,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-01-01",
     "image": "/images/wardrobe/corduroy-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/corduroy-trousers/main/2.webp"
+      "/images/wardrobe/corduroy-trousers/main/2.webp",
+      "/images/wardrobe/corduroy-trousers/main/3.webp",
+      "/images/wardrobe/corduroy-trousers/main/4.webp"
     ],
     "metadata": {
       "price": 11000,

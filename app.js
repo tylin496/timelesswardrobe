@@ -2145,6 +2145,14 @@
       const inCollectionGrid = Boolean(heroHost.closest("#grid"));
       const heroRender =
         heroHost.classList.contains("item-detail__media") ? ITEM_DETAIL_GALLERY_RENDER : COLLECTION_GRID_CARD_RENDER;
+      // Update active swatch BEFORE wireCoverImageWithFallbacks so that onResolved
+      // (which can fire synchronously for cached images) reads the correct active key
+      // when rebuilding the gallery stage via tw-collection-cover-change → syncNav.
+      sw.querySelectorAll(".card__swatch").forEach((node) => {
+        const nk = /** @type {HTMLElement} */ (node).dataset.variantKey;
+        node.classList.toggle("is-active", nk === String(colourKey));
+      });
+      updateColourLabelForKey(String(colourKey));
       wireCoverImageWithFallbacks(heroImg, projected, {
         host: heroHost,
         coverCandidates: inCollectionGrid ? buildCollectionGridCoverCandidates(projected) : undefined,
@@ -2174,11 +2182,6 @@
         remountItemDetailHeroGallery(heroHost, heroImg, projected);
       }
       heroImg.alt = imageAltForItem(projected);
-      sw.querySelectorAll(".card__swatch").forEach((node) => {
-        const nk = /** @type {HTMLElement} */ (node).dataset.variantKey;
-        node.classList.toggle("is-active", nk === String(colourKey));
-      });
-      updateColourLabelForKey(String(colourKey));
     }
 
     variants.forEach((v, idx) => {
