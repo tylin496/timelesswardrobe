@@ -7357,8 +7357,7 @@
     // Local catalogue items: seed gallery is source of truth (set by applyCollectionOverrideToRow).
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === id);
     if (cloudRow) return mergeMissingFrozenSeedGalleryPaths(id, base);
-    if (!isSupabaseReady()) return mergeMissingFrozenSeedGalleryPaths(id, base);
-    return base;
+    return mergeMissingFrozenSeedGalleryPaths(id, base);
   }
 
   /**
