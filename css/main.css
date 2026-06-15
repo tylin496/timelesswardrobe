@@ -15391,17 +15391,18 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 .account-card--notes {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0;
 }
 
-.account-notes-header {
+.account-notes-title-row {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.account-notes-header .account-card__hint {
+.account-notes-title-row .account-card__title {
   margin: 0;
   flex: 1;
 }

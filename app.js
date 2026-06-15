@@ -3240,17 +3240,13 @@
     // ── Notes bulk editor ──────────────────────────────────────────────────────
     const notesCard = document.createElement("section");
     notesCard.className = "account-card account-card--notes";
+
+    const notesHeaderRow = document.createElement("div");
+    notesHeaderRow.className = "account-notes-title-row";
     const notesH2 = document.createElement("h2");
     notesH2.className = "account-card__title";
     notesH2.textContent = "Notes";
-    notesCard.appendChild(notesH2);
-
-    const notesHintRow = document.createElement("div");
-    notesHintRow.className = "account-notes-header";
-    const notesHint = document.createElement("p");
-    notesHint.className = "account-card__hint";
     const itemsWithNotes = items.filter((it) => String(it?.notes ?? "").trim());
-    notesHint.textContent = `${itemsWithNotes.length} piece${itemsWithNotes.length === 1 ? "" : "s"} with notes.`;
     const copyAllBtn = document.createElement("button");
     copyAllBtn.type = "button";
     copyAllBtn.className = "btn btn--small account-notes-copy-btn";
@@ -3268,8 +3264,8 @@
         () => { copyAllBtn.textContent = "Copy failed"; }
       );
     });
-    notesHintRow.append(notesHint, copyAllBtn);
-    notesCard.appendChild(notesHintRow);
+    notesHeaderRow.append(notesH2, copyAllBtn);
+    notesCard.appendChild(notesHeaderRow);
 
     const notesList = document.createElement("div");
     notesList.className = "account-notes-list";
