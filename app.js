@@ -21485,7 +21485,7 @@
       lastGridStructuralKey = structuralKey;
       lastGridOutfitKey = outfitKey;
       const renderToken = ++gridRenderChunkToken;
-      const FIRST_PAINT_COUNT = 24;
+      const FIRST_PAINT_COUNT = sorted.length;
       const CHUNK_SIZE = 16;
       const firstCount = Math.min(FIRST_PAINT_COUNT, sorted.length);
 
