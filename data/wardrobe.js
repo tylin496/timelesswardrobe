@@ -1746,8 +1746,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/ferret/main/2.webp",
       "/images/wardrobe/ferret/main/3.webp",
       "/images/wardrobe/ferret/main/4.webp",
-      "/images/wardrobe/ferret/main/5.webp",
-      "/images/wardrobe/ferret/main/6.webp"
+      "/images/wardrobe/ferret/main/5.webp"
     ],
     "metadata": {
       "price": 41696,
