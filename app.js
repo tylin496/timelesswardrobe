@@ -15449,6 +15449,13 @@
     ) {
       add(primary);
     }
+    // For catalogue items whose primary cover is a cloud (R2) URL, add the seed
+    // local cover as a last-resort fallback so the grid card never goes blank.
+    if (isLocalCatalogueItemId(item?.id) && /^https?:\/\//i.test(coverRaw?.split("?")[0] ?? "")) {
+      const seed = catalogueSeedRow(item.id);
+      const seedCover = String(seed?.image ?? "").trim();
+      if (seedCover && isDisplayableCloudImageUrl(seedCover)) add(seedCover);
+    }
     return out.map((u) => resolveWardrobeImageTransportUrl(u, item) || withWardrobeImageCacheBust(u, item));
   }
 
@@ -15631,7 +15638,8 @@
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
     if (bust.includes("r2.dev")) {
-      return withVercelImageOptimization(bust, frame.width, frame.quality) || bust;
+      // R2 has its own CDN and pre-resized images; skip Vercel proxy to avoid failures.
+      return bust;
     }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
       item,
