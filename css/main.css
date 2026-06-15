@@ -19448,7 +19448,10 @@ body.collection-page .collection-container > .collection-actions {
   body.item-page .site-header__container.site-header__inner,
   body.editorial-page .site-header__inner,
   body.editorial-page .site-header__container,
-  body.editorial-page .site-header__container.site-header__inner {
+  body.editorial-page .site-header__container.site-header__inner,
+  body.account-page .site-header__inner,
+  body.account-page .site-header__container,
+  body.account-page .site-header__container.site-header__inner {
     max-width: none;
     padding-left: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
     padding-right: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
