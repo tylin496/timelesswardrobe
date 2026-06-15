@@ -2463,6 +2463,7 @@
       { label: "Editorial stories", href: "/editorial" },
       { label: "Manage brands", href: "/account#manage-brands" },
       { label: "Collection", href: "/collection" },
+      { label: "Notes", href: "/account#notes" },
     ];
   }
 
@@ -3240,6 +3241,7 @@
     // ── Notes bulk editor ──────────────────────────────────────────────────────
     const notesCard = document.createElement("section");
     notesCard.className = "account-card account-card--notes";
+    notesCard.id = "notes";
 
     const notesHeaderRow = document.createElement("div");
     notesHeaderRow.className = "account-notes-title-row";
@@ -3247,6 +3249,9 @@
     notesH2.className = "account-card__title";
     notesH2.textContent = "Notes";
     const itemsWithNotes = items.filter((it) => String(it?.notes ?? "").trim());
+    const notesCount = document.createElement("span");
+    notesCount.className = "account-notes-count";
+    notesCount.textContent = `${itemsWithNotes.length} piece${itemsWithNotes.length === 1 ? "" : "s"} with notes.`;
     const copyAllBtn = document.createElement("button");
     copyAllBtn.type = "button";
     copyAllBtn.className = "btn btn--small account-notes-copy-btn";
@@ -3264,7 +3269,7 @@
         () => { copyAllBtn.textContent = "Copy failed"; }
       );
     });
-    notesHeaderRow.append(notesH2, copyAllBtn);
+    notesHeaderRow.append(notesH2, notesCount, copyAllBtn);
     notesCard.appendChild(notesHeaderRow);
 
     const notesList = document.createElement("div");
