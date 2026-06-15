@@ -691,7 +691,7 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "white",
-        "image": "/images/wardrobe/ocbd-shirt/main/1.webp",
+        "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
         "label": "White",
         "notes": "",
         "colour": "White",
