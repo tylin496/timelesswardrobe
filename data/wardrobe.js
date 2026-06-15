@@ -54,8 +54,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-12-06",
     "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/balmacaan-coat/main/2.jpg",
-      "/images/wardrobe/balmacaan-coat/main/3.jpg",
+      "/images/wardrobe/balmacaan-coat/main/2.webp",
+      "/images/wardrobe/balmacaan-coat/main/3.webp",
       "/images/wardrobe/balmacaan-coat/main/4.webp",
       "/images/wardrobe/balmacaan-coat/main/5.webp"
     ],
@@ -566,7 +566,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-11-03",
     "image": "/images/wardrobe/fair-isle-vest/main/1.webp",
     "gallery": [
-      "/images/wardrobe/fair-isle-vest/main/2.webp"
+      "/images/wardrobe/fair-isle-vest/main/2.webp",
+      "/images/wardrobe/fair-isle-vest/main/3.webp",
+      "/images/wardrobe/fair-isle-vest/main/4.webp"
     ],
     "metadata": {
       "price": 357.97,
@@ -665,8 +667,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-17",
     "image": "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.jpg",
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/3.webp"
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp"
     ],
     "notes": "紳士 洗えるウールリブタートルネックセーター",
     "metadata": {
@@ -777,8 +778,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-09",
     "image": "/images/wardrobe/linen-loop-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-loop-collar-shirt/main/2.jpg",
-      "/images/wardrobe/linen-loop-collar-shirt/main/3.jpg"
+      "/images/wardrobe/linen-loop-collar-shirt/main/2.webp",
+      "/images/wardrobe/linen-loop-collar-shirt/main/3.webp"
     ],
     "notes": "FLOWING REGULAR FIT SHIRT",
     "metadata": {
@@ -1448,7 +1449,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.jpg"
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.webp"
     ],
     "purchaseDate": "2014-03-10",
     "notes": "Originally owned by my father.",
@@ -1545,8 +1546,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/arabesque-card-case/main/3.webp",
       "/images/wardrobe/arabesque-card-case/main/4.webp",
       "/images/wardrobe/arabesque-card-case/main/5.webp",
-      "/images/wardrobe/arabesque-card-case/main/6.jpg",
-      "/images/wardrobe/arabesque-card-case/main/7.jpg"
+      "/images/wardrobe/arabesque-card-case/main/6.webp",
+      "/images/wardrobe/arabesque-card-case/main/7.webp"
     ],
     "notes": "Crafted from stainless steel with a rigid, durable construction.\n\nFeatures a refined silver arabesque pattern and double-sided storage.\n\nOne side can hold business cards, while the other may be used for credit cards or received cards.\n\nCapacity: Approximately 30 standard business cards.\nDimensions: 97 × 66 × 13 mm.",
     "metadata": {
@@ -1688,7 +1689,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2023-01-19",
     "image": "/images/wardrobe/tassel-moccasin-loafer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tassel-moccasin-loafer/main/2.jpg",
+      "/images/wardrobe/tassel-moccasin-loafer/main/2.webp",
       "/images/wardrobe/tassel-moccasin-loafer/main/3.webp"
     ],
     "notes": "Sole: Single oak leather outsole \nLast: Aberdeen",
