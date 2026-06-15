@@ -7720,15 +7720,24 @@
     const id = String(row?.id ?? "").trim();
     const merged = { ...row, ...patch, id };
     if (!isLocalCatalogueItemId(id)) return merged;
-    // Local catalogue items: seed media is always the source of truth.
-    // archive_overrides may contain stale Supabase Storage paths; metadata fields
-    // (name, price, notes, etc.) are still applied via the spread above.
+    // Local catalogue items: seed media is normally the source of truth for local paths,
+    // but if the patch was saved from an explicit media edit (has __mediaEditedAt and an
+    // http image URL such as an R2 upload), preserve the patch's image/gallery.
     const seed = catalogueSeedRow(id);
-    const localImage = String(row.image ?? "").trim();
-    const firstVariantImage = String(seed?.colourVariants?.[0]?.image ?? "").trim();
-    merged.image = localImage || firstVariantImage || merged.image;
-    const localGallery = fileBackedLocalGalleryUrls(row);
-    if (localGallery.length) merged.gallery = [...localGallery];
+    const patchImage = String(patch.image ?? "").trim();
+    const hasCloudMediaPatch = patch.__mediaEditedAt && /^https?:\/\//i.test(patchImage.split("?")[0]);
+    if (hasCloudMediaPatch) {
+      // Cloud image from explicit media edit wins; seed local gallery still provided as fallback.
+      merged.image = patchImage;
+      const patchGallery = Array.isArray(patch.gallery) ? patch.gallery : [];
+      if (patchGallery.length) merged.gallery = [...patchGallery];
+    } else {
+      const localImage = String(row.image ?? "").trim();
+      const firstVariantImage = String(seed?.colourVariants?.[0]?.image ?? "").trim();
+      merged.image = localImage || firstVariantImage || merged.image;
+      const localGallery = fileBackedLocalGalleryUrls(row);
+      if (localGallery.length) merged.gallery = [...localGallery];
+    }
     if (seed?.colourVariants) merged.colourVariants = seed.colourVariants;
     if (seed?.colourCode && !patch?.colourCode) merged.colourCode = seed.colourCode;
     if (seed?.colour && !patch?.colour) merged.colour = seed.colour;
