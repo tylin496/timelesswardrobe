@@ -591,7 +591,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2022-08-08",
     "image": "/images/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp"
+      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp",
+      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp",
+      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
     ],
     "notes": "Filename: if slash is problematic on disk, use a variant without “/” in the filename and adjust this path.",
     "metadata": {
