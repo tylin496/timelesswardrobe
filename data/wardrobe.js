@@ -669,7 +669,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-17",
     "image": "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp"
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp",
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/3.webp",
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
     ],
     "notes": "紳士 洗えるウールリブタートルネックセーター",
     "metadata": {
