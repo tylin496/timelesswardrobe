@@ -3740,13 +3740,13 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     --site-header-control-h: 2.125rem;
     --site-header-row-height: clamp(4.75rem, 4.35vw, 5.15rem);
     --header-height: var(--site-header-row-height);
-    max-width: var(--chrome-content-max);
+    max-width: none;
     width: 100%;
     min-height: var(--site-header-row-height);
     padding-top: 0;
     padding-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: var(--catalogue-plp-inline-x);
+    padding-right: var(--catalogue-plp-inline-x);
     display: flex;
     align-items: center;
     position: relative;
