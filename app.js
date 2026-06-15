@@ -2145,17 +2145,31 @@
       const inCollectionGrid = Boolean(heroHost.closest("#grid"));
       const heroRender =
         heroHost.classList.contains("item-detail__media") ? ITEM_DETAIL_GALLERY_RENDER : COLLECTION_GRID_CARD_RENDER;
-      // Update active swatch BEFORE wireCoverImageWithFallbacks so that onResolved
-      // (which can fire synchronously for cached images) reads the correct active key
-      // when rebuilding the gallery stage via tw-collection-cover-change → syncNav.
+      // Update active swatch first so syncNav (triggered below) reads the correct
+      // active key when rebuilding the gallery stage.
       sw.querySelectorAll(".card__swatch").forEach((node) => {
         const nk = /** @type {HTMLElement} */ (node).dataset.variantKey;
         node.classList.toggle("is-active", nk === String(colourKey));
       });
       updateColourLabelForKey(String(colourKey));
+      heroImg.alt = imageAltForItem(projected);
+
+      if (inCollectionGrid) {
+        // heroImg is hidden (display:none) with loading="lazy" once the desktop gallery
+        // stage is built — the browser won't load images into it. Dispatch the stage
+        // rebuild immediately so the visible stage slides (which are in-viewport and
+        // not subject to the hidden-lazy issue) handle loading the new cover.
+        // Clear coverSrc so syncNav picks frames[0] from the new variant projection.
+        delete heroImg.dataset.coverSrc;
+        heroHost.dataset.galleryFrameIndex = "0";
+        heroHost.dispatchEvent(
+          new CustomEvent("tw-collection-cover-change", { bubbles: true, detail: { resetToCover: true } })
+        );
+        return;
+      }
+
       wireCoverImageWithFallbacks(heroImg, projected, {
         host: heroHost,
-        coverCandidates: inCollectionGrid ? buildCollectionGridCoverCandidates(projected) : undefined,
         coverRenderWidth: heroRender.width,
         coverRenderHeight: heroRender.height,
         coverRenderQuality: heroRender.quality,
@@ -2170,18 +2184,11 @@
             const ti = heroHost.querySelector(".card__gallery-strip .card__gallery-thumb.is-active img");
             if (ti) ti.src = url;
           }
-          if (inCollectionGrid) {
-            heroHost.dataset.galleryFrameIndex = "0";
-            heroHost.dispatchEvent(
-              new CustomEvent("tw-collection-cover-change", { bubbles: true, detail: { resetToCover: true } })
-            );
-          }
         },
       });
       if (showHeroGallery) {
         remountItemDetailHeroGallery(heroHost, heroImg, projected);
       }
-      heroImg.alt = imageAltForItem(projected);
     }
 
     variants.forEach((v, idx) => {
