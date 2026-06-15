@@ -4627,10 +4627,10 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-header__container.site-header__inner {
     margin-left: auto;
     margin-right: auto;
-    max-width: var(--chrome-content-max);
+    max-width: none;
     width: 100%;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: var(--catalogue-plp-inline-x);
+    padding-right: var(--catalogue-plp-inline-x);
     padding-top: 0;
     padding-bottom: 0;
     min-height: var(--site-header-row-height, 5rem);
@@ -5837,11 +5837,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-header__inner {
-    padding:
-      max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.05rem))
-      0
-      max(0.5rem, env(safe-area-inset-bottom, 0px))
-      0;
+    padding-top: max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.05rem));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
   .site-header {
