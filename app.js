@@ -7772,8 +7772,10 @@
     const patchImage = String(patch.image ?? "").trim();
     const hasCloudMediaPatch = patch.__mediaEditedAt && /^https?:\/\//i.test(patchImage.split("?")[0]);
     if (hasCloudMediaPatch) {
-      // Cloud image from explicit media edit wins; seed local gallery still provided as fallback.
-      merged.image = patchImage;
+      // Seed local image always wins over R2 cover (local file = user's latest).
+      const seedLocalImage = String(seed?.image ?? "").trim();
+      merged.image = /^\/images\/wardrobe\//i.test(seedLocalImage) ? seedLocalImage : patchImage;
+      // Gallery: keep patch ordering (user's custom order from online edit).
       const patchGallery = Array.isArray(patch.gallery) ? patch.gallery : [];
       if (patchGallery.length) merged.gallery = [...patchGallery];
     } else {
