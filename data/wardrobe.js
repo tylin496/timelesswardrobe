@@ -870,20 +870,20 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "baker-neck-knitted-t-shirt",
+    "id": "henley-knit-t-shirt",
     "section": "Shirts & Tops",
     "pillar": "Clothing",
     "category": "Tops",
     "brand": "Zara",
-    "name": "Baker Neck Knitted T-Shirt",
+    "name": "Henley Knit T-Shirt",
     "season": "S/S",
     "colour": "Navy",
     "colourCode": "#1f222e",
     "size": "XL",
     "purchaseDate": "2025-08-09",
-    "image": "/images/wardrobe/baker-neck-knitted-t-shirt/main/1.webp",
+    "image": "/images/wardrobe/henley-knit-t-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/baker-neck-knitted-t-shirt/main/2.webp"
+      "/images/wardrobe/henley-knit-t-shirt/main/2.webp"
     ],
     "notes": "BUTTON-NECK KNIT T-SHIRT",
     "metadata": {

@@ -118,7 +118,7 @@
     ["zara-dark-grey-open-knit-polo", "cutwork-knit-polo-shirt"],
     ["zara-dusty-ice-blue-ribbed-knit-polo", "rib-knit-polo-shirt-dusty-ice-blue"],
     ["zara-ecru-purl-knit-t-shirt", "purl-knit-t-shirt"],
-    ["zara-navy-baker-neck-knitted-t-shirt", "baker-neck-knitted-t-shirt"],
+    ["zara-navy-baker-neck-knitted-t-shirt", "henley-knit-t-shirt"],
     ["american-flag-hat", "american-flag-cap"],
     ["kataaze-knit-mock-neck", "kataaze-knit-mock-neck-jumper"],
     ["rib-knit-roll-neck-neck-jumper", "rib-knit-roll-neck-jumper"],

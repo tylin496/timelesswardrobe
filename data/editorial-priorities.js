@@ -39,7 +39,7 @@ const WARDROBE_EDITORIAL_PRIORITIES = {
   "ocbd-shirt": { featured_rank: 1, canonical_score: 71 },
   "fine-knit-t-shirt": { featured_rank: 1, canonical_score: 70 },
   "purl-knit-t-shirt": { featured_rank: 1, canonical_score: 69 },
-  "baker-neck-knitted-t-shirt": { featured_rank: 1, canonical_score: 68 },
+  "henley-knit-t-shirt": { featured_rank: 1, canonical_score: 68 },
   "kataaze-knit-mock-neck": { featured_rank: 1, canonical_score: 67 },
   "corduroy-trousers": { featured_rank: 1, canonical_score: 66 },
   "wide-straight-trousers": { featured_rank: 1, canonical_score: 65 },
