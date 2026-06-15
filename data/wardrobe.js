@@ -883,7 +883,13 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-09",
     "image": "/images/wardrobe/henley-knit-t-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/henley-knit-t-shirt/main/2.webp"
+      "/images/wardrobe/henley-knit-t-shirt/main/2.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/3.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/4.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/5.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/6.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/7.webp",
+      "/images/wardrobe/henley-knit-t-shirt/main/9.webp"
     ],
     "notes": "BUTTON-NECK KNIT T-SHIRT",
     "metadata": {
