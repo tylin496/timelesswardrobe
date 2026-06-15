@@ -772,7 +772,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-09",
     "image": "/images/wardrobe/linen-loop-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-loop-collar-shirt/main/2.webp"
+      "/images/wardrobe/linen-loop-collar-shirt/main/2.webp",
+      "/images/wardrobe/linen-loop-collar-shirt/main/3.webp"
     ],
     "notes": "FLOWING REGULAR FIT SHIRT",
     "metadata": {
