@@ -4785,6 +4785,9 @@
       for (const inp of dyn.querySelectorAll(".measured-dims-row__value")) {
         /** @type {HTMLInputElement} */ (inp).placeholder = u;
       }
+      for (const sel of dyn.querySelectorAll(".measured-dims-row__unit")) {
+        /** @type {HTMLSelectElement} */ (sel).value = u;
+      }
     }
 
     unitSel?.addEventListener("change", syncValuePlaceholders);
