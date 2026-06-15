@@ -1250,6 +1250,14 @@
       '<path d="m4 20 1.25-1.25M14.5 6.5l3 3M12.5 8.5 19 2l3 3-6.5 6.5-3-3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<path d="M10 11 7 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
       "</svg>",
+    moveUp:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>",
+    moveDown:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>",
   };
 
   /**
@@ -22691,6 +22699,17 @@
     });
   }
 
+  function syncVariantMoveButtons(listEl) {
+    if (!listEl) return;
+    const rows = [...listEl.querySelectorAll(".item-edit-variant-row")];
+    rows.forEach((row, i) => {
+      const up = /** @type {HTMLButtonElement|null} */ (row.querySelector(".item-edit-variant-move-up"));
+      const down = /** @type {HTMLButtonElement|null} */ (row.querySelector(".item-edit-variant-move-down"));
+      if (up) up.disabled = i === 0;
+      if (down) down.disabled = i === rows.length - 1;
+    });
+  }
+
   /**
    * @param {HTMLElement} listEl
    * @param {{ key?: string, label?: string, colour?: string, colourCode?: string, secondaryColour?: string, secondaryColourCode?: string, basicColour?: string, image?: string, previewImage?: string, gallery?: string[], notes?: string }} data
@@ -22894,9 +22913,24 @@
     rm.addEventListener("click", () => {
       fs.remove();
       syncVariantRemoveButtons(listEl);
+      syncVariantMoveButtons(listEl);
     });
 
-    rowActions.appendChild(rm);
+    const moveUp = createItemEditIconButton("item-edit-variant-move-up", TW_ITEM_EDIT_ICON.moveUp, "Move up");
+    const moveDown = createItemEditIconButton("item-edit-variant-move-down", TW_ITEM_EDIT_ICON.moveDown, "Move down");
+
+    moveUp.addEventListener("click", () => {
+      const prev = fs.previousElementSibling;
+      if (prev && prev.classList.contains("item-edit-variant-row")) listEl.insertBefore(fs, prev);
+      syncVariantMoveButtons(listEl);
+    });
+    moveDown.addEventListener("click", () => {
+      const next = fs.nextElementSibling;
+      if (next && next.classList.contains("item-edit-variant-row")) listEl.insertBefore(next, fs);
+      syncVariantMoveButtons(listEl);
+    });
+
+    rowActions.append(moveUp, moveDown, rm);
     head.append(legText, rowActions);
 
     const body = document.createElement("div");
@@ -22922,6 +22956,7 @@
     fs.append(head, keyIn, body);
     listEl.appendChild(fs);
     syncVariantRemoveButtons(listEl);
+    syncVariantMoveButtons(listEl);
   }
 
   /**
