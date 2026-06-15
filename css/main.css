@@ -20224,6 +20224,7 @@ body.collection-page .collection-container > .collection-actions {
     --collection-plp-mobile-inline: 17px;
     --collection-plp-mobile-edge-left: max(17px, env(safe-area-inset-left, 0px));
     --collection-plp-mobile-edge-right: max(17px, env(safe-area-inset-right, 0px));
+    --catalogue-plp-inline-x: var(--collection-plp-mobile-edge-left);
     --header-chrome-pad-left: var(--collection-plp-mobile-edge-left);
     --header-chrome-pad-right: var(--collection-plp-mobile-edge-right);
     --chrome-content-inset-left: var(--collection-plp-mobile-edge-left);
