@@ -31,8 +31,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/beaufort-waxed-jacket/main/2.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/3.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp"
+      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp"
     ],
     "metadata": {
       "price": 43200,
@@ -54,8 +53,10 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-12-06",
     "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/balmacaan-coat/main/2.webp",
-      "/images/wardrobe/balmacaan-coat/main/3.webp"
+      "/images/wardrobe/balmacaan-coat/main/2.jpg",
+      "/images/wardrobe/balmacaan-coat/main/3.jpg",
+      "/images/wardrobe/balmacaan-coat/main/4.png",
+      "/images/wardrobe/balmacaan-coat/main/5.webp"
     ],
     "metadata": {
       "price": 83.99,
@@ -154,7 +155,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-10-17",
     "image": "/images/wardrobe/black-bay-58/main/1.webp",
     "gallery": [
-      "/images/wardrobe/black-bay-58/main/2.webp",
+      "/images/wardrobe/black-bay-58/main/2.png",
       "/images/wardrobe/black-bay-58/main/3.webp",
       "/images/wardrobe/black-bay-58/main/4.webp"
     ],
@@ -180,7 +181,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-11-01",
     "image": "/images/wardrobe/signet-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/2.webp",
+      "/images/wardrobe/signet-ring/main/2.png",
+      "/images/wardrobe/signet-ring/main/3.png",
       "/images/wardrobe/signet-ring/main/4.webp"
     ],
     "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
@@ -255,7 +257,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-01-13",
     "image": "/images/wardrobe/herringbone-tweed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/herringbone-tweed-jacket/main/2.webp"
+      "/images/wardrobe/herringbone-tweed-jacket/main/2.png"
     ],
     "metadata": {
       "price": 175,
@@ -480,7 +482,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-27",
     "image": "/images/wardrobe/aran-cable-knit-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/aran-cable-knit-jumper/main/2.webp"
+      "/images/wardrobe/aran-cable-knit-jumper/main/2.png"
     ],
     "metadata": {
       "price": 7990,
@@ -505,7 +507,7 @@ const WARDROBE_ITEMS = [
     "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
     "image": "/images/wardrobe/driver-knit-zip-up-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/driver-knit-zip-up-jumper/main/2.webp",
+      "/images/wardrobe/driver-knit-zip-up-jumper/main/2.png",
       "/images/wardrobe/driver-knit-zip-up-jumper/main/3.webp"
     ],
     "metadata": {
@@ -685,7 +687,7 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "white",
-        "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+        "image": "/images/wardrobe/ocbd-shirt/main/1.webp",
         "label": "White",
         "notes": "",
         "colour": "White",
@@ -1441,7 +1443,9 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp"
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.png",
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.jpg"
     ],
     "purchaseDate": "2014-03-10",
     "notes": "Originally owned by my father.",
@@ -1537,7 +1541,9 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/arabesque-card-case/main/2.webp",
       "/images/wardrobe/arabesque-card-case/main/3.webp",
       "/images/wardrobe/arabesque-card-case/main/4.webp",
-      "/images/wardrobe/arabesque-card-case/main/5.webp"
+      "/images/wardrobe/arabesque-card-case/main/5.webp",
+      "/images/wardrobe/arabesque-card-case/main/6.jpg",
+      "/images/wardrobe/arabesque-card-case/main/7.jpg"
     ],
     "notes": "Crafted from stainless steel with a rigid, durable construction.\n\nFeatures a refined silver arabesque pattern and double-sided storage.\n\nOne side can hold business cards, while the other may be used for credit cards or received cards.\n\nCapacity: Approximately 30 standard business cards.\nDimensions: 97 × 66 × 13 mm.",
     "metadata": {
@@ -1800,7 +1806,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain-necklace/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
+      "/images/wardrobe/rolo-chain-necklace/main/2.jpg",
       "/images/wardrobe/rolo-chain-necklace/main/3.webp"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
@@ -2213,8 +2219,6 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2026-05-11",
     "image": "/images/wardrobe/american-flag-cap/main/1.webp",
     "gallery": [
-      
-      
       "/images/wardrobe/american-flag-cap/main/2.webp",
       "/images/wardrobe/american-flag-cap/main/3.webp"
     ],
