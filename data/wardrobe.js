@@ -484,7 +484,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-27",
     "image": "/images/wardrobe/aran-cable-knit-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/aran-cable-knit-jumper/main/2.webp"
+      "/images/wardrobe/aran-cable-knit-jumper/main/3.webp"
     ],
     "metadata": {
       "price": 7990,
