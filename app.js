@@ -3358,10 +3358,22 @@
           const saved = await saveWardrobeItemToCloud(patch);
           upsertWardrobeBaseRowInMemory(saved);
           it.notes = newNotes;
+          // Persist notes in collection override so they survive refresh for catalogue items.
+          if (isLocalCatalogueItemId(it.id)) {
+            try {
+              const allOv = loadCollectionOverrides();
+              allOv[it.id] = { ...(allOv[it.id] ?? {}), notes: newNotes };
+              await saveCollectionOverrides(allOv);
+            } catch (ovErr) {
+              console.warn("[account] notes override persist failed:", ovErr);
+            }
+          }
           setSaveBtnState("saved");
+          showToast("Notes saved.");
         } catch (err) {
           console.warn("[account] notes save failed:", err);
           setSaveBtnState("error");
+          showToast("Failed to save notes.");
         } finally {
           twAccountBusy = false;
         }
