@@ -30476,10 +30476,9 @@
    */
   async function refreshHybridCloudAfterCollectionPaint(api) {
     if (!isSupabaseReady() || !isHybridLocalCatalogueEnabled()) return;
-    // Fetch ALL items — catalogue items are excluded from cloudBackedCustomItems but their
-    // cloud media (e.g. R2-uploaded images) must still be merged into wardrobeBase.
+    const excludeIds = catalogueLockIdList();
     const res = await withTimeout(
-      api.fetchWardrobeItems(supabaseClient, []),
+      api.fetchWardrobeItems(supabaseClient, excludeIds),
       9000,
       "fetchWardrobeItems(hybrid)"
     );
@@ -30488,12 +30487,11 @@
       cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalized);
       if (cloudBackedCustomItems.length) {
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
+        mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+        mergeWardrobeFromSources();
+        renderGrid();
+        syncOutfitSaveButtonLabel();
       }
-      // Merge ALL normalized rows so catalogue items pick up their cloud media overrides.
-      mergeWardrobeBaseWithFetchedCloudRows(normalized);
-      mergeWardrobeFromSources();
-      renderGrid();
-      syncOutfitSaveButtonLabel();
     } else if (!res.ok) {
       console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
     }
