@@ -3113,6 +3113,14 @@
   function renderTwAccountView() {
     const body = document.getElementById("account-body");
     if (!body) return;
+    // Ensure outfit-toast exists for showToast() on account page.
+    if (!document.getElementById("outfit-toast")) {
+      const t = document.createElement("div");
+      t.id = "outfit-toast";
+      t.className = "outfit-toast";
+      t.hidden = true;
+      document.body.appendChild(t);
+    }
     const title = document.querySelector(".account-page-main .login-page-main__title");
     if (title) title.textContent = `Welcome back, ${twAccountGreetingName()}`;
     const heroSignOut = document.getElementById("account-signout");
