@@ -30412,8 +30412,7 @@
       const hit = byId.get(id);
       if (!hit) return { ...row };
       if (isLocalCatalogueItemId(row.id)) {
-        const seed = catalogueSeedRow(row.id) || row;
-        return mergeCloudMediaOntoLocalCatalogueRow(seed, hit);
+        return { ...row };
       }
       return carryForwardMediaNonce(row, hit);
     });
@@ -30432,9 +30431,8 @@
     if (!id) return;
     const existing = wardrobeBase.find((r) => String(r?.id ?? "") === id);
     let incoming = { ...row };
-    if (isLocalCatalogueItemId(id) && !opts.skipLocalMediaMerge) {
-      const seed = catalogueSeedRow(id) || existing;
-      if (seed) incoming = mergeCloudMediaOntoLocalCatalogueRow(seed, row);
+    if (isLocalCatalogueItemId(id)) {
+      // seed + archive_overrides is authoritative; ignore wardrobe_items media
     }
     const next =
       existing && !(typeof /** @type {any} */ (incoming).__displayNonce === "number")
