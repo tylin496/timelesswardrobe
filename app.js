@@ -3332,7 +3332,7 @@
       const label = document.createElement("div");
       label.className = "account-notes-row__label";
       const nameLink = document.createElement("a");
-      nameLink.href = `#item/${encodeURIComponent(String(it.id ?? ""))}`;
+      nameLink.href = `/item/${encodeURIComponent(String(it.id ?? ""))}`;
       nameLink.className = "account-notes-row__name";
       nameLink.textContent = String(it.name ?? "").trim() || String(it.id ?? "");
       const brandSpan = document.createElement("span");
