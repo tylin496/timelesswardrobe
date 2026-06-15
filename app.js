@@ -7529,6 +7529,8 @@
     const raw = String(url ?? "").trim();
     if (!raw) return "";
     const pathKey = raw.split("?")[0];
+    // R2 URLs already embed a timestamp in the filename — no cache-bust needed.
+    if (/^https?:\/\/[^/]*\.r2\.dev\//i.test(pathKey)) return pathKey;
     const isWardrobeMedia =
       Boolean(storagePathFromWardrobeImageUrl(raw)) || /^\/images\/wardrobe\//i.test(pathKey);
     if (!isWardrobeMedia) return raw;
