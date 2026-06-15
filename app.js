@@ -20213,14 +20213,13 @@
         if (axisLocked === "v") return;
         if (axisLocked === null) {
           if (Math.sqrt(dx * dx + dy * dy) < 8) return;
-          if (Math.abs(dy) > Math.abs(dx) * 1.25 && Math.abs(dy) > 12) {
-            axisLocked = "v";
+          axisLocked = Math.abs(dx) > Math.abs(dy) * 1.5 ? "h" : "v";
+          if (axisLocked === "v") {
             touchActive = false;
             cancelDragRaf();
             releaseToIndex(touchStartIndex, false);
             return;
           }
-          axisLocked = "h";
         }
 
         e.preventDefault(); // horizontal lock confirmed — suppress page scroll
