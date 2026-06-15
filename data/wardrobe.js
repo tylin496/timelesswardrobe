@@ -1688,7 +1688,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2023-01-19",
     "image": "/images/wardrobe/tassel-moccasin-loafer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tassel-moccasin-loafer/main/2.webp"
+      "/images/wardrobe/tassel-moccasin-loafer/main/2.jpg",
+      "/images/wardrobe/tassel-moccasin-loafer/main/3.webp"
     ],
     "notes": "Sole: Single oak leather outsole \nLast: Aberdeen",
     "metadata": {
