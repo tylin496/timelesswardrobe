@@ -3438,6 +3438,7 @@
           showToast("Failed to save notes.");
         } finally {
           twAccountBusy = false;
+          refreshSaveAllBtn();
         }
       });
       rowActions.appendChild(saveRowBtn);
