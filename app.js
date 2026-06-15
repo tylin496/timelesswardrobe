@@ -3277,7 +3277,32 @@
         () => { copyAllBtn.textContent = "Copy failed"; }
       );
     });
-    notesHeaderRow.append(notesH2, notesCount, copyAllBtn);
+    const saveAllBtn = document.createElement("button");
+    saveAllBtn.type = "button";
+    saveAllBtn.className = "btn btn--small account-notes-save-all-btn";
+    saveAllBtn.textContent = "Save all";
+    saveAllBtn.disabled = true;
+    const dirtyRows = new Set();
+    const refreshSaveAllBtn = () => {
+      saveAllBtn.disabled = dirtyRows.size === 0 || twAccountBusy;
+    };
+    saveAllBtn.addEventListener("click", async () => {
+      if (twAccountBusy || dirtyRows.size === 0) return;
+      twAccountBusy = true;
+      saveAllBtn.textContent = "Saving…";
+      saveAllBtn.disabled = true;
+      let saved = 0;
+      let failed = 0;
+      for (const fn of [...dirtyRows]) {
+        try { await fn(); saved++; } catch { failed++; }
+      }
+      twAccountBusy = false;
+      saveAllBtn.textContent = "Save all";
+      refreshSaveAllBtn();
+      if (failed) showToast(`Saved ${saved}, failed ${failed}.`);
+      else showToast(`${saved} note${saved === 1 ? "" : "s"} saved.`);
+    });
+    notesHeaderRow.append(notesH2, notesCount, saveAllBtn, copyAllBtn);
     notesCard.appendChild(notesHeaderRow);
 
     const notesList = document.createElement("div");
@@ -3313,9 +3338,15 @@
       textarea.placeholder = "No notes";
       textarea.rows = 3;
       textarea.setAttribute("aria-label", `Notes for ${String(it.name ?? it.id ?? "")}`);
+      const markDirty = (dirty) => {
+        if (dirty) dirtyRows.add(doSave); else dirtyRows.delete(doSave);
+        refreshSaveAllBtn();
+        saveRowBtn.disabled = !dirty;
+      };
       textarea.addEventListener("input", () => {
         textarea.style.height = "auto";
         textarea.style.height = `${textarea.scrollHeight}px`;
+        markDirty(textarea.value.trim() !== String(it.notes ?? "").trim());
       });
 
       const rowActions = document.createElement("div");
@@ -3324,6 +3355,7 @@
       saveRowBtn.type = "button";
       saveRowBtn.className = "btn btn--small account-notes-row__save";
       saveRowBtn.textContent = "Save";
+      saveRowBtn.disabled = true;
       let saveResetTimer = 0;
       const setSaveBtnState = (state) => {
         clearTimeout(saveResetTimer);
@@ -3334,7 +3366,7 @@
         } else if (state === "saved") {
           saveRowBtn.textContent = "Saved";
           saveRowBtn.dataset.state = "saved";
-          saveRowBtn.disabled = false;
+          saveRowBtn.disabled = true;
           saveResetTimer = setTimeout(() => {
             saveRowBtn.textContent = "Save";
             saveRowBtn.removeAttribute("data-state");
@@ -3349,24 +3381,17 @@
           }, 3000);
         } else {
           saveRowBtn.textContent = "Save";
-          saveRowBtn.disabled = false;
+          saveRowBtn.disabled = textarea.value.trim() === String(it.notes ?? "").trim();
         }
       };
-      saveRowBtn.addEventListener("click", async () => {
-        if (twAccountBusy) return;
+      const doSave = async () => {
         const newNotes = textarea.value.trim();
-        if (newNotes === String(it.notes ?? "").trim()) {
-          setSaveBtnState("saved");
-          return;
-        }
-        twAccountBusy = true;
         setSaveBtnState("saving");
         try {
           const patch = { ...it, notes: newNotes };
-          const saved = await saveWardrobeItemToCloud(patch);
-          upsertWardrobeBaseRowInMemory(saved);
+          const savedItem = await saveWardrobeItemToCloud(patch);
+          upsertWardrobeBaseRowInMemory(savedItem);
           it.notes = newNotes;
-          // Persist notes in collection override so they survive refresh for catalogue items.
           if (isLocalCatalogueItemId(it.id)) {
             try {
               const allOv = loadCollectionOverrides();
@@ -3376,11 +3401,22 @@
               console.warn("[account] notes override persist failed:", ovErr);
             }
           }
+          dirtyRows.delete(doSave);
+          refreshSaveAllBtn();
           setSaveBtnState("saved");
-          showToast("Notes saved.");
         } catch (err) {
           console.warn("[account] notes save failed:", err);
           setSaveBtnState("error");
+          throw err;
+        }
+      };
+      saveRowBtn.addEventListener("click", async () => {
+        if (twAccountBusy) return;
+        twAccountBusy = true;
+        try {
+          await doSave();
+          showToast("Notes saved.");
+        } catch {
           showToast("Failed to save notes.");
         } finally {
           twAccountBusy = false;

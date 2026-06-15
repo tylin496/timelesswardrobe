@@ -15407,6 +15407,11 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   flex: 1;
 }
 
+.account-notes-save-all-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .account-notes-count {
   font-family: var(--font-sans);
   font-size: 0.8rem;
