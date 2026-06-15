@@ -685,6 +685,7 @@ const WARDROBE_ITEMS = [
     "season": "All-season",
     "colour": "White",
     "colourCode": "#F5F5F9",
+    "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
     "fabric": "Cotton",
     "size": "XL",
     "purchaseDate": "2020-01-01",
