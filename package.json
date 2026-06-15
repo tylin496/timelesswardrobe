@@ -9,6 +9,7 @@
     "og:build": "node scripts/build-og-image.mjs",
     "build": "node scripts/build-css.mjs && node scripts/build-og-image.mjs && node scripts/vercel-build.mjs",
     "gallery:sync": "node scripts/sync-wardrobe-gallery.mjs",
+    "gallery:manifest": "node scripts/build-wardrobe-local-gallery-manifest.mjs",
     "images:convert": "node scripts/convert-wardrobe-images-to-webp.mjs",
     "images:convert-clean": "node scripts/convert-wardrobe-images-to-webp.mjs --delete-originals",
     "check:wardrobe-images": "node scripts/check-wardrobe-local-images.mjs",

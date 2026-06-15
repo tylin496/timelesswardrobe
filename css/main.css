@@ -911,8 +911,8 @@ body {
   max-width: none;
   padding-top: 0.5rem;
   padding-bottom: 0.55rem;
-  padding-left: var(--catalogue-plp-inline-x);
-  padding-right: var(--catalogue-plp-inline-x);
+  padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
   box-sizing: border-box;
   text-align: left;
 }
@@ -3745,8 +3745,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     min-height: var(--site-header-row-height);
     padding-top: 0;
     padding-bottom: 0;
-    padding-left: var(--catalogue-plp-inline-x);
-    padding-right: var(--catalogue-plp-inline-x);
+    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
     display: flex;
     align-items: center;
     position: relative;
@@ -4629,8 +4629,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     margin-right: auto;
     max-width: none;
     width: 100%;
-    padding-left: var(--catalogue-plp-inline-x);
-    padding-right: var(--catalogue-plp-inline-x);
+    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
     padding-top: 0;
     padding-bottom: 0;
     min-height: var(--site-header-row-height, 5rem);
@@ -19434,8 +19434,8 @@ body.collection-page .collection-container > .collection-actions {
 
   .site-header__inner,
   .site-header__container {
-    padding-left: var(--catalogue-plp-inline-x);
-    padding-right: var(--catalogue-plp-inline-x);
+    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
   }
 
   body.collection-page {

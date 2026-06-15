@@ -408,7 +408,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-01",
     "image": "/images/wardrobe/basket-weave-linen-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/basket-weave-linen-jacket/main/2.webp"
+      "/images/wardrobe/basket-weave-linen-jacket/main/2.PNG"
     ],
     "notes": "Polo Ralph Lauren Vintage Linen Sport Coat (1990s, Made in Japan)\n\n* Era: 1990s\n* Line: Polo by Ralph Lauren\n* Licensee: Impact 21 Co., Ltd. (Japanese subsidiary of Ralph Lauren)\n* Measurements:\n    * Back Length: 78 cm\n    * Shoulder: 49 cm\n    * Chest: 61 cm\n    * Sleeve Length: 64 cm\n* Colour: Mixed Beige\n* Shell: 100% Linen\n* Lining: Cupro\n* Country of Origin: Made in Japan\n\nNotes:\nA Japanese domestic licensed piece from the 1990s under Impact 21, featuring classic American tailoring details including a 3-roll-2 front, notch lapels, side vents, and breathable linen construction. The relaxed silhouette reflects the softer Ivy / trad tailoring proportions typical of Ralph Lauren’s 1990s tailoring. Suitable as a warm-weather sport coat with strong compatibility for both Ivy and classic American casual wardrobes.",
     "metadata": {
