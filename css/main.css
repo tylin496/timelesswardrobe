@@ -908,27 +908,13 @@ body {
   margin-right: auto;
   position: relative;
   width: 100%;
-  max-width: var(--chrome-content-max);
+  max-width: none;
   padding-top: 0.5rem;
   padding-bottom: 0.55rem;
-  padding-left: 0;
-  padding-right: 0;
-  box-sizing: border-box;
-  text-align: left;
-}
-
-body.home-page .site-header__inner,
-body.home-page .site-header__container,
-body.home-page .site-header__container.site-header__inner,
-body.collection-page .site-header__inner,
-body.collection-page .site-header__container,
-body.collection-page .site-header__container.site-header__inner,
-body.item-page .site-header__inner,
-body.item-page .site-header__container,
-body.item-page .site-header__container.site-header__inner {
-  max-width: none;
   padding-left: var(--catalogue-plp-inline-x);
   padding-right: var(--catalogue-plp-inline-x);
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .site-header__brand-nav {
@@ -15148,14 +15134,6 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   gap: 0.5rem 0.75rem;
 }
 
-body.account-page .site-header__inner,
-body.account-page .site-header__container,
-body.account-page .site-header__container.site-header__inner {
-  max-width: none;
-  padding-left: clamp(1.5rem, 5.8vw, 7.25rem);
-  padding-right: clamp(1.5rem, 5.8vw, 7.25rem);
-}
-
 .account-page-main {
   width: 100%;
   max-width: min(112rem, calc(100vw - 2rem));
@@ -19457,25 +19435,11 @@ body.collection-page .collection-container > .collection-actions {
 }
 
 
-  body.home-page .site-header__inner,
-  body.home-page .site-header__container,
-  body.home-page .site-header__container.site-header__inner,
-  body.collection-page .site-header__inner,
-  body.collection-page .site-header__container,
-  body.collection-page .site-header__container.site-header__inner,
-  body.item-page .site-header__inner,
-  body.item-page .site-header__container,
-  body.item-page .site-header__container.site-header__inner,
-  body.editorial-page .site-header__inner,
-  body.editorial-page .site-header__container,
-  body.editorial-page .site-header__container.site-header__inner,
-  body.account-page .site-header__inner,
-  body.account-page .site-header__container,
-  body.account-page .site-header__container.site-header__inner {
-    max-width: none;
-    padding-left: var(--chrome-inline-x, clamp(1.5rem, 5.8vw, 7.25rem));
-    padding-right: var(--chrome-inline-x, clamp(1.5rem, 5.8vw, 7.25rem));
-}
+  .site-header__inner,
+  .site-header__container {
+    padding-left: var(--catalogue-plp-inline-x);
+    padding-right: var(--catalogue-plp-inline-x);
+  }
 
   body.collection-page {
     --collection-plp-gap-eyebrow-title: 8px;
