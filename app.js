@@ -3236,30 +3236,6 @@
     card.appendChild(form);
     body.appendChild(card);
 
-    const editCard = document.createElement("section");
-    editCard.className = "account-card account-card--edit-mode";
-    const editH2 = document.createElement("h2");
-    editH2.className = "account-card__title";
-    editH2.textContent = "Edit mode";
-    editCard.appendChild(editH2);
-    const editHint = document.createElement("p");
-    editHint.className = "account-card__hint";
-    editHint.textContent = "Show edit controls across the site (pieces, editorial stories).";
-    editCard.appendChild(editHint);
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.className = "account-edit-mode-btn";
-    const refreshEditBtn = () => {
-      editBtn.textContent = isTwAdminMode() ? "Turn off edit mode" : "Turn on edit mode";
-      editBtn.dataset.active = isTwAdminMode() ? "1" : "";
-    };
-    refreshEditBtn();
-    editBtn.addEventListener("click", () => {
-      setTwAdminMode(!isTwAdminMode());
-      refreshEditBtn();
-    });
-    editCard.appendChild(editBtn);
-    body.appendChild(editCard);
 
     // ── Notes bulk editor ──────────────────────────────────────────────────────
     const notesCard = document.createElement("section");
@@ -28178,6 +28154,8 @@
       shell.append(chrome, body);
       ensureMobileNavDim();
       document.body.appendChild(shell);
+      // Now that the shell is in the DOM, sync the login row (querySelector works).
+      syncMobileNavLoginRow();
       ensureMobileNavDrillPortal();
       ensureMobileNavDrillChrome();
       return shell;
