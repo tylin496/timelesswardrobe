@@ -28909,25 +28909,6 @@
       accountLi.appendChild(accountA);
       list.appendChild(accountLi);
 
-      // Edit section divider + label
-      const editDivLi = document.createElement("li");
-      editDivLi.className = "site-mobile-nav__item site-mobile-nav__account-section-item";
-      editDivLi.innerHTML = '<span class="site-mobile-nav__account-section-label">Edit</span>';
-      list.appendChild(editDivLi);
-
-      // Edit actions
-      for (const action of twAccountEditActions()) {
-        const li = document.createElement("li");
-        li.className = "site-mobile-nav__item";
-        const a = document.createElement("a");
-        a.href = action.href;
-        a.className = "site-mobile-nav__subrow";
-        a.textContent = action.label;
-        a.addEventListener("click", () => closeMobileCategoryPanel());
-        li.appendChild(a);
-        list.appendChild(li);
-      }
-
       // Sign out
       const signOutLi = document.createElement("li");
       signOutLi.className = "site-mobile-nav__item site-mobile-nav__account-signout-item";
