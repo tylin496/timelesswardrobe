@@ -31,7 +31,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/beaufort-waxed-jacket/main/2.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/3.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp"
+      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
+      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp"
     ],
     "metadata": {
       "price": 43200,
@@ -55,7 +56,7 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/balmacaan-coat/main/2.jpg",
       "/images/wardrobe/balmacaan-coat/main/3.jpg",
-      "/images/wardrobe/balmacaan-coat/main/4.png",
+      "/images/wardrobe/balmacaan-coat/main/4.webp",
       "/images/wardrobe/balmacaan-coat/main/5.webp"
     ],
     "metadata": {
@@ -155,8 +156,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-10-17",
     "image": "/images/wardrobe/black-bay-58/main/1.webp",
     "gallery": [
-      "/images/wardrobe/black-bay-58/main/2.png",
-      "/images/wardrobe/black-bay-58/main/3.webp",
+      "/images/wardrobe/black-bay-58/main/2.webp",
+      "/images/wardrobe/black-bay-58/main/3.jpeg",
       "/images/wardrobe/black-bay-58/main/4.webp"
     ],
     "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe Tudor Black Bay 58 draws heavily upon the visual language of the iconic Rolex Submariner 6538 ‘Big Crown’, from the red triangle at 12 o’clock to the restrained proportions that defined the finest diving watches of the 1950s. The gilt dial introduces a welcome warmth that sits comfortably alongside the gold pieces elsewhere in the collection. It remains the collection’s sole dedicated sports watch.",
@@ -181,8 +182,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-11-01",
     "image": "/images/wardrobe/signet-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/2.png",
-      "/images/wardrobe/signet-ring/main/3.png",
+      "/images/wardrobe/signet-ring/main/2.webp",
+      "/images/wardrobe/signet-ring/main/3.webp",
       "/images/wardrobe/signet-ring/main/4.webp"
     ],
     "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
@@ -206,7 +207,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-10-26",
     "image": "/images/wardrobe/pembroke/main/1.webp",
     "gallery": [
-      "/images/wardrobe/pembroke/main/2.webp"
+      "/images/wardrobe/pembroke/main/2.webp",
+      "/images/wardrobe/pembroke/main/3.webp"
     ],
     "notes": "Type: Full brogue country derby, wing-tip with full punching\nSole: Dainite rubber\nLast: 325",
     "metadata": {
@@ -257,7 +259,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-01-13",
     "image": "/images/wardrobe/herringbone-tweed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/herringbone-tweed-jacket/main/2.png"
+      "/images/wardrobe/herringbone-tweed-jacket/main/2.webp"
     ],
     "metadata": {
       "price": 175,
@@ -482,7 +484,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-27",
     "image": "/images/wardrobe/aran-cable-knit-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/aran-cable-knit-jumper/main/2.png"
+      "/images/wardrobe/aran-cable-knit-jumper/main/2.webp"
     ],
     "metadata": {
       "price": 7990,
@@ -507,7 +509,7 @@ const WARDROBE_ITEMS = [
     "measuredDimensions": "Shoulder: 47\nChest: 128\nSleeve: 73\nLength: 74",
     "image": "/images/wardrobe/driver-knit-zip-up-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/driver-knit-zip-up-jumper/main/2.png",
+      "/images/wardrobe/driver-knit-zip-up-jumper/main/2.webp",
       "/images/wardrobe/driver-knit-zip-up-jumper/main/3.webp"
     ],
     "metadata": {
@@ -663,7 +665,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-12-17",
     "image": "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp"
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.jpg",
+      "/images/wardrobe/rib-knit-roll-neck-jumper/main/3.webp"
     ],
     "notes": "紳士 洗えるウールリブタートルネックセーター",
     "metadata": {
@@ -774,8 +777,8 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-08-09",
     "image": "/images/wardrobe/linen-loop-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-loop-collar-shirt/main/2.webp",
-      "/images/wardrobe/linen-loop-collar-shirt/main/3.webp"
+      "/images/wardrobe/linen-loop-collar-shirt/main/2.jpg",
+      "/images/wardrobe/linen-loop-collar-shirt/main/3.jpg"
     ],
     "notes": "FLOWING REGULAR FIT SHIRT",
     "metadata": {
@@ -1444,7 +1447,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.png",
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.jpg"
     ],
     "purchaseDate": "2014-03-10",
@@ -1590,7 +1593,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/gt1-hardwood-umbrella/main/2.webp",
       "/images/wardrobe/gt1-hardwood-umbrella/main/3.webp",
       "/images/wardrobe/gt1-hardwood-umbrella/main/4.webp",
-      "/images/wardrobe/gt1-hardwood-umbrella/main/5.webp"
+      "/images/wardrobe/gt1-hardwood-umbrella/main/5.webp",
+      "/images/wardrobe/gt1-hardwood-umbrella/main/6.webp"
     ],
     "notes": "Made in Britain by Fox Umbrellas, established in 1868.\n\nBuilt on a 25-inch Classic Fox steel tube frame with black ribs, a black 100% Best Polyester canopy, and a polished ash hardwood handle in a light grained finish.\n\nManual opening mechanism with matching outside case.\n\nCanopy diameter: 104.5 cm\nFull length: 91 cm\nWeight: approximately 530 g\nFrame: 25” Classic Fox brown steel tube frame with black ribs\nCanopy: 100% Best Polyester, water-repellent and UV-treated\nHandle: Ash hardwood, light grained finish\nWood genus: Fraxinus\nWood species: Chinensis\nMade in Britain",
     "metadata": {
@@ -1734,7 +1738,9 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/ferret/main/2.webp",
       "/images/wardrobe/ferret/main/3.webp",
-      "/images/wardrobe/ferret/main/4.webp"
+      "/images/wardrobe/ferret/main/4.webp",
+      "/images/wardrobe/ferret/main/5.webp",
+      "/images/wardrobe/ferret/main/6.webp"
     ],
     "metadata": {
       "price": 41696,
@@ -1806,7 +1812,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain-necklace/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain-necklace/main/2.jpg",
+      "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
       "/images/wardrobe/rolo-chain-necklace/main/3.webp"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
@@ -1881,7 +1887,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/wedding-bands/main/2.webp",
       "/images/wardrobe/wedding-bands/main/3.webp",
       "/images/wardrobe/wedding-bands/main/4.webp",
-      "/images/wardrobe/wedding-bands/main/5.webp"
+      "/images/wardrobe/wedding-bands/main/5.webp",
+      "/images/wardrobe/wedding-bands/main/6.webp"
     ],
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). Worn at base when stacked. Reference: bands of Prince Edward Duke of Kent (1767–1820) and Princess Victoria Duchess of Kent (1786–1861).",
     "metadata": {
@@ -1902,7 +1909,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2023-11-27",
     "image": "/images/wardrobe/kingsman-0847-sunglasses/main/1.webp",
     "gallery": [
-      "/images/wardrobe/kingsman-0847-sunglasses/main/2.webp",
+      "/images/wardrobe/kingsman-0847-sunglasses/main/2.jpeg",
       "/images/wardrobe/kingsman-0847-sunglasses/main/3.webp",
       "/images/wardrobe/kingsman-0847-sunglasses/main/4.webp",
       "/images/wardrobe/kingsman-0847-sunglasses/main/5.webp",
