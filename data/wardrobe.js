@@ -181,9 +181,10 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-11-01",
     "image": "/images/wardrobe/signet-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/2.webp",
+      "/images/wardrobe/signet-ring/main/2.png",
       "/images/wardrobe/signet-ring/main/3.webp",
-      "/images/wardrobe/signet-ring/main/4.webp"
+      "/images/wardrobe/signet-ring/main/4.webp",
+      "/images/wardrobe/signet-ring/main/5.webp"
     ],
     "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
     "metadata": {
