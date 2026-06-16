@@ -7703,12 +7703,8 @@
     // http image URL such as an R2 upload), preserve the patch's image/gallery.
     const seed = catalogueSeedRow(id);
     const patchImage = String(patch.image ?? "").trim();
-    const hasCloudMediaPatch = patch.__mediaEditedAt && /^https?:\/\//i.test(patchImage.split("?")[0]);
-    if (hasCloudMediaPatch) {
-      // Seed local image always wins over R2 cover (local file = user's latest).
-      const seedLocalImage = String(seed?.image ?? "").trim();
-      merged.image = /^\/images\/wardrobe\//i.test(seedLocalImage) ? seedLocalImage : patchImage;
-      // Gallery: keep patch ordering (user's custom order from online edit).
+    if (patch.__mediaEditedAt && patchImage) {
+      merged.image = patchImage;
       const patchGallery = Array.isArray(patch.gallery) ? patch.gallery : [];
       if (patchGallery.length) merged.gallery = [...patchGallery];
     } else {
