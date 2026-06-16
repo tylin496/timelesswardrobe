@@ -23183,13 +23183,13 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
   right: 0;
   bottom: 0;
   z-index: 1;
-  height: 31%;
+  height: 52%;
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.52) 0%,
-    rgba(0, 0, 0, 0.28) 52%,
-    rgba(0, 0, 0, 0.06) 82%,
+    rgba(0, 0, 0, 0.48) 0%,
+    rgba(0, 0, 0, 0.22) 42%,
+    rgba(0, 0, 0, 0.04) 72%,
     transparent 100%
   );
 }
