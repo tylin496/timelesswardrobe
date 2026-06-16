@@ -17691,13 +17691,22 @@
         } finally {
           bitmap?.close();
         }
-        const mime = preferPng ? "image/png" : "image/jpeg";
-        const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
-        const blob = await new Promise((res, rej) => {
-          canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
+        // Prefer WebP: supports alpha (for cutouts) and is far smaller than PNG.
+        // Fall back to PNG if the browser can't encode WebP (old Safari).
+        const tryMime = preferPng ? "image/webp" : "image/jpeg";
+        let blob = await new Promise((res, rej) => {
+          canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), tryMime, ITEM_PHOTO_JPEG_EXPORT_QUALITY);
         });
+        let mime = tryMime;
+        if (preferPng && blob.type !== "image/webp") {
+          // Browser didn't honour image/webp — fall back to PNG to preserve alpha
+          blob = await new Promise((res, rej) => {
+            canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), "image/png");
+          });
+          mime = "image/png";
+        }
         const base = String(file.name || "photo").replace(/\.[^.]+$/i, "") || "photo";
-        const ext = mime === "image/png" ? ".png" : ".jpg";
+        const ext = mime === "image/webp" ? ".webp" : mime === "image/png" ? ".png" : ".jpg";
         return new File([blob], `${base}${ext}`, { type: mime, lastModified: Date.now() });
       };
 
