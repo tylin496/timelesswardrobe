@@ -19933,7 +19933,7 @@
       const threshold = Math.min(44, w * 0.14);
       let target = touchStartIndex;
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
-        target = touchStartIndex + (dx > 0 ? 1 : -1);
+        target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
       if (target > max) target = 0;        // last → first (loop)
       else if (target < 0) target = max;   // first → last (loop)
