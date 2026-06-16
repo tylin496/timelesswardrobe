@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 /**
- * Generate transparent WebP thumbnails for wardrobe images.
+ * Generate composited WebP thumbnails for wardrobe items.
  *
- * Cover cutouts are RGBA (they float on the page background), which Vercel /
- * Supabase image optimisation reject. So we ship our own small static variant:
- * for each `images/wardrobe/<item>/main/<n>.<ext>` we write
- * `images/wardrobe/<item>/thumb/<n>.webp`, resized to fit 720×960 with alpha
- * preserved. Grid / home / menu cards load the thumb; the detail + zoom views
- * keep loading the full-resolution original.
+ * For each `images/wardrobe/<item>/main/<n>.<ext>` we write
+ * `images/wardrobe/<item>/thumb/<n>.webp`: the item cutout composited onto
+ * images/background.jpg, scaled to fit 720×960. thumb/ represents the final
+ * presentation asset; main/ remains the transparent source.
  *
- * Idempotent: skips thumbs that are already newer than their source.
+ * Idempotent: skips thumbs already newer than both their source and background.jpg.
  *
  * Usage:
  *   node scripts/generate-wardrobe-thumbs.mjs          # only stale/missing
@@ -22,6 +20,7 @@ import sharp from "sharp";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WARDROBE_DIR = path.join(ROOT, "images", "wardrobe");
+const BACKGROUND_PATH = path.join(ROOT, "images", "background.jpg");
 
 const MAX_WIDTH = 720;
 const MAX_HEIGHT = 960;
@@ -30,17 +29,32 @@ const SOURCE_RE = /\.(webp|png|jpg|jpeg)$/i;
 
 const force = process.argv.includes("--force");
 
+// Pre-scale background once for the session — all thumbs share the same plate.
+const bgBuffer = await sharp(BACKGROUND_PATH)
+  .resize(MAX_WIDTH, MAX_HEIGHT, { fit: "cover", position: "centre" })
+  .toBuffer();
+
+// Used by the staleness check so any change to background.jpg busts all thumbs.
+const BG_MTIME = statSync(BACKGROUND_PATH).mtimeMs;
+
 async function buildThumb(srcPath, outPath) {
-  await sharp(srcPath)
+  // Resize item cutout to fit within the frame (preserves aspect ratio).
+  const itemBuffer = await sharp(srcPath)
     .resize({ width: MAX_WIDTH, height: MAX_HEIGHT, fit: "inside", withoutEnlargement: true })
-    .webp({ quality: QUALITY, effort: 6, alphaQuality: 100 })
+    .toBuffer();
+
+  // Composite item onto background, north-aligned to match CSS flex-start.
+  await sharp(bgBuffer)
+    .composite([{ input: itemBuffer, gravity: "north" }])
+    .webp({ quality: QUALITY, effort: 6 })
     .toFile(outPath);
 }
 
 function isUpToDate(srcPath, outPath) {
   if (force || !existsSync(outPath)) return false;
   try {
-    return statSync(outPath).mtimeMs >= statSync(srcPath).mtimeMs;
+    const outMtime = statSync(outPath).mtimeMs;
+    return outMtime >= statSync(srcPath).mtimeMs && outMtime >= BG_MTIME;
   } catch {
     return false;
   }

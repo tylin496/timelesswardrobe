@@ -65,8 +65,9 @@ function buildDescription(item) {
 function buildOgImageUrl(item) {
   const raw = String(item.image ?? "").trim();
   if (!raw) return `${BASE_URL}/og-image.png`;
-  // raw is already like /images/wardrobe/id/main/1.webp
-  return `${BASE_URL}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  // Switch main/ → thumb/ so OG uses the composited presentation asset.
+  const thumb = raw.replace(/\/main\//, "/thumb/");
+  return `${BASE_URL}${thumb.startsWith("/") ? thumb : `/${thumb}`}`;
 }
 
 // ── Generate per-item HTML ────────────────────────────────────────────────────
