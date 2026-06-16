@@ -18553,6 +18553,8 @@
       plan.url = rawUrl;
     }
 
+    const newFileCount = planned.filter((p) => p.source.kind === "file").length;
+    let newFileIdx = 0;
     for (let i = 0; i < planned.length; i++) {
       const plan = planned[i];
       if (plan.skip) {
@@ -18562,17 +18564,28 @@
       let url = "";
       if (plan.source.kind === "url") {
         if (plan.relocateFile) {
+          const where = i === 0 ? "cover" : `gallery image #${i}`;
+          setMsg?.(`Uploading ${where}…`, false);
           try {
             url = await uploadWardrobeImageFileToCloud(plan.relocateFile, itemId, plan.slot);
           } catch (err) {
             console.warn(err);
-            const where = i === 0 ? "cover" : `gallery image #${i}`;
             throw new Error(messageForCloudUploadFailure(where, err));
           }
         } else {
           url = String(plan.url ?? plan.source.url ?? "").trim();
         }
       } else if (plan.source.kind === "file" && plan.source.file) {
+        newFileIdx++;
+        const where =
+          i === 0
+            ? variantKey
+              ? `variant cover (${variantKey})`
+              : "cover"
+            : newFileCount > 1
+            ? `photo ${newFileIdx} of ${newFileCount}`
+            : "photo";
+        setMsg?.(`Uploading ${where}…`, false);
         try {
           if (isLocalCatalogueItemId(itemId) && isTwLocalDevHost()) {
             url = await saveWardrobeImageFileToLocalDevServer(plan.source.file, itemId, plan.slot);
@@ -18583,12 +18596,6 @@
           }
         } catch (err) {
           console.warn(err);
-          const where =
-            i === 0
-              ? variantKey
-                ? `variant cover (${variantKey})`
-                : "main cover"
-              : `gallery image #${i}`;
           throw new Error(messageForCloudUploadFailure(where, err));
         }
       }
@@ -22986,12 +22993,17 @@
           gallery = [];
         } else if (slots.length) {
           setMsg("Processing images…", false);
-          const materialized = await materializeItemEditPhotoSlots(slots, id, setMsg, {
-            keepCoverOnFailure: true,
-            previousCover: image,
-          });
-          image = materialized.image;
-          gallery = materialized.gallery;
+          try {
+            const materialized = await materializeItemEditPhotoSlots(slots, id, setMsg, {
+              keepCoverOnFailure: true,
+              previousCover: image,
+            });
+            image = materialized.image;
+            gallery = materialized.gallery;
+          } catch (uploadErr) {
+            setMsg(String(uploadErr?.message || uploadErr || "Upload failed — check network and try again."), true);
+            return;
+          }
           if (isLocalCatalogueItemId(id) && image && (!hadNewPhotoFiles || isTwLocalDevHost())) {
             const renamed = await renameLocalGalleryCanonically(id, image, gallery);
             image = renamed.image;
@@ -23090,7 +23102,10 @@
             isFileBackedLocalWardrobeUrl(itemRef, u) && !/^https?:\/\//i.test(String(u).split("?")[0])
         );
       if (needsCloudGallery || hasLocalOnlyMedia) {
-        setMsg("Syncing photos to cloud…", false);
+        const localCount = gallery.filter(
+          (u) => isFileBackedLocalWardrobeUrl(itemRef, u) && !/^https?:\/\//i.test(String(u).split("?")[0])
+        ).length + (image && isFileBackedLocalWardrobeUrl(itemRef, image) && !/^https?:\/\//i.test(image.split("?")[0]) ? 1 : 0);
+        setMsg(localCount > 0 ? `Uploading ${localCount} catalogue photo${localCount > 1 ? "s" : ""} to cloud…` : "Syncing photos to cloud…", false);
         const synced = await ensureFrozenCatalogueMediaUrlsOnCloud(id, image, gallery, setMsg);
         image = synced.image;
         gallery = synced.gallery;
@@ -23192,6 +23207,7 @@
         return;
       }
 
+      setMsg(`Saving "${name}" to Supabase…`, false);
       try {
         const saved = await saveWardrobeItemToCloud(updated);
         const mediaBust = stampWardrobeItemMediaNonce(
@@ -23223,7 +23239,7 @@
         }
       } catch (e) {
         console.warn(e);
-        setMsg(`Cloud row save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
+        setMsg(`Failed to save "${name}" (custom item) — ${messageForFailedWardrobeUpsert(e)}`, true);
         return;
       }
     } else {
@@ -23326,6 +23342,7 @@
       if (isLocalCatalogueItemId(id)) {
         const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
         if (mediaTouched) {
+          setMsg(`Saving "${name}" to Supabase…`, false);
           try {
             const saved = await saveWardrobeItemToCloud(mergedForCloud);
             const mediaBust = stampWardrobeItemMediaNonce(saved, Date.now());
@@ -23364,7 +23381,7 @@
             const hitCat = cloudBackedCustomItems.find((x) => String(x?.id ?? "") === String(id));
             if (hitCat) /** @type {any} */ (hitCat).__displayNonce = mediaBust;
           } catch (e) {
-            setMsg(`Cloud media save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
+            setMsg(`Failed to save "${name}" (media + row) — ${messageForFailedWardrobeUpsert(e)}`, true);
             keepFinalWarningMessage = true;
             return;
           }
@@ -23399,6 +23416,7 @@
           savedRowForPin = mergedLocal;
         }
       } else {
+        setMsg(`Saving "${name}" to Supabase…`, false);
         try {
           const mergedForCloud = normalizeItemDerivedFields(mergeCollectionPatchIntoFullItem(prev, patch));
           const saved = await saveWardrobeItemToCloud(mergedForCloud);
@@ -23434,7 +23452,7 @@
           if (hitCat) /** @type {any} */ (hitCat).__displayNonce = mediaBust;
           didCloudListRefresh = true;
         } catch (e) {
-          setMsg(`Cloud row save failed: ${messageForFailedWardrobeUpsert(e)}`, true);
+          setMsg(`Failed to save "${name}" — ${messageForFailedWardrobeUpsert(e)}`, true);
           keepFinalWarningMessage = true;
           return;
         }
@@ -23442,7 +23460,7 @@
     }
 
     if (!keepFinalWarningMessage && !(isCustom && isSupabaseReady() && !customCloudSynced)) {
-      setMsg("Saved to collection", false);
+      setMsg(`Saved "${name}"`, false);
     }
     if (!didCloudListRefresh) {
       mergeWardrobeFromSources();
