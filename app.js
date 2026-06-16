@@ -3141,11 +3141,6 @@
     }
     const title = document.querySelector(".account-page-main .login-page-main__title");
     if (title) title.textContent = `Welcome back, ${twAccountGreetingName()}`;
-    const heroSignOut = document.getElementById("account-signout");
-    if (heroSignOut instanceof HTMLButtonElement) {
-      heroSignOut.hidden = false;
-      heroSignOut.onclick = signOutTwAccountAndReturnHome;
-    }
     updateTwAccountStatus("", "success", { hidden: true });
 
     body.replaceChildren();
@@ -3455,6 +3450,14 @@
 
     notesCard.appendChild(notesList);
     body.appendChild(notesCard);
+
+    const signOutBtn = document.createElement("button");
+    signOutBtn.type = "button";
+    signOutBtn.className = "account-signout";
+    signOutBtn.style.marginTop = "2.5rem";
+    signOutBtn.textContent = "Sign Out";
+    signOutBtn.addEventListener("click", signOutTwAccountAndReturnHome);
+    body.appendChild(signOutBtn);
   }
 
   function twSiteBaseUrl() {
@@ -3629,7 +3632,7 @@
       label.textContent = name ? `Welcome, ${name}!` : "My account";
       link.dataset.loggedIn = "1";
       link.dataset.mobileNavAccount = "1";
-      if (link instanceof HTMLAnchorElement) link.href = "#";
+      if (link instanceof HTMLAnchorElement) link.href = "/account";
     } else {
       label.textContent = "Sign in";
       delete link.dataset.loggedIn;
@@ -27927,11 +27930,7 @@
           loginLink.href = isTwEditorUser() ? "/account" : twLoginUrl();
         }
       });
-      loginLink.addEventListener("click", (e) => {
-        if (loginLink.dataset.mobileNavAccount) {
-          e.preventDefault();
-          return;
-        }
+      loginLink.addEventListener("click", () => {
         closeMobileCategoryPanel();
       });
       loginLi.appendChild(loginLink);
@@ -28621,85 +28620,6 @@
         portal.classList.remove("is-closing");
         finalizeMobileNavDrillReset({ focusMain });
       }, ["transform"]);
-    }
-
-    function openMobileNavAccountDrill() {
-      const shell = document.getElementById("site-mobile-shell");
-      const nav = document.getElementById("site-mobile-nav");
-      const root = document.getElementById("site-mobile-nav-root");
-      const drill = document.getElementById("site-mobile-nav-drill");
-      const list = document.getElementById("site-mobile-nav-drill-list");
-      const { back, title } = ensureMobileNavDrillChrome();
-      if (!nav || !root || !drill || !title || !list) return;
-
-      const email = String(twEditorSession?.email ?? "");
-      const greetingName = twAccountGreetingName();
-      title.textContent = greetingName ? greetingName.toUpperCase() : "ACCOUNT";
-      list.replaceChildren();
-
-      // Email
-      if (email) {
-        const emailLi = document.createElement("li");
-        emailLi.className = "site-mobile-nav__item site-mobile-nav__account-email-item";
-        const emailEl = document.createElement("span");
-        emailEl.className = "site-mobile-nav__account-email";
-        emailEl.textContent = email;
-        emailLi.appendChild(emailEl);
-        list.appendChild(emailLi);
-      }
-
-      // Account link
-      const accountLi = document.createElement("li");
-      accountLi.className = "site-mobile-nav__item";
-      const accountA = document.createElement("a");
-      accountA.href = "/account";
-      accountA.className = "site-mobile-nav__subrow";
-      accountA.textContent = "Account";
-      accountA.addEventListener("click", () => closeMobileCategoryPanel());
-      accountLi.appendChild(accountA);
-      list.appendChild(accountLi);
-
-      // Sign out
-      const signOutLi = document.createElement("li");
-      signOutLi.className = "site-mobile-nav__item site-mobile-nav__account-signout-item";
-      const signOutBtn = document.createElement("button");
-      signOutBtn.type = "button";
-      signOutBtn.className = "site-mobile-nav__subrow site-mobile-nav__account-signout-btn";
-      signOutBtn.textContent = "Sign out";
-      signOutBtn.addEventListener("click", async () => {
-        closeMobileCategoryPanel();
-        await signOutGoogleEditor();
-      });
-      signOutLi.appendChild(signOutBtn);
-      list.appendChild(signOutLi);
-
-      syncMobileShellTop();
-      const portal = mountMobileNavDrillInPortal();
-      ensureMobileNavDrillChrome();
-
-      drill.classList.remove("is-active", "is-closing");
-      nav.classList.remove("site-mobile-nav--drill-open");
-      document.body.classList.remove("collection-ui--mobile-nav-drill");
-      portal.classList.remove("is-open", "is-closing");
-      portal.removeAttribute("hidden");
-      setMobileNavDrillChromeVisible(true);
-
-      const reduceMotion = Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
-      const revealDrill = () => {
-        if (!document.body.classList.contains("collection-ui--mobile-nav-open")) return;
-        document.body.classList.add("collection-ui--mobile-nav-drill");
-        root.setAttribute("aria-hidden", "true");
-        drill.setAttribute("aria-hidden", "false");
-        nav.classList.add("site-mobile-nav--drill-open");
-        drill.classList.add("is-active");
-        portal.classList.add("is-open");
-        portal.removeAttribute("aria-hidden");
-        back?.focus();
-      };
-
-      if (reduceMotion) { revealDrill(); return; }
-      void portal.offsetWidth;
-      requestAnimationFrame(revealDrill);
     }
 
     function openMobileNavDrill(slot) {
@@ -29482,11 +29402,6 @@
       }
       const row = /** @type {HTMLElement | null} */ (e.target.closest(".site-mobile-nav__row"));
       if (row) {
-        if (row.dataset.mobileNavAccount) {
-          e.preventDefault();
-          openMobileNavAccountDrill();
-          return;
-        }
         const slot = String(row.dataset.mobileNavSlot ?? "").trim();
         if (SLOT_OPTIONS.includes(slot)) openMobileNavDrill(slot);
         return;
