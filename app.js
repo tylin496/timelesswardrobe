@@ -7051,9 +7051,14 @@
     const allLocal = orderedPaths.every((u) => typeof u === "string" && u.startsWith("/images/wardrobe/"));
     if (!allLocal) return { image, gallery };
     try {
+      const session = supabaseClient?.auth
+        ? (await supabaseClient.auth.getSession())?.data?.session
+        : null;
+      const headers = { "Content-Type": "application/json" };
+      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
       const res = await fetch("/api/wardrobe/rename-gallery", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ itemId, orderedPaths }),
       });
       if (!res.ok) return { image, gallery };

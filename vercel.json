@@ -5,7 +5,6 @@
   "outputDirectory": "dist",
   "images": {
     "sizes": [640, 828, 1080, 1200, 1920, 2048],
-    "domains": ["pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev"],
     "minimumCacheTTL": 31536000
   },
   "headers": [

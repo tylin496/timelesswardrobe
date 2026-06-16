@@ -1601,11 +1601,13 @@ const WARDROBE_ITEMS = [
     "colour": "Black",
     "colourCode": "#000000",
     "purchaseDate": "2025-01-11",
-    "image": "/images/wardrobe/gt1-hardwood-umbrella/main/1.webp",
+    "image": "/images/wardrobe/gt1-hardwood-umbrella/main/1.png",
     "gallery": [
+      "/images/wardrobe/gt1-hardwood-umbrella/main/1.webp",
       "/images/wardrobe/gt1-hardwood-umbrella/main/2.webp",
       "/images/wardrobe/gt1-hardwood-umbrella/main/3.webp",
-      "/images/wardrobe/gt1-hardwood-umbrella/main/4.webp"
+      "/images/wardrobe/gt1-hardwood-umbrella/main/4.webp",
+      "/images/wardrobe/gt1-hardwood-umbrella/main/image-2.png"
     ],
     "notes": "Made in Britain by Fox Umbrellas, established in 1868.\n\nBuilt on a 25-inch Classic Fox steel tube frame with black ribs, a black 100% Best Polyester canopy, and a polished ash hardwood handle in a light grained finish.\n\nManual opening mechanism with matching outside case.\n\nCanopy diameter: 104.5 cm\nFull length: 91 cm\nWeight: approximately 530 g\nFrame: 25” Classic Fox brown steel tube frame with black ribs\nCanopy: 100% Best Polyester, water-repellent and UV-treated\nHandle: Ash hardwood, light grained finish\nWood genus: Fraxinus\nWood species: Chinensis\nMade in Britain",
     "metadata": {
