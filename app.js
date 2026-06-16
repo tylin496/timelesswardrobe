@@ -22854,29 +22854,11 @@
     const msgEl = document.getElementById("item-detail-edit-msg");
     const statusEl = document.getElementById("item-detail-edit-status");
     const setMsg = (t, err) => {
-      if (msgEl) {
-        msgEl.textContent = t || "";
-        msgEl.classList.toggle("item-detail__edit-msg--error", Boolean(err));
-        msgEl.hidden = !t;
-      }
-      if (!statusEl) return;
-      if (!t) {
-        statusEl.hidden = true;
-        statusEl.textContent = "";
-        statusEl.classList.remove(
-          "item-edit-save-status--error",
-          "item-edit-save-status--saving",
-          "item-edit-save-status--saved"
-        );
-        return;
-      }
-      statusEl.hidden = false;
-      const saving =
-        /^(Saving|Processing)/i.test(t) || t === "Saving…";
-      statusEl.textContent = err ? t : saving ? "Saving…" : t;
-      statusEl.classList.toggle("item-edit-save-status--error", Boolean(err));
-      statusEl.classList.toggle("item-edit-save-status--saving", saving && !err);
-      statusEl.classList.toggle("item-edit-save-status--saved", !err && !saving && t === "Saved to collection");
+      if (!msgEl) return;
+      msgEl.textContent = t || "";
+      msgEl.classList.toggle("item-detail__edit-msg--error", Boolean(err));
+      msgEl.hidden = !t;
+      if (statusEl) statusEl.hidden = true;
     };
     let keepFinalWarningMessage = false;
 
@@ -24561,14 +24543,7 @@
 
       let editDirty = false;
       const markEditDirty = () => {
-        if (editDirty) return;
         editDirty = true;
-        const st = document.getElementById("item-detail-edit-status");
-        if (!st || st.classList.contains("item-edit-save-status--saving")) return;
-        st.hidden = false;
-        st.textContent = "Unsaved changes";
-        st.classList.add("item-edit-save-status--dirty");
-        st.classList.remove("item-edit-save-status--saved", "item-edit-save-status--error");
       };
       form.addEventListener("input", markEditDirty);
       form.addEventListener("change", markEditDirty);
