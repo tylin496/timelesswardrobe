@@ -106,6 +106,7 @@
   --tw-home-chrome-inline-right: var(--chrome-content-inset-right);
   --chrome-inset-floor: 88px;
   --chrome-inset-beyond-header: 62px;
+  --catalogue-plp-box-gutter: 0px;
   --chrome-x: max(
     calc(var(--header-x) + var(--chrome-inset-beyond-header)),
     var(--chrome-inset-floor),

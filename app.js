@@ -7087,6 +7087,18 @@
     }
   }
 
+  async function saveWardrobeImageFileToLocalDevServer(file, itemId, slot) {
+    const storagePath = wardrobeImageStorageObjectPath(itemId, file, slot);
+    const dataUrl = await fileToRawDataUrl(file);
+    const res = await fetch("/api/wardrobe/local-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storagePath, dataUrl }),
+    });
+    if (!res.ok) throw new Error(`Local image save failed (${res.status})`);
+    return `/images/wardrobe/${storagePath}`;
+  }
+
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
   }
@@ -18552,7 +18564,9 @@
         }
       } else if (plan.source.kind === "file" && plan.source.file) {
         try {
-          if (isSupabaseReady()) {
+          if (isLocalCatalogueItemId(itemId) && isTwLocalDevHost()) {
+            url = await saveWardrobeImageFileToLocalDevServer(plan.source.file, itemId, plan.slot);
+          } else if (isSupabaseReady()) {
             url = await uploadWardrobeImageFileToCloud(plan.source.file, itemId, plan.slot);
           } else {
             url = await fileToStorageDataUrl(plan.source.file, { preferJpeg: i > 0 });
@@ -22968,7 +22982,7 @@
           });
           image = materialized.image;
           gallery = materialized.gallery;
-          if (isLocalCatalogueItemId(id) && image && !hadNewPhotoFiles) {
+          if (isLocalCatalogueItemId(id) && image && (!hadNewPhotoFiles || isTwLocalDevHost())) {
             const renamed = await renameLocalGalleryCanonically(id, image, gallery);
             image = renamed.image;
             gallery = renamed.gallery;
