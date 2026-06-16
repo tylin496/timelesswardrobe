@@ -3640,24 +3640,7 @@
   }
 
   function syncMobileAccountEditMenu() {
-    const loginItem = document.querySelector(".site-mobile-nav__item--login");
-    if (!(loginItem instanceof HTMLElement)) return;
-    let menu = document.querySelector(".site-mobile-nav__account-edit");
-    if (!isTwAdminMode()) {
-      menu?.remove();
-      return;
-    }
-    if (!(menu instanceof HTMLElement)) {
-      menu = document.createElement("li");
-      menu.className = "site-mobile-nav__item site-mobile-nav__account-edit";
-      loginItem.insertAdjacentElement("afterend", menu);
-    }
-    menu.innerHTML = `
-      <p class="site-mobile-nav__account-edit-label">Edit</p>
-      <div class="site-mobile-nav__account-edit-links">
-        ${twAccountEditActionsHtml("site-mobile-nav__account-edit-link")}
-      </div>
-    `;
+    document.querySelector(".site-mobile-nav__account-edit")?.remove();
   }
 
   function applyTwAdminModeUi() {
