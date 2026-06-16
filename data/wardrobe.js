@@ -1726,7 +1726,11 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/chukka/main/2.webp",
       "/images/wardrobe/chukka/main/3.webp",
-      "/images/wardrobe/chukka/main/4.webp"
+      "/images/wardrobe/chukka/main/4.webp",
+      "/images/wardrobe/chukka/main/5.webp",
+      "/images/wardrobe/chukka/main/6.webp",
+      "/images/wardrobe/chukka/main/7.webp",
+      "/images/wardrobe/chukka/main/8.webp"
     ],
     "notes": "Unlined ankle boot; Scotch-guard treated\nSole: single leather\nLast: 200",
     "metadata": {
