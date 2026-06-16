@@ -38,13 +38,11 @@ const template = fs.readFileSync(templatePath, "utf8");
 function setMetaContent(html, property, value) {
   const escaped = value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
   const prop = escapeRegex(property);
-  // Meta tags may be multi-line — use [\s\S] for the tag body, matched lazily
+  // (?:(?!\/>)[\s\S]) matches any char that is NOT the start of />, keeping the
+  // match inside a single self-closing tag and preventing cross-tag clobbering.
   return html.replace(
-    new RegExp(`(<meta[\\s\\S]*?(?:property|name)="${prop}"[\\s\\S]*?content=")[^"]*(")`,'g'),
-    `$1${escaped}$2`
-  ).replace(
-    new RegExp(`(<meta[\\s\\S]*?content=")[^"]*("[\\s\\S]*?(?:property|name)="${prop}"[\\s\\S]*?/?>)`, 'g'),
-    `$1${escaped}$2`
+    new RegExp(`<meta(?:(?!\\/>)[\\s\\S])*?(?:property|name)="${prop}"(?:(?!\\/>)[\\s\\S])*?\\/>`, 'g'),
+    (match) => match.replace(/(\bcontent=")[^"]*(")/g, `$1${escaped}$2`)
   );
 }
 
