@@ -2128,7 +2128,10 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/panama-hat/main/2.webp",
       "/images/wardrobe/panama-hat/main/3.webp",
       "/images/wardrobe/panama-hat/main/4.webp",
-      "/images/wardrobe/panama-hat/main/5.webp"
+      "/images/wardrobe/panama-hat/main/5.webp",
+      "/images/wardrobe/panama-hat/main/6.webp",
+      "/images/wardrobe/panama-hat/main/7.webp",
+      "/images/wardrobe/panama-hat/main/8.webp"
     ],
     "notes": "Construction & Provenance\nHandwoven in Ecuador by ELOY BERNAL, this classic Panama is crafted from 100% natural toquilla straw using the traditional Llano weave. Finished in a bleached white tone with a black grosgrain ribbon, it balances lightweight structure with relaxed warm-weather elegance.\n\nDesign & Proportions (XL)\n* Style: Center-Dent Crown\n* Brim Type: Snap Brim\n* Crown Shape: Classic Fedora\n* Weight: approx. 100 g\n\nMaterial & Weave\n* Material: 100% Natural Toquilla Straw\n* Weave: Llano (classic basket/plain weave)\n* Grade: Standard\n* Hand Feel: Lightweight, soft-structured\n* Rigidity: Soft to medium\n* Breathability: High",
     "metadata": {
