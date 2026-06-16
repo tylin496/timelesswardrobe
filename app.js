@@ -19853,6 +19853,7 @@
     let touchStartY = 0;
     let touchStartIndex = 0;
     let touchActive = false;
+    let touchPending = false;
     let suppressTimer = 0;
     let dragWidth = 0;
     let dragRaf = 0;
@@ -19960,6 +19961,7 @@
         if (api.blockTouchWhen?.()) return;
         // Second finger down (pinch intent) — cancel any in-progress swipe.
         if (e.touches.length !== 1) {
+          touchPending = false;
           if (touchActive) {
             touchActive = false;
             cancelDragRaf();
@@ -19972,13 +19974,11 @@
         cancelDragRaf();
         wrapSnapToken++; // cancel any in-flight wrap snap
         axisLocked = null;
-        touchActive = true;
+        touchPending = true;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
         touchStartIndex = api.readIndex();
         dragWidth = carousel.clientWidth || 0;
-        track.classList.add("is-dragging");
-        track.style.transition = "none";
       },
       { passive: true }
     );
@@ -19986,9 +19986,10 @@
     carousel.addEventListener(
       "touchmove",
       (e) => {
-        if (!touchActive || api.frameCount() < 2) return;
+        if ((!touchActive && !touchPending) || api.frameCount() < 2) return;
         // Second finger joined mid-swipe — abort swipe so pinch can take over.
         if (e.touches.length !== 1) {
+          touchPending = false;
           touchActive = false;
           cancelDragRaf();
           releaseToIndex(touchStartIndex, false);
@@ -20005,11 +20006,17 @@
           if (Math.sqrt(dx * dx + dy * dy) < 8) return;
           axisLocked = Math.abs(dx) > Math.abs(dy) * 1.5 ? "h" : "v";
           if (axisLocked === "v") {
+            touchPending = false;
             touchActive = false;
             cancelDragRaf();
             releaseToIndex(touchStartIndex, false);
             return;
           }
+          // Horizontal confirmed — arm drag now that direction is known.
+          touchPending = false;
+          touchActive = true;
+          track.classList.add("is-dragging");
+          track.style.transition = "none";
         }
 
         e.preventDefault(); // horizontal lock confirmed — suppress page scroll
@@ -20023,6 +20030,7 @@
     );
 
     const endTouch = (/** @type {TouchEvent} */ e) => {
+      touchPending = false;
       if (!touchActive) return;
       touchActive = false;
       cancelDragRaf();
