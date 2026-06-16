@@ -28899,6 +28899,8 @@
         preview.appendChild(empty);
         return;
       }
+      const allMatchBrands = new Set(matches.map((it) => String(it.brand ?? "").trim()).filter(Boolean));
+      const suppressCapBrand = allMatchBrands.size === 1;
       matches.forEach((item, previewIndex) => {
         const a = document.createElement("a");
         a.className = "site-header__submenu-preview-card";
@@ -28937,7 +28939,7 @@
         media.appendChild(im);
         const caption = document.createElement("p");
         caption.className = "site-header__submenu-preview-caption";
-        caption.textContent = brand || displayNameWithoutLeadingColour(item);
+        caption.textContent = suppressCapBrand ? displayNameWithoutLeadingColour(item) : (brand || displayNameWithoutLeadingColour(item));
         a.append(media, caption);
         preview.appendChild(a);
       });
