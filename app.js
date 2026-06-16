@@ -7355,9 +7355,10 @@
    */
   function galleryNeedsFrozenCatalogueCloudGallerySync(itemId, gallery) {
     if (!isLocalCatalogueItemId(itemId)) return false;
-    const targetSig = galleryPathKeySignature(dedupeGalleryUrls("", gallery));
     const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === itemId);
-    const cloudSig = galleryPathKeySignature(itemGalleryList(cloudRow || {}));
+    if (!cloudRow) return false;
+    const targetSig = galleryPathKeySignature(dedupeGalleryUrls("", gallery));
+    const cloudSig = galleryPathKeySignature(itemGalleryList(cloudRow));
     return targetSig !== cloudSig;
   }
 
