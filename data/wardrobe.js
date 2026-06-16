@@ -181,7 +181,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2020-11-01",
     "image": "/images/wardrobe/signet-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/2.png",
+      "/images/wardrobe/signet-ring/main/2.webp",
       "/images/wardrobe/signet-ring/main/3.webp",
       "/images/wardrobe/signet-ring/main/4.webp",
       "/images/wardrobe/signet-ring/main/5.webp"
