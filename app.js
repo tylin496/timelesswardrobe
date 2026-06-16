@@ -21281,6 +21281,13 @@
       const CHUNK_SIZE = 16;
       const firstCount = Math.min(FIRST_PAINT_COUNT, sorted.length);
 
+      // Reset loaded state so enter animations play once on re-render, then lock them out.
+      els.grid.classList.remove("grid--loaded");
+      const loadToken = renderToken;
+      setTimeout(() => {
+        if (renderToken === loadToken) els.grid?.classList.add("grid--loaded");
+      }, 1000);
+
       const firstFrag = document.createDocumentFragment();
       for (let i = 0; i < firstCount; i++) {
         firstFrag.appendChild(

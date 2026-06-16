@@ -13155,7 +13155,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 #grid.grid--dense .card,
-#grid .card.card--no-enter {
+#grid .card.card--no-enter,
+#grid.grid--loaded .card {
   animation: none;
 }
 
@@ -13800,7 +13801,9 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   min-height: 0;
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: pan-x pinch-zoom;
+  /* pan-y: browser handles vertical scroll natively (composited, no JS wait).
+     Horizontal swipes are intercepted by JS for the carousel drag. */
+  touch-action: pan-y;
 }
 
 #grid .card__media--gallery-swipe .card__gallery-carousel-track {
