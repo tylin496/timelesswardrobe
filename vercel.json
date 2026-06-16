@@ -3,6 +3,7 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "cleanUrls": true,
   "images": {
     "sizes": [640, 828, 1080, 1200, 1920, 2048],
     "minimumCacheTTL": 31536000
