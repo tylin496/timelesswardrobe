@@ -12808,11 +12808,7 @@
       validateSubcategoryFilters();
       return subcategoryFilters;
     }
-    if (subcategoryEntryIsActive(key)) {
-      removeSubcategoryFilterKey(key);
-      validateSubcategoryFilters();
-      return subcategoryFilters;
-    }
+    if (subcategoryEntryIsActive(key)) return subcategoryFilters;
     setOnlySubcategoryFilter(key);
     validateSubcategoryFilters();
     return subcategoryFilters;
