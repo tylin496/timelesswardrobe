@@ -7221,86 +7221,6 @@
    * Hybrid gallery: union seed (local) + cloud by storage path — same slot shows local once;
    * cloud-only paths stay as https until backed up.
    */
-  function mergeHybridCatalogueGallery(seed, cloudRow, opts = {}) {
-    const itemId = String(seed?.id ?? cloudRow?.id ?? "").trim();
-    const preferCloudOrder = Boolean(opts && opts.preferCloudOrder);
-    const rawCloudGal = itemGalleryList(cloudRow);
-    // For frozen local catalogue items, discard cloud gallery URLs whose storage path
-    // belongs to a different (old) item ID — legacy orphans from before ID migration.
-    const cloudGal = itemId && isLocalCatalogueItemId(itemId)
-      ? rawCloudGal.filter((u) => {
-          const key = wardrobeMediaPathKey(u);
-          if (!key) return true; // keep non-parseable URLs
-          return key.startsWith(itemId + "/");
-        })
-      : rawCloudGal;
-    const cloudAuthoritative = preferCloudOrder;
-    const coverKeys = new Set(
-      [seed?.image, cloudRow?.image]
-        .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
-        .filter(Boolean)
-    );
-    /** @type {string[]} */
-    const orderedKeys = [];
-    /** @type {Map<string, string>} */
-    const urlByPath = new Map();
-
-    /**
-     * @param {string} url
-     * @param {boolean} preferLocal swap-in local file-backed URL when its key already exists
-     * @param {boolean} allowAdd when false, only swap existing keys — never introduce new ones
-     */
-    const consider = (url, preferLocal, allowAdd = true) => {
-      const u = String(url ?? "").trim();
-      if (!u) return;
-      const pathOnly = u.split("?")[0];
-      const key = wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u) || pathOnly;
-      if (!key || coverKeys.has(key)) return;
-      const isLocal =
-        /^\/images\/wardrobe\//i.test(pathOnly) &&
-        (!itemId || primaryCoverUrlBelongsToItem({ id: itemId }, pathOnly));
-      const prev = urlByPath.get(key);
-      if (!prev) {
-        if (!allowAdd) return;
-        urlByPath.set(key, u);
-        if (!orderedKeys.includes(key)) orderedKeys.push(key);
-        return;
-      }
-      const prevLocal = /^\/images\/wardrobe\//i.test(prev.split("?")[0]);
-      if (preferLocal && isLocal) urlByPath.set(key, u);
-      else if (!prevLocal && isLocal) urlByPath.set(key, u);
-    };
-
-    // Cloud gallery is authoritative when explicitly preferred OR when it contains R2 absolute URLs
-    // (meaning the user uploaded new photos — these should replace seed local paths, not merge with them).
-    const cloudGalHasR2 = cloudGal.some((u) => /^https?:\/\//i.test(String(u ?? "").trim()));
-    if ((cloudAuthoritative || cloudGalHasR2) && cloudGal.length) {
-      /* Cloud is authoritative: cloud paths are the *only* gallery; seed paths may only swap
-       * the URL form (local → CDN) when their key already matches a cloud entry. Adding new
-       * seed-only keys here would silently re-introduce photos the user just deleted on cloud. */
-      for (const u of cloudGal) consider(u, false);
-      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true, false);
-      for (const u of itemGalleryList(seed)) consider(u, true, false);
-      return orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean);
-    }
-
-    if (preferCloudOrder) {
-      for (const u of cloudGal) consider(u, false);
-      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
-      for (const u of itemGalleryList(seed)) consider(u, true);
-    } else {
-      for (const u of fileBackedLocalGalleryUrls(seed)) consider(u, true);
-      for (const u of itemGalleryList(seed)) consider(u, true);
-      for (const u of cloudGal) consider(u, false);
-    }
-
-    /* Preserve cloud / seed gallery array order (edit drag order) — do not re-sort by filename slot. */
-    return mergeMissingFrozenSeedGalleryPaths(
-      itemId,
-      orderedKeys.map((k) => urlByPath.get(k)).filter(Boolean)
-    );
-  }
-
   /** @param {string} url */
   function wardrobeGalleryLogicalKey(url) {
     const key = wardrobeMediaPathKey(url) || String(url ?? "").trim().split("?")[0];
@@ -7365,9 +7285,6 @@
      */
     if (getItemColourVariants(item)) return base;
     if (!id || !isLocalCatalogueItemId(id)) return base;
-    // Local catalogue items: seed gallery is source of truth (set by applyCollectionOverrideToRow).
-    const cloudRow = cloudBackedCustomItems.find((r) => String(r?.id ?? "") === id);
-    if (cloudRow) return mergeMissingFrozenSeedGalleryPaths(id, base);
     return mergeMissingFrozenSeedGalleryPaths(id, base);
   }
 
@@ -7500,30 +7417,6 @@
     return { image: nextImage, gallery: dedupeGalleryUrls(nextImage, nextGallery, 12) };
   }
 
-  /** Gallery order diff (same paths in different sequence should count as user media edit). */
-  function cloudGalleryOrderDiffersFromSeed(cloudRow, seed) {
-    const coverKeys = new Set(
-      [seed?.image, cloudRow?.image]
-        .map((u) => wardrobeMediaPathKey(u) || String(u ?? "").trim().split("?")[0])
-        .filter(Boolean)
-    );
-    const toKeyList = (row) =>
-      itemGalleryList(row)
-        .map((u) => wardrobeGalleryLogicalKey(u) || wardrobeMediaPathKey(u))
-        .filter((k) => k && !coverKeys.has(k));
-    const seedKeys = toKeyList(seed);
-    const cloudKeys = toKeyList(cloudRow);
-    if (!seedKeys.length && !cloudKeys.length) return false;
-    const seedSet = new Set(seedKeys);
-    const cloudSet = new Set(cloudKeys);
-    const sameMembers =
-      seedSet.size === cloudSet.size &&
-      [...seedSet].every((k) => cloudSet.has(k)) &&
-      [...cloudSet].every((k) => seedSet.has(k));
-    if (!sameMembers) return false;
-    return seedKeys.join("|") !== cloudKeys.join("|");
-  }
-
   /** True when URL is a frozen on-disk catalogue file for this item id. */
   function isFileBackedLocalWardrobeUrl(item, url) {
     const s = String(url ?? "").trim().split("?")[0];
@@ -7550,8 +7443,6 @@
     const raw = String(url ?? "").trim();
     if (!raw) return "";
     const pathKey = raw.split("?")[0];
-    // R2 URLs already embed a timestamp in the filename — no cache-bust needed.
-    if (/^https?:\/\/[^/]*\.r2\.dev\//i.test(pathKey)) return pathKey;
     const isWardrobeMedia =
       Boolean(storagePathFromWardrobeImageUrl(raw)) || /^\/images\/wardrobe\//i.test(pathKey);
     if (!isWardrobeMedia) return raw;
@@ -7597,80 +7488,6 @@
     if (!ts) return 0;
     const n = Date.parse(ts);
     return Number.isFinite(n) ? n : 0;
-  }
-
-  /** Storage-relative paths for cover + gallery (+ variant media) on a row. */
-  function wardrobeMediaStoragePaths(item) {
-    if (!item || typeof item !== "object") return [];
-    /** @type {string[]} */
-    const out = [];
-    const seen = new Set();
-    const add = (u) => {
-      const raw = String(u ?? "").trim().split("?")[0];
-      if (!raw) return;
-      let p = storagePathFromWardrobeImageUrl(raw);
-      if (!p) {
-        const m = raw.match(/^\/images\/wardrobe\/(.+)$/i);
-        if (m) {
-          try {
-            p = decodeURIComponent(m[1]);
-          } catch {
-            p = m[1];
-          }
-        }
-      }
-      if (p && !seen.has(p)) {
-        seen.add(p);
-        out.push(p);
-      }
-    };
-    add(item.image);
-    for (const u of itemGalleryList(item)) add(u);
-    const vars = getItemColourVariants(item);
-    if (vars) {
-      for (const v of vars) {
-        if (!v || typeof v !== "object") continue;
-        add(v.image);
-        add(v.previewImage);
-        if (Array.isArray(v.gallery)) {
-          for (const u of v.gallery) add(u);
-        }
-      }
-    }
-    return out;
-  }
-
-  /** Cloud row mirrors seed paths (stale Supabase) — not a fresh in-app upload. */
-  function cloudMediaLooksLikeStaleSeedMirror(cloudRow, seed) {
-    const seedPaths = new Set(wardrobeMediaStoragePaths(seed));
-    const cloudPaths = wardrobeMediaStoragePaths(cloudRow);
-    if (!cloudPaths.length) return true;
-    return cloudPaths.every((p) => seedPaths.has(p));
-  }
-
-  /** Same storage paths as seed, but cloud row is newer (re-upload at identical path). */
-  function cloudMediaReuploadedAtSamePath(cloudRow, seed) {
-    if (!cloudMediaLooksLikeStaleSeedMirror(cloudRow, seed)) return false;
-    const cloudTs = rowMediaTimestamp(cloudRow);
-    const seedTs = rowMediaTimestamp(seed);
-    return cloudTs > 0 && cloudTs > seedTs;
-  }
-
-  /** Pinned save / in-memory row reflects a just-finished photo upload in the editor. */
-  function inMemoryRowHasFreshMediaSave(incoming, seed) {
-    if (!incoming || !seed) return false;
-    if (wardrobeMediaUrlSignature(incoming) === wardrobeMediaUrlSignature(seed)) return false;
-    const staleMirror = cloudMediaLooksLikeStaleSeedMirror(incoming, seed);
-    const samePathReupload = cloudMediaReuploadedAtSamePath(incoming, seed);
-    const galleryOrderChanged = cloudGalleryOrderDiffersFromSeed(incoming, seed);
-    if (staleMirror && !samePathReupload && !galleryOrderChanged) {
-      return false;
-    }
-    const n = /** @type {any} */ (incoming).__displayNonce;
-    if (typeof n === "number" && Number.isFinite(n)) return true;
-    const img = String(incoming.image ?? "").trim().split("?")[0];
-    if (/^https?:\/\//i.test(img)) return true;
-    return itemGalleryList(incoming).some((u) => /^https?:\/\//i.test(String(u).split("?")[0]));
   }
 
   /** Keep cache-bust nonce only when media URLs and `updated_at` are unchanged; re-uploads at the same path need a fresh nonce. */
@@ -30190,23 +30007,6 @@
   }
 
   /** Supabase row reflects a manual re-upload (newer or different media vs catalogue seed). */
-  function supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow) {
-    const seed = catalogueSeedRow(itemId);
-    if (!seed || !cloudRow) return false;
-    const cloudImage = String(cloudRow.image ?? "").trim();
-    if (!cloudImage) return false;
-    // If the cloud cover/gallery paths use a different (old) item ID, they are legacy
-    // orphans from before an ID migration — not genuinely newer media.
-    if (itemId) {
-      const cloudImageKey = wardrobeMediaPathKey(cloudImage);
-      if (cloudImageKey && !cloudImageKey.startsWith(itemId + "/")) return false;
-    }
-    const cloudTs = rowMediaTimestamp(cloudRow);
-    const seedTs = rowMediaTimestamp(seed);
-    if (cloudTs > seedTs && cloudTs > 0) return true;
-    return wardrobeMediaUrlSignature(seed) !== wardrobeMediaUrlSignature(cloudRow);
-  }
-
   async function loadHybridLocalCatalogueManifest() {
     try {
       const res = await fetch("data/wardrobe-hybrid-mode.json", { cache: "no-store" });
