@@ -15848,7 +15848,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 
 @media (max-width: 900px) {
   .item-detail__gallery-stage.item-detail__gallery-stage--swipe {
-    touch-action: pan-x pinch-zoom;
+    touch-action: pan-y;
     background-color: var(--media-cutout-canvas);
     background-image: var(--collection-grid-media-bg);
     background-size: cover;
@@ -15870,7 +15870,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
     min-height: 0;
     overflow: hidden;
     overscroll-behavior: none;
-    touch-action: pan-x pinch-zoom;
+    touch-action: pan-y;
   }
 
   .item-detail__gallery-stage--swipe .item-detail__gallery-carousel-track {
