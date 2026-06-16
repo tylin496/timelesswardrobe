@@ -16138,7 +16138,7 @@
     mainBtn.appendChild(mainTi);
     mainBtn.addEventListener("click", () => {
       const cached = String(heroImgEl.dataset.coverSrc ?? "").trim();
-      const coverRaw = inCollectionGrid ? collectionGridCoverFrameRaw(item) : effectiveCoverSrc(item);
+      const coverRaw = inCollectionGrid ? collectionGridCoverFrameRaw(item) : (buildCoverCandidates(item)[0] ?? "");
       const src = cached || heroFrameSrc(coverRaw || firstCover, "cover");
       if (src) heroImgEl.src = src;
       else heroImgEl.removeAttribute("src");
