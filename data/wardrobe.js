@@ -83,7 +83,8 @@ const WARDROBE_ITEMS = [
     "gallery": [
       "/images/wardrobe/camel-hair-polo-coat/main/2.webp",
       "/images/wardrobe/camel-hair-polo-coat/main/3.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/4.webp"
+      "/images/wardrobe/camel-hair-polo-coat/main/4.webp",
+      "/images/wardrobe/camel-hair-polo-coat/main/5.webp"
     ],
     "metadata": {
       "price": 718.2,
