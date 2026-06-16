@@ -7804,11 +7804,6 @@
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
     if (!transport || !storagePathFromWardrobeImageUrl(transport)) {
-      if (transport && /^\/?images\/wardrobe\//i.test(transport) && typeof width === "number" && width > 0) {
-        const q = typeof transformOpts?.quality === "number" ? transformOpts.quality : 80;
-        const vercel = withVercelImageOptimization(transport, width, q);
-        if (vercel) return vercel;
-      }
       return transport || raw;
     }
     const w = Math.max(1, Math.floor(width));
