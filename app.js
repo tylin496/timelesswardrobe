@@ -19509,8 +19509,10 @@
   function syncMobileGalleryCoverSlideSrc(media, url) {
     const carousel = getMobileGalleryCarousel(media);
     if (!carousel || !url) return;
+    // Exclude clone slides (data-tw-clone) so we always update the real cover slide.
     const coverImg = carousel.querySelector(
-      ".card__gallery-carousel-slide--cover .card__media-img--cover, .card__gallery-carousel-slide--cover img"
+      ".card__gallery-carousel-slide--cover:not([data-tw-clone]) .card__media-img--cover, " +
+      ".card__gallery-carousel-slide--cover:not([data-tw-clone]) img"
     );
     if (coverImg instanceof HTMLImageElement) coverImg.src = url;
   }
@@ -19537,19 +19539,23 @@
   function applyMobileGalleryFrameIndex(media, carousel, index, animate = true) {
     const track = carousel.querySelector(".card__gallery-carousel-track");
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
-    const max = track.children.length - 1;
+    // Real frame count is stored in the dataset; track.children includes the two boundary clones.
+    const realCount = Number(carousel.dataset.galleryFrameCount ?? track.children.length - 2);
+    const max = Math.max(0, realCount - 1);
     const idx = Math.max(0, Math.min(max, Math.floor(index)));
     const prevIdx = Number.parseInt(String(media.dataset.galleryFrameIndex ?? ""), 10);
     const indexChanged = !Number.isFinite(prevIdx) || prevIdx !== idx;
     track.classList.remove("is-dragging");
     track.style.transition = animate ? "" : "none";
-    /* Touch carousel: always index-locked translate (compact + browse share one motion). */
+    /* Touch carousel: always index-locked translate (compact + browse share one motion).
+       DOM position = real index + 1 (slot 0 is the clone-last boundary slide). */
     carousel.classList.remove("card__gallery-carousel--compact-stack");
-    track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+    track.style.transform = `translate3d(-${(idx + 1) * 100}%, 0, 0)`;
     if (indexChanged) {
       [...track.children].forEach((slide, i) => {
         if (!(slide instanceof HTMLElement)) return;
-        slide.classList.toggle("is-active", i === idx);
+        // Clones at DOM 0 and DOM realCount+1 are never marked active.
+        slide.classList.toggle("is-active", i === idx + 1);
       });
       media.dataset.galleryFrameIndex = String(idx);
       carousel.dataset.galleryIndex = String(idx);
@@ -19743,11 +19749,11 @@
       /* Do not use is-dragging — CSS disables transition on that class. */
       track.classList.remove("is-dragging");
       track.style.transition = `transform ${peekMs}ms ${ease}`;
-      track.style.transform = "translate3d(-30%, 0, 0)";
+      track.style.transform = "translate3d(-130%, 0, 0)"; // real-0 rests at -100%; peek toward real-1
       window.setTimeout(() => {
         if (token !== collectionGallerySwipeHintToken) return;
         track.style.transition = `transform ${returnMs}ms ${ease}`;
-        track.style.transform = "translate3d(0, 0, 0)";
+        track.style.transform = "translate3d(-100%, 0, 0)"; // return to real-0 rest position
         window.setTimeout(() => {
           markCollectionSwipeLearned();
           finish();
@@ -19852,6 +19858,7 @@
     let dragRaf = 0;
     let pendingDragPx = 0;
     let axisLocked = /** @type {null | "h" | "v"} */ (null);
+    let wrapSnapToken = 0; // incremented on touchstart to cancel any in-flight wrap snap
 
     const markSwiping = () => {
       swipeHost.dataset.galleryCarouselSwiping = "1";
@@ -19872,7 +19879,8 @@
       const w = dragWidth || carousel.clientWidth;
       if (!w) return;
       track.style.transition = "none";
-      track.style.transform = `translate3d(${-(index * w) + dragPx}px, 0, 0)`;
+      // DOM position = real index + 1 (slot 0 is clone-last).
+      track.style.transform = `translate3d(${-((index + 1) * w) + dragPx}px, 0, 0)`;
     };
 
     const cancelDragRaf = () => {
@@ -19895,6 +19903,32 @@
       api.applyIndex(index, animate);
     };
 
+    /**
+     * Wrap-around hop: animate to the adjacent clone, then snap invisibly to the real slide.
+     * Uses a cancel token so a new touchstart arriving mid-animation suppresses the snap.
+     * @param {number} realTarget  real frame index to land on (0 or max)
+     * @param {number} cloneDomPos DOM slot of the boundary clone to animate through
+     * @param {number} w           carousel pixel width
+     */
+    const releaseWrapped = (realTarget, cloneDomPos, w) => {
+      cancelDragRaf();
+      const token = ++wrapSnapToken;
+      track.classList.remove("is-dragging");
+      track.style.transition = ""; // use CSS transition (one frame step to the adjacent clone)
+      track.style.transform = `translate3d(${-(cloneDomPos * w)}px, 0, 0)`;
+      const snap = () => {
+        if (wrapSnapToken !== token) return; // new touch started — abort
+        api.applyIndex(realTarget, false);
+      };
+      track.addEventListener("transitionend", snap, { once: true });
+      // Safety fallback: read the transition duration from the computed style so we don't hardcode it.
+      const dur = parseFloat(getComputedStyle(track).transitionDuration ?? "0") * 1000 || 350;
+      window.setTimeout(() => {
+        track.removeEventListener("transitionend", snap);
+        snap();
+      }, dur + 80);
+    };
+
     const settleFromTouch = (dx, dy) => {
       const w = dragWidth || carousel.clientWidth || 1;
       const max = Math.max(0, api.frameCount() - 1);
@@ -19907,11 +19941,15 @@
       if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
         target = touchStartIndex + (dx < 0 ? 1 : -1);
       }
-      if (target > max) target = 0;        // last → first (loop)
-      else if (target < 0) target = max;   // first → last (loop)
-      else target = Math.max(0, Math.min(max, target));
-      const wrapped = (touchStartIndex === 0 && target === max) || (touchStartIndex === max && target === 0);
-      releaseToIndex(target, !wrapped && target !== touchStartIndex);
+      if (target > max) {
+        // last → first: animate to clone-first (DOM slot max+2), then snap to real-0
+        releaseWrapped(0, max + 2, w);
+      } else if (target < 0) {
+        // first → last: animate to clone-last (DOM slot 0), then snap to real-max
+        releaseWrapped(max, 0, w);
+      } else {
+        releaseToIndex(target, target !== touchStartIndex);
+      }
       markSwipingIfGesture(dx, dy);
     };
 
@@ -19932,6 +19970,7 @@
         const t = e.touches?.[0];
         if (!t) return;
         cancelDragRaf();
+        wrapSnapToken++; // cancel any in-flight wrap snap
         axisLocked = null;
         touchActive = true;
         touchStartX = t.clientX;
@@ -20015,8 +20054,10 @@
     wireIndexLockedHorizontalGallerySnap(carousel, media, {
       readIndex: () => readMobileGalleryFrameIndex(media),
       applyIndex: (idx, animate) => applyMobileGalleryFrameIndex(media, carousel, idx, animate),
+      // Subtract 2 clone slides; fall back to dataset which stores the real count.
       frameCount: () =>
-        carousel.querySelector(".card__gallery-carousel-track")?.children.length ?? 0,
+        Number(carousel.dataset.galleryFrameCount) ||
+        Math.max(0, (carousel.querySelector(".card__gallery-carousel-track")?.children.length ?? 2) - 2),
       swipeFlagHost: media,
       blockTouchWhen: () => carousel.classList.contains("card__gallery-carousel--hint-active"),
     });
@@ -20283,16 +20324,20 @@
       const alt = String(img.alt ?? "").trim();
       const eagerThrough =
         typeof opts.eagerThroughIndex === "number" ? Math.max(0, opts.eagerThroughIndex) : -1;
-      frameEntries.forEach((entry, i) => {
+
+      /** Build one carousel slide element. */
+      const makeSlide = (entry, i, { isActive = false, isClone = false } = {}) => {
         const slide = document.createElement("div");
         const useCoverPlate = entry.cutout;
-        slide.className = `card__gallery-carousel-slide card__gallery-carousel-slide--${useCoverPlate ? "cover" : "gallery"}${i === 0 ? " is-active" : ""}`;
+        slide.className = `card__gallery-carousel-slide card__gallery-carousel-slide--${useCoverPlate ? "cover" : "gallery"}${isActive ? " is-active" : ""}`;
+        if (isClone) slide.dataset.twClone = "1";
         const simg = document.createElement("img");
         simg.className = useCoverPlate
           ? "card__media-img card__media-img--cover"
           : "card__gallery-carousel-img card__gallery-frame-img";
         simg.alt = i === 0 ? alt : "";
-        const eager = i <= eagerThrough;
+        // Clones are always adjacent to the visible frame — must load eagerly.
+        const eager = isClone || i <= eagerThrough;
         simg.loading = eager ? "eager" : "lazy";
         if (eager) simg.fetchPriority = "high";
         simg.decoding = "async";
@@ -20300,8 +20345,19 @@
         simg.src = entry.url;
         simg.addEventListener("error", () => { slide.hidden = true; }, { once: true });
         slide.appendChild(simg);
-        track.appendChild(slide);
+        return slide;
+      };
+
+      // Clone-last: prepended before real slides so wrap first→last animates to DOM slot 0.
+      track.appendChild(makeSlide(frameEntries[frameEntries.length - 1], frameEntries.length - 1, { isClone: true }));
+
+      frameEntries.forEach((entry, i) => {
+        track.appendChild(makeSlide(entry, i, { isActive: i === 0 }));
       });
+
+      // Clone-first: appended after real slides so wrap last→first animates to DOM slot N+2.
+      track.appendChild(makeSlide(frameEntries[0], 0, { isClone: true }));
+
       carousel.appendChild(track);
       media.insertBefore(carousel, img);
       wireMobileGalleryStrictSnap(carousel, media);
