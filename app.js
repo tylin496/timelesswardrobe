@@ -19861,7 +19861,6 @@
     let dragRaf = 0;
     let pendingDragPx = 0;
     let axisLocked = /** @type {null | "h" | "v"} */ (null);
-    let rewindAnimating = false;
 
     const markSwiping = () => {
       swipeHost.dataset.galleryCarouselSwiping = "1";
@@ -19902,24 +19901,6 @@
 
     const releaseToIndex = (index, animate) => {
       cancelDragRaf();
-      // Fast-rewind from last frame back to cover: sweep all slides to signal loop.
-      if (animate && index === 0 && touchStartIndex >= api.frameCount() - 1) {
-        rewindAnimating = true;
-        track.classList.remove("is-dragging");
-        track.style.transition = "transform 300ms ease-in";
-        track.style.transform = "translate3d(0%, 0, 0)";
-        let done = false;
-        const finish = () => {
-          if (done) return;
-          done = true;
-          rewindAnimating = false;
-          api.applyIndex(0, false);
-        };
-        track.addEventListener("transitionend", finish, { once: true });
-        setTimeout(finish, 500);
-        return;
-      }
-      rewindAnimating = false;
       api.applyIndex(index, animate);
     };
 
@@ -19945,7 +19926,6 @@
     carousel.addEventListener(
       "touchstart",
       (e) => {
-        if (rewindAnimating) return;
         if (api.frameCount() < 2) return;
         if (api.blockTouchWhen?.()) return;
         // Second finger down (pinch intent) — cancel any in-progress swipe.
