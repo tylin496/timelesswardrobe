@@ -16,22 +16,15 @@
     "check:urls": "node scripts/check-public-urls.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
-    "db:export-wardrobe": "node scripts/export_wardrobe_from_supabase.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
-    "db:backup-to-local": "node scripts/backup_wardrobe_to_local.mjs",
-    "db:apply-local-text": "node scripts/apply_local_wardrobe_text.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
-    "storage:prune-orphans": "node scripts/prune_wardrobe_storage_orphans.mjs",
-    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs",
-    "db:resync-photos": "node scripts/resync_wardrobe_photos_to_cloud.mjs",
-    "db:migrate-to-r2": "node scripts/migrate_images_to_r2.mjs"
+    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.1064.0",
     "@tailwindcss/cli": "^4.3.0",
     "image-size": "^2.0.2",
     "sharp": "^0.34.2",

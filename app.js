@@ -7692,84 +7692,6 @@
     return next;
   }
 
-  /** Hybrid local catalogue: seed (`data/wardrobe.js`) vs Supabase — see `supabaseMediaAheadOfCatalogueSeed`. */
-  function mergeCloudMediaOntoLocalCatalogueRow(localRow, cloudRow) {
-    if (!localRow || typeof localRow !== "object") return localRow;
-    if (!cloudRow || typeof cloudRow !== "object") return { ...localRow };
-    const itemId = String(localRow.id ?? cloudRow.id ?? "").trim();
-    const seed = catalogueSeedRow(itemId) || localRow;
-    const staleMirror = cloudMediaLooksLikeStaleSeedMirror(cloudRow, seed);
-    const samePathReupload = cloudMediaReuploadedAtSamePath(cloudRow, seed);
-    const galleryOrderChanged = cloudGalleryOrderDiffersFromSeed(cloudRow, seed);
-    const useCloudMedia =
-      supabaseMediaAheadOfCatalogueSeed(itemId, cloudRow) &&
-      (!staleMirror || samePathReupload || galleryOrderChanged);
-    const seedImage = String(seed.image ?? "").trim();
-    const cloudImage = String(cloudRow.image ?? "").trim();
-    const localGallery = fileBackedLocalGalleryUrls(seed);
-
-    if (inMemoryRowHasFreshMediaSave(cloudRow, seed)) {
-      const hybridGallery = mergeHybridCatalogueGallery(seed, cloudRow, {
-        preferCloudOrder: galleryOrderChanged,
-      });
-      const merged = normalizeItemDerivedFields({
-        ...seed,
-        ...localRow,
-        ...cloudRow,
-        id: itemId,
-        image: String(cloudRow.image ?? localRow.image ?? seedImage).trim() || seedImage,
-        gallery: hybridGallery.length ? normalizeGalleryFromDb(hybridGallery) : undefined,
-        colourVariants: Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length
-          ? cloudRow.colourVariants
-          : localRow.colourVariants,
-      });
-      return carryForwardMediaNonce(cloudRow, merged, { forceFresh: true });
-    }
-
-    const merged = { ...localRow, ...cloudRow, id: itemId };
-
-    // `cloudImageInLocalSet` is only meaningful when the cloud image is a local path (not an R2/HTTP URL).
-    // R2 URLs are never in the frozen local set, so we must not treat them as "missing from local set".
-    const cloudImageIsLocalPath = cloudImage && !/^https?:\/\//i.test(cloudImage);
-    const cloudImageInLocalSet = cloudImageIsLocalPath && Boolean(lookupFrozenLocalWardrobePath(cloudImage));
-    const cloudImageMissingFromLocalSet = cloudImageIsLocalPath && !cloudImageInLocalSet;
-    if (isFileBackedLocalWardrobeUrl(seed, seedImage) && (staleMirror || !useCloudMedia || cloudImageMissingFromLocalSet)) {
-      merged.image = seedImage;
-    } else if (useCloudMedia && cloudImage) {
-      merged.image = cloudImage;
-    } else if (isFileBackedLocalWardrobeUrl(localRow, String(localRow.image ?? "").trim())) {
-      merged.image = String(localRow.image ?? "").trim();
-    } else if (cloudImage) {
-      merged.image = cloudImage;
-    }
-
-    if (useCloudMedia) {
-      if (Array.isArray(cloudRow.colourVariants) && cloudRow.colourVariants.length) {
-        merged.colourVariants = cloudRow.colourVariants;
-      }
-      const cloudTs = String(cloudRow.updatedAt ?? cloudRow.updated_at ?? "").trim();
-      if (cloudTs) merged.updatedAt = cloudTs;
-    }
-
-    const hybridGallery = mergeHybridCatalogueGallery(seed, cloudRow, {
-      preferCloudOrder: galleryOrderChanged,
-    });
-    if (hybridGallery.length) {
-      merged.gallery = normalizeGalleryFromDb(hybridGallery);
-    } else if (localGallery.length && (staleMirror || !useCloudMedia)) {
-      merged.gallery = normalizeGalleryFromDb(localGallery);
-    } else if (useCloudMedia && Array.isArray(cloudRow.gallery) && cloudRow.gallery.length) {
-      merged.gallery = normalizeGalleryFromDb(cloudRow.gallery);
-    } else if (Array.isArray(cloudRow.gallery) && cloudRow.gallery.length) {
-      merged.gallery = normalizeGalleryFromDb(cloudRow.gallery);
-    }
-
-    const forceFresh =
-      wardrobeMediaUrlSignature(seed) !== wardrobeMediaUrlSignature(merged) ||
-      rowMediaTimestamp(cloudRow) > rowMediaTimestamp(seed);
-    return carryForwardMediaNonce(localRow, merged, { forceFresh });
-  }
-
   /** Collection overrides must not re-apply stale remote gallery/cover over frozen local files. */
   function applyCollectionOverrideToRow(row, patch) {
     if (!patch || typeof patch !== "object") return { ...row };
@@ -15667,10 +15589,6 @@
     const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
     if (!bust || !isDisplayableCloudImageUrl(bust)) return "";
     if (!frame?.width || !frame?.height) return bust;
-    if (bust.includes("r2.dev")) {
-      // R2 has its own CDN and pre-resized images; skip Vercel proxy to avoid failures.
-      return bust;
-    }
     return withSupabaseWardrobeImageRenderSize(bust, frame.width, frame.height, {
       item,
       resize: frame.resize === "contain" ? "contain" : "cover",
@@ -30568,13 +30486,7 @@
       if (cloudBackedCustomItems.length) {
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       }
-      // For catalogue items only merge rows whose cloud image is an R2 URL — stale Supabase
-      // Storage URLs on old catalogue rows would replace valid seed images with broken links.
-      const catalogueR2Rows = normalized.filter((r) =>
-        isLocalCatalogueItemId(r.id) &&
-        /^https?:\/\/[^/]*\.r2\.dev\//i.test(String(r.image ?? "").split("?")[0])
-      );
-      mergeWardrobeBaseWithFetchedCloudRows([...cloudBackedCustomItems, ...catalogueR2Rows]);
+      mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
       mergeWardrobeFromSources();
       renderGrid();
       syncOutfitSaveButtonLabel();
