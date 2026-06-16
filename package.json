@@ -16,6 +16,7 @@
     "check:urls": "node scripts/check-public-urls.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
+    "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
