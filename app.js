@@ -7515,9 +7515,8 @@
     const id = String(row?.id ?? "").trim();
     const merged = { ...row, ...patch, id };
     if (!isLocalCatalogueItemId(id)) return merged;
-    // Local catalogue items: seed media is normally the source of truth for local paths,
-    // but if the patch was saved from an explicit media edit (has __mediaEditedAt and an
-    // http image URL such as an R2 upload), preserve the patch's image/gallery.
+    // Local catalogue items: explicit media edits (reorder, upload) set __mediaEditedAt
+    // and win over the seed until the next git commit clears the override.
     const seed = catalogueSeedRow(id);
     const patchImage = String(patch.image ?? "").trim();
     if (patch.__mediaEditedAt && patchImage) {
@@ -23332,7 +23331,7 @@
               colourVariants: updated.colourVariants,
             });
             stampWardrobeItemMediaNonce(displayAfterSave, mediaBust);
-            upsertWardrobeBaseRowInMemory(displayAfterSave, { skipLocalMediaMerge: true });
+            upsertWardrobeBaseRowInMemory(displayAfterSave);
             try {
               await deleteSupabaseImagesNoLongerUsed(prev, saved, mergedForCloud);
             } catch (imgErr) {
@@ -23376,6 +23375,14 @@
             const patchOv = { ...patch };
             delete patchOv.metadata;
             delete patchOv.__mediaEditedAt;
+            // Carry forward a prior media edit (reorder/upload) so a text-only save
+            // doesn't silently lose the gallery order before the next git commit.
+            const prevOv = allOv[id];
+            if (prevOv?.__mediaEditedAt) {
+              patchOv.__mediaEditedAt = prevOv.__mediaEditedAt;
+              if (prevOv.image && !patchOv.image) patchOv.image = prevOv.image;
+              if (prevOv.gallery && !patchOv.gallery) patchOv.gallery = prevOv.gallery;
+            }
             allOv[id] = patchOv;
             await saveCollectionOverrides(allOv);
           } catch (ovErr) {
@@ -30140,14 +30147,11 @@
   }
 
   /** Upsert one normalized row in `wardrobeBase` so UI can reflect successful cloud save immediately. */
-  function upsertWardrobeBaseRowInMemory(row, opts = {}) {
+  function upsertWardrobeBaseRowInMemory(row) {
     const id = String(row?.id ?? "").trim();
     if (!id) return;
     const existing = wardrobeBase.find((r) => String(r?.id ?? "") === id);
     let incoming = { ...row };
-    if (isLocalCatalogueItemId(id)) {
-      // seed + archive_overrides is authoritative; ignore wardrobe_items media
-    }
     const next =
       existing && !(typeof /** @type {any} */ (incoming).__displayNonce === "number")
         ? carryForwardMediaNonce(existing, incoming)
@@ -30202,18 +30206,18 @@
         });
         const cloudIds = new Set(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
         for (const [id, pinned] of pinnedById) {
-          if (!cloudIds.has(id)) upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
+          if (!cloudIds.has(id)) upsertWardrobeBaseRowInMemory(pinned);
         }
       } else {
         /* Full cloud fetch (incl. hybrid local ids) — media overlay; `cloudBackedCustomItems` stays filtered for dupes. */
         mergeWardrobeBaseWithFetchedCloudRows(loadedCloud, pinnedById);
         for (const pinned of pinnedById.values()) {
-          upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
+          upsertWardrobeBaseRowInMemory(pinned);
         }
       }
     } else {
       for (const pinned of pinnedById.values()) {
-        upsertWardrobeBaseRowInMemory(pinned, { skipLocalMediaMerge: true });
+        upsertWardrobeBaseRowInMemory(pinned);
       }
     }
     for (const pinned of pinnedById.values()) {
