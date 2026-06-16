@@ -19948,6 +19948,15 @@
         if (rewindAnimating) return;
         if (api.frameCount() < 2) return;
         if (api.blockTouchWhen?.()) return;
+        // Second finger down (pinch intent) — cancel any in-progress swipe.
+        if (e.touches.length !== 1) {
+          if (touchActive) {
+            touchActive = false;
+            cancelDragRaf();
+            releaseToIndex(touchStartIndex, false);
+          }
+          return;
+        }
         const t = e.touches?.[0];
         if (!t) return;
         cancelDragRaf();
@@ -19967,6 +19976,13 @@
       "touchmove",
       (e) => {
         if (!touchActive || api.frameCount() < 2) return;
+        // Second finger joined mid-swipe — abort swipe so pinch can take over.
+        if (e.touches.length !== 1) {
+          touchActive = false;
+          cancelDragRaf();
+          releaseToIndex(touchStartIndex, false);
+          return;
+        }
         const t = e.touches?.[0];
         if (!t) return;
         const dx = t.clientX - touchStartX;
