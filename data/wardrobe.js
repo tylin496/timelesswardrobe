@@ -889,7 +889,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/henley-knit-t-shirt/main/5.webp",
       "/images/wardrobe/henley-knit-t-shirt/main/6.webp",
       "/images/wardrobe/henley-knit-t-shirt/main/7.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/9.webp"
+      "/images/wardrobe/henley-knit-t-shirt/main/8.webp"
     ],
     "notes": "BUTTON-NECK KNIT T-SHIRT",
     "metadata": {
