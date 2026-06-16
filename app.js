@@ -10366,11 +10366,9 @@
     const section = assignHomeSectionDisplayPlans(items, options);
     syncHomeEditorialProductGridLayout(host, section.mode);
     host.replaceChildren();
-    const brands = new Set(section.plans.map((p) => String(p.item.brand ?? "").trim()));
-    const suppressBrand = brands.size === 1;
     section.plans.forEach((plan, cardIndex) => {
       host.appendChild(
-        buildEditorialHomeProductCard(plan.item, plan.displaySrc, plan.displayKind, { cardIndex, suppressBrand })
+        buildEditorialHomeProductCard(plan.item, plan.displaySrc, plan.displayKind, { cardIndex })
       );
     });
   }
@@ -11083,7 +11081,6 @@
     const brand = document.createElement("p");
     brand.className = "ed-lp__pcard-brand";
     brand.textContent = String(item.brand ?? "").trim() || "—";
-    brand.hidden = Boolean(opts.suppressBrand);
     const title = document.createElement("h3");
     title.className = "ed-lp__pcard-title";
     title.textContent = displayNameWithoutLeadingColour(item);
