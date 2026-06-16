@@ -10822,16 +10822,7 @@
         const isBrowseByCategoryRail =
           scroller.id === "ed-lp-division-rail" ||
           scroller.classList.contains("ed-lp__division-rail-scroller");
-        if (isDesktop && isBrowseByCategoryRail) {
-          const absX = Math.abs(e.deltaX);
-          const absY = Math.abs(e.deltaY);
-          /* Hard block: rail never reacts to wheel on desktop. */
-          if (e.cancelable) e.preventDefault();
-          if (absY >= absX && absY > 0.2) {
-            globalThis.scrollBy({ top: e.deltaY, left: 0, behavior: "auto" });
-          }
-          return;
-        }
+        if (isDesktop && isBrowseByCategoryRail) return;
         if (trackDragActive || scrollerDragActive) return;
         const max = scrollMax();
         if (max <= 4) return;
