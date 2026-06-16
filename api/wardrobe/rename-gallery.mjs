@@ -16,8 +16,25 @@
  *   GITHUB_BRANCH — target branch (default: main)
  */
 import { createClient } from "@supabase/supabase-js";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const GH = "https://api.github.com";
+
+// Load public Supabase config from the static JS file (already deployed alongside the function).
+// This avoids needing SUPABASE_URL / SUPABASE_ANON_KEY as Vercel env vars.
+function loadPublicConfig() {
+  try {
+    const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+    const src = readFileSync(resolve(root, "js/tw-supabase-config.js"), "utf8");
+    const url = src.match(/SUPABASE_URL:\s*"([^"]+)"/)?.[1] ?? "";
+    const anonKey = src.match(/SUPABASE_ANON_KEY:\s*"([^"]+)"/)?.[1] ?? "";
+    return { url, anonKey };
+  } catch {
+    return { url: "", anonKey: "" };
+  }
+}
 
 async function gh(token, path, { method = "GET", body } = {}) {
   const res = await fetch(`${GH}${path}`, {
@@ -78,13 +95,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+  const { url: supabaseUrl, anonKey: supabaseAnonKey } = loadPublicConfig();
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const githubToken = process.env.GITHUB_TOKEN;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    res.status(500).json({ error: "Supabase not configured" });
+    res.status(500).json({ error: "Supabase config not found" });
     return;
   }
   if (!githubToken) {
