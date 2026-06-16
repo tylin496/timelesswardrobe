@@ -13779,7 +13779,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 #grid .card__media--gallery-swipe {
-  touch-action: pan-x pinch-zoom;
+  touch-action: pan-y;
   /* Track owns per-frame plates — static card bg must not show through while swiping. */
   background-color: transparent;
   background-image: none;
