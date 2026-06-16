@@ -19919,7 +19919,8 @@
       if (target > max) target = 0;        // last → first (loop)
       else if (target < 0) target = max;   // first → last (loop)
       else target = Math.max(0, Math.min(max, target));
-      releaseToIndex(target, target !== touchStartIndex);
+      const wrapped = (touchStartIndex === 0 && target === max) || (touchStartIndex === max && target === 0);
+      releaseToIndex(target, !wrapped && target !== touchStartIndex);
       markSwipingIfGesture(dx, dy);
     };
 
