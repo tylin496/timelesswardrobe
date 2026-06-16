@@ -7780,12 +7780,37 @@
    * @param {{ zoom?: number, quality?: number }} [transformOpts]
    * @returns {string}
    */
+  /** Card-sized requests (≤ this width) get the static thumbnail; detail/zoom keep the original. */
+  const WARDROBE_THUMB_MAX_REQUEST_WIDTH = 1000;
+
+  /**
+   * Map a local `/images/wardrobe/<item>/main/<n>.<ext>` path to its pre-generated
+   * `thumb/<n>.webp` when the requested render width is card-sized. Returns "" otherwise
+   * (no thumb for detail/zoom, non-local URLs, or non-`main/` paths).
+   * @param {string} localUrl
+   * @param {number} width
+   */
+  function localWardrobeThumbPath(localUrl, width) {
+    if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
+    const s = String(localUrl ?? "").trim();
+    const [pathPart, query = ""] = s.split("?");
+    const m = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+    if (!m) return "";
+    const thumb = `${m[1]}thumb/${m[2]}.webp`;
+    return query ? `${thumb}?${query}` : thumb;
+  }
+
   function withSupabaseWardrobeImageRenderSize(url, width, height, transformOpts) {
     const raw = String(url ?? "").trim();
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
     if (!transport || !storagePathFromWardrobeImageUrl(transport)) {
-      return transport || raw;
+      // Local static cutouts are RGBA, which Vercel/Supabase opt reject. We ship
+      // pre-generated transparent thumbnails (~720w) under each item's `thumb/`
+      // folder; serve those for card-sized requests, originals for detail/zoom.
+      // A missing thumb falls back to the original via the cover candidate chain.
+      const thumb = localWardrobeThumbPath(transport || raw, width);
+      return thumb || transport || raw;
     }
     const w = Math.max(1, Math.floor(width));
     const h = Math.max(1, Math.floor(height));
