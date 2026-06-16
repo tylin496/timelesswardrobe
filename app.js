@@ -3636,11 +3636,6 @@
       delete link.dataset.mobileNavAccount;
       if (link instanceof HTMLAnchorElement) link.href = twLoginUrl();
     }
-    syncMobileAccountEditMenu();
-  }
-
-  function syncMobileAccountEditMenu() {
-    document.querySelector(".site-mobile-nav__account-edit")?.remove();
   }
 
   function applyTwAdminModeUi() {
