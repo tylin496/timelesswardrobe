@@ -1804,9 +1804,8 @@ const WARDROBE_ITEMS = [
     "weight": "18ct yellow gold, 5.2 mm",
     "size": "20.5 cm （8.07inches）",
     "purchaseDate": "2024-10-26",
-    "image": "/images/wardrobe/curb-bracelet/main/1 2.webp",
+    "image": "/images/wardrobe/curb-bracelet/main/1.webp",
     "gallery": [
-      "/images/wardrobe/curb-bracelet/main/1.webp",
       "/images/wardrobe/curb-bracelet/main/2.webp",
       "/images/wardrobe/curb-bracelet/main/3.webp",
       "/images/wardrobe/curb-bracelet/main/4.webp",

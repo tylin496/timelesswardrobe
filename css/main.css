@@ -1178,8 +1178,6 @@ body.theme-catalogue .site-header.site-header--overlay {
     --tw-header-bg-opacity: 1;
   }
 
-  body.home-page .site-header.site-header--overlay:hover,
-  body.home-page .site-header.site-header--overlay:focus-within,
   body.home-page .site-header.site-header--solid {
     --tw-header-fg: var(--tw-brand-wordmark);
     --tw-header-fg-muted: var(--ink-muted);
@@ -1765,33 +1763,6 @@ body.theme-catalogue .site-header.site-header--overlay {
     left: auto;
   }
 
-  body.home-page
-    .site-header--overlay:not(:hover):not(:focus-within)
-    .site-header__styling-board-btn:not(:hover):not(:focus-visible):not([aria-expanded="true"])
-    .site-header__styling-board-count {
-    background-color: var(--tw-header-fg);
-    color: #000;
-    -webkit-text-fill-color: #000;
-    opacity: var(--site-header-tool-glyph-opacity, 0.72);
-    box-shadow: none;
-    -webkit-mask-image: linear-gradient(#fff 0 0), linear-gradient(#000 0 0);
-    mask-image: linear-gradient(#fff 0 0), linear-gradient(#000 0 0);
-    -webkit-mask-clip: padding-box, text;
-    mask-clip: padding-box, text;
-    -webkit-mask-origin: padding-box, content-box;
-    mask-origin: padding-box, content-box;
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-  }
-
-  body.home-page
-    .site-header--overlay:not(:hover):not(:focus-within):has(
-      .site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"])
-    )
-    .site-header__styling-board-btn
-    .site-header__styling-board-count {
-    opacity: 1;
-  }
 }
 
 .site-header__styling-board-count[hidden] {
@@ -4562,7 +4533,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 
 /* Desktop: mega panel overlays content — absolute under header, never in document flow. */
 @media (min-width: 901px) {
-  body.theme-catalogue {
+  body.theme-catalogue,
+  body.home-page {
     --header-flyout-open-duration: 300ms;
     --header-flyout-close-duration: 120ms;
     --header-flyout-open-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -4581,7 +4553,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     width: 100%;
   }
 
-  /* Collection / scrolled homepage: solid page-tone bar. Overlay homepage hero keeps transparency. */
+  /* Collection / homepage: solid page-tone bar. */
   body.theme-catalogue .site-header.site-header--solid {
     --tw-header-bg: var(--bg);
     --tw-header-bg-opacity: 1;
@@ -4590,31 +4562,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   body.home-page .site-header.site-header--solid {
     --tw-header-bg: var(--tw-brand-ivory);
     --tw-header-bg-opacity: 1;
-  }
-
-  body.home-page .site-header.site-header--overlay {
-    --tw-header-bg: var(--tw-brand-ivory);
-    --tw-header-bg-opacity: 0;
-    --tw-header-border: 1px solid transparent;
-    --tw-header-shadow: none;
-    --tw-header-backdrop: none;
-  }
-
-  /* Homepage hero: full header row → solid white (logo, nav gap, season, search, Outfits). */
-  body.home-page .site-header.site-header--overlay:hover,
-  body.home-page .site-header.site-header--overlay:focus-within {
-    --tw-header-fg: var(--tw-brand-wordmark);
-    --tw-header-fg-muted: var(--ink-muted);
-    --tw-header-monogram: var(--tw-brand-monogram-green);
-    --tw-header-surface: color-mix(in srgb, var(--tw-brand-ivory) 88%, transparent);
-    --tw-header-bg: color-mix(in srgb, var(--tw-brand-ivory) 88%, transparent);
-    --tw-header-bg-opacity: 1;
-    --tw-header-border: 1px solid color-mix(in srgb, var(--line) 48%, transparent);
-    --tw-header-shadow: 0 6px 18px rgba(20, 19, 18, 0.06);
-    --tw-header-backdrop: blur(3px);
-    --tw-header-badge-bg: var(--tw-brand-green);
-    --tw-header-badge-fg: var(--tw-brand-ivory);
-    --tw-header-badge-opacity: 1;
   }
 
   .site-header__flyout {
@@ -7569,19 +7516,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     color: var(--tw-header-fg);
   }
 
-  @media (prefers-color-scheme: dark) {
-    body.home-page.collection-ui--mobile-nav-open .site-header.site-header--overlay,
-    body.home-page.collection-ui--mobile-nav-drill .site-header.site-header--overlay {
-      --tw-header-fg: var(--tw-brand-wordmark);
-      --tw-header-fg-muted: var(--ink-muted);
-      --tw-header-monogram: var(--tw-brand-monogram-green);
-      --tw-header-surface: var(--tw-mobile-nav-surface, var(--tw-brand-ivory));
-      --tw-header-badge-bg: var(--tw-brand-green);
-      --tw-header-badge-fg: var(--tw-header-surface);
-      --tw-header-badge-opacity: 1;
-    }
-  }
-
   body.collection-ui--mobile-nav-open .site-header--overlay .site-header__tool-glyph,
   body.collection-ui--mobile-nav-open .site-header--overlay .styling-board-glyph__grid,
   body.collection-ui--mobile-nav-drill .site-header--overlay .site-header__tool-glyph,
@@ -7604,25 +7538,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     -webkit-text-fill-color: currentColor;
     opacity: 1;
     box-shadow: none;
-  }
-
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay {
-    position: fixed;
-    top: var(--brand-signature-bar-height, 36px);
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: calc(var(--z-styling-board-drawer, 1300) + 1);
-    pointer-events: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
-  }
-
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay .site-header__flyout,
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay .site-header__brand-nav,
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay .site-header__tools,
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay a,
-  body.home-page.collection-ui--mobile-nav-open .site-header-shell--home-overlay .site-header.site-header--overlay button {
-    pointer-events: auto;
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
@@ -21012,64 +20927,10 @@ body.home-page .site-home-stage {
   border-top: 0;
 }
 
-/* Homepage: utility in flow → hero flush below → nav overlays hero only (not the signature bar). */
-.site-header-shell--home-overlay {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    "utility"
-    "hero";
-  width: 100%;
-  z-index: var(--z-site-header-chrome);
-  pointer-events: none;
-}
-
-body.home-page .site-header-shell--home-overlay .site-utility-bar {
-  grid-area: utility;
-  position: sticky;
-  top: 0;
-  z-index: calc(var(--z-site-header-chrome) + 2);
-  pointer-events: auto;
-}
-
-body.home-page .site-header-shell--home-overlay .ed-lp__hero {
-  grid-area: hero;
-  position: relative;
-  z-index: 0;
-  /* Swipe surface: must receive pointer/touch (copy stack stays non-interactive except CTAs). */
-  pointer-events: auto;
-  touch-action: pan-y;
-}
-
 .ed-lp__hero.is-hero-dragging {
   cursor: grabbing;
   user-select: none;
   -webkit-user-select: none;
-}
-
-body.home-page .site-utility-bar {
-  top: auto;
-}
-
-body.home-page .site-header-shell--home-overlay .site-header {
-  grid-area: hero;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: calc(var(--z-site-header-chrome) + 1);
-  pointer-events: none;
-}
-
-body.home-page .site-header-shell--home-overlay .site-header .site-header__flyout,
-body.home-page .site-header-shell--home-overlay .site-header .site-header__brand-nav,
-body.home-page .site-header-shell--home-overlay .site-header .site-header__tools,
-body.home-page .site-header-shell--home-overlay .site-header a,
-body.home-page .site-header-shell--home-overlay .site-header button {
-  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -22672,7 +22533,6 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     --ed-lp-hero-height: clamp(28rem, 90svh, 50rem);
   }
 
-  body.home-page .site-header-shell--home-overlay .ed-lp__hero,
   .ed-lp__hero {
     width: 100%;
     height: clamp(28rem, 90svh, 50rem);

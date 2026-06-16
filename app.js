@@ -11133,10 +11133,9 @@
       teardownHomeHeroHeader();
       return;
     }
-    const hero = document.querySelector(".site-home-stage .ed-lp__hero") || document.querySelector(".ed-lp__hero");
     const siteHeader = document.querySelector(".site-header");
-    const shell = document.querySelector(".site-header-shell--home-overlay") || document.querySelector(".site-header-shell");
-    if (!hero || !siteHeader || !shell) return;
+    const shell = document.querySelector(".site-header-shell");
+    if (!siteHeader || !shell) return;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -11146,72 +11145,27 @@
       document.body.style.setProperty("--home-header-shell-height", `${shellH}px`);
     };
 
-    let homeHeaderRowHover = false;
-    const brandNavRow = document.querySelector(".site-header__brand-nav");
-
-    const shouldUseSolidHeader = () => {
-      if (!isHeaderCompactViewport() && homeHeaderRowHover) return true;
-      if (document.body.classList.contains("collection-ui--header-search-open")) return true;
-      if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
-      if (document.body.classList.contains("collection-ui--styling-board")) return true;
-      const heroBottom = hero.getBoundingClientRect().bottom;
-      return heroBottom <= siteHeader.offsetHeight + 4;
-    };
-
-    const update = () => {
-      syncHeights();
-      if (isHeaderCompactViewport()) homeHeaderRowHover = false;
-      const solid = shouldUseSolidHeader();
-      siteHeader.classList.toggle("site-header--overlay", !solid);
-      siteHeader.classList.toggle("site-header--solid", solid);
-    };
-
-    const onHomeHeaderRowEnter = () => {
-      if (isHeaderCompactViewport()) return;
-      homeHeaderRowHover = true;
-      update();
-    };
-
-    const onHomeHeaderRowLeave = (e) => {
-      if (isHeaderCompactViewport()) return;
-      const to = e.relatedTarget;
-      if (to instanceof Element && brandNavRow?.contains(to)) return;
-      homeHeaderRowHover = false;
-      update();
-    };
-
     if (initHomeHeroHeader._wired) {
-      update();
+      syncHeights();
       return;
     }
     initHomeHeroHeader._wired = true;
 
-    update();
+    syncHeights();
 
-    brandNavRow?.addEventListener("mouseenter", onHomeHeaderRowEnter);
-    brandNavRow?.addEventListener("mouseleave", onHomeHeaderRowLeave);
     /** @type {ResizeObserver | null} */
     let ro = null;
     const utilityBar = document.querySelector(".site-utility-bar");
     if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(update);
+      ro = new ResizeObserver(syncHeights);
       ro.observe(shell);
       ro.observe(siteHeader);
-      ro.observe(hero);
       utilityBar && ro.observe(utilityBar);
     }
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update, { passive: true });
-    const mo = new MutationObserver(update);
-    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", syncHeights, { passive: true });
     initHomeHeroHeader._teardown = () => {
-      homeHeaderRowHover = false;
-      brandNavRow?.removeEventListener("mouseenter", onHomeHeaderRowEnter);
-      brandNavRow?.removeEventListener("mouseleave", onHomeHeaderRowLeave);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", syncHeights);
       ro?.disconnect();
-      mo.disconnect();
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
     };
@@ -26186,7 +26140,6 @@
     const shell = document.querySelector(".site-header-shell");
     siteHeader?.classList.remove("site-header--overlay");
     siteHeader?.classList.add("site-header--solid");
-    shell?.classList.remove("site-header-shell--home-overlay");
   }
 
   /** Catalogue pages: solid masthead; strip hero overlay UI state. */
@@ -26196,10 +26149,8 @@
     teardownHomeHeroHeader();
 
     const siteHeader = document.querySelector(".site-header");
-    const shell = document.querySelector(".site-header-shell");
     siteHeader?.classList.remove("site-header--overlay");
     siteHeader?.classList.add("site-header--solid");
-    shell?.classList.remove("site-header-shell--home-overlay");
 
     document.body.classList.remove(
       "collection-ui--mobile-nav-open",
