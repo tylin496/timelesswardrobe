@@ -29685,6 +29685,7 @@
       if (!pe.persisted) return;
       applyPageTheme();
       if (!document.getElementById("grid")) return;
+      consumeAndRestoreCollectionListScroll();
       void (async () => {
         try {
           if (isSupabaseReady()) {
