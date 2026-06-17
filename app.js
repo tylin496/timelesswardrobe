@@ -3654,7 +3654,6 @@
     });
     installTwEditorAuthUi();
     if (on) {
-      maybeRunShowcaseMigration();
       initAddItemForm();
       installLocalDataRiskBanner();
       refreshLocalDataRiskBannerVisibility();
@@ -6208,141 +6207,6 @@
     next.splice(fromIdx, 1);
     next.splice(toIdx, 0, current[fromIdx]);
     await saveShowcaseOrder(next);
-  }
-
-  // ── One-time migration from SHOWCASE_IDS to metadata.showcase_rank ──────────
-
-  let _showcaseMigrationRunning = false;
-
-  function maybeRunShowcaseMigration() {
-    if (_showcaseMigrationRunning) return;
-    try { if (localStorage.getItem("tw-showcase-migrated-v1") === "done") return; } catch { /* ignore */ }
-    if (!isTwAdminMode()) return;
-    if (itemById.size === 0) return;
-    _showcaseMigrationRunning = true;
-    migrateShowcaseFromStaticIds().then(() => {
-      _showcaseMigrationRunning = false;
-    }).catch((err) => {
-      console.error("[showcase] Migration failed:", err);
-      _showcaseMigrationRunning = false;
-    });
-  }
-
-  async function migrateShowcaseFromStaticIds() {
-    const ids =
-      typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS) ? SHOWCASE_IDS : [];
-    if (ids.length === 0) {
-      console.warn("[showcase] SHOWCASE_IDS is empty — nothing to migrate.");
-      return;
-    }
-
-    const toSet = ids
-      .map((id, rank) => ({ item: itemById.get(String(id)), rank }))
-      .filter(({ item }) => !!item);
-    const toSetIds = new Set(ids.map(String));
-    const seenForClear = new Set();
-    const toClear = Array.from(itemById.values()).filter((it) => {
-      const id = String(it.id);
-      if (seenForClear.has(id)) return false;
-      seenForClear.add(id);
-      const r = it?.metadata?.showcase_rank;
-      return typeof r === "number" && Number.isInteger(r) && r >= 0 && !toSetIds.has(id);
-    });
-
-    // ── DIAGNOSTIC 1: expected set ──────────────────────────────────────────
-    console.info("[showcase:diag1] Expected after reconciliation:");
-    console.info("  toSet:", toSet.map(({ item, rank }) => `[${rank}] ${item.id}`));
-    console.info("  toClear:", toClear.map((it) => `${it.id} (rank ${it.metadata?.showcase_rank})`));
-
-    const saves = [
-      ...toSet.map(({ item, rank }) => {
-        item.metadata = { ...(item.metadata ?? {}), showcase_rank: rank };
-        return saveWardrobeItemToCloud(item).then((saved) => { upsertWardrobeBaseRowInMemory(saved); return saved; });
-      }),
-      ...toClear.map((item) => {
-        item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
-        return saveWardrobeItemToCloud(item).then((saved) => { upsertWardrobeBaseRowInMemory(saved); return saved; });
-      }),
-    ];
-
-    const savedResults = await Promise.all(saves);
-
-    // ── DIAGNOSTIC 2: actual state in itemById immediately after saves ──────
-    const afterSaves = Array.from(itemById.values())
-      .filter((it) => { const r = it?.metadata?.showcase_rank; return typeof r === "number" && Number.isInteger(r) && r >= 0; })
-      .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
-    console.info(`[showcase:diag2] itemById after saves (${afterSaves.length} items with showcase_rank):`);
-    console.info("  ", afterSaves.map((it) => `[${it.metadata.showcase_rank}] ${it.id}`));
-
-    // ── DIAGNOSTIC 2b: what Supabase returned for cleared items ─────────────
-    const clearedResults = savedResults.slice(toSet.length);
-    console.info("[showcase:diag2b] Supabase return for cleared items:");
-    clearedResults.forEach((saved) => {
-      console.info(`  ${saved?.id}: showcase_rank=${saved?.metadata?.showcase_rank}`);
-    });
-
-    // Rebuild items/itemById from the now-fully-updated wardrobeBase before verifying.
-    mergeWardrobeFromSources();
-
-    // ── DIAGNOSTIC 3: actual state in itemById after mergeWardrobeFromSources ─
-    const afterMerge = Array.from(itemById.values())
-      .filter((it) => { const r = it?.metadata?.showcase_rank; return typeof r === "number" && Number.isInteger(r) && r >= 0; })
-      .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
-    console.info(`[showcase:diag3] itemById after mergeWardrobeFromSources (${afterMerge.length} items):`);
-    console.info("  ", afterMerge.map((it) => `[${it.metadata.showcase_rank}] ${it.id}`));
-
-    if (verifyShowcaseMigration()) {
-      try { localStorage.setItem("tw-showcase-migrated-v1", "done"); } catch { /* ignore */ }
-      console.info("[showcase] ✓ Migration complete. Migration code can now be removed.");
-      wardrobeRevision += 1;
-      renderGrid();
-    }
-  }
-
-  /**
-   * Verify Showcase state in memory matches SHOWCASE_IDS exactly.
-   * @returns {boolean}
-   */
-  function verifyShowcaseMigration() {
-    const showcaseItems = getShowcaseItems();
-    const ranks = showcaseItems.map((it) => showcaseRank(it));
-    const ids   = showcaseItems.map((it) => String(it.id));
-    const issues = [];
-
-    ranks.forEach((r, i) => {
-      if (r !== i) issues.push(`Rank gap at position ${i}: expected ${i}, got ${r} (${ids[i]})`);
-    });
-
-    const seen = new Set();
-    ranks.forEach((r, i) => {
-      if (seen.has(r)) issues.push(`Duplicate rank ${r} (${ids[i]})`);
-      seen.add(r);
-    });
-
-    const expectedIds =
-      typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS)
-        ? SHOWCASE_IDS.filter((id) => itemById.has(String(id)))
-        : [];
-
-    if (expectedIds.length !== ids.length) {
-      issues.push(
-        `Count mismatch: expected ${expectedIds.length} (matched SHOWCASE_IDS), got ${ids.length} Showcase items`
-      );
-    }
-    ids.forEach((id, i) => {
-      if (id !== expectedIds[i])
-        issues.push(`Order mismatch at [${i}]: expected ${expectedIds[i]}, got ${id}`);
-    });
-
-    if (issues.length === 0) {
-      console.info(
-        `[showcase] ✓ Verified: ${showcaseItems.length} items, dense ranks 0–${showcaseItems.length - 1}, order matches SHOWCASE_IDS`
-      );
-      return true;
-    }
-    console.error("[showcase] ✗ Verification FAILED:");
-    issues.forEach((issue) => console.error("  • " + issue));
-    return false;
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -30172,7 +30036,6 @@
       onOutfitChange();
       renderGrid();
     }
-    maybeRunShowcaseMigration();
     return cloudBackedCustomItems;
   }
 
