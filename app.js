@@ -6209,6 +6209,7 @@
 
   function maybeRunShowcaseMigration() {
     if (_showcaseMigrationRunning) return;
+    try { if (localStorage.getItem("tw-showcase-migrated-v1") === "done") return; } catch { /* ignore */ }
     if (!isTwAdminMode()) return;
     if (itemById.size === 0) return;
     _showcaseMigrationRunning = true;
@@ -6228,29 +6229,26 @@
       return;
     }
 
-    if (verifyShowcaseMigration(false)) {
-      console.info("[showcase] Showcase already correct — no migration needed.");
-      return;
-    }
-
+    // Always reconcile: assign correct ranks to SHOWCASE_IDS items,
+    // clear showcase_rank from everything else. Self-heals any DB corruption.
     const orderedItems = ids.map((id) => itemById.get(String(id))).filter(Boolean);
     console.info(
-      `[showcase] Reconciling Showcase: ${orderedItems.length} of ${ids.length} SHOWCASE_IDS items found. Saving…`
+      `[showcase] Migrating: ${orderedItems.length} of ${ids.length} SHOWCASE_IDS items found. Reconciling DB…`
     );
 
     await saveShowcaseOrder(orderedItems);
 
-    if (verifyShowcaseMigration(true)) {
-      console.info("[showcase] Migration complete.");
+    if (verifyShowcaseMigration()) {
+      try { localStorage.setItem("tw-showcase-migrated-v1", "done"); } catch { /* ignore */ }
+      console.info("[showcase] ✓ Migration complete and verified. Migration code can now be removed.");
     }
   }
 
   /**
-   * Verify that Showcase state in memory matches SHOWCASE_IDS exactly.
-   * @param {boolean} log — true to emit console output; false for silent check.
-   * @returns {boolean} true if correct
+   * Verify Showcase state in memory matches SHOWCASE_IDS exactly.
+   * @returns {boolean}
    */
-  function verifyShowcaseMigration(log = true) {
+  function verifyShowcaseMigration() {
     const showcaseItems = getShowcaseItems();
     const ranks = showcaseItems.map((it) => showcaseRank(it));
     const ids   = showcaseItems.map((it) => String(it.id));
@@ -6282,15 +6280,13 @@
     });
 
     if (issues.length === 0) {
-      if (log) console.info(
+      console.info(
         `[showcase] ✓ Verified: ${showcaseItems.length} items, dense ranks 0–${showcaseItems.length - 1}, order matches SHOWCASE_IDS`
       );
       return true;
     }
-    if (log) {
-      console.error("[showcase] ✗ Verification FAILED:");
-      issues.forEach((issue) => console.error("  • " + issue));
-    }
+    console.error("[showcase] ✗ Verification FAILED:");
+    issues.forEach((issue) => console.error("  • " + issue));
     return false;
   }
 
@@ -11013,6 +11009,8 @@
     const shell = document.querySelector(".site-header-shell");
     if (!siteHeader || !shell) return;
 
+    const hero = document.querySelector(".ed-lp__hero");
+
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
       const navH = siteHeader.offsetHeight;
@@ -11021,27 +11019,50 @@
       document.body.style.setProperty("--home-header-shell-height", `${shellH}px`);
     };
 
-    if (initHomeHeroHeader._wired) {
+    const shouldUseSolidHeader = () => {
+      if (document.body.classList.contains("collection-ui--header-search-open")) return true;
+      if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
+      if (document.body.classList.contains("collection-ui--styling-board")) return true;
+      if (!hero) return true;
+      return hero.getBoundingClientRect().bottom <= siteHeader.offsetHeight + 4;
+    };
+
+    const update = () => {
       syncHeights();
+      const solid = shouldUseSolidHeader();
+      siteHeader.classList.toggle("site-header--overlay", !solid);
+      siteHeader.classList.toggle("site-header--solid", solid);
+    };
+
+    if (initHomeHeroHeader._wired) {
+      update();
       return;
     }
     initHomeHeroHeader._wired = true;
 
-    syncHeights();
+    update();
 
     /** @type {ResizeObserver | null} */
     let ro = null;
     const utilityBar = document.querySelector(".site-utility-bar");
     if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(syncHeights);
+      ro = new ResizeObserver(update);
       ro.observe(shell);
       ro.observe(siteHeader);
+      hero && ro.observe(hero);
       utilityBar && ro.observe(utilityBar);
     }
-    window.addEventListener("resize", syncHeights, { passive: true });
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    const mo = new MutationObserver(update);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     initHomeHeroHeader._teardown = () => {
-      window.removeEventListener("resize", syncHeights);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
       ro?.disconnect();
+      mo.disconnect();
+      siteHeader.classList.remove("site-header--overlay");
+      siteHeader.classList.add("site-header--solid");
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
     };
@@ -26039,6 +26060,7 @@
       body.classList.add("home-page");
       root.classList.add("theme-home");
       root.style.colorScheme = "light";
+      initHomeHeroHeader();
       return;
     }
 
