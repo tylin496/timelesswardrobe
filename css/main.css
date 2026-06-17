@@ -21621,6 +21621,10 @@ video.ed-lp__hero-layer-video {
   scroll-snap-type: none;
 }
 
+.ed-lp__division-rail-scroller-wrap.is-dragging {
+  scroll-snap-type: none;
+}
+
 .ed-lp__division-rail-scroller::-webkit-scrollbar,
 .ed-lp__viewed-rail-scroller::-webkit-scrollbar,
 .ed-lp__horizontal-rail-scroller::-webkit-scrollbar {
