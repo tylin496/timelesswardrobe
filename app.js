@@ -8790,13 +8790,20 @@
     installCollectionStateFromPayload(overrides, hidden, parsed.metadata);
     applySeasonNavFromLocalStorage();
 
-    if (migrated) {
+    const staleCategoriesCleaned = stripStaleCategoryOverridesForCatalogueItems();
+    if (staleCategoriesCleaned) {
+      console.info("[catalogue lock] Stripped stale category overrides for local catalogue items.");
+    }
+
+    if (migrated || staleCategoriesCleaned) {
       try {
         await flushWardrobeAppStateToSupabase();
-        localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
-        localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
+        if (migrated) {
+          localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
+          localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
+        }
       } catch (e) {
-        console.warn("Migrate collection state to Supabase failed.", e);
+        console.warn(migrated ? "Migrate collection state to Supabase failed." : "Stale category override flush failed.", e);
       }
     } else if (Object.keys(lsOv).length || lsH.length) {
       try {
@@ -8830,6 +8837,35 @@
 
   function loadCollectionOverrides() {
     return { ...collectionOverridesState };
+  }
+
+  /**
+   * Catalogue items are authoritative from seed for `category`. Remove any stale
+   * `category` field from their override patches so the seed value wins.
+   * Returns true if any overrides were modified.
+   */
+  function stripStaleCategoryOverridesForCatalogueItems() {
+    if (!isHybridLocalCatalogueEnabled()) return false;
+    let changed = false;
+    const next = {};
+    for (const id of Object.keys(collectionOverridesState)) {
+      const patch = collectionOverridesState[id];
+      if (
+        patch &&
+        typeof patch === "object" &&
+        !Array.isArray(patch) &&
+        isLocalCatalogueItemId(id) &&
+        Object.prototype.hasOwnProperty.call(patch, "category")
+      ) {
+        const { category: _cat, ...rest } = /** @type {Record<string, unknown>} */ (patch);
+        if (Object.keys(rest).length > 0) next[id] = rest;
+        changed = true;
+      } else {
+        next[id] = patch;
+      }
+    }
+    if (changed) collectionOverridesState = next;
+    return changed;
   }
 
   async function saveCollectionOverrides(map) {
