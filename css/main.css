@@ -20956,6 +20956,9 @@ body.home-page .site-home-stage {
 
 body.home-page .ed-lp__hero {
   cursor: pointer;
+  /* Pull hero up so it starts behind the sticky header nav, enabling the transparent overlay effect. */
+  margin-top: calc(-1 * var(--home-header-nav-height, var(--site-header-mobile-row-height)));
+  z-index: 0;
 }
 
 body.home-page .ed-lp__hero .ed-lp__hero-dot,

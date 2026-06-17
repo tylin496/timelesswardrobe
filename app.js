@@ -6238,25 +6238,47 @@
       return typeof r === "number" && Number.isInteger(r) && r >= 0 && !toSetIds.has(String(it.id));
     });
 
-    console.info(
-      `[showcase] Migrating: setting ${toSet.length} items, clearing ${toClear.length} extra. Saving to Supabase…`
-    );
+    // ── DIAGNOSTIC 1: expected set ──────────────────────────────────────────
+    console.info("[showcase:diag1] Expected after reconciliation:");
+    console.info("  toSet:", toSet.map(({ item, rank }) => `[${rank}] ${item.id}`));
+    console.info("  toClear:", toClear.map((it) => `${it.id} (rank ${it.metadata?.showcase_rank})`));
 
     const saves = [
       ...toSet.map(({ item, rank }) => {
         item.metadata = { ...(item.metadata ?? {}), showcase_rank: rank };
-        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
+        return saveWardrobeItemToCloud(item).then((saved) => { upsertWardrobeBaseRowInMemory(saved); return saved; });
       }),
       ...toClear.map((item) => {
         item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
-        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
+        return saveWardrobeItemToCloud(item).then((saved) => { upsertWardrobeBaseRowInMemory(saved); return saved; });
       }),
     ];
 
-    await Promise.all(saves);
+    const savedResults = await Promise.all(saves);
+
+    // ── DIAGNOSTIC 2: actual state in itemById immediately after saves ──────
+    const afterSaves = Array.from(itemById.values())
+      .filter((it) => { const r = it?.metadata?.showcase_rank; return typeof r === "number" && Number.isInteger(r) && r >= 0; })
+      .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
+    console.info(`[showcase:diag2] itemById after saves (${afterSaves.length} items with showcase_rank):`);
+    console.info("  ", afterSaves.map((it) => `[${it.metadata.showcase_rank}] ${it.id}`));
+
+    // ── DIAGNOSTIC 2b: what Supabase returned for cleared items ─────────────
+    const clearedResults = savedResults.slice(toSet.length);
+    console.info("[showcase:diag2b] Supabase return for cleared items:");
+    clearedResults.forEach((saved) => {
+      console.info(`  ${saved?.id}: showcase_rank=${saved?.metadata?.showcase_rank}`);
+    });
 
     // Rebuild items/itemById from the now-fully-updated wardrobeBase before verifying.
     mergeWardrobeFromSources();
+
+    // ── DIAGNOSTIC 3: actual state in itemById after mergeWardrobeFromSources ─
+    const afterMerge = Array.from(itemById.values())
+      .filter((it) => { const r = it?.metadata?.showcase_rank; return typeof r === "number" && Number.isInteger(r) && r >= 0; })
+      .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
+    console.info(`[showcase:diag3] itemById after mergeWardrobeFromSources (${afterMerge.length} items):`);
+    console.info("  ", afterMerge.map((it) => `[${it.metadata.showcase_rank}] ${it.id}`));
 
     if (verifyShowcaseMigration()) {
       try { localStorage.setItem("tw-showcase-migrated-v1", "done"); } catch { /* ignore */ }
