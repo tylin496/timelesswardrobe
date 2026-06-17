@@ -15659,15 +15659,18 @@
   function applyPdpMobileGalleryFrameIndex(stageEl, carousel, index, animate = true) {
     const track = carousel.querySelector(".item-detail__gallery-carousel-track");
     if (!(track instanceof HTMLElement) || !track.children.length) return 0;
-    const max = track.children.length - 1;
+    // Real frame count excludes the two boundary clone slides.
+    const realCount = Number(carousel.dataset.galleryFrameCount ?? track.children.length - 2);
+    const max = Math.max(0, realCount - 1);
     const idx = Math.max(0, Math.min(max, Math.floor(index)));
     const prevIdx = Number.parseInt(String(stageEl.dataset.galleryIndex ?? ""), 10);
     track.classList.remove("is-dragging");
     track.style.transition = animate ? "" : "none";
-    track.style.transform = `translate3d(-${idx * 100}%, 0, 0)`;
+    // DOM position = real index + 1 (slot 0 is the clone-last boundary slide).
+    track.style.transform = `translate3d(-${(idx + 1) * 100}%, 0, 0)`;
     [...track.children].forEach((slide, i) => {
       if (!(slide instanceof HTMLElement)) return;
-      slide.classList.toggle("is-active", i === idx);
+      slide.classList.toggle("is-active", i === idx + 1);
     });
     stageEl.dataset.galleryIndex = String(idx);
     carousel.dataset.galleryIndex = String(idx);
@@ -15698,26 +15701,39 @@
     track.className = "item-detail__gallery-carousel-track";
     const alt = String(heroImgEl.alt ?? "").trim();
 
-    frames.forEach((fr, i) => {
+    const makeSlide = (fr, i, { isClone = false } = {}) => {
       const slide = document.createElement("div");
       const isCover = i === 0;
-      slide.className = `item-detail__gallery-carousel-slide item-detail__gallery-carousel-slide--${isCover ? "cover" : "gallery"}${i === 0 ? " is-active" : ""}`;
+      slide.className = `item-detail__gallery-carousel-slide item-detail__gallery-carousel-slide--${isCover ? "cover" : "gallery"}`;
+      if (isClone) slide.dataset.twClone = "1";
       const simg = document.createElement("img");
       simg.className = isCover
         ? "card__media-img card__media-img--cover"
         : "card__gallery-carousel-img card__gallery-frame-img";
       simg.alt = i === 0 ? alt : "";
-      simg.loading = i <= 1 ? "eager" : "lazy";
-      if (i <= 1) simg.fetchPriority = "high";
+      simg.loading = (isClone || i <= 1) ? "eager" : "lazy";
+      if (isClone || i <= 1) simg.fetchPriority = "high";
       simg.decoding = "async";
       simg.draggable = false;
       const url = heroFrameSrc(fr.url);
       if (url) simg.src = url;
-      if (i === 0) simg.dataset.coverSrc = url;
+      if (i === 0 && !isClone) simg.dataset.coverSrc = url;
       simg.dataset.frameRaw = String(fr.url ?? "").trim();
       slide.appendChild(simg);
+      return slide;
+    };
+
+    // Clone-last: prepended so wrap first→last animates to DOM slot 0.
+    track.appendChild(makeSlide(frames[frames.length - 1], frames.length - 1, { isClone: true }));
+
+    frames.forEach((fr, i) => {
+      const slide = makeSlide(fr, i);
+      if (i === 0) slide.classList.add("is-active");
       track.appendChild(slide);
     });
+
+    // Clone-first: appended so wrap last→first animates to DOM slot N+2.
+    track.appendChild(makeSlide(frames[0], 0, { isClone: true }));
 
     carousel.appendChild(track);
     stageEl.insertBefore(carousel, heroImgEl);
@@ -15858,7 +15874,7 @@
           : `${item.brand} — ${displayNameWithoutLeadingColour(item)} (photo ${idx + 1})`;
       if (carousel) {
         const slideImg = carousel.querySelector(
-          `.item-detail__gallery-carousel-slide:nth-child(${idx + 1}) img`
+          `.item-detail__gallery-carousel-slide:nth-child(${idx + 2}) img`
         );
         if (slideImg instanceof HTMLImageElement) {
           slideImg.alt = heroImgEl.alt;
