@@ -6121,20 +6121,20 @@
     "beaufort-waxed-jacket",
     "balmacaan-coat",
     "tank-solo",
-    "tassel-loafer",
+    "tassel-moccasin-loafer",
     "camel-hair-polo-coat",
     "golden-fleece-navy-blazer",
     "signet-ring",
     "black-bay-58",
     "pembroke",
-    "ventile-harrington",
+    "ventile-harrington-jacket",
     "herringbone-tweed-jacket",
     "aran-cable-knit-jumper",
-    "ligne-2",
+    "ligne-2-lighter",
     "ruby-gypsy-ring",
     "navy-double-breasted-blazer",
     "polo-bear-jumper",
-    "anthony",
+    "anthony-crossbody-bag",
     "cordovan-l-zip-wallet",
     "chukka",
     "houndstooth-tweed-jacket",
@@ -6147,7 +6147,7 @@
     "fair-isle-vest",
     "x100vi-camera",
     "achilles-low",
-    "grand-soir",
+    "grand-soir-eau-de-parfum",
   ];
 
   const EDITORIAL_ARCHIVE_FIXED_CORE_RANK = new Map(
@@ -6212,24 +6212,6 @@
     const raw = row?.canonical_score ?? meta?.canonical_score ?? globalMap?.canonical_score;
     const n = Number(raw);
     return Number.isFinite(n) ? n : 0;
-  }
-
-  /** Lower = earlier within the same season + category group. */
-  function itemManualSortRank(item) {
-    const { globalMap, meta, item: row } = editorialPrioritySource(item);
-    const raw = row?.manual_sort_rank ?? meta?.manual_sort_rank ?? globalMap?.manual_sort_rank;
-    if (raw == null || raw === "") return null;
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-
-  function compareEditorialManualSort(a, b) {
-    const ma = itemManualSortRank(a);
-    const mb = itemManualSortRank(b);
-    if (ma != null && mb != null) return ma - mb;
-    if (ma != null) return -1;
-    if (mb != null) return 1;
-    return 0;
   }
 
   function editorialColourGroupRank(item) {
@@ -6419,10 +6401,6 @@
     return 0;
   }
 
-  function editorialOwnershipRank(item) {
-    return isFuturePiece(item) ? 99 : 0;
-  }
-
   /**
    * Automatic default order after the fixed core — editorial archive, not inventory.
    * category → canonicality → formality → versatility → colour neutrality → season specificity
@@ -6435,8 +6413,6 @@
     if (cat !== 0) return cat;
     const slot = browseSlotRank(a) - browseSlotRank(b);
     if (slot !== 0) return slot;
-    const manual = compareEditorialManualSort(a, b);
-    if (manual !== 0) return manual;
     const cs = itemCanonicalScore(b) - itemCanonicalScore(a);
     if (cs !== 0) return cs;
     const formal = editorialFormalityRank(a) - editorialFormalityRank(b);
@@ -6451,8 +6427,6 @@
     if (casual !== 0) return casual;
     const novelty = editorialNoveltyRank(a) - editorialNoveltyRank(b);
     if (novelty !== 0) return novelty;
-    const ownership = editorialOwnershipRank(a) - editorialOwnershipRank(b);
-    if (ownership !== 0) return ownership;
     const cg = editorialColourGroupRank(a) - editorialColourGroupRank(b);
     if (cg !== 0) return cg;
     const created = editorialCreatedAtSortMs(a) - editorialCreatedAtSortMs(b);
