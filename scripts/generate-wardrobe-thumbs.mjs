@@ -13,7 +13,7 @@
  *   node scripts/generate-wardrobe-thumbs.mjs          # only stale/missing
  *   node scripts/generate-wardrobe-thumbs.mjs --force  # rebuild everything
  */
-import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -71,12 +71,14 @@ async function run() {
 
   let built = 0;
   let skipped = 0;
+  let removed = 0;
   for (const item of items) {
     const mainDir = path.join(WARDROBE_DIR, item, "main");
     if (!existsSync(mainDir)) continue;
     const sources = readdirSync(mainDir).filter((f) => SOURCE_RE.test(f));
-    if (!sources.length) continue;
     const thumbDir = path.join(WARDROBE_DIR, item, "thumb");
+
+    // Build/update thumbs for every source image.
     for (const file of sources) {
       const srcPath = path.join(mainDir, file);
       const outPath = path.join(thumbDir, file.replace(SOURCE_RE, ".webp"));
@@ -88,8 +90,20 @@ async function run() {
       await buildThumb(srcPath, outPath);
       built++;
     }
+
+    // Remove orphaned thumbs that no longer have a matching source in main/.
+    if (existsSync(thumbDir)) {
+      const expectedThumbs = new Set(sources.map((f) => f.replace(SOURCE_RE, ".webp")));
+      for (const thumbFile of readdirSync(thumbDir).filter((f) => /\.webp$/i.test(f))) {
+        if (!expectedThumbs.has(thumbFile)) {
+          rmSync(path.join(thumbDir, thumbFile));
+          removed++;
+        }
+      }
+    }
   }
-  console.log(`[thumbs] built ${built}, skipped ${skipped} (up to date).`);
+  const removedStr = removed ? `, removed ${removed} orphans` : "";
+  console.log(`[thumbs] built ${built}, skipped ${skipped} (up to date)${removedStr}.`);
 }
 
 run().catch((err) => {
