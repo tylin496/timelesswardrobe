@@ -20794,6 +20794,22 @@
           ...itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: ck }),
         });
       }
+      // No active swatch (mobile hides the tray). Fall back to the default variant so
+      // gallery images stored in colourVariants[].gallery are still reachable.
+      const vars = getItemColourVariants(item);
+      if (vars?.length) {
+        const mainImg = String(item.image ?? "").trim();
+        const defaultKey = String(
+          (mainImg ? vars.find((v) => String(v.image ?? "").trim() === mainImg)?.key : null) ??
+            vars[0]?.key ??
+            ""
+        );
+        if (defaultKey) {
+          return ensureItemMediaCacheBust({
+            ...itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: defaultKey }),
+          });
+        }
+      }
       return cardCoverMediaItem;
     };
     mountCollectionCardGalleryNav(media, img, resolveCoverItemForHover);
