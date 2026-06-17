@@ -6207,12 +6207,6 @@
     return n === 2 || n === 1 ? n : 0;
   }
 
-  function itemCanonicalScore(item) {
-    const { globalMap, meta, item: row } = editorialPrioritySource(item);
-    const raw = row?.canonical_score ?? meta?.canonical_score ?? globalMap?.canonical_score;
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : 0;
-  }
 
   function editorialColourGroupRank(item) {
     const g = itemColourGroup(item);
@@ -6413,8 +6407,6 @@
     if (cat !== 0) return cat;
     const slot = browseSlotRank(a) - browseSlotRank(b);
     if (slot !== 0) return slot;
-    const cs = itemCanonicalScore(b) - itemCanonicalScore(a);
-    if (cs !== 0) return cs;
     const formal = editorialFormalityRank(a) - editorialFormalityRank(b);
     if (formal !== 0) return formal;
     const versatile = editorialVersatilityRank(a) - editorialVersatilityRank(b);
