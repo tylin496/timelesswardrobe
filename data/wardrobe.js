@@ -32,8 +32,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/beaufort-waxed-jacket/main/3.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
       "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/7.webp"
+      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp"
     ],
     "metadata": {
       "price": 43200,
