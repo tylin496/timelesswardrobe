@@ -6142,8 +6142,15 @@
 
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
+    const seen = new Set();
     return Array.from(itemById.values())
-      .filter((item) => isInShowcase(item))
+      .filter((item) => {
+        if (!isInShowcase(item)) return false;
+        const id = String(item.id);
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
       .sort((a, b) => showcaseRank(a) - showcaseRank(b));
   }
 
@@ -6233,9 +6240,13 @@
       .map((id, rank) => ({ item: itemById.get(String(id)), rank }))
       .filter(({ item }) => !!item);
     const toSetIds = new Set(ids.map(String));
+    const seenForClear = new Set();
     const toClear = Array.from(itemById.values()).filter((it) => {
+      const id = String(it.id);
+      if (seenForClear.has(id)) return false;
+      seenForClear.add(id);
       const r = it?.metadata?.showcase_rank;
-      return typeof r === "number" && Number.isInteger(r) && r >= 0 && !toSetIds.has(String(it.id));
+      return typeof r === "number" && Number.isInteger(r) && r >= 0 && !toSetIds.has(id);
     });
 
     // ── DIAGNOSTIC 1: expected set ──────────────────────────────────────────
