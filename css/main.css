@@ -733,6 +733,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 100vw;
 }
 
 .site-utility-bar {
