@@ -1,8 +1,7 @@
 /**
- * Editorial archive priorities — worldview sort + homepage curation.
+ * Editorial archive priorities — homepage curation.
  * Per-piece overrides; new items can also set on the row or in `metadata`:
- *   featured_rank — 2 hero, 1 archive core, 0 normal
- *   colour_group — soft rhythm hint (navy_dark, earth, light, green, …)
+ *   featured_rank — 2 hero, 1 notable, 0 normal (homepage selection only)
  */
 const WARDROBE_EDITORIAL_PRIORITIES = {
   "beaufort-waxed-jacket":              { featured_rank: 2 },
@@ -46,9 +45,50 @@ const WARDROBE_EDITORIAL_PRIORITIES = {
   "linen-pleated-shorts":               { featured_rank: 1 },
   "rib-knit-roll-neck-jumper":          { featured_rank: 1 },
   "tassel-moccasin-loafer":             { featured_rank: 2 },
-  "signet-ring":                        { featured_rank: 2, colour_group: "gold" },
-  "wedding-bands":                      { colour_group: "gold" },
-  "ligne-2-lighter":                    { featured_rank: 1, colour_group: "gold" },
-  "tank-solo":                          { featured_rank: 2, colour_group: "gold" },
+  "signet-ring":                        { featured_rank: 2 },
+  "ligne-2-lighter":                    { featured_rank: 1 },
+  "tank-solo":                          { featured_rank: 2 },
   "black-bay-58":                       { featured_rank: 2 },
 };
+
+/**
+ * Showcase — the collection's most representative pieces, in display order.
+ * Showcase items appear before Archive items in the collection grid.
+ * List order is the display order within the showcase.
+ * Everything not listed here is Archive and sorts automatically.
+ *
+ * Edit this list to add, remove, or reorder showcase pieces.
+ * Use the admin UI (★ toggle + Manage Showcase panel) to generate an updated list.
+ */
+const SHOWCASE_IDS = [
+  "beaufort-waxed-jacket",
+  "balmacaan-coat",
+  "tank-solo",
+  "tassel-moccasin-loafer",
+  "camel-hair-polo-coat",
+  "golden-fleece-navy-blazer",
+  "signet-ring",
+  "black-bay-58",
+  "pembroke",
+  "ventile-harrington-jacket",
+  "herringbone-tweed-jacket",
+  "aran-cable-knit-jumper",
+  "ligne-2-lighter",
+  "ruby-gypsy-ring",
+  "navy-double-breasted-blazer",
+  "polo-bear-jumper",
+  "anthony-crossbody-bag",
+  "cordovan-l-zip-wallet",
+  "chukka",
+  "houndstooth-tweed-jacket",
+  "v-neck-cardigan",
+  "gt1-hardwood-umbrella",
+  "prx-quartz",
+  "ocbd-shirt",
+  "corduroy-trousers",
+  "glen-check-tweed-jacket",
+  "fair-isle-vest",
+  "x100vi-camera",
+  "achilles-low",
+  "grand-soir-eau-de-parfum",
+];

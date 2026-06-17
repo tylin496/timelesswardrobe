@@ -3641,6 +3641,140 @@
     }
   }
 
+
+  // ── Showcase management panel (admin mode) ──────────────────────────────────
+
+  function buildShowcaseManagePanel() {
+    const existing = document.getElementById("showcase-manage-panel");
+    if (existing) { existing.removeAttribute("hidden"); return; }
+
+    const panel = document.createElement("div");
+    panel.id = "showcase-manage-panel";
+    panel.className = "showcase-manage-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", "Manage Showcase");
+
+    const header = document.createElement("div");
+    header.className = "showcase-manage-panel__header";
+
+    const title = document.createElement("h2");
+    title.className = "showcase-manage-panel__title";
+    title.textContent = "Showcase";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "showcase-manage-panel__close";
+    closeBtn.textContent = "✕";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.addEventListener("click", () => panel.setAttribute("hidden", ""));
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    panel.appendChild(header);
+
+    const list = document.createElement("ol");
+    list.className = "showcase-manage-panel__list";
+    panel.appendChild(list);
+
+    const footer = document.createElement("div");
+    footer.className = "showcase-manage-panel__footer";
+
+    const exportBtn = document.createElement("button");
+    exportBtn.type = "button";
+    exportBtn.className = "btn btn--small btn--ghost showcase-manage-panel__export";
+    exportBtn.textContent = "Copy SHOWCASE_IDS";
+    exportBtn.title = "Copy the current list as a JS array to paste into editorial-priorities.js";
+    exportBtn.addEventListener("click", () => {
+      const ids = getEffectiveShowcaseIds();
+      const js = "const SHOWCASE_IDS = [\n" + ids.map((id) => `  "${id}",`).join("\n") + "\n];";
+      navigator.clipboard.writeText(js).then(() => {
+        exportBtn.textContent = "Copied!";
+        setTimeout(() => { exportBtn.textContent = "Copy SHOWCASE_IDS"; }, 2000);
+      });
+    });
+    footer.appendChild(exportBtn);
+    panel.appendChild(footer);
+
+    document.body.appendChild(panel);
+    refreshShowcaseManagePanel();
+  }
+
+  function refreshShowcaseManagePanel() {
+    const panel = document.getElementById("showcase-manage-panel");
+    if (!panel || panel.hasAttribute("hidden")) return;
+    const list = panel.querySelector(".showcase-manage-panel__list");
+    if (!(list instanceof HTMLElement)) return;
+    list.innerHTML = "";
+
+    const ids = getEffectiveShowcaseIds();
+    ids.forEach((id, index) => {
+      const it = itemById.get(id);
+      const li = document.createElement("li");
+      li.className = "showcase-manage-panel__item";
+      li.dataset.itemId = id;
+
+      const upBtn = document.createElement("button");
+      upBtn.type = "button";
+      upBtn.textContent = "↑";
+      upBtn.setAttribute("aria-label", "Move up");
+      upBtn.disabled = index === 0;
+      upBtn.addEventListener("click", () => { moveShowcaseItemUp(id); refreshShowcaseManagePanel(); });
+
+      const downBtn = document.createElement("button");
+      downBtn.type = "button";
+      downBtn.textContent = "↓";
+      downBtn.setAttribute("aria-label", "Move down");
+      downBtn.disabled = index === ids.length - 1;
+      downBtn.addEventListener("click", () => { moveShowcaseItemDown(id); refreshShowcaseManagePanel(); });
+
+      const label = document.createElement("span");
+      label.className = "showcase-manage-panel__label";
+      if (it) {
+        label.textContent = [it.brand, it.name].filter(Boolean).join(" — ");
+      } else {
+        label.textContent = id;
+        label.classList.add("showcase-manage-panel__label--missing");
+      }
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "Remove";
+      removeBtn.setAttribute("aria-label", `Remove ${label.textContent} from Showcase`);
+      removeBtn.addEventListener("click", () => { removeFromShowcase(id); refreshShowcaseManagePanel(); });
+
+      li.appendChild(upBtn);
+      li.appendChild(downBtn);
+      li.appendChild(label);
+      li.appendChild(removeBtn);
+      list.appendChild(li);
+    });
+
+    const count = panel.querySelector(".showcase-manage-panel__title");
+    if (count) count.textContent = `Showcase (${ids.length})`;
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
+  function installShowcaseManageButton() {
+    const existing = document.getElementById("showcase-manage-btn");
+    if (existing) return;
+    const btn = document.createElement("button");
+    btn.id = "showcase-manage-btn";
+    btn.type = "button";
+    btn.className = "btn btn--small btn--ghost tw-admin-only showcase-manage-btn";
+    btn.textContent = "Manage Showcase";
+    btn.addEventListener("click", () => {
+      const panel = document.getElementById("showcase-manage-panel");
+      if (panel && !panel.hasAttribute("hidden")) {
+        panel.setAttribute("hidden", "");
+      } else {
+        buildShowcaseManagePanel();
+      }
+    });
+    // Attach to the collection toolbar if available, else body
+    const toolbar = document.querySelector(".collection-toolbar, .collection-filter-bar");
+    if (toolbar) toolbar.appendChild(btn);
+    else document.body.appendChild(btn);
+  }
   function applyTwAdminModeUi() {
     const on = isTwAdminMode();
     document.documentElement.classList.toggle("tw-admin-mode", on);
@@ -3655,6 +3789,7 @@
     if (on) {
       initAddItemForm();
       installLocalDataRiskBanner();
+      installShowcaseManageButton();
       refreshLocalDataRiskBannerVisibility();
       installWardrobeTextLocalExportActions();
     } else {
@@ -6102,90 +6237,6 @@
     Evening: 13,
   };
 
-  /** Soft tie-breaker palette order (does not override season / category). */
-  const EDITORIAL_COLOUR_GROUP_RANK = {
-    navy_dark: 0,
-    earth: 1,
-    green: 2,
-    neutral: 3,
-    grey: 4,
-    light: 5,
-    blue: 6,
-    gold: 7,
-    red: 8,
-  };
-
-  const EDITORIAL_RHYTHM_GROUPS = new Set(["navy_dark", "earth", "grey", "green"]);
-
-  const EDITORIAL_ARCHIVE_FIXED_CORE_IDS = [
-    "beaufort-waxed-jacket",
-    "balmacaan-coat",
-    "tank-solo",
-    "tassel-moccasin-loafer",
-    "camel-hair-polo-coat",
-    "golden-fleece-navy-blazer",
-    "signet-ring",
-    "black-bay-58",
-    "pembroke",
-    "ventile-harrington-jacket",
-    "herringbone-tweed-jacket",
-    "aran-cable-knit-jumper",
-    "ligne-2-lighter",
-    "ruby-gypsy-ring",
-    "navy-double-breasted-blazer",
-    "polo-bear-jumper",
-    "anthony-crossbody-bag",
-    "cordovan-l-zip-wallet",
-    "chukka",
-    "houndstooth-tweed-jacket",
-    "v-neck-cardigan",
-    "gt1-hardwood-umbrella",
-    "prx-quartz",
-    "ocbd-shirt",
-    "corduroy-trousers",
-    "glen-check-tweed-jacket",
-    "fair-isle-vest",
-    "x100vi-camera",
-    "achilles-low",
-    "grand-soir-eau-de-parfum",
-  ];
-
-  const EDITORIAL_ARCHIVE_FIXED_CORE_RANK = new Map(
-    EDITORIAL_ARCHIVE_FIXED_CORE_IDS.map((id, index) => [id, index])
-  );
-
-  const EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES = [
-    ["barbour", "beaufort"],
-    ["burberrys", "balmacaan"],
-    ["cartier", "tank solo"],
-    ["alden", "tassel loafer"],
-    ["spier mackay", "camel hair polo coat"],
-    ["brooks brothers", "golden fleece navy blazer"],
-    ["bespoke", "signet ring"],
-    ["tudor", "black bay 58"],
-    ["crockett jones", "pembroke"],
-    ["private white vc", "ventile harrington"],
-    ["j press", "herringbone tweed jacket"],
-    ["muji", "aran cable knit jumper"],
-    ["s t dupont", "ligne 2"],
-    ["bespoke", "ruby gypsy ring"],
-    ["cultum", "navy double breasted blazer"],
-    ["polo ralph lauren", "polo bear jumper"],
-    ["mulberry", "anthony"],
-    ["tsuchiya kaban", "cordovan l zip wallet"],
-    ["crockett jones", "chukka"],
-    ["brooks brothers", "houndstooth tweed jacket"],
-    ["muji", "v neck cardigan"],
-    ["fox umbrellas", "gt1 hardwood umbrella"],
-    ["tissot", "prx quartz"],
-    ["uniqlo", "ocbd shirt"],
-    ["l l bean", "corduroy trousers"],
-    ["cultum", "glen check tweed jacket"],
-    ["the engineer", "fair isle vest"],
-    ["fujifilm", "x100vi-camera"],
-    ["common projects", "achilles low"],
-    ["maison francis kurkdjian", "grand soir"],
-  ];
 
   /** @param {object} item */
   function editorialPrioritySource(item) {
@@ -6200,6 +6251,7 @@
   }
 
   /** 2 = hero, 1 = archive core, 0 = normal. */
+  /** 2 = hero, 1 = notable, 0 = normal — homepage curation only. */
   function itemFeaturedRank(item) {
     const { globalMap, meta, item: row } = editorialPrioritySource(item);
     const raw = row?.featured_rank ?? meta?.featured_rank ?? globalMap?.featured_rank;
@@ -6207,13 +6259,96 @@
     return n === 2 || n === 1 ? n : 0;
   }
 
+  // ── Showcase / Archive ──────────────────────────────────────────────────────
+  // SHOWCASE_IDS is defined in data/editorial-priorities.js — the canonical
+  // ordered list of showcase pieces. The localStorage key can override it in
+  // admin mode without a file deploy.
 
-  function editorialColourGroupRank(item) {
-    const g = itemColourGroup(item);
-    return Object.prototype.hasOwnProperty.call(EDITORIAL_COLOUR_GROUP_RANK, g)
-      ? EDITORIAL_COLOUR_GROUP_RANK[g]
-      : 50;
+  const SHOWCASE_LOCAL_KEY = "tw-showcase-ids-v1";
+
+  /** Returns effective showcase ID list (localStorage override > static file). */
+  function getEffectiveShowcaseIds() {
+    try {
+      const stored = localStorage.getItem(SHOWCASE_LOCAL_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed.map(String);
+      }
+    } catch { /* ignore */ }
+    return typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS) ? SHOWCASE_IDS.slice() : [];
   }
+
+  /** Lazy cache — invalidated whenever the showcase list changes. */
+  let _showcaseRankMap = null;
+
+  function _buildShowcaseRankMap() {
+    if (_showcaseRankMap) return _showcaseRankMap;
+    _showcaseRankMap = new Map(getEffectiveShowcaseIds().map((id, i) => [id, i]));
+    return _showcaseRankMap;
+  }
+
+  function invalidateShowcaseCache() {
+    _showcaseRankMap = null;
+  }
+
+  /** Returns 0-based position in showcase, or -1 if item is in Archive. */
+  function showcaseRank(item) {
+    const id = String(item?.id ?? "").trim();
+    const map = _buildShowcaseRankMap();
+    const rank = map.get(id);
+    return rank !== undefined ? rank : -1;
+  }
+
+  function isInShowcase(item) {
+    return showcaseRank(item) >= 0;
+  }
+
+  /**
+   * Persist a new showcase ID list to localStorage and trigger a grid refresh.
+   * @param {string[]} ids
+   */
+  function saveShowcaseIds(ids) {
+    try {
+      localStorage.setItem(SHOWCASE_LOCAL_KEY, JSON.stringify(ids));
+    } catch { /* ignore */ }
+    invalidateShowcaseCache();
+    wardrobeRevision += 1;
+    renderGrid();
+  }
+
+  /** Add item to end of showcase. No-op if already present. */
+  function addToShowcase(itemId) {
+    const ids = getEffectiveShowcaseIds();
+    if (ids.includes(itemId)) return;
+    saveShowcaseIds([...ids, itemId]);
+  }
+
+  /** Remove item from showcase. No-op if not present. */
+  function removeFromShowcase(itemId) {
+    const ids = getEffectiveShowcaseIds().filter((id) => id !== itemId);
+    saveShowcaseIds(ids);
+  }
+
+  /** Move item one position earlier in the showcase list. */
+  function moveShowcaseItemUp(itemId) {
+    const ids = getEffectiveShowcaseIds();
+    const i = ids.indexOf(itemId);
+    if (i <= 0) return;
+    const next = [...ids];
+    [next[i - 1], next[i]] = [next[i], next[i - 1]];
+    saveShowcaseIds(next);
+  }
+
+  /** Move item one position later in the showcase list. */
+  function moveShowcaseItemDown(itemId) {
+    const ids = getEffectiveShowcaseIds();
+    const i = ids.indexOf(itemId);
+    if (i < 0 || i >= ids.length - 1) return;
+    const next = [...ids];
+    [next[i], next[i + 1]] = [next[i + 1], next[i]];
+    saveShowcaseIds(next);
+  }
+  // ────────────────────────────────────────────────────────────────────────────
 
   /** Fallback only — older pieces first so new additions do not jump to the top. */
   function editorialCreatedAtSortMs(item) {
@@ -6248,19 +6383,6 @@
     );
   }
 
-  function fixedCoreArchiveRank(item) {
-    const id = String(item?.id ?? "").trim();
-    if (EDITORIAL_ARCHIVE_FIXED_CORE_RANK.has(id)) return EDITORIAL_ARCHIVE_FIXED_CORE_RANK.get(id);
-    const text = editorialArchiveItemText(item);
-    for (let i = 0; i < EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES.length; i++) {
-      const [brand, name] = EDITORIAL_ARCHIVE_FIXED_CORE_SIGNATURES[i];
-      if (text.includes(normalizeEditorialArchiveText(brand)) && text.includes(normalizeEditorialArchiveText(name))) {
-        return i;
-      }
-    }
-    return null;
-  }
-
   function isFuturePiece(item) {
     const meta =
       item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
@@ -6282,36 +6404,6 @@
     );
   }
 
-  /** @param {object} item */
-  function inferItemColourGroup(item) {
-    const blob = [
-      item?.colour,
-      item?.color,
-      item?.colourCode,
-      item?.colorCode,
-      item?.fabric,
-      item?.name,
-    ]
-      .map((x) => String(x ?? "").trim().toLowerCase())
-      .join(" ");
-    if (!blob) return "neutral";
-    if (/\b(navy|midnight|indigo|charcoal|black|espresso|chocolate|dark)\b/.test(blob)) return "navy_dark";
-    if (/\b(camel|tan|brown|cognac|tobacco|rust|burgundy|wine|color 8|cordovan)\b/.test(blob)) return "earth";
-    if (/\b(sage|olive|green|moss)\b/.test(blob)) return "green";
-    if (/\b(grey|gray|heather|slate|smoke)\b/.test(blob)) return "grey";
-    if (/\b(white|cream|ivory|ecru|linen|sand|beige|natural)\b/.test(blob)) return "light";
-    if (/\b(gold|yellow)\b/.test(blob)) return "gold";
-    if (/\b(blue|azure|ice)\b/.test(blob)) return "blue";
-    if (/\b(red|ruby)\b/.test(blob)) return "red";
-    return "neutral";
-  }
-
-  function itemColourGroup(item) {
-    const { globalMap, meta, item: row } = editorialPrioritySource(item);
-    const raw = String(row?.colour_group ?? meta?.colour_group ?? globalMap?.colour_group ?? "").trim();
-    return raw ? raw.toLowerCase() : inferItemColourGroup(item);
-  }
-
   function editorialRecordCategoryRank(item) {
     const c = recordCategoryForDrill(item, itemSlot(item));
     if (!c) return 900;
@@ -6321,158 +6413,35 @@
     return recordCategoryRank(item);
   }
 
-  /** A/W → All-season → S/S — seasonal wardrobe chapters, not mixed ecommerce rows. */
-  function editorialSeasonRank(item) {
-    const tags = normalizedItemSeasonTags(item);
-    const aw = tags.includes("AW");
-    const ss = tags.includes("SS");
-    if (aw && ss) return 1;
-    if (aw) return 0;
-    if (ss) return 2;
-    return 1;
-  }
-
-  function editorialArchiveSortTierKey(item) {
-    return [
-      editorialSeasonRank(item),
-      itemFeaturedRank(item),
-      editorialRecordCategoryRank(item),
-      browseSlotRank(item),
-    ].join("\x1e");
-  }
-
-  function editorialFormalityRank(item) {
-    const text = editorialArchiveItemText(item);
-    if (/\b(tank solo|dress watch|signet|golden fleece|navy blazer|double breasted|polo coat|balmacaan)\b/.test(text)) {
-      return 0;
-    }
-    if (/\b(blazer|tailoring|loafer|pembroke|chukka|tweed|overcoat|coat|harrington)\b/.test(text)) return 1;
-    if (/\b(cardigan|jumper|vest|ocbd|shirt|trousers|wallet|bag|watch)\b/.test(text)) return 2;
-    if (/\b(jeans|sneaker|achilles|rugby|t shirt|shorts|fleece|cap|hat|sandal)\b/.test(text)) return 4;
-    return 3;
-  }
-
-  function editorialVersatilityRank(item) {
-    const text = editorialArchiveItemText(item);
-    const season = editorialSeasonRank(item);
-    if (/\b(navy blazer|ocbd|corduroy trousers|loafer|chukka|wallet|tank solo|black bay|beaufort|balmacaan)\b/.test(text)) {
-      return 0;
-    }
-    if (season === 1) return 1;
-    if (/\b(tweed|cardigan|jumper|polo|trousers|eyewear|bag|watch)\b/.test(text)) return 2;
-    if (/\b(linen|shorts|panama|fragrance|jewellery|jewelry|hat)\b/.test(text)) return 4;
-    return 3;
-  }
-
-  function editorialColourNeutralityRank(item) {
-    const g = itemColourGroup(item);
-    if (g === "navy_dark" || g === "grey" || g === "neutral" || g === "earth") return 0;
-    if (g === "green" || g === "blue" || g === "light") return 1;
-    if (g === "gold") return 2;
-    return 3;
-  }
-
-  function editorialSeasonSpecificityRank(item) {
-    const season = editorialSeasonRank(item);
-    if (season === 1) return 0;
-    if (season === 0) return 1;
-    return 2;
-  }
-
-  function editorialCasualnessRank(item) {
-    const text = editorialArchiveItemText(item);
-    if (/\b(sneaker|achilles|jeans|rugby|t shirt|shorts|fleece|cap|hat|boat and tote|helmet bag)\b/.test(text)) return 3;
-    if (/\b(knit polo|polo bear|breton|camp collar|linen|sunglasses|fragrance)\b/.test(text)) return 2;
-    if (/\b(cardigan|jumper|vest|ocbd|chukka|bag|wallet)\b/.test(text)) return 1;
-    return 0;
-  }
-
-  function editorialNoveltyRank(item) {
-    const text = editorialArchiveItemText(item);
-    if (/\b(american flag|polo bear|ruby|sapphire|wedding|grand soir|ligne 2|x100vi-camera|camera)\b/.test(text)) return 3;
-    if (/\b(fair isle|cricket|breton|panama|sunglasses|fragrance|gold|bracelet|chain|ring)\b/.test(text)) return 2;
-    if (/\b(tweed|linen|corduroy|harrington|wallet|bag)\b/.test(text)) return 1;
-    return 0;
-  }
-
-  /**
-   * Automatic default order after the fixed core — editorial archive, not inventory.
-   * category → canonicality → formality → versatility → colour neutrality → season specificity
-   * → casualness → novelty → ownership status → stable fallbacks.
-   * @param {object} a
-   * @param {object} b
-   */
-  function compareEditorialArchiveItems(a, b) {
+  /** Archive fallback order: category taxonomy → slot → date added → brand name. */
+  function compareArchiveItems(a, b) {
     const cat = editorialRecordCategoryRank(a) - editorialRecordCategoryRank(b);
     if (cat !== 0) return cat;
     const slot = browseSlotRank(a) - browseSlotRank(b);
     if (slot !== 0) return slot;
-    const formal = editorialFormalityRank(a) - editorialFormalityRank(b);
-    if (formal !== 0) return formal;
-    const versatile = editorialVersatilityRank(a) - editorialVersatilityRank(b);
-    if (versatile !== 0) return versatile;
-    const neutral = editorialColourNeutralityRank(a) - editorialColourNeutralityRank(b);
-    if (neutral !== 0) return neutral;
-    const seasonal = editorialSeasonSpecificityRank(a) - editorialSeasonSpecificityRank(b);
-    if (seasonal !== 0) return seasonal;
-    const casual = editorialCasualnessRank(a) - editorialCasualnessRank(b);
-    if (casual !== 0) return casual;
-    const novelty = editorialNoveltyRank(a) - editorialNoveltyRank(b);
-    if (novelty !== 0) return novelty;
-    const cg = editorialColourGroupRank(a) - editorialColourGroupRank(b);
-    if (cg !== 0) return cg;
     const created = editorialCreatedAtSortMs(a) - editorialCreatedAtSortMs(b);
     if (created !== 0) return created;
     return compareEditorialBrandName(a, b);
   }
 
-  /**
-   * Light pass — break runs of identical colour_group (esp. navy / earth) without breaking priority tiers.
-   * @param {object[]} list
-   */
-  function applyEditorialColourRhythm(list) {
-    const out = [...list];
-    if (out.length < 3) return out;
-    for (let pass = 0; pass < 2; pass++) {
-      for (let i = 1; i < out.length; i++) {
-        const tier = editorialArchiveSortTierKey(out[i]);
-        if (tier !== editorialArchiveSortTierKey(out[i - 1])) continue;
-        const g0 = itemColourGroup(out[i - 1]);
-        const g1 = itemColourGroup(out[i]);
-        if (!EDITORIAL_RHYTHM_GROUPS.has(g0) || g0 !== g1) continue;
-        for (let j = i + 1; j < Math.min(out.length, i + 6); j++) {
-          if (editorialArchiveSortTierKey(out[j]) !== tier) continue;
-          if (itemColourGroup(out[j]) === g0) continue;
-          const tmp = out[i];
-          out[i] = out[j];
-          out[j] = tmp;
-          break;
-        }
-      }
-    }
-    return out;
-  }
-
   /** @param {object[]} list */
-  function sortItemsEditorialArchive(list) {
-    const fixed = [];
-    const automatic = [];
+  function sortItemsShowcaseArchive(list) {
+    const showcase = [];
+    const archive = [];
     const future = [];
     for (const item of Array.isArray(list) ? list : []) {
       if (isFuturePiece(item)) {
         future.push(item);
-      } else if (fixedCoreArchiveRank(item) != null) {
-        fixed.push(item);
+      } else if (showcaseRank(item) >= 0) {
+        showcase.push(item);
       } else {
-        automatic.push(item);
+        archive.push(item);
       }
     }
-    fixed.sort((a, b) => fixedCoreArchiveRank(a) - fixedCoreArchiveRank(b));
-    return [
-      ...fixed,
-      ...applyEditorialColourRhythm(automatic.sort(compareEditorialArchiveItems)),
-      ...future.sort(compareEditorialArchiveItems),
-    ];
+    showcase.sort((a, b) => showcaseRank(a) - showcaseRank(b));
+    archive.sort(compareArchiveItems);
+    future.sort(compareArchiveItems);
+    return [...showcase, ...archive, ...future];
   }
 
   /**
@@ -6484,7 +6453,7 @@
     const min = Math.max(1, Number(options.min) || 12);
     const max = Math.max(min, Number(options.max) || 18);
     const target = Math.min(max, Math.max(min, Number(options.target) || 15));
-    const sorted = sortItemsEditorialArchive(Array.isArray(pool) ? pool : []);
+    const sorted = sortItemsShowcaseArchive(Array.isArray(pool) ? pool : []);
     /** @type {object[]} */
     const picked = [];
     /** @type {Set<string>} */
@@ -6498,11 +6467,6 @@
       const slot = itemSlot(item);
       const count = slotCounts.get(slot) ?? 0;
       if (!force && count >= 5) return false;
-      if (!force && picked.length >= 2) {
-        const g = itemColourGroup(item);
-        const tail = picked.slice(-2).map(itemColourGroup);
-        if (tail[0] === g && tail[1] === g && EDITORIAL_RHYTHM_GROUPS.has(g)) return false;
-      }
       picked.push(item);
       usedIds.add(id);
       slotCounts.set(slot, count + 1);
@@ -6522,7 +6486,7 @@
         tryAdd(item, { force: true });
       }
     }
-    return applyEditorialColourRhythm(picked.slice(0, max));
+    return picked.slice(0, max);
   }
 
   function sanitizeCurrentOutfit() {
@@ -9020,7 +8984,7 @@
       collectionSortedCache = orderSearchResultItems(filtered, searchQ);
     } else {
       collectionSortedCache =
-        collectionSortMode === "default" ? sortItemsEditorialArchive(filtered) : [...filtered].sort(compareGridItems);
+        collectionSortMode === "default" ? sortItemsShowcaseArchive(filtered) : [...filtered].sort(compareGridItems);
     }
     collectionSortedCacheKey = key;
     return collectionSortedCache;
@@ -20853,6 +20817,30 @@
       const summary = buildCardNativeTitleSummary(item);
       if (summary) article.title = summary;
     }
+
+    if (isTwAdminMode()) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "card__showcase-toggle tw-admin-only";
+      btn.dataset.showcaseToggle = String(item.id);
+      const inShowcase = isInShowcase(item);
+      btn.setAttribute("aria-label", inShowcase ? "Remove from Showcase" : "Add to Showcase");
+      btn.title = btn.getAttribute("aria-label");
+      btn.textContent = inShowcase ? "★" : "☆";
+      if (inShowcase) btn.classList.add("card__showcase-toggle--active");
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = String(item.id);
+        if (isInShowcase(item)) {
+          removeFromShowcase(id);
+        } else {
+          addToShowcase(id);
+        }
+      });
+      article.appendChild(btn);
+    }
+
     return article;
   }
 
@@ -20969,7 +20957,7 @@
   function compareCollectionGridItems(a, b) {
     const drilled = subcategoryFilters.size > 0;
     if (!drilled) {
-      return compareEditorialArchiveItems(a, b);
+      return compareArchiveItems(a, b);
     }
 
     const ca = isCustomWardrobeItem(a);
@@ -21283,6 +21271,7 @@
   function renderGrid() {
     if (!els.grid) return;
     dismissCollectionCardStylingReveal();
+    refreshShowcaseManagePanel();
     const sorted = getCollectionSortedDataset();
     const filtered = sorted;
     syncCopyFilteredListButton(sorted.length);
