@@ -3654,6 +3654,7 @@
     });
     installTwEditorAuthUi();
     if (on) {
+      maybeRunShowcaseMigration();
       initAddItemForm();
       installLocalDataRiskBanner();
       refreshLocalDataRiskBannerVisibility();
@@ -6126,73 +6127,173 @@
   }
 
   // ── Showcase / Archive ──────────────────────────────────────────────────────
-  // SHOWCASE_IDS is defined in data/editorial-priorities.js — the canonical
-  // ordered list of showcase pieces. The localStorage key can override it in
-  // admin mode without a file deploy.
+  // Source of truth: metadata.showcase_rank on each wardrobe_items row.
+  // Absent / null = Archive. Integer ≥ 0 = Showcase position (always dense: 0, 1, 2, …).
 
-  const SHOWCASE_LOCAL_KEY = "tw-showcase-ids-v1";
-
-  /** Returns effective showcase ID list (localStorage override > static file). */
-  function getEffectiveShowcaseIds() {
-    try {
-      const stored = localStorage.getItem(SHOWCASE_LOCAL_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.map(String);
-      }
-    } catch { /* ignore */ }
-    return typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS) ? SHOWCASE_IDS.slice() : [];
-  }
-
-  /** Lazy cache — invalidated whenever the showcase list changes. */
-  let _showcaseRankMap = null;
-
-  function _buildShowcaseRankMap() {
-    if (_showcaseRankMap) return _showcaseRankMap;
-    _showcaseRankMap = new Map(getEffectiveShowcaseIds().map((id, i) => [id, i]));
-    return _showcaseRankMap;
-  }
-
-  function invalidateShowcaseCache() {
-    _showcaseRankMap = null;
-  }
-
-  /** Returns 0-based position in showcase, or -1 if item is in Archive. */
+  /** Returns 0-based Showcase position, or -1 if item is not in Showcase. */
   function showcaseRank(item) {
-    const id = String(item?.id ?? "").trim();
-    const map = _buildShowcaseRankMap();
-    const rank = map.get(id);
-    return rank !== undefined ? rank : -1;
+    const r = item?.metadata?.showcase_rank;
+    return typeof r === "number" && Number.isInteger(r) && r >= 0 ? r : -1;
   }
 
   function isInShowcase(item) {
     return showcaseRank(item) >= 0;
   }
 
+  /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
+  function getShowcaseItems() {
+    return Array.from(itemById.values())
+      .filter((item) => isInShowcase(item))
+      .sort((a, b) => showcaseRank(a) - showcaseRank(b));
+  }
+
   /**
-   * Persist a new showcase ID list to localStorage and trigger a grid refresh.
-   * @param {string[]} ids
+   * Assign dense ranks 0, 1, 2, … to orderedItems and persist changed items.
+   * Also clears showcase_rank for any Showcase item not present in orderedItems.
+   * @param {object[]} orderedItems  — full desired Showcase order
+   * @returns {Promise<void>}
    */
-  function saveShowcaseIds(ids) {
-    try {
-      localStorage.setItem(SHOWCASE_LOCAL_KEY, JSON.stringify(ids));
-    } catch { /* ignore */ }
-    invalidateShowcaseCache();
+  async function saveShowcaseOrder(orderedItems) {
+    const saves = [];
+    const orderedIds = new Set(orderedItems.map((it) => String(it.id)));
+
+    orderedItems.forEach((item, i) => {
+      if (showcaseRank(item) === i) return;
+      item.metadata = { ...(item.metadata ?? {}), showcase_rank: i };
+      saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
+    });
+
+    for (const item of itemById.values()) {
+      if (isInShowcase(item) && !orderedIds.has(String(item.id))) {
+        item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
+        saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
+      }
+    }
+
+    await Promise.all(saves);
     wardrobeRevision += 1;
     renderGrid();
   }
 
-  /** Add item to end of showcase. No-op if already present. */
-  function addToShowcase(itemId) {
-    const ids = getEffectiveShowcaseIds();
-    if (ids.includes(itemId)) return;
-    saveShowcaseIds([...ids, itemId]);
+  /** Add item to end of Showcase. No-op if already present. */
+  async function addToShowcase(itemId) {
+    const item = itemById.get(String(itemId));
+    if (!item || isInShowcase(item)) return;
+    await saveShowcaseOrder([...getShowcaseItems(), item]);
   }
 
-  /** Remove item from showcase. No-op if not present. */
-  function removeFromShowcase(itemId) {
-    const ids = getEffectiveShowcaseIds().filter((id) => id !== itemId);
-    saveShowcaseIds(ids);
+  /** Remove item from Showcase and dense-renumber remaining. */
+  async function removeFromShowcase(itemId) {
+    await saveShowcaseOrder(getShowcaseItems().filter((it) => String(it.id) !== String(itemId)));
+  }
+
+  /**
+   * Move dragId to the position currently occupied by dropId.
+   * @param {string} dragId
+   * @param {string} dropId
+   */
+  async function reorderShowcase(dragId, dropId) {
+    const current = getShowcaseItems();
+    const fromIdx = current.findIndex((it) => String(it.id) === String(dragId));
+    const toIdx   = current.findIndex((it) => String(it.id) === String(dropId));
+    if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
+    const next = [...current];
+    next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, current[fromIdx]);
+    await saveShowcaseOrder(next);
+  }
+
+  // ── One-time migration from SHOWCASE_IDS to metadata.showcase_rank ──────────
+
+  let _showcaseMigrationState = "pending"; // "pending" | "running" | "done"
+
+  function maybeRunShowcaseMigration() {
+    if (_showcaseMigrationState !== "pending") return;
+    if (!isTwAdminMode()) return;
+    if (itemById.size === 0) return;
+    _showcaseMigrationState = "running";
+    migrateShowcaseFromStaticIds().then(() => {
+      _showcaseMigrationState = "done";
+    }).catch((err) => {
+      console.error("[showcase] Migration failed:", err);
+      _showcaseMigrationState = "pending";
+    });
+  }
+
+  async function migrateShowcaseFromStaticIds() {
+    const alreadyMigrated = Array.from(itemById.values()).some((item) => isInShowcase(item));
+    if (alreadyMigrated) {
+      console.info("[showcase] Already migrated — skipping SHOWCASE_IDS seed.");
+      verifyShowcaseMigration();
+      return;
+    }
+
+    const ids =
+      typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS) ? SHOWCASE_IDS : [];
+    if (ids.length === 0) {
+      console.warn("[showcase] SHOWCASE_IDS is empty — nothing to migrate.");
+      return;
+    }
+
+    const toMigrate = ids
+      .map((id) => itemById.get(String(id)))
+      .filter(Boolean);
+
+    console.info(
+      `[showcase] Migrating ${toMigrate.length} of ${ids.length} SHOWCASE_IDS items to metadata.showcase_rank…`
+    );
+
+    await Promise.all(
+      toMigrate.map((item, i) => {
+        item.metadata = { ...(item.metadata ?? {}), showcase_rank: i };
+        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
+      })
+    );
+
+    wardrobeRevision += 1;
+    renderGrid();
+    verifyShowcaseMigration();
+  }
+
+  function verifyShowcaseMigration() {
+    const showcaseItems = getShowcaseItems();
+    const ranks = showcaseItems.map((it) => showcaseRank(it));
+    const ids   = showcaseItems.map((it) => String(it.id));
+    const issues = [];
+
+    ranks.forEach((r, i) => {
+      if (r !== i) issues.push(`Rank gap at position ${i}: expected ${i}, got ${r} (${ids[i]})`);
+    });
+
+    const seen = new Set();
+    ranks.forEach((r, i) => {
+      if (seen.has(r)) issues.push(`Duplicate rank ${r} (${ids[i]})`);
+      seen.add(r);
+    });
+
+    const expectedIds =
+      typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS)
+        ? SHOWCASE_IDS.filter((id) => itemById.has(String(id)))
+        : [];
+
+    if (expectedIds.length !== ids.length) {
+      issues.push(
+        `Count mismatch: expected ${expectedIds.length} (matched SHOWCASE_IDS), got ${ids.length} Showcase items`
+      );
+    }
+    ids.forEach((id, i) => {
+      if (id !== expectedIds[i])
+        issues.push(`Order mismatch at [${i}]: expected ${expectedIds[i]}, got ${id}`);
+    });
+
+    if (issues.length === 0) {
+      console.info(
+        `[showcase] ✓ Verified: ${showcaseItems.length} items, dense ranks 0–${showcaseItems.length - 1}, order matches SHOWCASE_IDS`
+      );
+    } else {
+      console.error("[showcase] ✗ Verification FAILED:");
+      issues.forEach((issue) => console.error("  • " + issue));
+    }
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -8753,6 +8854,7 @@
     collectionSortedCacheKey = "";
     collectionSortedCache = null;
     syncHeaderSearchFeaturedSubcategoryCards();
+    maybeRunShowcaseMigration();
   }
 
   function rebuildWardrobeSearchIndex() {
