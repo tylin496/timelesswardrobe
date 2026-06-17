@@ -33,4 +33,35 @@
   const body = document.body;
   if (body) body.classList.add("theme-catalogue");
 
+  if (params.get("measure") === "1") {
+    function snapHeader(label) {
+      const els = [
+        [".site-header-shell",    document.querySelector(".site-header-shell")],
+        [".site-header",          document.querySelector(".site-header")],
+        [".site-header__inner",   document.querySelector(".site-header__inner")],
+        [".site-header__brand-nav", document.querySelector(".site-header__brand-nav")],
+      ];
+      const row = {};
+      for (const [name, el] of els) {
+        if (el) {
+          const r = el.getBoundingClientRect();
+          row[name] = { h: +r.height.toFixed(2), top: +r.top.toFixed(2) };
+        }
+      }
+      console.log("[header-measure]", label, JSON.stringify(row));
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      snapHeader("LOAD");
+      window.addEventListener("scroll", function onScroll() {
+        snapHeader("SCROLL");
+        window.removeEventListener("scroll", onScroll);
+      }, { passive: true });
+      window.addEventListener("resize", function onResize() {
+        snapHeader("RESIZE");
+        window.removeEventListener("resize", onResize);
+      }, { passive: true });
+    });
+  }
+
 })();
