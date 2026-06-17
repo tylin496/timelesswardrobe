@@ -58,7 +58,10 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/balmacaan-coat/main/2.webp",
       "/images/wardrobe/balmacaan-coat/main/3.webp",
       "/images/wardrobe/balmacaan-coat/main/4.webp",
-      "/images/wardrobe/balmacaan-coat/main/5.webp"
+      "/images/wardrobe/balmacaan-coat/main/5.webp",
+      "/images/wardrobe/balmacaan-coat/main/burberry_coat_front_1_web.jpg",
+      "/images/wardrobe/balmacaan-coat/main/burberry_coat_front_web_1.jpg",
+      "/images/wardrobe/balmacaan-coat/main/burberry_trench_front_web.jpg"
     ],
     "metadata": {
       "price": 83.99,

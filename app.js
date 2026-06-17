@@ -3707,25 +3707,21 @@
     list.innerHTML = "";
 
     const ids = getEffectiveShowcaseIds();
-    ids.forEach((id, index) => {
+
+    /** @type {string | null} */
+    let dragSrcId = null;
+
+    ids.forEach((id) => {
       const it = itemById.get(id);
       const li = document.createElement("li");
       li.className = "showcase-manage-panel__item";
       li.dataset.itemId = id;
+      li.draggable = true;
 
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      upBtn.textContent = "↑";
-      upBtn.setAttribute("aria-label", "Move up");
-      upBtn.disabled = index === 0;
-      upBtn.addEventListener("click", () => { moveShowcaseItemUp(id); refreshShowcaseManagePanel(); });
-
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      downBtn.textContent = "↓";
-      downBtn.setAttribute("aria-label", "Move down");
-      downBtn.disabled = index === ids.length - 1;
-      downBtn.addEventListener("click", () => { moveShowcaseItemDown(id); refreshShowcaseManagePanel(); });
+      const handle = document.createElement("span");
+      handle.className = "showcase-manage-panel__handle";
+      handle.setAttribute("aria-hidden", "true");
+      handle.textContent = "\u2630"; // ☰
 
       const label = document.createElement("span");
       label.className = "showcase-manage-panel__label";
@@ -3738,19 +3734,64 @@
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
+      removeBtn.className = "showcase-manage-panel__remove";
       removeBtn.textContent = "Remove";
       removeBtn.setAttribute("aria-label", `Remove ${label.textContent} from Showcase`);
       removeBtn.addEventListener("click", () => { removeFromShowcase(id); refreshShowcaseManagePanel(); });
 
-      li.appendChild(upBtn);
-      li.appendChild(downBtn);
+      // Drag events
+      li.addEventListener("dragstart", (e) => {
+        dragSrcId = id;
+        li.classList.add("showcase-manage-panel__item--dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", id);
+        }
+      });
+
+      li.addEventListener("dragend", () => {
+        dragSrcId = null;
+        list.querySelectorAll(".showcase-manage-panel__item").forEach((el) => {
+          el.classList.remove("showcase-manage-panel__item--dragging", "showcase-manage-panel__item--over");
+        });
+      });
+
+      li.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+        list.querySelectorAll(".showcase-manage-panel__item").forEach((el) => {
+          el.classList.remove("showcase-manage-panel__item--over");
+        });
+        if (dragSrcId && dragSrcId !== id) li.classList.add("showcase-manage-panel__item--over");
+      });
+
+      li.addEventListener("dragleave", () => {
+        li.classList.remove("showcase-manage-panel__item--over");
+      });
+
+      li.addEventListener("drop", (e) => {
+        e.preventDefault();
+        li.classList.remove("showcase-manage-panel__item--over");
+        if (!dragSrcId || dragSrcId === id) return;
+        const current = getEffectiveShowcaseIds();
+        const fromIdx = current.indexOf(dragSrcId);
+        const toIdx = current.indexOf(id);
+        if (fromIdx < 0 || toIdx < 0) return;
+        const next = [...current];
+        next.splice(fromIdx, 1);
+        next.splice(toIdx, 0, dragSrcId);
+        saveShowcaseIds(next);
+        refreshShowcaseManagePanel();
+      });
+
+      li.appendChild(handle);
       li.appendChild(label);
       li.appendChild(removeBtn);
       list.appendChild(li);
     });
 
-    const count = panel.querySelector(".showcase-manage-panel__title");
-    if (count) count.textContent = `Showcase (${ids.length})`;
+    const title = panel.querySelector(".showcase-manage-panel__title");
+    if (title) title.textContent = `Showcase (${ids.length})`;
   }
   // ────────────────────────────────────────────────────────────────────────────
 
