@@ -3642,180 +3642,6 @@
   }
 
 
-  // ── Showcase management panel (admin mode) ──────────────────────────────────
-
-  function buildShowcaseManagePanel() {
-    const existing = document.getElementById("showcase-manage-panel");
-    if (existing) { existing.removeAttribute("hidden"); return; }
-
-    const panel = document.createElement("div");
-    panel.id = "showcase-manage-panel";
-    panel.className = "showcase-manage-panel";
-    panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-label", "Manage Showcase");
-
-    const header = document.createElement("div");
-    header.className = "showcase-manage-panel__header";
-
-    const title = document.createElement("h2");
-    title.className = "showcase-manage-panel__title";
-    title.textContent = "Showcase";
-
-    const closeBtn = document.createElement("button");
-    closeBtn.type = "button";
-    closeBtn.className = "showcase-manage-panel__close";
-    closeBtn.textContent = "✕";
-    closeBtn.setAttribute("aria-label", "Close");
-    closeBtn.addEventListener("click", () => panel.setAttribute("hidden", ""));
-
-    header.appendChild(title);
-    header.appendChild(closeBtn);
-    panel.appendChild(header);
-
-    const list = document.createElement("ol");
-    list.className = "showcase-manage-panel__list";
-    panel.appendChild(list);
-
-    const footer = document.createElement("div");
-    footer.className = "showcase-manage-panel__footer";
-
-    const exportBtn = document.createElement("button");
-    exportBtn.type = "button";
-    exportBtn.className = "btn btn--small btn--ghost showcase-manage-panel__export";
-    exportBtn.textContent = "Copy SHOWCASE_IDS";
-    exportBtn.title = "Copy the current list as a JS array to paste into editorial-priorities.js";
-    exportBtn.addEventListener("click", () => {
-      const ids = getEffectiveShowcaseIds();
-      const js = "const SHOWCASE_IDS = [\n" + ids.map((id) => `  "${id}",`).join("\n") + "\n];";
-      navigator.clipboard.writeText(js).then(() => {
-        exportBtn.textContent = "Copied!";
-        setTimeout(() => { exportBtn.textContent = "Copy SHOWCASE_IDS"; }, 2000);
-      });
-    });
-    footer.appendChild(exportBtn);
-    panel.appendChild(footer);
-
-    document.body.appendChild(panel);
-    refreshShowcaseManagePanel();
-  }
-
-  function refreshShowcaseManagePanel() {
-    const panel = document.getElementById("showcase-manage-panel");
-    if (!panel || panel.hasAttribute("hidden")) return;
-    const list = panel.querySelector(".showcase-manage-panel__list");
-    if (!(list instanceof HTMLElement)) return;
-    list.innerHTML = "";
-
-    const ids = getEffectiveShowcaseIds();
-
-    /** @type {string | null} */
-    let dragSrcId = null;
-
-    ids.forEach((id) => {
-      const it = itemById.get(id);
-      const li = document.createElement("li");
-      li.className = "showcase-manage-panel__item";
-      li.dataset.itemId = id;
-      li.draggable = true;
-
-      const handle = document.createElement("span");
-      handle.className = "showcase-manage-panel__handle";
-      handle.setAttribute("aria-hidden", "true");
-      handle.textContent = "\u2630"; // ☰
-
-      const label = document.createElement("span");
-      label.className = "showcase-manage-panel__label";
-      if (it) {
-        label.textContent = [it.brand, it.name].filter(Boolean).join(" — ");
-      } else {
-        label.textContent = id;
-        label.classList.add("showcase-manage-panel__label--missing");
-      }
-
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.className = "showcase-manage-panel__remove";
-      removeBtn.textContent = "Remove";
-      removeBtn.setAttribute("aria-label", `Remove ${label.textContent} from Showcase`);
-      removeBtn.addEventListener("click", () => { removeFromShowcase(id); refreshShowcaseManagePanel(); });
-
-      // Drag events
-      li.addEventListener("dragstart", (e) => {
-        dragSrcId = id;
-        li.classList.add("showcase-manage-panel__item--dragging");
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", id);
-        }
-      });
-
-      li.addEventListener("dragend", () => {
-        dragSrcId = null;
-        list.querySelectorAll(".showcase-manage-panel__item").forEach((el) => {
-          el.classList.remove("showcase-manage-panel__item--dragging", "showcase-manage-panel__item--over");
-        });
-      });
-
-      li.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-        list.querySelectorAll(".showcase-manage-panel__item").forEach((el) => {
-          el.classList.remove("showcase-manage-panel__item--over");
-        });
-        if (dragSrcId && dragSrcId !== id) li.classList.add("showcase-manage-panel__item--over");
-      });
-
-      li.addEventListener("dragleave", () => {
-        li.classList.remove("showcase-manage-panel__item--over");
-      });
-
-      li.addEventListener("drop", (e) => {
-        e.preventDefault();
-        li.classList.remove("showcase-manage-panel__item--over");
-        if (!dragSrcId || dragSrcId === id) return;
-        const current = getEffectiveShowcaseIds();
-        const fromIdx = current.indexOf(dragSrcId);
-        const toIdx = current.indexOf(id);
-        if (fromIdx < 0 || toIdx < 0) return;
-        const next = [...current];
-        next.splice(fromIdx, 1);
-        next.splice(toIdx, 0, dragSrcId);
-        saveShowcaseIds(next);
-        refreshShowcaseManagePanel();
-      });
-
-      li.appendChild(handle);
-      li.appendChild(label);
-      li.appendChild(removeBtn);
-      list.appendChild(li);
-    });
-
-    const title = panel.querySelector(".showcase-manage-panel__title");
-    if (title) title.textContent = `Showcase (${ids.length})`;
-  }
-  // ────────────────────────────────────────────────────────────────────────────
-
-  function installShowcaseManageButton() {
-    const existing = document.getElementById("showcase-manage-btn");
-    if (existing) return;
-    const btn = document.createElement("button");
-    btn.id = "showcase-manage-btn";
-    btn.type = "button";
-    btn.className = "btn btn--small btn--ghost tw-admin-only showcase-manage-btn";
-    btn.textContent = "Manage Showcase";
-    btn.addEventListener("click", () => {
-      const panel = document.getElementById("showcase-manage-panel");
-      if (panel && !panel.hasAttribute("hidden")) {
-        panel.setAttribute("hidden", "");
-      } else {
-        buildShowcaseManagePanel();
-      }
-    });
-    // Attach to the collection toolbar if available, else body
-    const toolbar = document.querySelector(".collection-toolbar, .collection-filter-bar");
-    if (toolbar) toolbar.appendChild(btn);
-    else document.body.appendChild(btn);
-  }
   function applyTwAdminModeUi() {
     const on = isTwAdminMode();
     document.documentElement.classList.toggle("tw-admin-mode", on);
@@ -3830,7 +3656,6 @@
     if (on) {
       initAddItemForm();
       installLocalDataRiskBanner();
-      installShowcaseManageButton();
       refreshLocalDataRiskBannerVisibility();
       installWardrobeTextLocalExportActions();
     } else {
@@ -6370,25 +6195,6 @@
     saveShowcaseIds(ids);
   }
 
-  /** Move item one position earlier in the showcase list. */
-  function moveShowcaseItemUp(itemId) {
-    const ids = getEffectiveShowcaseIds();
-    const i = ids.indexOf(itemId);
-    if (i <= 0) return;
-    const next = [...ids];
-    [next[i - 1], next[i]] = [next[i], next[i - 1]];
-    saveShowcaseIds(next);
-  }
-
-  /** Move item one position later in the showcase list. */
-  function moveShowcaseItemDown(itemId) {
-    const ids = getEffectiveShowcaseIds();
-    const i = ids.indexOf(itemId);
-    if (i < 0 || i >= ids.length - 1) return;
-    const next = [...ids];
-    [next[i], next[i + 1]] = [next[i + 1], next[i]];
-    saveShowcaseIds(next);
-  }
   // ────────────────────────────────────────────────────────────────────────────
 
   /** Fallback only — older pieces first so new additions do not jump to the top. */
@@ -20859,28 +20665,6 @@
       if (summary) article.title = summary;
     }
 
-    if (isTwAdminMode()) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "card__showcase-toggle tw-admin-only";
-      btn.dataset.showcaseToggle = String(item.id);
-      const inShowcase = isInShowcase(item);
-      btn.setAttribute("aria-label", inShowcase ? "Remove from Showcase" : "Add to Showcase");
-      btn.title = btn.getAttribute("aria-label");
-      btn.textContent = inShowcase ? "★" : "☆";
-      if (inShowcase) btn.classList.add("card__showcase-toggle--active");
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const id = String(item.id);
-        if (isInShowcase(item)) {
-          removeFromShowcase(id);
-        } else {
-          addToShowcase(id);
-        }
-      });
-      article.appendChild(btn);
-    }
 
     return article;
   }
@@ -21312,7 +21096,6 @@
   function renderGrid() {
     if (!els.grid) return;
     dismissCollectionCardStylingReveal();
-    refreshShowcaseManagePanel();
     const sorted = getCollectionSortedDataset();
     const filtered = sorted;
     syncCopyFilteredListButton(sorted.length);
