@@ -6221,13 +6221,6 @@
   }
 
   async function migrateShowcaseFromStaticIds() {
-    const alreadyMigrated = Array.from(itemById.values()).some((item) => isInShowcase(item));
-    if (alreadyMigrated) {
-      console.info("[showcase] Already migrated — skipping SHOWCASE_IDS seed.");
-      verifyShowcaseMigration();
-      return;
-    }
-
     const ids =
       typeof SHOWCASE_IDS !== "undefined" && Array.isArray(SHOWCASE_IDS) ? SHOWCASE_IDS : [];
     if (ids.length === 0) {
@@ -6235,27 +6228,29 @@
       return;
     }
 
-    const toMigrate = ids
-      .map((id) => itemById.get(String(id)))
-      .filter(Boolean);
+    if (verifyShowcaseMigration(false)) {
+      console.info("[showcase] Showcase already correct — no migration needed.");
+      return;
+    }
 
+    const orderedItems = ids.map((id) => itemById.get(String(id))).filter(Boolean);
     console.info(
-      `[showcase] Migrating ${toMigrate.length} of ${ids.length} SHOWCASE_IDS items to metadata.showcase_rank…`
+      `[showcase] Reconciling Showcase: ${orderedItems.length} of ${ids.length} SHOWCASE_IDS items found. Saving…`
     );
 
-    await Promise.all(
-      toMigrate.map((item, i) => {
-        item.metadata = { ...(item.metadata ?? {}), showcase_rank: i };
-        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
-      })
-    );
+    await saveShowcaseOrder(orderedItems);
 
-    wardrobeRevision += 1;
-    renderGrid();
-    verifyShowcaseMigration();
+    if (verifyShowcaseMigration(true)) {
+      console.info("[showcase] Migration complete.");
+    }
   }
 
-  function verifyShowcaseMigration() {
+  /**
+   * Verify that Showcase state in memory matches SHOWCASE_IDS exactly.
+   * @param {boolean} log — true to emit console output; false for silent check.
+   * @returns {boolean} true if correct
+   */
+  function verifyShowcaseMigration(log = true) {
     const showcaseItems = getShowcaseItems();
     const ranks = showcaseItems.map((it) => showcaseRank(it));
     const ids   = showcaseItems.map((it) => String(it.id));
@@ -6287,13 +6282,16 @@
     });
 
     if (issues.length === 0) {
-      console.info(
+      if (log) console.info(
         `[showcase] ✓ Verified: ${showcaseItems.length} items, dense ranks 0–${showcaseItems.length - 1}, order matches SHOWCASE_IDS`
       );
-    } else {
+      return true;
+    }
+    if (log) {
       console.error("[showcase] ✗ Verification FAILED:");
       issues.forEach((issue) => console.error("  • " + issue));
     }
+    return false;
   }
 
   // ────────────────────────────────────────────────────────────────────────────
