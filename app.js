@@ -6229,18 +6229,40 @@
       return;
     }
 
-    // Always reconcile: assign correct ranks to SHOWCASE_IDS items,
-    // clear showcase_rank from everything else. Self-heals any DB corruption.
-    const orderedItems = ids.map((id) => itemById.get(String(id))).filter(Boolean);
+    const toSet = ids
+      .map((id, rank) => ({ item: itemById.get(String(id)), rank }))
+      .filter(({ item }) => !!item);
+    const toSetIds = new Set(ids.map(String));
+    const toClear = Array.from(itemById.values()).filter((it) => {
+      const r = it?.metadata?.showcase_rank;
+      return typeof r === "number" && Number.isInteger(r) && r >= 0 && !toSetIds.has(String(it.id));
+    });
+
     console.info(
-      `[showcase] Migrating: ${orderedItems.length} of ${ids.length} SHOWCASE_IDS items found. Reconciling DB…`
+      `[showcase] Migrating: setting ${toSet.length} items, clearing ${toClear.length} extra. Saving to Supabase…`
     );
 
-    await saveShowcaseOrder(orderedItems);
+    const saves = [
+      ...toSet.map(({ item, rank }) => {
+        item.metadata = { ...(item.metadata ?? {}), showcase_rank: rank };
+        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
+      }),
+      ...toClear.map((item) => {
+        item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
+        return saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved));
+      }),
+    ];
+
+    await Promise.all(saves);
+
+    // Rebuild items/itemById from the now-fully-updated wardrobeBase before verifying.
+    mergeWardrobeFromSources();
 
     if (verifyShowcaseMigration()) {
       try { localStorage.setItem("tw-showcase-migrated-v1", "done"); } catch { /* ignore */ }
-      console.info("[showcase] ✓ Migration complete and verified. Migration code can now be removed.");
+      console.info("[showcase] ✓ Migration complete. Migration code can now be removed.");
+      wardrobeRevision += 1;
+      renderGrid();
     }
   }
 
