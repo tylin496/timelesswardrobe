@@ -6205,18 +6205,18 @@
 
   // ── One-time migration from SHOWCASE_IDS to metadata.showcase_rank ──────────
 
-  let _showcaseMigrationState = "pending"; // "pending" | "running" | "done"
+  let _showcaseMigrationRunning = false;
 
   function maybeRunShowcaseMigration() {
-    if (_showcaseMigrationState !== "pending") return;
+    if (_showcaseMigrationRunning) return;
     if (!isTwAdminMode()) return;
     if (itemById.size === 0) return;
-    _showcaseMigrationState = "running";
+    _showcaseMigrationRunning = true;
     migrateShowcaseFromStaticIds().then(() => {
-      _showcaseMigrationState = "done";
+      _showcaseMigrationRunning = false;
     }).catch((err) => {
       console.error("[showcase] Migration failed:", err);
-      _showcaseMigrationState = "pending";
+      _showcaseMigrationRunning = false;
     });
   }
 
@@ -8852,7 +8852,6 @@
     collectionSortedCacheKey = "";
     collectionSortedCache = null;
     syncHeaderSearchFeaturedSubcategoryCards();
-    maybeRunShowcaseMigration();
   }
 
   function rebuildWardrobeSearchIndex() {
@@ -30096,6 +30095,7 @@
       onOutfitChange();
       renderGrid();
     }
+    maybeRunShowcaseMigration();
     return cloudBackedCustomItems;
   }
 
