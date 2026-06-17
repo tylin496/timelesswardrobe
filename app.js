@@ -19814,6 +19814,7 @@
     let pendingDragPx = 0;
     let axisLocked = /** @type {null | "h" | "v"} */ (null);
     let wrapSnapToken = 0; // incremented on touchstart to cancel any in-flight wrap snap
+    let pendingWrapTarget = /** @type {number | null} */ (null); // set by releaseWrapped so an interrupting touchstart reads the correct origin
 
     const markSwiping = () => {
       swipeHost.dataset.galleryCarouselSwiping = "1";
@@ -19867,12 +19868,14 @@
      */
     const releaseWrapped = (realTarget, cloneDomPos, w) => {
       cancelDragRaf();
+      pendingWrapTarget = realTarget; // consumed by the next touchstart so it reads the correct origin
       const token = ++wrapSnapToken;
       track.classList.remove("is-dragging");
       track.style.transition = ""; // use CSS transition (one frame step to the adjacent clone)
       track.style.transform = `translate3d(${-(cloneDomPos * w)}px, 0, 0)`;
       const snap = () => {
         if (wrapSnapToken !== token) return; // new touch started — abort
+        pendingWrapTarget = null; // snap fired normally — dataset is authoritative again
         api.applyIndex(realTarget, false);
       };
       track.addEventListener("transitionend", snap, { once: true });
@@ -19931,7 +19934,10 @@
         touchPending = true;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
-        touchStartIndex = api.readIndex();
+        // If a wrap animation is in flight, pendingWrapTarget holds the real destination index;
+        // use it instead of the stale galleryFrameIndex (which won't update until the snap fires).
+        touchStartIndex = pendingWrapTarget !== null ? pendingWrapTarget : api.readIndex();
+        pendingWrapTarget = null;
         dragWidth = carousel.clientWidth || 0;
       },
       { passive: true }
