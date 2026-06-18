@@ -1476,7 +1476,6 @@
       typePrompt: `Type the piece id (${id}) to delete`,
       danger: true,
     });
-    if (!ok) showToast("Delete cancelled.");
     return ok;
   }
 
@@ -3801,6 +3800,15 @@
     removeBtn.textContent = "×";
     removeBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      const itemLabel = String(it?.name ?? it?.id ?? "this piece").trim();
+      const ok = await openTwConfirmDialog({
+        title: `Remove from Showcase?`,
+        message: `"${itemLabel}" will be removed from the Showcase order. The piece itself is not deleted.`,
+        confirmLabel: "Remove",
+        cancelLabel: "Cancel",
+        danger: true,
+      });
+      if (!ok) return;
       await removeFromShowcase(String(it.id));
       onReorder();
     });
@@ -17565,7 +17573,14 @@
   async function deleteSavedOutfit(id) {
     const found = savedOutfits.find((o) => o.id === id) || null;
     const label = found ? `“${String(found.name ?? "").trim() || "Untitled outfit"}”` : "this outfit";
-    if (!globalThis.confirm(`Delete ${label}? This cannot be undone.`)) return;
+    const ok = await openTwConfirmDialog({
+      title: `Delete ${label}?`,
+      message: "This removes the outfit permanently and cannot be undone.",
+      confirmLabel: "Delete outfit",
+      cancelLabel: "Cancel",
+      danger: true,
+    });
+    if (!ok) return;
     if (editingSavedOutfitId === id) {
       editingSavedOutfitId = null;
       syncOutfitSaveButtonLabel();

@@ -12851,6 +12851,12 @@ dialog.add-item-dialog[open]::backdrop {
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
   border-radius: 999px;
   box-shadow: 0 4px 14px var(--card-shadow);
+  opacity: 1;
+  transition: opacity 0.28s var(--ease-out, ease-out);
+}
+
+.outfit-toast--exiting:not(.outfit-toast--board-added) {
+  opacity: 0;
 }
 
 @supports not (background: color-mix(in srgb, red, blue)) {
