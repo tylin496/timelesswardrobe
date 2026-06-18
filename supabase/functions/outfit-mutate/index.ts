@@ -24,7 +24,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const { outfitId, ownerToken, action, name, notes, slots } = await req.json();
+    const { outfitId, ownerToken, action, name, notes, slots, created_at } = await req.json();
     if (!outfitId) {
       return new Response(JSON.stringify({ error: "outfitId is required" }), {
         status: 400,
@@ -99,9 +99,17 @@ serve(async (req) => {
       const { error: eDel } = await sb.from("outfit_items").delete().eq("outfit_id", outfitId);
       if (eDel) throw new Error(eDel.message);
 
+      const patch: Record<string, unknown> = {
+        name: String(name ?? "").trim(),
+        notes: notes ? String(notes).trim() || null : null,
+      };
+      if (created_at) {
+        const d = new Date(String(created_at));
+        if (!Number.isNaN(d.getTime())) patch.created_at = d.toISOString();
+      }
       const { error: eUp } = await sb
         .from("outfits")
-        .update({ name: String(name ?? "").trim(), notes: notes ? String(notes).trim() || null : null })
+        .update(patch)
         .eq("id", outfitId);
       if (eUp) throw new Error(eUp.message);
 

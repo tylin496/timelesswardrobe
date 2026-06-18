@@ -555,8 +555,8 @@ export async function updateOutfitWithItems(client, record) {
 
   const notes = String(record.notes ?? "").trim();
   const patch = { name: record.name };
-  // Explicitly clear notes when user deletes text.
   patch.notes = notes || null;
+  if (record.createdAt) patch.created_at = record.createdAt;
   let eUp;
   ({ error: eUp } = await client.from("outfits").update(patch).eq("id", record.id));
   if (eUp && /notes|column/i.test(String(eUp.message ?? ""))) {

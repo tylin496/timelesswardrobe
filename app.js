@@ -12046,6 +12046,7 @@
     outfitEmpty: document.getElementById("outfit-empty"),
     outfitName: document.getElementById("outfit-name"),
     outfitNotes: document.getElementById("outfit-notes"),
+    outfitDate: document.getElementById("outfit-date"),
     outfitSave: document.getElementById("outfit-save"),
     outfitClear: document.getElementById("outfit-clear"),
     outfitToast: document.getElementById("outfit-toast"),
@@ -17108,6 +17109,7 @@
     currentOutfitSlots = [];
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
+    if (els.outfitDate) els.outfitDate.value = "";
     editingSavedOutfitId = null;
     setStylingBoardSaveFormOpen(false);
     clearStylingBoardDraft();
@@ -17341,6 +17343,13 @@
     return d ? `Cloud save failed: ${d}` : "Cloud save failed.";
   }
 
+  function outfitDateFieldToIso() {
+    const val = els.outfitDate?.value ?? "";
+    if (!val) return null;
+    const d = new Date(val + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
+
   async function saveCurrentOutfit() {
     const name = els.outfitName?.value.trim() ?? "";
     const notes = els.outfitNotes?.value.trim() ?? "";
@@ -17398,7 +17407,7 @@
         name,
         notes,
         slots: supabaseClient && useCloudOutfits ? slotsForCloud : slots,
-        createdAt: prev.createdAt,
+        createdAt: outfitDateFieldToIso() ?? prev.createdAt,
       };
 
       if (supabaseClient && useCloudOutfits) {
@@ -17423,6 +17432,7 @@
               name: record.name,
               notes: record.notes,
               slots: record.slots,
+              created_at: record.createdAt,
             });
             if (!res.ok) {
               showToast(toastForOutfitCloudFkFailure(res.error));
@@ -17441,8 +17451,9 @@
       persistSavedOutfitsCache();
       editingSavedOutfitId = null;
       syncOutfitSaveButtonLabel();
-      if (els.outfitName) els.outfitName.value = "";
-      if (els.outfitNotes) els.outfitNotes.value = "";
+      if (els.outfitName) els.outfitName.value = “”;
+      if (els.outfitNotes) els.outfitNotes.value = “”;
+      if (els.outfitDate) els.outfitDate.value = “”;
       setStylingBoardSaveFormOpen(false);
       renderSavedOutfits();
       resetCurrentOutfitAfterSave();
@@ -17455,7 +17466,7 @@
       name,
       notes,
       slots: supabaseClient && useCloudOutfits ? slotsForCloud : slots,
-      createdAt: new Date().toISOString(),
+      createdAt: outfitDateFieldToIso() ?? new Date().toISOString(),
     };
 
     if (supabaseClient && useCloudOutfits) {
@@ -17493,6 +17504,7 @@
     persistSavedOutfitsCache();
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
+    if (els.outfitDate) els.outfitDate.value = "";
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
@@ -17594,6 +17606,7 @@
     editingSavedOutfitId = null;
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
+    if (els.outfitDate) els.outfitDate.value = "";
     syncOutfitSaveButtonLabel();
     onOutfitChange();
     openStylingBoardDrawer();
@@ -17619,6 +17632,7 @@
     editingSavedOutfitId = forEdit ? id : null;
     if (els.outfitName) els.outfitName.value = forEdit ? String(found.name ?? "").trim() : "";
     if (els.outfitNotes) els.outfitNotes.value = forEdit ? String(found.notes ?? "").trim() : "";
+    if (els.outfitDate) els.outfitDate.value = forEdit && found.createdAt ? new Date(found.createdAt).toISOString().slice(0, 10) : "";
     syncOutfitSaveButtonLabel();
     onOutfitChange();
     openStylingBoardDrawer();
