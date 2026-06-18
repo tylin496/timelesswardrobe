@@ -44,7 +44,7 @@
     { "source": "/collection/login", "destination": "/login", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/outfit/:slug", "destination": "/index.html" },
+    { "source": "/outfit/:slug", "destination": "/" },
     { "source": "/editorial", "destination": "/editorial.html" },
     { "source": "/editorial/:slug", "destination": "/editorial.html" },
     { "source": "/login", "destination": "/login.html" },
