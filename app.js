@@ -16849,6 +16849,7 @@
         id: o.id,
         name: o.name,
         notes: String(o.notes ?? ""),
+        slug: o.slug ?? null,
         createdAt: o.createdAt,
         slots: o.slots,
       })),
