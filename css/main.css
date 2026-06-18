@@ -9791,7 +9791,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     flex: 0 0 auto;
     order: 2;
     box-sizing: border-box;
-    width: calc(100% - 2 * var(--styling-board-scroll-inline, 1.25rem));
+    width: auto;
     min-height: 10px;
     margin: 0.35rem var(--styling-board-scroll-inline, 1.25rem) 0.12rem;
     padding: 0 0 8px;
