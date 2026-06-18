@@ -10069,78 +10069,31 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   outline-offset: 2px;
 }
 
+/* Hero section is no longer used — always hidden */
 .styling-board-drawer__added {
-  margin: 0 -1.35rem 0.85rem;
-  border-bottom: 1px solid var(--sb-line);
-  background: var(--sb-drawer-bg);
-}
-
-.styling-board-drawer__added[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer__added-hero {
-  padding: 0;
+/* "Added to Outfits" header subtitle (item name) */
+.styling-board-drawer--added .styling-board-drawer__status {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 0.18rem;
 }
 
-.styling-board-drawer__added-figure {  @apply m-0;
-
-}
-
-.styling-board-drawer__added-media {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-height: 14.5rem;
-  padding: 1.1rem 1.35rem 0.85rem;
-  background: var(--sb-drawer-bg);
-}
-
-.styling-board-drawer__added-media img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  max-height: min(42vh, 16.5rem);
-  object-fit: contain;
-  object-position: center bottom;
-  filter: drop-shadow(0 6px 18px rgba(20, 19, 18, 0.1));
-}
-
-.styling-board-drawer__added-details {
-  padding: 1rem 1.35rem 1.15rem;
-}
-
-.styling-board-drawer__added-brand {
-  @apply mb-1.5;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--sb-ink-muted);
-}
-
-.styling-board-drawer__added-name {
-  @apply mb-2;
+.styling-board-drawer__added-subtitle {
+  @apply m-0;
+  flex-basis: 100%;
+  padding-left: calc(1.65rem + 0.7rem);
   font-family: var(--font-serif);
-  font-size: 1.12rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1.25;
   color: var(--sb-ink);
-}
-
-.styling-board-drawer__added-colour,
-.styling-board-drawer__added-price {
-  @apply mb-1;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: var(--sb-ink-soft);
-}
-
-.styling-board-drawer__added-price {
-  @apply mt-2 mb-0;
-  font-weight: 600;
-  color: var(--sb-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .styling-board-drawer__scroll {
@@ -10186,9 +10139,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   max-height: none;
 }
 
-.styling-board-drawer--added .styling-board-drawer__scroll {
-  padding-top: 0;
-}
 
 .styling-board-drawer__footer {
   flex-shrink: 0;
@@ -10409,31 +10359,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   z-index: 2;
 }
 
-.styling-board-drawer--added .styling-board__pieces.outfit-strip {
-  min-height: 0;
-  padding-bottom: 0.15rem;
-}
-
-.styling-board-drawer--added .styling-board__pieces.outfit-strip > .outfit-slot {
-  --outfit-card-overlap: 0px;
-  width: var(--outfit-card-max-w);
-  max-width: var(--outfit-card-max-w);
-  margin-left: 0 !important;
-}
-
 .styling-board-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
   border-color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 18%, rgba(24, 55, 47, 0.08));
-}
-
-.styling-board-drawer--added .outfit-slot {
-  padding: 0.4rem 0.35rem 0.35rem;
-}
-
-.styling-board-drawer--added .outfit-slot__thumb {
-  height: auto;
-  min-height: 0;
-  flex: 0 1 auto;
-  max-height: calc(var(--outfit-slot-h) - 1.5rem);
 }
 
 .styling-board-drawer--added .outfit-slot__remove {
@@ -10855,16 +10782,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     --outfit-thumb-h: 5.85rem;
   }
 
-  .styling-board-drawer--added .styling-board__pieces.outfit-strip > .outfit-slot {
-    width: var(--outfit-card-max-w);
-    max-width: var(--outfit-card-max-w);
-  }
-
-  .styling-board-drawer--added .outfit-slot__thumb {
-    flex: 0 1 auto;
-    max-height: calc(var(--outfit-slot-h) - 1.5rem);
-  }
-
   .outfit-slot--drag-avatar {
     --outfit-slot-h: 8.85rem;
     --outfit-thumb-h: 5.2rem;
@@ -11097,10 +11014,6 @@ body.tw-outfit-drag-active * {
   -webkit-touch-callout: none;
 }
 
-.styling-board-drawer--added .styling-board__board-stack > #outfit-strip > .outfit-slot {
-  --outfit-card-overlap: 0px;
-  margin-left: 0 !important;
-}
 
 @media (max-width: 900px) {
   .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
@@ -11275,8 +11188,7 @@ body.tw-outfit-drag-active * {
       calc(max(1rem, env(safe-area-inset-right, 0px)) + 1.35rem);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot,
-  .styling-board-drawer--added .styling-board__board-stack > #outfit-strip > .outfit-slot {
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
     flex: 0 0 clamp(96px, 27vw, 108px);
     width: clamp(96px, 27vw, 108px);
@@ -11287,18 +11199,15 @@ body.tw-outfit-drag-active * {
     touch-action: pan-x;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 1),
-  .styling-board-drawer--added .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 1) {
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 1) {
     transform: translateY(2px);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 2),
-  .styling-board-drawer--added .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 2) {
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 2) {
     transform: translateY(5px);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n),
-  .styling-board-drawer--added .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n) {
+  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n) {
     transform: translateY(0);
   }
 }

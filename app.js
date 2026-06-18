@@ -17210,10 +17210,9 @@
     stylingBoardAddedRevealKey = null;
     const root = document.getElementById("styling-board-drawer");
     root?.classList.remove("styling-board-drawer--added");
-    document.getElementById("styling-board-drawer-status")?.setAttribute("hidden", "");
-    document.getElementById("styling-board-drawer-added")?.setAttribute("hidden", "");
-    const hero = document.getElementById("styling-board-added-hero");
-    if (hero) hero.innerHTML = "";
+    const status = document.getElementById("styling-board-drawer-status");
+    status?.setAttribute("hidden", "");
+    status?.querySelector(".styling-board-drawer__added-subtitle")?.remove();
     const heading = document.getElementById("styling-board-heading");
     if (heading) heading.hidden = false;
   }
@@ -17225,66 +17224,22 @@
 
     const root = document.getElementById("styling-board-drawer");
     const status = document.getElementById("styling-board-drawer-status");
-    const addedSection = document.getElementById("styling-board-drawer-added");
-    const hero = document.getElementById("styling-board-added-hero");
     const heading = document.getElementById("styling-board-heading");
-    if (!root || !hero) return;
+    if (!root) return;
 
     root.classList.add("styling-board-drawer--added");
     status?.removeAttribute("hidden");
-    addedSection?.removeAttribute("hidden");
     if (heading) heading.hidden = true;
 
-    const proj = itemProjectionForOutfitSlot(item, slot);
-    const variant = getItemColourVariants(item)?.find((v) => v.key === slot.colourKey);
-    const colourLabel = variant
-      ? variantCaptionText(variant) || variant.label
-      : String(item.colour ?? "").trim();
-    const priceLine = formattedCollectionPriceLine(item, { brief: true });
-
-    hero.innerHTML = "";
-    const figure = document.createElement("figure");
-    figure.className = "styling-board-drawer__added-figure";
-
-    const media = document.createElement("div");
-    media.className = "styling-board-drawer__added-media";
-    const img = document.createElement("img");
-    img.alt = displayNameWithoutLeadingColour(item);
-    wireCoverImageWithFallbacks(img, proj, {
-      host: media,
-      missingClass: null,
-      coverRenderWidth: 480,
-      coverRenderHeight: 600,
-      coverRenderQuality: 82,
-      coverRenderResize: "contain",
-    });
-    media.appendChild(img);
-
-    const details = document.createElement("figcaption");
-    details.className = "styling-board-drawer__added-details";
-    const brand = document.createElement("p");
-    brand.className = "styling-board-drawer__added-brand";
-    brand.textContent = item.brand || "";
-    const name = document.createElement("p");
-    name.className = "styling-board-drawer__added-name";
-    name.textContent = displayNameWithoutLeadingColour(item);
-    details.appendChild(brand);
-    details.appendChild(name);
-    if (colourLabel) {
-      const colour = document.createElement("p");
-      colour.className = "styling-board-drawer__added-colour";
-      colour.textContent = colourLabel;
-      details.appendChild(colour);
-    }
-    if (priceLine) {
-      const price = document.createElement("p");
-      price.className = "styling-board-drawer__added-price";
-      price.textContent = priceLine;
-      details.appendChild(price);
+    // Show item name as subtitle under "Added to Outfits"
+    status?.querySelector(".styling-board-drawer__added-subtitle")?.remove();
+    if (status) {
+      const subtitle = document.createElement("p");
+      subtitle.className = "styling-board-drawer__added-subtitle";
+      subtitle.textContent = displayNameWithoutLeadingColour(item);
+      status.appendChild(subtitle);
     }
 
-    figure.append(media, details);
-    hero.appendChild(figure);
     syncOutfitSaveButtonLabel();
     renderOutfitStrip();
   }
@@ -30665,6 +30620,21 @@
     }
 
     initOutfitVariantDialog();
+
+    // Intercept vertical wheel over the outfit strip: redirect to horizontal scroll,
+    // prevent page/drawer from scrolling vertically.
+    if (els.outfitStrip) {
+      els.outfitStrip.addEventListener(
+        "wheel",
+        (e) => {
+          if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            els.outfitStrip.scrollLeft += e.deltaY;
+          }
+        },
+        { passive: false }
+      );
+    }
 
     if (els.outfitSave) {
       els.outfitSave.addEventListener("click", handleOutfitSaveClick);
