@@ -5874,7 +5874,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-title__wordmark,
-  .site-title__wordmark-line {
+  .site-title__wordmark-line,
+  .site-brand-wordmark .site-title__wordmark-line {
     font-size: clamp(0.5rem, 2.1vw, 0.6rem);
     letter-spacing: 0.07em;
     line-height: 1;
@@ -5883,7 +5884,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   @media (max-width: 390px) {
     .site-title__wordmark,
-    .site-title__wordmark-line {
+    .site-title__wordmark-line,
+    .site-brand-wordmark .site-title__wordmark-line {
       font-size: clamp(0.48rem, 1.95vw, 0.56rem);
       letter-spacing: 0.06em;
     }
