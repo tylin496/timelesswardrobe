@@ -16818,9 +16818,15 @@
   const BOARD_ADDED_TOAST_MS = 2400;
   const BOARD_ADDED_TOAST_EXIT_MS = 320;
 
+  const TOAST_ICON_SVG = {
+    success: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>`,
+    error: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>`,
+    info: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>`,
+  };
+
   function resetOutfitToastPresentation(toastEl) {
     if (!toastEl) return;
-    toastEl.classList.remove("outfit-toast--visible", "outfit-toast--exiting", "outfit-toast--board-added");
+    toastEl.classList.remove("outfit-toast--visible", "outfit-toast--exiting");
     toastEl.replaceChildren();
     toastEl.removeAttribute("data-toast-variant");
   }
@@ -16846,9 +16852,8 @@
       finish();
     };
     toastEl.addEventListener("transitionend", onEnd);
-    setTimeout(finish, BOARD_ADDED_TOAST_EXIT_MS + 80);
+    setTimeout(finish, 380);
   }
-
 
   function showToast(msg, options = {}) {
     const toastEl = els.outfitToast || document.getElementById("outfit-toast");
@@ -16861,18 +16866,31 @@
       toastEl.hidden = true;
       return;
     }
-    toastEl.textContent = text;
+    const variant = options.variant ?? "default";
+    toastEl.setAttribute("data-toast-variant", variant);
+    const iconSvg = TOAST_ICON_SVG[variant];
+    if (iconSvg) {
+      const iconEl = document.createElement("span");
+      iconEl.className = "outfit-toast__icon";
+      iconEl.innerHTML = iconSvg;
+      toastEl.appendChild(iconEl);
+    }
+    const labelEl = document.createElement("span");
+    labelEl.className = "outfit-toast__label";
+    labelEl.textContent = text;
+    toastEl.appendChild(labelEl);
     toastEl.hidden = false;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         toastEl.classList.add("outfit-toast--visible");
       });
     });
+    const duration = variant === "error" ? 4500 : 3200;
     toastTimer = setTimeout(() => {
       dismissOutfitToastAnimated(toastEl, () => {
         toastTimer = null;
       });
-    }, 3800);
+    }, duration);
   }
 
   /** @type {string | null} */
@@ -17082,11 +17100,11 @@
     if (!item) return;
     const k = outfitSlotKey(slot);
     if (outfitSlotKeySet().has(k)) {
-      showToast(`This colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`);
+      showToast(`This colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`, { variant: "error" });
       return;
     }
     if (currentOutfitSlots.length >= MAX_OUTFIT_ITEMS) {
-      showToast(`${OUTFITS_UI_NAME} is limited to ${MAX_OUTFIT_ITEMS} pieces.`);
+      showToast(`${OUTFITS_UI_NAME} is limited to ${MAX_OUTFIT_ITEMS} pieces.`, { variant: "error" });
       return;
     }
     currentOutfitSlots.push(slot);
@@ -17185,7 +17203,7 @@
 
   function clearOutfit() {
     resetCurrentOutfitAfterSave();
-    showToast(`${OUTFITS_UI_NAME} cleared.`);
+    showToast(`${OUTFITS_UI_NAME} cleared.`, { variant: "success" });
   }
 
   function clearStylingBoardAddedReveal() {
@@ -17293,7 +17311,7 @@
 
   function handleOutfitSaveClick() {
     if (!currentOutfitSlots.length) {
-      showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`);
+      showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`, { variant: "error" });
       return;
     }
     if (!isStylingBoardSaveFormOpen()) {
@@ -17429,12 +17447,12 @@
     const name = els.outfitName?.value.trim() ?? "";
     const notes = els.outfitNotes?.value.trim() ?? "";
     if (!currentOutfitSlots.length) {
-      showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`);
+      showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`, { variant: "error" });
       return;
     }
     if (!name) {
       setStylingBoardSaveFormOpen(true);
-      showToast("Please name this outfit.");
+      showToast("Please name this outfit.", { variant: "error" });
       els.outfitName?.focus();
       return;
     }
@@ -17473,7 +17491,7 @@
       if (prevIdx < 0) {
         editingSavedOutfitId = null;
         syncOutfitSaveButtonLabel();
-        showToast("That saved outfit is no longer here — use Save Outfit to create a new one.");
+        showToast("That saved outfit is no longer here — use Save Outfit to create a new one.", { variant: "error" });
         return;
       }
       const prev = savedOutfits[prevIdx];
@@ -17497,7 +17515,7 @@
           } else {
             const token = getOutfitOwnerToken(editId);
             if (!token) {
-              showToast("Cannot update — no ownership token found.");
+              showToast("Cannot update — no ownership token found.", { variant: "error" });
               return;
             }
             const res = await api.mutateOutfitViaEdgeFunction(supabaseClient, {
@@ -17532,7 +17550,7 @@
       setStylingBoardSaveFormOpen(false);
       renderSavedOutfits();
       resetCurrentOutfitAfterSave();
-      showToast(`Updated: “${name}”`);
+      showToast(`Updated: “${name}”`, { variant: “success” });
       return;
     }
 
@@ -17584,7 +17602,7 @@
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
-    showToast(`Saved outfit: “${name}”`);
+    showToast(`Saved outfit: “${name}”`, { variant: “success” });
   }
 
   async function deleteSavedOutfit(id) {
@@ -17613,7 +17631,7 @@
       } else {
         const token = getOutfitOwnerToken(id);
         if (!token) {
-          showToast("Cannot delete — no ownership token found.");
+          showToast("Cannot delete — no ownership token found.", { variant: "error" });
           return;
         }
         const res = await api.mutateOutfitViaEdgeFunction(supabaseClient, {
@@ -17631,7 +17649,7 @@
     removeOutfitOwnerToken(id);
     persistSavedOutfitsCache();
     renderSavedOutfits();
-    showToast("Outfit deleted.");
+    showToast("Outfit deleted.", { variant: "success" });
   }
 
   function outfitPublicUrl(outfit) {
@@ -17649,7 +17667,7 @@
     const url = outfitPublicUrl(outfit);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
-        () => showToast("Link copied."),
+        () => showToast("Link copied.", { variant: "success" }),
         () => showToast(`Share: ${url}`)
       );
     } else {
@@ -17661,22 +17679,22 @@
     // Look up slots locally first; fall back to a DB fetch for outfits not yet in savedOutfits.
     let source = savedOutfits.find((o) => o.id === id) ?? null;
     if (!source && supabaseClient) {
-      showToast("Loading…");
+      showToast("Loading…", { variant: "info" });
       try {
         const api = await import("./js/supabase-client.js");
         const res = await api.fetchOutfitBySlugOrId(supabaseClient, id);
         if (!res.ok || !res.outfit) {
-          showToast("Could not load outfit.");
+          showToast("Could not load outfit.", { variant: "error" });
           return;
         }
         source = res.outfit;
       } catch {
-        showToast("Could not load outfit.");
+        showToast("Could not load outfit.", { variant: "error" });
         return;
       }
     }
     if (!source) {
-      showToast("Outfit not found.");
+      showToast("Outfit not found.", { variant: "error" });
       return;
     }
     // Preload builder only — no DB write until the user names the outfit and saves.
