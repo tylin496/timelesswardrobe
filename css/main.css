@@ -21722,6 +21722,11 @@ video.ed-lp__hero-layer-video {
     touch-action: pan-x pan-y;
   }
 
+  .ed-lp__viewed-rail-scroller,
+  .ed-lp__horizontal-rail-scroller {
+    touch-action: pan-x pan-y;
+  }
+
   .ed-lp__division-rail-card,
   .ed-lp__division-rail-scroller > .ed-lp__division-rail-card {
     flex: 0 0 clamp(200px, 62vw, 280px);
