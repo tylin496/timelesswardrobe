@@ -11764,22 +11764,10 @@
         const fadeStart = heroH * 0.4;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
         const bgOpacity = t * t * t;
-        // Text transitions linearly (turns dark faster than background fills in).
-        const overlayPct = Math.round((1 - t) * 100);
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
-        siteHeader.style.setProperty("--tw-header-fg",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-wordmark))`);
-        siteHeader.style.setProperty("--tw-header-fg-muted",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--ink-muted))`);
-        siteHeader.style.setProperty("--tw-header-monogram",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-monogram-green))`);
       } else {
-        siteHeader.classList.remove("site-header--scroll-driven");
-        siteHeader.style.removeProperty("--tw-header-bg-opacity");
-        siteHeader.style.removeProperty("--tw-header-fg");
-        siteHeader.style.removeProperty("--tw-header-fg-muted");
-        siteHeader.style.removeProperty("--tw-header-monogram");
+        clearScrollDriven();
       }
       if (heroInner) {
         const copyTop = heroInner.getBoundingClientRect().top;
@@ -11814,9 +11802,6 @@
     const clearScrollDriven = () => {
       siteHeader.classList.remove("site-header--scroll-driven");
       siteHeader.style.removeProperty("--tw-header-bg-opacity");
-      siteHeader.style.removeProperty("--tw-header-fg");
-      siteHeader.style.removeProperty("--tw-header-fg-muted");
-      siteHeader.style.removeProperty("--tw-header-monogram");
     };
     // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
     const onHeaderEnter = () => clearScrollDriven();
