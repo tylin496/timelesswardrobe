@@ -3080,6 +3080,10 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     display: inline-flex;
   }
 
+  body.account-page .site-header__brand-nav .site-header__tools {
+    margin-left: auto;
+  }
+
   body.collection-ui--search-results-plp .items-toolbar {
     padding-top: 0;
     padding-bottom: 0.35rem;
@@ -5941,9 +5945,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     --tw-search-inline-gutter: var(--chrome-content-inset-left);
     --tw-search-row-height: 3rem;
     --tw-mobile-search-row-height: 3rem;
-    /* Two full tiles + sliver of third (peek) within the content gutter. */
+    /* Two full tiles + half of third (peek) within the content gutter — clear rail affordance. */
     --tw-search-category-card-gap: 0.625rem;
-    --tw-search-category-card-peek: clamp(0.65rem, 3.25vw, 1rem);
+    --tw-search-category-card-peek: clamp(4rem, 18vw, 6rem);
     --tw-search-category-card-w: min(
       11.25rem,
       calc(
@@ -7644,7 +7648,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
   .site-header__search-wrap,
   .site-header__search-wrap.desktop-search-flyout {
     --tw-search-category-card-gap: 0.625rem;
-    --tw-search-category-card-peek: clamp(0.65rem, 3.25vw, 1rem);
+    --tw-search-category-card-peek: clamp(4rem, 18vw, 6rem);
     --tw-search-category-card-w: min(
       11.25rem,
       calc(
