@@ -11755,6 +11755,7 @@
       if (document.body.classList.contains("collection-ui--header-search-open")) return true;
       if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
       if (document.body.classList.contains("collection-ui--styling-board")) return true;
+      if (document.body.classList.contains("collection-ui--mobile-nav-open")) return true;
       if (!hero) return true;
       return hero.getBoundingClientRect().bottom <= siteHeader.offsetHeight + 4;
     };
