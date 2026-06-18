@@ -11793,9 +11793,19 @@
     window.addEventListener("resize", update, { passive: true });
     const mo = new MutationObserver(update);
     mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    // Hover must override the scroll-driven inline style — remove it on enter, restore on leave.
+    const onHeaderEnter = () => {
+      siteHeader.style.removeProperty("--tw-header-bg-opacity");
+      siteHeader.classList.remove("site-header--scroll-driven");
+    };
+    const onHeaderLeave = () => update();
+    siteHeader.addEventListener("mouseenter", onHeaderEnter);
+    siteHeader.addEventListener("mouseleave", onHeaderLeave);
     initHomeHeroHeader._teardown = () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      siteHeader.removeEventListener("mouseenter", onHeaderEnter);
+      siteHeader.removeEventListener("mouseleave", onHeaderLeave);
       ro?.disconnect();
       mo.disconnect();
       siteHeader.classList.remove("site-header--overlay", "site-header--scroll-driven");
