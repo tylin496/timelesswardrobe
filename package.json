@@ -5,7 +5,7 @@
   "scripts": {
     "css:build": "node scripts/build-css.mjs",
     "css:migrate-margins": "node scripts/migrate-margins-to-tailwind.mjs",
-    "predev": "node scripts/sync-wardrobe-gallery.mjs && node scripts/generate-wardrobe-thumbs.mjs && node scripts/build-css.mjs",
+    "predev": "node scripts/build-css.mjs",
     "og:build": "node scripts/build-og-image.mjs",
     "images:thumbs": "node scripts/generate-wardrobe-thumbs.mjs",
     "build": "node scripts/generate-wardrobe-thumbs.mjs && node scripts/build-css.mjs && node scripts/build-og-image.mjs && node scripts/vercel-build.mjs && node scripts/build-item-og-pages.mjs",

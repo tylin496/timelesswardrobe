@@ -1,0 +1,14 @@
+{
+  "1.webp": {
+    "srcHash": "78b68d9c8b546a52291fc388a042ba8a",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "2.webp": {
+    "srcHash": "61b281413cb2fbd1777bf63d1da9090f",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "3.webp": {
+    "srcHash": "64ddf0a3549f9b62cbd1283994092d47",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "1.webp": {
+    "srcHash": "65fca84d73ff451939b774558dfddac0",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "2.webp": {
+    "srcHash": "f961fb64e857118c58751d0f8ee2d924",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "3.webp": {
+    "srcHash": "59ac137b04305aab7ca00f75f4269398",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "4.webp": {
+    "srcHash": "a2aab65adbcdd45e6e0681468f3fc48f",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "5.webp": {
+    "srcHash": "4d0ff39f359f9a94053a67d8e77eced2",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "6.webp": {
+    "srcHash": "8a51a37dd19f620a9dea4745a7ebc44a",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  }
+}

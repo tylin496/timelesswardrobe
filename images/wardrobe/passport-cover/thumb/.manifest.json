@@ -1,0 +1,18 @@
+{
+  "1.webp": {
+    "srcHash": "189c7f5152aa65ec942ef765a5622bcb",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "2.webp": {
+    "srcHash": "e47fc1000a97a634dbcf98d9920d6fee",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "3.webp": {
+    "srcHash": "ce543397fdc4d1710a2bc4a3d0c9b171",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "4.webp": {
+    "srcHash": "e32b86136e7456b54f71591a8248ec44",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  }
+}

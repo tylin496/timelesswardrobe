@@ -7,13 +7,15 @@
  * images/background.jpg, scaled to fit 720×960. thumb/ represents the final
  * presentation asset; main/ remains the transparent source.
  *
- * Idempotent: skips thumbs already newer than both their source and background.jpg.
+ * Staleness is detected via content hashes stored in thumb/.manifest.json —
+ * mtime is unreliable when files are copied, restored from git, or batch-processed.
  *
  * Usage:
  *   node scripts/generate-wardrobe-thumbs.mjs          # only stale/missing
  *   node scripts/generate-wardrobe-thumbs.mjs --force  # rebuild everything
  */
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -21,6 +23,7 @@ import sharp from "sharp";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WARDROBE_DIR = path.join(ROOT, "images", "wardrobe");
 const BACKGROUND_PATH = path.join(ROOT, "images", "background.jpg");
+const MANIFEST_FILE = ".manifest.json";
 
 const MAX_WIDTH = 720;
 const MAX_HEIGHT = 960;
@@ -34,8 +37,24 @@ const bgBuffer = await sharp(BACKGROUND_PATH)
   .resize(MAX_WIDTH, MAX_HEIGHT, { fit: "cover", position: "centre" })
   .toBuffer();
 
-// Used by the staleness check so any change to background.jpg busts all thumbs.
-const BG_MTIME = statSync(BACKGROUND_PATH).mtimeMs;
+const BG_HASH = createHash("md5").update(bgBuffer).digest("hex");
+
+function fileHash(filePath) {
+  return createHash("md5").update(readFileSync(filePath)).digest("hex");
+}
+
+function loadManifest(thumbDir) {
+  const p = path.join(thumbDir, MANIFEST_FILE);
+  try {
+    return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveManifest(thumbDir, manifest) {
+  writeFileSync(path.join(thumbDir, MANIFEST_FILE), JSON.stringify(manifest, null, 2));
+}
 
 async function buildThumb(srcPath, outPath) {
   // Resize item cutout to fit within the frame (preserves aspect ratio).
@@ -50,14 +69,11 @@ async function buildThumb(srcPath, outPath) {
     .toFile(outPath);
 }
 
-function isUpToDate(srcPath, outPath) {
+function isUpToDate(srcPath, outPath, thumbName, manifest) {
   if (force || !existsSync(outPath)) return false;
-  try {
-    const outMtime = statSync(outPath).mtimeMs;
-    return outMtime >= statSync(srcPath).mtimeMs && outMtime >= BG_MTIME;
-  } catch {
-    return false;
-  }
+  const entry = manifest[thumbName];
+  if (!entry) return false;
+  return entry.srcHash === fileHash(srcPath) && entry.bgHash === BG_HASH;
 }
 
 async function run() {
@@ -77,17 +93,22 @@ async function run() {
     if (!existsSync(mainDir)) continue;
     const sources = readdirSync(mainDir).filter((f) => SOURCE_RE.test(f));
     const thumbDir = path.join(WARDROBE_DIR, item, "thumb");
+    const manifest = loadManifest(thumbDir);
+    let manifestDirty = false;
 
     // Build/update thumbs for every source image.
     for (const file of sources) {
       const srcPath = path.join(mainDir, file);
-      const outPath = path.join(thumbDir, file.replace(SOURCE_RE, ".webp"));
-      if (isUpToDate(srcPath, outPath)) {
+      const thumbName = file.replace(SOURCE_RE, ".webp");
+      const outPath = path.join(thumbDir, thumbName);
+      if (isUpToDate(srcPath, outPath, thumbName, manifest)) {
         skipped++;
         continue;
       }
       if (!existsSync(thumbDir)) mkdirSync(thumbDir, { recursive: true });
       await buildThumb(srcPath, outPath);
+      manifest[thumbName] = { srcHash: fileHash(srcPath), bgHash: BG_HASH };
+      manifestDirty = true;
       built++;
     }
 
@@ -97,10 +118,14 @@ async function run() {
       for (const thumbFile of readdirSync(thumbDir).filter((f) => /\.webp$/i.test(f))) {
         if (!expectedThumbs.has(thumbFile)) {
           rmSync(path.join(thumbDir, thumbFile));
+          delete manifest[thumbFile];
+          manifestDirty = true;
           removed++;
         }
       }
     }
+
+    if (manifestDirty) saveManifest(thumbDir, manifest);
   }
   const removedStr = removed ? `, removed ${removed} orphans` : "";
   console.log(`[thumbs] built ${built}, skipped ${skipped} (up to date)${removedStr}.`);

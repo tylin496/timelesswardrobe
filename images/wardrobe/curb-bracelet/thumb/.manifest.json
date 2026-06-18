@@ -1,0 +1,22 @@
+{
+  "1.webp": {
+    "srcHash": "5c093f252fb250b34f9482219818ecc2",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "2.webp": {
+    "srcHash": "04d8623d56903a7a7b3ec9df93d5b7cb",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "3.webp": {
+    "srcHash": "4ea4782e7ce522a3ed0fae66375c50c6",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "4.webp": {
+    "srcHash": "7a3eaa5558f4d075f0f7ffdd0f2fbe9c",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "5.webp": {
+    "srcHash": "cc6ac047e63f1dbb2d8c62f16616bc8d",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  }
+}
