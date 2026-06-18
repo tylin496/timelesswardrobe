@@ -11766,6 +11766,7 @@
         const bgOpacity = t * t * t;
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
+        siteHeader.style.setProperty("--tw-header-bg", "var(--tw-brand-ivory)");
       } else {
         clearScrollDriven();
       }
@@ -11802,6 +11803,7 @@
     const clearScrollDriven = () => {
       siteHeader.classList.remove("site-header--scroll-driven");
       siteHeader.style.removeProperty("--tw-header-bg-opacity");
+      siteHeader.style.removeProperty("--tw-header-bg");
     };
     // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
     const onHeaderEnter = () => clearScrollDriven();
