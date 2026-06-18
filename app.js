@@ -17460,7 +17460,7 @@
 
     if (supabaseClient && useCloudOutfits) {
       try {
-        const api = await import(“./js/supabase-client.js”);
+        const api = await import("./js/supabase-client.js");
         if (isTwEditorUser()) {
           // Admin: direct insert (authenticated editor RLS allows this).
           const res = await api.insertOutfitWithItems(supabaseClient, record);
@@ -17491,8 +17491,8 @@
 
     savedOutfits = [record, ...savedOutfits];
     persistSavedOutfitsCache();
-    if (els.outfitName) els.outfitName.value = “”;
-    if (els.outfitNotes) els.outfitNotes.value = “”;
+    if (els.outfitName) els.outfitName.value = "";
+    if (els.outfitNotes) els.outfitNotes.value = "";
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
