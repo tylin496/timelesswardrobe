@@ -9731,7 +9731,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack {
     position: relative;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -9745,49 +9744,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     -webkit-overflow-scrolling: touch;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before,
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0.15rem;
-    width: clamp(1rem, 5vw, 1.35rem);
-    z-index: 2;
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.32s var(--ease-luxe);
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before {
-    left: 0;
-    background: linear-gradient(
-      90deg,
-      var(--sb-drawer-bg, #f7f4ed) 0%,
-      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
-      transparent 100%
-    );
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
-    right: 0;
-    background: linear-gradient(
-      270deg,
-      var(--sb-drawer-bg, #f7f4ed) 0%,
-      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
-      transparent 100%
-    );
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-start .styling-board__board-stack::before,
-  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::before {
-    opacity: 0;
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-end .styling-board__board-stack::after,
-  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::after {
-    opacity: 0;
-  }
-
   .styling-board-drawer .styling-board__pieces.outfit-strip,
   .styling-board-drawer .styling-board__board-stack > #outfit-strip {
     cursor: grab;
@@ -9795,7 +9751,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     scroll-snap-stop: normal;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-inline-end: calc(var(--styling-board-scroll-inline, 1.25rem) + 1.35rem);
+    scroll-padding-inline-end: var(--styling-board-scroll-inline, 1.25rem);
     transition:
       transform 240ms var(--ease-out),
       filter 260ms var(--ease-out);
@@ -10487,53 +10443,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 @media (min-width: 901px) {
   .styling-board__outfit-rail-progress {
     display: none !important;
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack {
-    overflow: hidden;
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before,
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: clamp(1rem, 5vw, 1.35rem);
-    z-index: 2;
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.32s var(--ease-luxe);
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before {
-    left: 0;
-    background: linear-gradient(
-      90deg,
-      var(--sb-drawer-bg, #f7f4ed) 0%,
-      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
-      transparent 100%
-    );
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
-    right: 0;
-    background: linear-gradient(
-      270deg,
-      var(--sb-drawer-bg, #f7f4ed) 0%,
-      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
-      transparent 100%
-    );
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-start .styling-board__board-stack::before,
-  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::before {
-    opacity: 0;
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-end .styling-board__board-stack::after,
-  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::after {
-    opacity: 0;
   }
 
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
