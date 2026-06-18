@@ -11736,7 +11736,7 @@ body.tw-outfit-drag-active * {
 }
 
 /* “ITEM ADDED” — navy confirmation bar (slides up over the drawer). */
-.styling-board-drawer > .outfit-toast--board-added {
+.outfit-toast--board-added {
   @apply m-0;
   position: fixed;
   left: 50%;
@@ -11770,12 +11770,12 @@ body.tw-outfit-drag-active * {
     transform 0.42s var(--ease-luxe);
 }
 
-.styling-board-drawer > .outfit-toast--board-added.outfit-toast--visible {
+.outfit-toast--board-added.outfit-toast--visible {
   opacity: 1;
   transform: translate(-50%, 0);
 }
 
-.styling-board-drawer > .outfit-toast--board-added.outfit-toast--exiting {
+.outfit-toast--board-added.outfit-toast--exiting {
   opacity: 0;
   transform: translate(-50%, calc(100% + 0.75rem));
   transition-duration: 0.26s;
@@ -11803,7 +11803,7 @@ body.tw-outfit-drag-active * {
 @media (prefers-reduced-motion: reduce) {
   .styling-board-drawer__backdrop,
   .styling-board-drawer__sheet,
-  .styling-board-drawer > .outfit-toast--board-added,
+  .outfit-toast--board-added,
   .styling-board-drawer .outfit-slot--dismissing,
   .styling-board-drawer .outfit-slot {
     transition-duration: 0.01ms;
