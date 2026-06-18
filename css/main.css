@@ -21412,7 +21412,7 @@ video.ed-lp__hero-layer-video {
   .ed-lp__hero-inner {
     --hero-body-copy-max: min(20.9rem, 90%);
     --hero-eyebrow-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
-    --hero-body-line-gap: clamp(0.45rem, 1.2vh, 0.65rem);
+    --hero-body-line-gap: 0.18rem;
     --hero-cta-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
   }
 
