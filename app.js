@@ -23361,9 +23361,11 @@
 
       const body = document.createElement("div");
       body.className = "saved-card__body";
-      footer.append(meta, act);
-      body.append(title);
-      card.append(body, flatlay, footer);
+      const info = document.createElement("div");
+      info.className = "saved-card__info";
+      info.append(title, meta);
+      body.append(info, act);
+      card.append(body, flatlay);
       li.appendChild(card);
       els.savedList.appendChild(li);
     });
