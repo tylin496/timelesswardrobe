@@ -30621,20 +30621,6 @@
 
     initOutfitVariantDialog();
 
-    // Intercept vertical wheel over the outfit strip: redirect to horizontal scroll,
-    // prevent page/drawer from scrolling vertically.
-    if (els.outfitStrip) {
-      els.outfitStrip.addEventListener(
-        "wheel",
-        (e) => {
-          if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-            e.preventDefault();
-            els.outfitStrip.scrollLeft += e.deltaY;
-          }
-        },
-        { passive: false }
-      );
-    }
 
     if (els.outfitSave) {
       els.outfitSave.addEventListener("click", handleOutfitSaveClick);
