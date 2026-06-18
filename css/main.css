@@ -71,26 +71,37 @@
   --anim-reveal: 0.62s var(--ease-luxe) both;
   --anim-reveal-short: 0.42s var(--ease-luxe) both;
   --tap-min: 2.75rem;
-  /* Layout + interaction rhythm — generous horizontal inset (retail PLP “breathing room”). */
-  --space-page-inline: clamp(1.75rem, 4.5vw, 2.75rem);
-  /* Header horizontal inset scale (+~10.25% vs page gutter; utility bar + main nav share `--header-x`). */
-  --header-margin-scale: 1.1025;
-  /* Desktop: shared retail horizontal inset (header + collection PLP). */
-  --space-header-inline: clamp(1.2075rem, 5.25vw, 3.15rem);
-  --space-collection-inline: clamp(2.85rem, 9vw, 6.5rem);
   /*
-   * Horizontal inset ladder (shallow → deep). One padding per surface — never stack scales.
-   *   Tier 1 — Header: `--chrome-content-inset-*` (logo ↔ tools, utility bar, home editorial)
-   *   Tier 2 — Flyouts: `--chrome-x` (fallback when PLP tier unset)
-   *   Tier 3 — PLP: `--catalogue-plp-inline-x` (toolbar / home editorial)
-   *   Flyout rail (mega + search): `--header-flyout-inline-x` (= tier 3 when set, else tier 2)
+   * ─── LAYOUT TOKEN OWNERSHIP ─────────────────────────────────────────────────
+   * Owner: HEADER  → --header-inline, --header-x, --header-chrome-pad-*, --chrome-content-inset-*
+   *                   --chrome-x, --search-x, --mega-x, --header-flyout-inline-x
+   *                   --chrome-content-max, --site-header-chrome-bottom
+   * Owner: PAGE    → --page-gutter, --space-page-inline, --space-collection-inline
+   *                   --content-max, --collection-x, --content-inline
+   * Owner: PLP     → --catalogue-plp-inline-x, --collection-plp-*, --catalogue-plp-box-gutter
+   * Owner: COMP    → --search-flyout-*, --mega-menu-*, --site-mobile-nav-*, --wordmark-start-x
+   *
+   * Rule: page and PLP tokens must never be consumed by header selectors.
+   *       Header tokens may be read by PLP (one-way: header defines alignment, PLP follows).
+   * ────────────────────────────────────────────────────────────────────────────
    */
+
+  /* PAGE — generic page boundary padding. */
+  --space-page-inline: clamp(1.75rem, 4.5vw, 2.75rem);
+  /* PAGE — wide section inset used by item/collection sidebars. */
+  --space-collection-inline: clamp(2.85rem, 9vw, 6.5rem);
+
+  /* HEADER — base gutter scale. */
+  --header-margin-scale: 1.1025;
   --page-gutter: clamp(12px, 1.5vw, 32px);
   --header-x: calc(var(--page-gutter) * var(--header-margin-scale));
-  /*
-   * Tier 1 — header chrome: one inset for utility bar + logo/tools row (no stacked rail + pad).
-   * Shells (.site-utility-bar, .site-header) are full-bleed; copy lives in the inner column below.
-   */
+
+  /* HEADER — single source of truth for .site-header__inner horizontal padding.
+   * Never override this from page or PLP selectors. Mobile override: @media (max-width: 900px) :root. */
+  --header-inline: clamp(2rem, 4vw, 5rem);
+
+  /* HEADER — mobile nav-drawer row + mobile search row inset (component use only).
+   * Not used by .site-header__inner — that uses --header-inline. */
   --header-chrome-margin-scale: 1.28;
   --header-chrome-pad-left: max(
     clamp(1rem, calc(var(--header-x) * var(--header-chrome-margin-scale)), 4.25rem),
@@ -100,13 +111,13 @@
     clamp(1rem, calc(var(--header-x) * var(--header-chrome-margin-scale)), 4.25rem),
     env(safe-area-inset-right, 0px)
   );
+
+  /* HEADER — used by search flyout + PLP tier-3 formula (PLP reads header chrome, not vice-versa). */
   --chrome-content-inset-left: var(--header-chrome-pad-left);
   --chrome-content-inset-right: var(--header-chrome-pad-right);
-  --tw-home-chrome-inline-left: var(--chrome-content-inset-left);
-  --tw-home-chrome-inline-right: var(--chrome-content-inset-right);
+  /* HEADER — flyout (mega menu + search panel) horizontal inset. */
   --chrome-inset-floor: 88px;
   --chrome-inset-beyond-header: 62px;
-  --catalogue-plp-box-gutter: 0px;
   --chrome-x: max(
     calc(var(--header-x) + var(--chrome-inset-beyond-header)),
     var(--chrome-inset-floor),
@@ -114,8 +125,12 @@
   );
   --search-x: var(--chrome-x);
   --mega-x: var(--chrome-x);
-  /* PLP nest step + cap (desktop uses tier 2 + step; mobile uses edge/nest tokens below). */
+
+  /* PLP — outer rail cap + box gutter. */
+  --catalogue-plp-box-gutter: 0px;
   --collection-plp-inset-cap: 6.5rem;
+
+  /* PAGE — general content container inset (defaults to header scale; overridden per page). */
   --collection-x: var(--header-x);
   --content-inline: var(--collection-x);
   --tw-catalogue-inline: clamp(3rem, 4vw, 4rem);
@@ -125,9 +140,9 @@
   --font-size-label: 0.66rem;
   --font-size-nav: 0.88rem;
   --font-size-meta: 0.8rem;
-  /* Shared editorial content max width — header, mega menu, search flyout. */
+  /* PAGE — shared max content width used by chrome, flyouts, and containers. */
   --content-max: 1600px;
-  /* Centered chrome box — utility bar, header, collection PLP share this measure. */
+  /* HEADER — centered chrome box max-width (utility bar, header, nav-folded constraint). */
   --chrome-content-max: calc(var(--content-max) + (var(--header-x) * 2));
   /* Set from JS: height of `.site-utility-bar` (drawer offset, mobile nav/search). */
   --brand-signature-bar-height: 40px;
@@ -278,6 +293,7 @@
   :root {
     --site-title-mark-size: 30px;
     --page-gutter: max(14px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --header-inline: 17px;
   }
 }
 
@@ -499,11 +515,6 @@ body.item-page {
   --catalogue-plp-inline-x: min(
     calc(var(--header-x) * var(--collection-plp-margin-scale)),
     var(--collection-plp-inset-cap)
-  );
-
-  --ed-lp-hero-copy-x: max(
-    var(--catalogue-plp-inline-x),
-    env(safe-area-inset-left, 0px)
   );
 
   --header-flyout-inline-x: var(--catalogue-plp-inline-x);
@@ -913,8 +924,8 @@ body {
   max-width: none;
   padding-top: 0.5rem;
   padding-bottom: 0.55rem;
-  padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
+  padding-left: max(var(--header-inline), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--header-inline), env(safe-area-inset-right, 0px));
   box-sizing: border-box;
   text-align: left;
 }
@@ -3691,7 +3702,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   :root {
     --site-title-mark-size: 34px;
     --site-title-primary-gap: 0.44rem;
-    --space-header-inline: calc(var(--tw-catalogue-inline) * var(--header-margin-scale));
     --space-collection-inline: var(--tw-catalogue-inline);
     --desktop-layout-max-width: var(--content-max);
     --desktop-layout-inline-pad: var(--page-gutter);
@@ -3718,8 +3728,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     min-height: var(--site-header-row-height);
     padding-top: 0;
     padding-bottom: 0;
-    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--header-inline), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--header-inline), env(safe-area-inset-right, 0px));
     display: flex;
     align-items: center;
     position: relative;
@@ -4578,8 +4588,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     margin-right: auto;
     max-width: none;
     width: 100%;
-    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--header-inline), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--header-inline), env(safe-area-inset-right, 0px));
     padding-top: 0;
     padding-bottom: 0;
     min-height: var(--site-header-row-height, 5rem);
@@ -19458,8 +19468,8 @@ body.collection-page .collection-container > .collection-actions {
 
   .site-header__inner,
   .site-header__container {
-    padding-left: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--catalogue-plp-inline-x, var(--space-header-inline)), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--header-inline), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--header-inline), env(safe-area-inset-right, 0px));
   }
 
   body.collection-page {
@@ -20208,8 +20218,11 @@ body.collection-page .collection-container > .collection-actions {
     --collection-plp-mobile-edge-left: max(17px, env(safe-area-inset-left, 0px));
     --collection-plp-mobile-edge-right: max(17px, env(safe-area-inset-right, 0px));
     --catalogue-plp-inline-x: var(--collection-plp-mobile-edge-left);
-    --header-chrome-pad-left: var(--collection-plp-mobile-edge-left);
-    --header-chrome-pad-right: var(--collection-plp-mobile-edge-right);
+    /* HEADER — mobile nav-drawer row aligns with PLP edge. Uses --header-inline (17px mobile)
+     * so chrome tokens stay independent of PLP tokens. Same computed value, no visual change. */
+    --header-chrome-pad-left: max(var(--header-inline), env(safe-area-inset-left, 0px));
+    --header-chrome-pad-right: max(var(--header-inline), env(safe-area-inset-right, 0px));
+    /* HEADER — search flyout aligns with PLP edge on mobile collection. */
     --chrome-content-inset-left: var(--collection-plp-mobile-edge-left);
     --chrome-content-inset-right: var(--collection-plp-mobile-edge-right);
     --collection-plp-mobile-nest-step: 0.75rem;
@@ -20946,31 +20959,42 @@ body.home-page .ed-lp__season-grid {
 
 body.home-page .ed-lp__division-rail {
   --ed-lp-browse-to-highlights-gap: clamp(0.75rem, 2.3vw, 1.35rem);
-  padding-top: var(--ed-lp-section-pad-y);
+  padding-top: clamp(1.25rem, 2vw, 2rem);
   padding-bottom: 0;
 }
 
 body.home-page #main.ed-lp .ed-lp__band {
-  padding-top: var(--ed-lp-section-pad-y);
-  padding-bottom: var(--ed-lp-section-pad-y);
+  padding-top: clamp(2rem, 3.5vw, 3rem);
+  padding-bottom: clamp(2rem, 3.5vw, 3rem);
 }
 
-/* Philosophy quote — inner pad for text; block-gap matches Browse rail → quote spacing above. */
+/* Philosophy quote — editorial divider: thin rules, compact text, no frosted glass. */
 body.home-page #main.ed-lp .ed-lp__division-rail-philosophy.editorial-quote {
-  margin: var(--ed-lp-philosophy-block-gap) 0;
-  padding-top: var(--ed-lp-philosophy-pad-y);
-  padding-bottom: var(--ed-lp-philosophy-pad-y);
+  margin: clamp(1.25rem, 2vw, 2rem) 0;
+  padding-top: clamp(0.65rem, 1.2vw, 0.9rem);
+  padding-bottom: clamp(0.65rem, 1.2vw, 0.9rem);
   padding-left: max(var(--ed-lp-section-inline), env(safe-area-inset-left, 0px));
   padding-right: max(var(--ed-lp-section-inline), env(safe-area-inset-right, 0px));
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 1px solid var(--line, #e7e5e1);
+  border-bottom: 1px solid var(--line, #e7e5e1);
 }
 
-/* Highlights: no extra top pad — symmetric gap is quote margin only (was doubling with section-pad-y). */
+body.home-page #main.ed-lp .ed-lp__division-rail-philosophy .editorial-quote-text {
+  font-size: clamp(13px, 1.4vw, 16px);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  max-width: none;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Highlights: small breathing room after the divider. */
 body.home-page #main.ed-lp .ed-lp__division-rail-philosophy + .ed-lp__band {
-  padding-top: 0;
+  padding-top: clamp(1rem, 2vw, 1.5rem);
 }
 
 @media (max-width: 900px) {
