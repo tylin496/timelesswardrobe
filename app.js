@@ -3227,7 +3227,7 @@
     const wrapper = document.createElement("div");
     wrapper.className = "account-overview";
 
-    const allItems = Array.from(itemById.values());
+    const allItems = items;
     const showcaseCount = allItems.filter((it) => isInShowcase(it)).length;
     const notesCount = allItems.filter((it) => String(it?.notes ?? "").trim()).length;
     const futureCount = allItems.filter((it) => isFuturePiece(it)).length;
@@ -3391,7 +3391,7 @@
 
     function getFilteredItems() {
       const q = _accountCollectionSearch.trim().toLowerCase();
-      return Array.from(itemById.values()).filter((it) => {
+      return items.filter((it) => {
         if (_accountCollectionFilter === "showcase" && !isInShowcase(it)) return false;
         if (_accountCollectionFilter === "no-notes" && (String(it?.notes ?? "").trim() || isFuturePiece(it))) return false;
         if (_accountCollectionFilter === "no-price") {
@@ -3689,7 +3689,7 @@
       function renderPicker(q) {
         pickerList.replaceChildren();
         const qLow = q.trim().toLowerCase();
-        const candidates = Array.from(itemById.values()).filter((it) => {
+        const candidates = items.filter((it) => {
           if (isInShowcase(it)) return false;
           if (isFuturePiece(it)) return false;
           if (qLow) {
@@ -3856,7 +3856,7 @@
 
     function getFilteredItems() {
       const q = _accountNotesSearch.trim().toLowerCase();
-      return Array.from(itemById.values())
+      return items
         .filter((it) => {
           if (isFuturePiece(it)) return false;
           const hasNote = Boolean(String(it?.notes ?? "").trim());
@@ -3998,7 +3998,7 @@
   let _accountFutureDrawerItemId = null;
 
   function renderAccountTab_Future(el) {
-    const futureItems = Array.from(itemById.values()).filter((it) => isFuturePiece(it));
+    const futureItems = items.filter((it) => isFuturePiece(it));
 
     const wrapper = document.createElement("div");
 
