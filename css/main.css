@@ -10479,9 +10479,51 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     display: none !important;
   }
 
+  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack {
+    overflow: hidden;
+  }
+
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before,
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
-    display: none;
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: clamp(1rem, 5vw, 1.35rem);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.32s var(--ease-luxe);
+  }
+
+  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::before {
+    left: 0;
+    background: linear-gradient(
+      90deg,
+      var(--sb-drawer-bg, #f7f4ed) 0%,
+      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
+      transparent 100%
+    );
+  }
+
+  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack::after {
+    right: 0;
+    background: linear-gradient(
+      270deg,
+      var(--sb-drawer-bg, #f7f4ed) 0%,
+      color-mix(in srgb, var(--sb-drawer-bg, #f7f4ed) 72%, transparent) 55%,
+      transparent 100%
+    );
+  }
+
+  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-start .styling-board__board-stack::before,
+  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::before {
+    opacity: 0;
+  }
+
+  .styling-board-drawer [data-styling-board-outfit-rail].is-rail-at-end .styling-board__board-stack::after,
+  .styling-board-drawer [data-styling-board-outfit-rail]:not(.is-rail-scrollable) .styling-board__board-stack::after {
+    opacity: 0;
   }
 
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
