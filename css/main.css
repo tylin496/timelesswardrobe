@@ -22272,7 +22272,19 @@ body.home-page .ed-lp__band--muted {
 /* Collection Highlights only: taller frames + lower focal crop. */
 #ed-lp-highlights .ed-lp__pcard-media {
   aspect-ratio: 3 / 4;
-  min-height: clamp(260px, 34vw, 430px);
+  min-height: 0;
+}
+
+/* Rail layout: fixed card width so flex doesn't collapse. */
+body.home-page .ed-lp__highlights-rail-wrap {
+  --ed-lp-division-rail-pad-left: max(
+    var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
+    env(safe-area-inset-left, 0px)
+  );
+}
+
+body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
+  flex: 0 0 clamp(170px, 20vw, 256px);
 }
 
 #ed-lp-highlights .ed-lp__pcard-img {

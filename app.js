@@ -11841,7 +11841,12 @@
     const hlPool = pool.length ? pool : items.slice();
     const highlightItems = pickHomeCuratedSelection(hlPool, { min: 12, max: 16, target: 14 });
     if (highHost) {
-      mountHomeEditorialProductSection(highHost, highlightItems, { galleryMax: 5 });
+      mountHomeEditorialProductSection(highHost, highlightItems, {});
+      wireHomeHorizontalRailScroller(highHost);
+      highHost.querySelectorAll("img").forEach((img) => {
+        if (img.complete) return;
+        img.addEventListener("load", () => refreshHomeHorizontalRailScroller(highHost), { once: true });
+      });
     }
 
     /** @type {Set<string>} */
