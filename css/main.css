@@ -3076,6 +3076,10 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     display: none;
   }
 
+  body.account-page .site-header__account-link {
+    display: inline-flex;
+  }
+
   body.collection-ui--search-results-plp .items-toolbar {
     padding-top: 0;
     padding-bottom: 0.35rem;
