@@ -11415,7 +11415,7 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   min-height: 5.9rem;
