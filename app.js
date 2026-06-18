@@ -23318,8 +23318,11 @@
         act.append(shareBtn, dupBtn);
       }
 
+      const body = document.createElement("div");
+      body.className = "saved-card__body";
       footer.append(act, meta);
-      card.append(title, flatlay, footer);
+      body.append(title, footer);
+      card.append(flatlay, body);
       li.appendChild(card);
       els.savedList.appendChild(li);
     });

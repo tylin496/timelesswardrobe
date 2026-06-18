@@ -11497,7 +11497,8 @@ body.tw-outfit-drag-active * {
   align-items: stretch;
   gap: 0;
   min-height: unset;
-  padding: 0.68rem 0.85rem 0.72rem;
+  padding: 0;
+  overflow: hidden;
   background: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
   border: var(--wardrobe-card-border, 1px solid rgba(24, 55, 47, 0.06));
   border-radius: var(--wardrobe-card-radius, 12px);
@@ -11508,18 +11509,14 @@ body.tw-outfit-drag-active * {
     opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.styling-board-drawer .saved-outfits__list > li:last-child .saved-card {
-  padding-bottom: 0.72rem;
-}
-
 .styling-board-drawer .saved-card:active {
   transform: translateY(-1px);
   box-shadow: var(--wardrobe-card-shadow-lift);
   transition-duration: 140ms;
 }
 
-.styling-board-drawer .saved-card > .saved-card__name {
-  margin: 0 0 0.38rem;
+.styling-board-drawer .saved-card__name {
+  margin: 0 0 0.3rem;
   font-family: var(--font-serif);
   font-size: 0.94rem;
   font-weight: 500;
@@ -11534,9 +11531,9 @@ body.tw-outfit-drag-active * {
   justify-content: center;
   width: 100%;
   max-width: 100%;
-  min-height: 5.25rem;
-  margin: 0 auto 0.15rem;
-  padding: 0 0.25rem 0.05rem;
+  min-height: 8rem;
+  margin: 0;
+  padding: 0.6rem 0.5rem 0.4rem;
   overflow: visible;
   background: transparent;
   isolation: isolate;
@@ -11626,7 +11623,6 @@ body.tw-outfit-drag-active * {
 @media (max-width: 900px) {
   .styling-board-drawer .saved-outfits__list,
   .styling-board-drawer .saved-outfits__list > li,
-  .styling-board-drawer .saved-card,
   .styling-board-drawer .saved-card__footer,
   .styling-board-drawer .saved-card__body,
   .styling-board-drawer .saved-card__flatlay {
@@ -11634,9 +11630,6 @@ body.tw-outfit-drag-active * {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    margin-left: auto;
-    margin-right: auto;
-    overflow: visible;
   }
 }
 
@@ -11645,6 +11638,7 @@ body.tw-outfit-drag-active * {
   flex-direction: column;
   gap: 0.28rem;
   min-width: 0;
+  padding: 0.62rem 0.85rem 0.72rem;
 }
 
 .styling-board-drawer .saved-card__meta {
