@@ -3209,7 +3209,11 @@
       const t = document.createElement("div");
       t.id = "outfit-toast";
       t.className = "outfit-toast";
-      t.hidden = true;
+      if (typeof t.showPopover === "function") {
+        t.setAttribute("popover", "manual");
+      } else {
+        t.hidden = true;
+      }
       document.body.appendChild(t);
     }
     const title = document.querySelector(".account-page-main .login-page-main__title");
@@ -16821,6 +16825,22 @@
     info: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>`,
   };
 
+  function toastHide(toastEl) {
+    if (typeof toastEl.hidePopover === "function" && toastEl.matches(":popover-open")) {
+      toastEl.hidePopover();
+    } else {
+      toastEl.hidden = true;
+    }
+  }
+
+  function toastShow(toastEl) {
+    if (typeof toastEl.showPopover === "function") {
+      toastEl.showPopover();
+    } else {
+      toastEl.hidden = false;
+    }
+  }
+
   function resetOutfitToastPresentation(toastEl) {
     if (!toastEl) return;
     toastEl.classList.remove("outfit-toast--visible", "outfit-toast--exiting");
@@ -16841,7 +16861,7 @@
       finished = true;
       toastEl.removeEventListener("transitionend", onEnd);
       resetOutfitToastPresentation(toastEl);
-      toastEl.hidden = true;
+      toastHide(toastEl);
       done?.();
     };
     const onEnd = (e) => {
@@ -16860,7 +16880,7 @@
     toastTimer = null;
     resetOutfitToastPresentation(toastEl);
     if (!text) {
-      toastEl.hidden = true;
+      toastHide(toastEl);
       return;
     }
     const variant = options.variant ?? "default";
@@ -16876,7 +16896,7 @@
     labelEl.className = "outfit-toast__label";
     labelEl.textContent = text;
     toastEl.appendChild(labelEl);
-    toastEl.hidden = false;
+    toastShow(toastEl);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         toastEl.classList.add("outfit-toast--visible");

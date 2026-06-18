@@ -12683,7 +12683,8 @@ dialog.add-item-dialog[open]::backdrop {
   outline-offset: 1px;
 }
 
-.outfit-toast[hidden] {
+.outfit-toast[hidden],
+.outfit-toast[popover]:not(:popover-open) {
   display: none !important;
 }
 
