@@ -6921,12 +6921,7 @@
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
     const seen = new Set();
-    const all = Array.from(itemById.values());
-    // [diag-3] Sample first 3 items to see if metadata.showcase_rank is present
-    console.log(`[showcase-diag-3] getShowcaseItems: itemById size=${all.length}, sample metadata:`, all.slice(0, 3).map((r) => ({ id: r.id, showcase_rank: r?.metadata?.showcase_rank })));
-    const inShowcase = all.filter((item) => isInShowcase(item));
-    console.log(`[showcase-diag-3b] items where isInShowcase=true: ${inShowcase.length}`);
-    return all
+    return Array.from(itemById.values())
       .filter((item) => {
         if (!isInShowcase(item)) return false;
         const id = String(item.id);
@@ -30788,16 +30783,9 @@
       return cloudBackedCustomItems;
     }
     const loadedCloud = await loadWardrobeItemsFromCloud();
-    // [diag-1] How many cloud rows have showcase_rank?
-    const _diagShowcase = loadedCloud.filter((r) => {
-      const m = r?.metadata;
-      return m && typeof m === "object" && typeof m.showcase_rank === "number" && m.showcase_rank >= 0;
-    });
-    console.log(`[showcase-diag-1] loadedCloud total=${loadedCloud.length}, with showcase_rank=${_diagShowcase.length}`, _diagShowcase.map((r) => ({ id: r.id, rank: r.metadata?.showcase_rank })));
     cloudBackedCustomItems = isHybridLocalCatalogueEnabled()
       ? filterCloudRowsForHybridCatalogue(loadedCloud)
       : loadedCloud;
-    console.log(`[showcase-diag-1b] cloudBackedCustomItems after filter=${cloudBackedCustomItems.length} (hybrid=${isHybridLocalCatalogueEnabled()})`);
     if (cloudBackedCustomItems.length) {
       stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       if (wardrobeCatalogueSource === "cloud" && !isHybridLocalCatalogueEnabled()) {
@@ -30819,18 +30807,15 @@
       } else {
         /* Full cloud fetch (incl. hybrid local ids) — media overlay; `cloudBackedCustomItems` stays filtered for dupes. */
         mergeWardrobeBaseWithFetchedCloudRows(loadedCloud, pinnedById);
-        // [diag-2] After merge: how many wardrobeBase items have showcase_rank?
-        const _diagAfter = wardrobeBase.filter((r) => {
-          const m = r?.metadata;
-          return m && typeof m === "object" && typeof m.showcase_rank === "number" && m.showcase_rank >= 0;
-        });
-        console.log(`[showcase-diag-2] wardrobeBase after merge: total=${wardrobeBase.length}, with showcase_rank=${_diagAfter.length}`, _diagAfter.map((r) => ({ id: r.id, rank: r.metadata?.showcase_rank })));
         for (const pinned of pinnedById.values()) {
           upsertWardrobeBaseRowInMemory(pinned);
         }
       }
     } else {
-      console.log(`[showcase-diag-1c] cloudBackedCustomItems is empty — mergeWardrobeBaseWithFetchedCloudRows will NOT be called`);
+      // Hybrid mode with no custom items: still need to merge cloud metadata (showcase_rank etc.) into seed rows.
+      if (isHybridLocalCatalogueEnabled() && loadedCloud.length) {
+        mergeWardrobeBaseWithFetchedCloudRows(loadedCloud, pinnedById);
+      }
       for (const pinned of pinnedById.values()) {
         upsertWardrobeBaseRowInMemory(pinned);
       }
