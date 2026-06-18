@@ -11764,9 +11764,16 @@
         const fadeStart = heroH * 0.4;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
         const bgOpacity = t * t * t;
+        const overlayPct = Math.round((1 - t) * 100);
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
         siteHeader.style.setProperty("--tw-header-bg", "var(--tw-brand-ivory)");
+        siteHeader.style.setProperty("--tw-header-fg",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-wordmark))`);
+        siteHeader.style.setProperty("--tw-header-fg-muted",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--ink-muted))`);
+        siteHeader.style.setProperty("--tw-header-monogram",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-monogram-green))`);
       } else {
         clearScrollDriven();
       }
@@ -11804,6 +11811,9 @@
       siteHeader.classList.remove("site-header--scroll-driven");
       siteHeader.style.removeProperty("--tw-header-bg-opacity");
       siteHeader.style.removeProperty("--tw-header-bg");
+      siteHeader.style.removeProperty("--tw-header-fg");
+      siteHeader.style.removeProperty("--tw-header-fg-muted");
+      siteHeader.style.removeProperty("--tw-header-monogram");
     };
     // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
     const onHeaderEnter = () => clearScrollDriven();
@@ -23348,9 +23358,9 @@
 
       const body = document.createElement("div");
       body.className = "saved-card__body";
-      footer.append(act, meta);
-      body.append(title, footer);
-      card.append(flatlay, body);
+      footer.append(meta, act);
+      body.append(title);
+      card.append(body, flatlay, footer);
       li.appendChild(card);
       els.savedList.appendChild(li);
     });
