@@ -3657,7 +3657,6 @@
 
     const hint = document.createElement("p");
     hint.className = "account-showcase-hint";
-    hint.textContent = "Drag to reorder · changes save immediately";
     wrapper.appendChild(hint);
 
     const list = document.createElement("div");
@@ -3680,6 +3679,9 @@
     function renderPlaylist() {
       list.replaceChildren();
       const showcaseItems = getShowcaseItems();
+      hint.textContent = showcaseItems.length
+        ? `${showcaseItems.length} piece${showcaseItems.length === 1 ? "" : "s"} · Drag to reorder · changes save immediately`
+        : "Drag to reorder · changes save immediately";
       if (!showcaseItems.length) {
         const empty = document.createElement("div");
         empty.style.cssText = "padding:1.25rem 0.4rem;font-size:0.82rem;color:var(--ink-muted);font-style:italic;";
@@ -6561,8 +6563,22 @@
     menu.setAttribute("role", "menu");
     menu.setAttribute("aria-label", "Share options");
     const options = [
-      { label: "Copy Link", action: async () => { await writeTextToClipboard(url, { successToast: "Link copied." }); dismiss(); } },
-      { label: "Copy Item Summary", action: async () => { await copyItemPlainTextForAi(item, {}); dismiss(); } },
+      {
+        label: "Copy Link",
+        action: async () => {
+          const ok = await writeTextToClipboard(url, { successToast: "Link copied." });
+          dismiss();
+          if (ok) playItemDetailShareSuccess(btn);
+        },
+      },
+      {
+        label: "Copy Item Summary",
+        action: async () => {
+          const ok = await writeTextToClipboard(buildItemAiStylingBrief(item), { successToast: "Summary copied." });
+          dismiss();
+          if (ok) playItemDetailShareSuccess(btn);
+        },
+      },
     ];
     for (const opt of options) {
       const row = document.createElement("button");
@@ -17386,10 +17402,30 @@
       if (supabaseClient && useCloudOutfits) {
         try {
           const api = await import("./js/supabase-client.js");
-          const res = await api.updateOutfitWithItems(supabaseClient, record);
-          if (!res.ok) {
-            showToast(toastForOutfitCloudFkFailure(res.error));
-            return;
+          if (isTwEditorUser()) {
+            const res = await api.updateOutfitWithItems(supabaseClient, record);
+            if (!res.ok) {
+              showToast(toastForOutfitCloudFkFailure(res.error));
+              return;
+            }
+          } else {
+            const token = getOutfitOwnerToken(editId);
+            if (!token) {
+              showToast("Cannot update — no ownership token found.");
+              return;
+            }
+            const res = await api.mutateOutfitViaEdgeFunction(supabaseClient, {
+              outfitId: editId,
+              ownerToken: token,
+              action: "update",
+              name: record.name,
+              notes: record.notes,
+              slots: record.slots,
+            });
+            if (!res.ok) {
+              showToast(toastForOutfitCloudFkFailure(res.error));
+              return;
+            }
           }
         } catch (e) {
           showToast(toastForOutfitCloudFkFailure(formatSupabaseUserMessage(e)));
@@ -17422,11 +17458,28 @@
 
     if (supabaseClient && useCloudOutfits) {
       try {
-        const api = await import("./js/supabase-client.js");
-        const res = await api.insertOutfitWithItems(supabaseClient, record);
-        if (!res.ok) {
-          showToast(toastForOutfitCloudFkFailure(res.error));
-          return;
+        const api = await import(“./js/supabase-client.js”);
+        if (isTwEditorUser()) {
+          // Admin: direct insert (authenticated editor RLS allows this).
+          const res = await api.insertOutfitWithItems(supabaseClient, record);
+          if (!res.ok) {
+            showToast(toastForOutfitCloudFkFailure(res.error));
+            return;
+          }
+        } else {
+          // Visitor: Edge Function generates and hashes the token server-side.
+          const res = await api.createOutfitViaEdgeFunction(supabaseClient, {
+            name: record.name,
+            notes: record.notes,
+            slots: record.slots,
+          });
+          if (!res.ok) {
+            showToast(toastForOutfitCloudFkFailure(res.error));
+            return;
+          }
+          record.id = res.id;
+          record.slug = res.slug ?? null;
+          saveOutfitOwnerToken(res.id, res.ownerToken);
         }
       } catch (e) {
         showToast(toastForOutfitCloudFkFailure(formatSupabaseUserMessage(e)));
@@ -17436,8 +17489,8 @@
 
     savedOutfits = [record, ...savedOutfits];
     persistSavedOutfitsCache();
-    if (els.outfitName) els.outfitName.value = "";
-    if (els.outfitNotes) els.outfitNotes.value = "";
+    if (els.outfitName) els.outfitName.value = “”;
+    if (els.outfitNotes) els.outfitNotes.value = “”;
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
@@ -17454,16 +17507,87 @@
     }
     if (supabaseClient && useCloudOutfits) {
       const api = await import("./js/supabase-client.js");
-      const res = await api.deleteOutfitById(supabaseClient, id);
-      if (!res.ok) {
-        showToast(`Cloud delete failed: ${res.error}`);
-        return;
+      if (isTwEditorUser()) {
+        const res = await api.deleteOutfitById(supabaseClient, id);
+        if (!res.ok) {
+          showToast(`Cloud delete failed: ${res.error}`);
+          return;
+        }
+      } else {
+        const token = getOutfitOwnerToken(id);
+        if (!token) {
+          showToast("Cannot delete — no ownership token found.");
+          return;
+        }
+        const res = await api.mutateOutfitViaEdgeFunction(supabaseClient, {
+          outfitId: id,
+          ownerToken: token,
+          action: "delete",
+        });
+        if (!res.ok) {
+          showToast(`Delete failed: ${res.error}`);
+          return;
+        }
       }
     }
     savedOutfits = savedOutfits.filter((o) => o.id !== id);
+    removeOutfitOwnerToken(id);
     persistSavedOutfitsCache();
     renderSavedOutfits();
     showToast("Outfit deleted.");
+  }
+
+  function outfitPublicUrl(outfit) {
+    const origin = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? globalThis.location?.origin ?? "").replace(/\/$/, "");
+    const slug = outfit?.slug ? String(outfit.slug) : null;
+    const id = outfit?.id ? String(outfit.id) : null;
+    if (slug) return `${origin}/outfit/${slug}`;
+    if (id) return `${origin}/outfit/${id}`;
+    return origin;
+  }
+
+  function shareOutfit(id) {
+    const outfit = savedOutfits.find((o) => o.id === id);
+    if (!outfit) return;
+    const url = outfitPublicUrl(outfit);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => showToast("Link copied."),
+        () => showToast(`Share: ${url}`)
+      );
+    } else {
+      showToast(`Share: ${url}`);
+    }
+  }
+
+  async function duplicateOutfit(id) {
+    if (!supabaseClient) {
+      showToast("Cloud not available — cannot duplicate.");
+      return;
+    }
+    showToast("Duplicating…");
+    const api = await import("./js/supabase-client.js");
+    const res = await api.duplicateOutfitViaEdgeFunction(supabaseClient, id);
+    if (!res.ok) {
+      showToast(`Duplicate failed: ${res.error}`);
+      return;
+    }
+    // Store ownership token for the new copy.
+    saveOutfitOwnerToken(res.id, res.ownerToken);
+    // Load the duplicated slots into the builder (user must save explicitly).
+    const validSlots = (res.slots ?? []).filter((s) => {
+      const it = itemById.get(s.itemId);
+      return it && itemEligibleForOutfit(it);
+    });
+    currentOutfitSlots = validSlots;
+    editingSavedOutfitId = null;
+    if (els.outfitName) els.outfitName.value = "";
+    if (els.outfitNotes) els.outfitNotes.value = "";
+    syncOutfitSaveButtonLabel();
+    onOutfitChange();
+    openStylingBoardDrawer();
+    setStylingBoardSaveFormOpen(true);
+    showToast("Duplicate loaded — name it and save to keep it.");
   }
 
   /**
@@ -23114,30 +23238,55 @@
         flatlay.setAttribute("data-piece-count", String(previewSlots.length));
       }
 
+      // Card body is the primary way to open an outfit.
+      card.setAttribute("role", "button");
+      card.tabIndex = 0;
+      card.dataset.outfitOpen = outfit.id;
+      card.title = `Open "${outfit.name}"`;
+
       const footer = document.createElement("div");
       footer.className = "saved-card__footer";
       const act = document.createElement("div");
       act.className = "saved-card__actions";
       act.setAttribute("role", "group");
       act.setAttribute("aria-label", `Actions for ${outfit.name}`);
-      const viewBtn = document.createElement("button");
-      viewBtn.type = "button";
-      viewBtn.className = "saved-card__ctrl";
-      viewBtn.textContent = "View";
-      viewBtn.title = `Load this outfit onto ${OUTFITS_UI_NAME.toLowerCase()}.`;
-      viewBtn.dataset.outfitLoad = outfit.id;
-      const editBtn = document.createElement("button");
-      editBtn.type = "button";
-      editBtn.className = "saved-card__ctrl";
-      editBtn.textContent = "Edit";
-      editBtn.title = `Load onto ${OUTFITS_UI_NAME.toLowerCase()} and update on save.`;
-      editBtn.dataset.outfitEdit = outfit.id;
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "saved-card__ctrl saved-card__ctrl--danger";
-      delBtn.textContent = "Delete";
-      delBtn.dataset.outfitDelete = outfit.id;
-      act.append(viewBtn, editBtn, delBtn);
+
+      const canEdit = isTwEditorUser() || isOutfitOwner(outfit.id);
+
+      const shareBtn = document.createElement("button");
+      shareBtn.type = "button";
+      shareBtn.className = "saved-card__icon-btn";
+      shareBtn.title = "Copy link";
+      shareBtn.innerHTML = OUTFIT_CARD_ICON.share;
+      shareBtn.dataset.outfitShare = outfit.id;
+
+      if (canEdit) {
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "saved-card__icon-btn";
+        editBtn.title = "Edit";
+        editBtn.innerHTML = OUTFIT_CARD_ICON.edit;
+        editBtn.dataset.outfitEdit = outfit.id;
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "saved-card__icon-btn saved-card__icon-btn--danger";
+        delBtn.title = "Delete";
+        delBtn.innerHTML = OUTFIT_CARD_ICON.delete;
+        delBtn.dataset.outfitDelete = outfit.id;
+
+        act.append(shareBtn, editBtn, delBtn);
+      } else {
+        const dupBtn = document.createElement("button");
+        dupBtn.type = "button";
+        dupBtn.className = "saved-card__icon-btn";
+        dupBtn.title = "Duplicate into builder";
+        dupBtn.innerHTML = OUTFIT_CARD_ICON.duplicate;
+        dupBtn.dataset.outfitDuplicate = outfit.id;
+
+        act.append(shareBtn, dupBtn);
+      }
+
       footer.append(act, meta);
       card.append(title, flatlay, footer);
       li.appendChild(card);
@@ -30462,19 +30611,45 @@
           e.stopPropagation();
           return;
         }
-        const loadBtn = e.target.closest("[data-outfit-load]");
-        if (loadBtn) {
-          loadSavedIntoBuilder(loadBtn.dataset.outfitLoad);
+        // Icon action buttons stop propagation so the card-open handler doesn't also fire.
+        const shareBtn = e.target.closest("[data-outfit-share]");
+        if (shareBtn) {
+          e.stopPropagation();
+          shareOutfit(shareBtn.dataset.outfitShare);
           return;
         }
         const editBtn = e.target.closest("[data-outfit-edit]");
         if (editBtn) {
+          e.stopPropagation();
           loadSavedIntoBuilder(editBtn.dataset.outfitEdit, { forEdit: true });
           return;
         }
         const delBtn = e.target.closest("[data-outfit-delete]");
         if (delBtn) {
+          e.stopPropagation();
           void deleteSavedOutfit(delBtn.dataset.outfitDelete);
+          return;
+        }
+        const dupBtn = e.target.closest("[data-outfit-duplicate]");
+        if (dupBtn) {
+          e.stopPropagation();
+          void duplicateOutfit(dupBtn.dataset.outfitDuplicate);
+          return;
+        }
+        // Card body opens the outfit (view mode — loads slots without setting edit).
+        const card = e.target.closest("[data-outfit-open]");
+        if (card) {
+          loadSavedIntoBuilder(card.dataset.outfitOpen);
+        }
+      });
+
+      // Keyboard support for clickable cards.
+      els.savedList.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const card = e.target.closest("[data-outfit-open]");
+        if (card) {
+          e.preventDefault();
+          loadSavedIntoBuilder(card.dataset.outfitOpen);
         }
       });
     }
@@ -31487,6 +31662,27 @@
     }
     wireEvents();
     syncOutfitSaveButtonLabel();
+    void handleOutfitPageRoute();
+  }
+
+  async function handleOutfitPageRoute() {
+    const match = globalThis.location?.pathname?.match(/^\/outfit\/([^/?#]+)/);
+    if (!match) return;
+    const slugOrId = match[1];
+    if (!supabaseClient) return;
+    try {
+      const api = await import("./js/supabase-client.js");
+      const res = await api.fetchOutfitBySlugOrId(supabaseClient, slugOrId);
+      if (!res.ok || !res.outfit) return;
+      const outfit = res.outfit;
+      if (!savedOutfits.find((o) => o.id === outfit.id)) {
+        savedOutfits = [outfit, ...savedOutfits];
+        renderSavedOutfits();
+      }
+      loadSavedIntoBuilder(outfit.id);
+    } catch {
+      /* non-critical — silently ignore if outfit can't be loaded */
+    }
   }
 
   void bootstrap();
