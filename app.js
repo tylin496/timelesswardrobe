@@ -3128,10 +3128,68 @@
     return { updated, failed };
   }
 
+  // ── Account tab constants ──────────────────────────────────────────────────
+  const ACCOUNT_TABS = [
+    { key: "overview",    label: "Overview"    },
+    { key: "collection",  label: "Collection"  },
+    { key: "showcase",    label: "Showcase"    },
+    { key: "notes",       label: "Notes"       },
+    { key: "future",      label: "Future"      },
+    { key: "brands",      label: "Brands"      },
+  ];
+
+  function getAccountActiveTab() {
+    const hash = String(globalThis.location.hash ?? "").replace(/^#/, "").toLowerCase();
+    const valid = ACCOUNT_TABS.map((t) => t.key);
+    return valid.includes(hash) ? hash : "collection";
+  }
+
+  function buildAccountTabNav() {
+    const nav = document.createElement("nav");
+    nav.className = "account-tab-nav";
+    nav.setAttribute("aria-label", "Account sections");
+    const active = getAccountActiveTab();
+    for (const tab of ACCOUNT_TABS) {
+      const a = document.createElement("a");
+      a.className = "account-tab-nav__item";
+      a.href = `/account#${tab.key}`;
+      a.textContent = tab.label;
+      if (tab.key === active) a.setAttribute("aria-current", "page");
+      nav.appendChild(a);
+    }
+    return nav;
+  }
+
+  function renderAccountActiveTab(contentEl) {
+    if (!contentEl) return;
+    const tab = getAccountActiveTab();
+
+    // Update aria-current on nav
+    const nav = document.querySelector(".account-tab-nav");
+    if (nav) {
+      for (const a of nav.querySelectorAll(".account-tab-nav__item")) {
+        const href = String(a.getAttribute("href") ?? "");
+        const key = href.includes("#") ? href.split("#")[1] : href.replace(/^#/, "");
+        if (key === tab) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
+      }
+    }
+
+    contentEl.replaceChildren();
+    switch (tab) {
+      case "overview":   renderAccountTab_Overview(contentEl); break;
+      case "collection": renderAccountTab_Collection(contentEl); break;
+      case "showcase":   renderAccountTab_Showcase(contentEl); break;
+      case "notes":      renderAccountTab_Notes(contentEl); break;
+      case "future":     renderAccountTab_Future(contentEl); break;
+      case "brands":     renderAccountTab_Brands(contentEl); break;
+      default:           renderAccountTab_Collection(contentEl); break;
+    }
+  }
+
   function renderTwAccountView() {
     const body = document.getElementById("account-body");
     if (!body) return;
-    // Ensure outfit-toast exists for showToast() on account page.
     if (!document.getElementById("outfit-toast")) {
       const t = document.createElement("div");
       t.id = "outfit-toast";
@@ -3146,319 +3204,942 @@
     body.replaceChildren();
     body.hidden = false;
 
-    const quickCard = document.createElement("section");
-    quickCard.className = "account-card account-card--quick-actions";
-    const quickTitle = document.createElement("h2");
-    quickTitle.className = "account-card__title";
-    quickTitle.textContent = "Quick edits";
-    const quickHint = document.createElement("p");
-    quickHint.className = "account-card__hint";
-    quickHint.textContent = "Common wardrobe editing areas.";
-    const quickList = document.createElement("div");
-    quickList.className = "account-quick-actions";
-    for (const action of twAccountEditActions()) {
-      const a = document.createElement("a");
-      a.className = "account-quick-action";
-      a.href = action.href;
-      a.textContent = action.label;
-      quickList.appendChild(a);
-    }
-    quickCard.append(quickTitle, quickHint, quickList);
-    body.appendChild(quickCard);
+    const tabNav = buildAccountTabNav();
+    body.appendChild(tabNav);
 
-    const card = document.createElement("section");
-    card.id = "manage-brands";
-    card.className = "account-card";
-    const h2 = document.createElement("h2");
-    h2.className = "account-card__title";
-    h2.textContent = "Manage brands";
-    card.appendChild(h2);
+    const contentEl = document.createElement("div");
+    contentEl.className = "account-tab-content";
+    body.appendChild(contentEl);
+
+    renderAccountActiveTab(contentEl);
+
+    if (!body.dataset.hashListenerInstalled) {
+      body.dataset.hashListenerInstalled = "1";
+      globalThis.addEventListener("hashchange", () => {
+        const current = document.querySelector(".account-tab-content");
+        if (current) renderAccountActiveTab(current);
+      });
+    }
+  }
+
+  // ── Tab: Overview ────────────────────────────────────────────────────────────
+  function renderAccountTab_Overview(el) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "account-overview";
+
+    const allItems = Array.from(itemById.values());
+    const showcaseCount = allItems.filter((it) => isInShowcase(it)).length;
+    const notesCount = allItems.filter((it) => String(it?.notes ?? "").trim()).length;
+    const futureCount = allItems.filter((it) => isFuturePiece(it)).length;
+    const noNotesCount = allItems.filter((it) => !String(it?.notes ?? "").trim() && !isFuturePiece(it)).length;
+    const noPriceCount = allItems.filter((it) => {
+      const p = it?.price ?? it?.metadata?.price;
+      return (p === undefined || p === null || p === "") && !isFuturePiece(it);
+    }).length;
+    const noBrandCount = allItems.filter((it) => !String(it?.brand ?? "").trim() && !isFuturePiece(it)).length;
+
+    // Stats grid
+    const statsGrid = document.createElement("div");
+    statsGrid.className = "account-overview__stats";
+    const stats = [
+      { n: allItems.length, label: "Pieces" },
+      { n: showcaseCount,   label: "In Showcase" },
+      { n: notesCount,      label: "With Notes" },
+      { n: futureCount,     label: "Future Pieces" },
+    ];
+    for (const s of stats) {
+      const cell = document.createElement("div");
+      cell.className = "account-overview__stat";
+      const n = document.createElement("div");
+      n.className = "account-overview__stat-n";
+      n.textContent = String(s.n);
+      const lbl = document.createElement("div");
+      lbl.className = "account-overview__stat-label";
+      lbl.textContent = s.label;
+      cell.append(n, lbl);
+      statsGrid.appendChild(cell);
+    }
+    wrapper.appendChild(statsGrid);
+
+    // Health section
+    const healthTitle = document.createElement("div");
+    healthTitle.className = "account-overview__section-title";
+    healthTitle.textContent = "Collection Health";
+    wrapper.appendChild(healthTitle);
+
+    const healthItems = [
+      { label: "No notes",      count: noNotesCount,  filter: "no-notes", warn: noNotesCount > 0 },
+      { label: "No price",      count: noPriceCount,  filter: "no-price", warn: noPriceCount > 0 },
+      { label: "Missing brand", count: noBrandCount,  filter: "no-brand", warn: noBrandCount > 0 },
+    ];
+
+    const healthList = document.createElement("div");
+    healthList.className = "account-health-list";
+    for (const h of healthItems) {
+      const row = document.createElement("a");
+      row.className = "account-health-row";
+      row.href = `#collection`;
+      row.addEventListener("click", () => {
+        setTimeout(() => applyAccountCollectionFilter(h.filter), 50);
+      });
+
+      const dot = document.createElement("span");
+      dot.className = "account-health-dot" + (h.count === 0 ? " account-health-dot--ok" : " account-health-dot--warn");
+
+      const label = document.createElement("span");
+      label.className = "account-health-label";
+      label.textContent = h.label;
+
+      const count = document.createElement("span");
+      count.className = "account-health-count";
+      count.textContent = `${h.count} piece${h.count === 1 ? "" : "s"}`;
+
+      const arrow = document.createElement("span");
+      arrow.className = "account-health-arrow";
+      arrow.textContent = "→";
+
+      row.append(dot, label, count, arrow);
+      healthList.appendChild(row);
+    }
+    wrapper.appendChild(healthList);
+    el.appendChild(wrapper);
+  }
+
+  // ── Tab: Collection ──────────────────────────────────────────────────────────
+  let _accountCollectionFilter = "all";
+  let _accountCollectionSearch = "";
+  let _accountCollectionDrawerItemId = null;
+
+  function applyAccountCollectionFilter(f) {
+    _accountCollectionFilter = f;
+    const contentEl = document.querySelector(".account-tab-content");
+    if (contentEl) renderAccountTab_Collection(contentEl);
+  }
+
+  function renderAccountTab_Collection(el) {
+    el.replaceChildren();
+    const wrapper = document.createElement("div");
+
+    // Toolbar
+    const toolbar = document.createElement("div");
+    toolbar.className = "account-collection-toolbar";
+
+    const search = document.createElement("input");
+    search.type = "search";
+    search.className = "account-collection-search";
+    search.placeholder = "Search…";
+    search.value = _accountCollectionSearch;
+    search.addEventListener("input", () => {
+      _accountCollectionSearch = search.value;
+      refreshList();
+    });
+    toolbar.appendChild(search);
+
+    const filters = document.createElement("div");
+    filters.className = "account-collection-filters";
+
+    const filterDefs = [
+      { key: "all",       label: "All",      warn: false },
+      { key: "showcase",  label: "Showcase", warn: false },
+      { key: "no-notes",  label: "No notes", warn: true  },
+      { key: "no-price",  label: "No price", warn: true  },
+      { key: "future",    label: "Future",   warn: false },
+    ];
+    for (const fd of filterDefs) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "account-filter-chip" + (fd.warn ? " account-filter-chip--warn" : "");
+      chip.setAttribute("aria-pressed", String(_accountCollectionFilter === fd.key));
+      chip.textContent = fd.label;
+      chip.addEventListener("click", () => {
+        _accountCollectionFilter = fd.key;
+        refreshChips();
+        refreshList();
+      });
+      filters.appendChild(chip);
+    }
+    toolbar.appendChild(filters);
+
+    const addBtn = document.createElement("a");
+    addBtn.href = "/collection?additem=1";
+    addBtn.className = "account-collection-add-btn";
+    addBtn.textContent = "+ Add piece";
+    toolbar.appendChild(addBtn);
+
+    wrapper.appendChild(toolbar);
+
+    // Layout: list + drawer
+    const layout = document.createElement("div");
+    layout.className = "account-collection-layout";
+
+    const listPane = document.createElement("div");
+    listPane.className = "account-cat-list";
+
+    const drawer = buildAccountEditDrawer(() => {
+      _accountCollectionDrawerItemId = null;
+      drawer.classList.add("account-edit-drawer--hidden");
+      listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+    });
+    drawer.classList.add("account-edit-drawer--hidden");
+
+    function refreshChips() {
+      for (const chip of filters.querySelectorAll(".account-filter-chip")) {
+        const key = filterDefs[Array.from(filters.children).indexOf(chip)]?.key;
+        chip.setAttribute("aria-pressed", String(_accountCollectionFilter === key));
+      }
+    }
+
+    function getFilteredItems() {
+      const q = _accountCollectionSearch.trim().toLowerCase();
+      return Array.from(itemById.values()).filter((it) => {
+        if (_accountCollectionFilter === "showcase" && !isInShowcase(it)) return false;
+        if (_accountCollectionFilter === "no-notes" && (String(it?.notes ?? "").trim() || isFuturePiece(it))) return false;
+        if (_accountCollectionFilter === "no-price") {
+          const p = it?.price ?? it?.metadata?.price;
+          if ((p !== undefined && p !== null && p !== "") || isFuturePiece(it)) return false;
+        }
+        if (_accountCollectionFilter === "future" && !isFuturePiece(it)) return false;
+        if (_accountCollectionFilter === "all") { /* no-op */ }
+        if (q) {
+          const hay = [it?.name, it?.brand, it?.category, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function refreshList() {
+      listPane.replaceChildren();
+      const filtered = getFilteredItems();
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "account-cat-list__empty";
+        empty.textContent = "No pieces match this filter.";
+        listPane.appendChild(empty);
+        return;
+      }
+      for (const it of filtered) {
+        const row = buildAccountCatRow(it, () => {
+          _accountCollectionDrawerItemId = String(it.id);
+          openDrawerForItem(it);
+          listPane.querySelectorAll(".account-cat-row").forEach((r) => {
+            r.setAttribute("aria-selected", String(r.dataset.itemId === String(it.id)));
+          });
+        });
+        row.setAttribute("aria-selected", String(String(it.id) === _accountCollectionDrawerItemId));
+        listPane.appendChild(row);
+      }
+    }
+
+    function openDrawerForItem(it) {
+      drawer.classList.remove("account-edit-drawer--hidden");
+      fillAccountEditDrawer(drawer, it, () => {
+        _accountCollectionDrawerItemId = null;
+        drawer.classList.add("account-edit-drawer--hidden");
+        listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+      });
+    }
+
+    refreshList();
+
+    if (_accountCollectionDrawerItemId) {
+      const it = itemById.get(_accountCollectionDrawerItemId);
+      if (it) openDrawerForItem(it);
+    }
+
+    layout.append(listPane, drawer);
+    wrapper.appendChild(layout);
+    el.appendChild(wrapper);
+  }
+
+  function buildAccountCatRow(it, onClick) {
+    const row = document.createElement("div");
+    row.className = "account-cat-row";
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
+    row.dataset.itemId = String(it.id ?? "");
+
+    const img = document.createElement("img");
+    img.className = "account-cat-thumb";
+    img.src = String(it?.image ?? "");
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    row.appendChild(img);
+
+    const meta = document.createElement("div");
+    meta.className = "account-cat-meta";
+
+    const name = document.createElement("div");
+    name.className = "account-cat-name";
+    name.textContent = String(it?.name ?? it?.id ?? "");
+
+    const sub = document.createElement("div");
+    sub.className = "account-cat-sub";
+    const brand = String(it?.brand ?? "").trim();
+    const cat = String(it?.category ?? "").trim();
+    sub.textContent = [brand, cat].filter(Boolean).join(" · ");
+
+    meta.append(name, sub);
+    row.appendChild(meta);
+
+    const flags = document.createElement("div");
+    flags.className = "account-cat-flags";
+
+    if (isInShowcase(it)) {
+      const f = document.createElement("span");
+      f.className = "account-cat-flag account-cat-flag--showcase";
+      f.textContent = "★ Showcase";
+      flags.appendChild(f);
+    }
+    if (!String(it?.notes ?? "").trim() && !isFuturePiece(it)) {
+      const f = document.createElement("span");
+      f.className = "account-cat-flag account-cat-flag--warn";
+      f.textContent = "No notes";
+      flags.appendChild(f);
+    }
+    if (flags.children.length) row.appendChild(flags);
+
+    row.addEventListener("click", onClick);
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } });
+    return row;
+  }
+
+  function buildAccountEditDrawer(onClose) {
+    const drawer = document.createElement("div");
+    drawer.className = "account-edit-drawer";
+    return drawer;
+  }
+
+  function fillAccountEditDrawer(drawer, it, onClose) {
+    drawer.replaceChildren();
+
+    const header = document.createElement("div");
+    header.className = "account-drawer-header";
+
+    const nameEl = document.createElement("div");
+    nameEl.className = "account-drawer-name";
+    nameEl.textContent = String(it?.name ?? it?.id ?? "");
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "account-drawer-close";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", onClose);
+
+    header.append(nameEl, closeBtn);
+    drawer.appendChild(header);
+
+    const brand = document.createElement("div");
+    brand.className = "account-drawer-brand";
+    brand.textContent = String(it?.brand ?? "").trim();
+    drawer.appendChild(brand);
+
+    if (it?.image) {
+      const img = document.createElement("img");
+      img.className = "account-drawer-thumb";
+      img.src = String(it.image);
+      img.alt = "";
+      img.loading = "lazy";
+      drawer.appendChild(img);
+    } else {
+      const ph = document.createElement("div");
+      ph.className = "account-drawer-thumb";
+      drawer.appendChild(ph);
+    }
+
+    const autosave = document.createElement("div");
+    autosave.className = "account-drawer-autosave";
+    autosave.setAttribute("aria-live", "polite");
+
+    function makeAutoSaveField(labelText, fieldKey, isTextarea = false) {
+      const lbl = document.createElement("span");
+      lbl.className = "account-drawer-field-label";
+      lbl.textContent = labelText;
+      drawer.appendChild(lbl);
+
+      const input = isTextarea ? document.createElement("textarea") : document.createElement("input");
+      input.className = isTextarea ? "account-drawer-textarea" : "account-drawer-input";
+      if (!isTextarea) input.type = "text";
+      const currentVal = String(it?.[fieldKey] ?? "").trim();
+      input.value = currentVal;
+      if (isTextarea) input.placeholder = "No notes yet…";
+
+      let saveTimer = 0;
+      const setStatus = (state, msg) => {
+        autosave.textContent = msg;
+        autosave.dataset.state = state;
+        if (state === "saved") {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => { autosave.textContent = ""; autosave.dataset.state = ""; }, 2200);
+        }
+      };
+
+      input.addEventListener("blur", async () => {
+        const newVal = (isTextarea ? input.value : input.value.trim());
+        const oldVal = String(it?.[fieldKey] ?? "").trim();
+        if (newVal.trim() === oldVal) return;
+        setStatus("saving", "Saving…");
+        try {
+          const patch = { ...it, [fieldKey]: newVal.trim() };
+          const saved = await saveWardrobeItemToCloud(patch);
+          upsertWardrobeBaseRowInMemory(saved);
+          it[fieldKey] = newVal.trim();
+          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
+            try {
+              const allOv = loadCollectionOverrides();
+              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), [fieldKey]: newVal.trim() };
+              await saveCollectionOverrides(allOv);
+            } catch { /* non-fatal */ }
+          }
+          mergeWardrobeFromSources();
+          setStatus("saved", "Saved");
+        } catch (err) {
+          console.warn("[account] drawer save failed:", fieldKey, err);
+          setStatus("error", "Save failed");
+        }
+      });
+
+      drawer.appendChild(input);
+    }
+
+    makeAutoSaveField("Name", "name");
+    makeAutoSaveField("Brand", "brand");
+    makeAutoSaveField("Category", "category");
+    makeAutoSaveField("Notes", "notes", true);
+
+    drawer.appendChild(autosave);
+
+    const actions = document.createElement("div");
+    actions.className = "account-drawer-actions";
+    const viewLink = document.createElement("a");
+    viewLink.className = "account-drawer-link";
+    viewLink.href = `/item/${encodeURIComponent(String(it?.id ?? ""))}`;
+    viewLink.textContent = "View item →";
+    actions.appendChild(viewLink);
+    drawer.appendChild(actions);
+  }
+
+  // ── Tab: Showcase ────────────────────────────────────────────────────────────
+  function renderAccountTab_Showcase(el) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "account-showcase-layout";
+
+    const hint = document.createElement("p");
+    hint.className = "account-showcase-hint";
+    hint.textContent = "Drag to reorder · changes save immediately";
+    wrapper.appendChild(hint);
+
+    const list = document.createElement("div");
+    list.className = "account-playlist";
+    wrapper.appendChild(list);
+
+    const addRow = document.createElement("div");
+    addRow.className = "account-playlist-add";
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "account-playlist-add-btn";
+    addBtn.textContent = "+ Add item…";
+    addBtn.addEventListener("click", () => openShowcasePicker());
+    const addHint = document.createElement("span");
+    addHint.className = "account-playlist-add-hint";
+    addHint.textContent = "search the full collection";
+    addRow.append(addBtn, addHint);
+    wrapper.appendChild(addRow);
+
+    function renderPlaylist() {
+      list.replaceChildren();
+      const showcaseItems = getShowcaseItems();
+      if (!showcaseItems.length) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "padding:1.25rem 0.4rem;font-size:0.82rem;color:var(--ink-muted);font-style:italic;";
+        empty.textContent = "No pieces in Showcase yet.";
+        list.appendChild(empty);
+        return;
+      }
+      for (const it of showcaseItems) {
+        list.appendChild(buildPlaylistRow(it, renderPlaylist));
+      }
+    }
+
+    renderPlaylist();
+    el.appendChild(wrapper);
+
+    function openShowcasePicker() {
+      const overlay = document.createElement("div");
+      overlay.className = "account-picker-overlay";
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+
+      const picker = document.createElement("div");
+      picker.className = "account-picker";
+      overlay.appendChild(picker);
+
+      const searchInput = document.createElement("input");
+      searchInput.type = "search";
+      searchInput.className = "account-picker-search";
+      searchInput.placeholder = "Search pieces to add…";
+      searchInput.setAttribute("autofocus", "");
+      picker.appendChild(searchInput);
+
+      const pickerList = document.createElement("div");
+      pickerList.className = "account-picker-list";
+      picker.appendChild(pickerList);
+
+      function renderPicker(q) {
+        pickerList.replaceChildren();
+        const qLow = q.trim().toLowerCase();
+        const candidates = Array.from(itemById.values()).filter((it) => {
+          if (isInShowcase(it)) return false;
+          if (isFuturePiece(it)) return false;
+          if (qLow) {
+            const hay = [it?.name, it?.brand, it?.category, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
+            if (!hay.includes(qLow)) return false;
+          }
+          return true;
+        });
+        if (!candidates.length) {
+          const empty = document.createElement("div");
+          empty.className = "account-picker-empty";
+          empty.textContent = qLow ? "No matches." : "All pieces are in Showcase.";
+          pickerList.appendChild(empty);
+          return;
+        }
+        for (const it of candidates.slice(0, 40)) {
+          const row = document.createElement("div");
+          row.className = "account-picker-row";
+          const thumb = document.createElement("img");
+          thumb.className = "account-picker-thumb";
+          thumb.src = String(it?.image ?? "");
+          thumb.alt = "";
+          thumb.loading = "lazy";
+          const name = document.createElement("span");
+          name.className = "account-picker-name";
+          name.textContent = String(it?.name ?? it?.id ?? "");
+          const brand = document.createElement("span");
+          brand.className = "account-picker-brand";
+          brand.textContent = String(it?.brand ?? "").trim();
+          row.append(thumb, name, brand);
+          row.addEventListener("click", async () => {
+            overlay.remove();
+            await addToShowcase(String(it.id));
+            renderPlaylist();
+          });
+          pickerList.appendChild(row);
+        }
+      }
+
+      searchInput.addEventListener("input", () => renderPicker(searchInput.value));
+      renderPicker("");
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => searchInput.focus());
+    }
+  }
+
+  function buildPlaylistRow(it, onReorder) {
+    const row = document.createElement("div");
+    row.className = "account-playlist-row";
+    row.draggable = true;
+    row.dataset.itemId = String(it.id ?? "");
+
+    const handle = document.createElement("span");
+    handle.className = "account-playlist-handle";
+    handle.textContent = "⠿";
+    handle.setAttribute("aria-hidden", "true");
+
+    const thumb = document.createElement("img");
+    thumb.className = "account-playlist-thumb";
+    thumb.src = String(it?.image ?? "");
+    thumb.alt = "";
+    thumb.loading = "lazy";
+    thumb.decoding = "async";
+
+    const name = document.createElement("span");
+    name.className = "account-playlist-name";
+    name.textContent = String(it?.name ?? it?.id ?? "");
+
+    const brand = document.createElement("span");
+    brand.className = "account-playlist-brand";
+    brand.textContent = String(it?.brand ?? "").trim();
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "account-playlist-remove";
+    removeBtn.setAttribute("aria-label", `Remove ${String(it?.name ?? it?.id ?? "")} from Showcase`);
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await removeFromShowcase(String(it.id));
+      onReorder();
+    });
+
+    row.append(handle, thumb, name, brand, removeBtn);
+
+    // Drag-and-drop
+    row.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", String(it.id));
+      e.dataTransfer.effectAllowed = "move";
+      row.classList.add("is-dragging");
+    });
+    row.addEventListener("dragend", () => {
+      row.classList.remove("is-dragging");
+      row.closest(".account-playlist")?.querySelectorAll(".drag-over").forEach((r) => r.classList.remove("drag-over"));
+    });
+    row.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      row.closest(".account-playlist")?.querySelectorAll(".drag-over").forEach((r) => r.classList.remove("drag-over"));
+      row.classList.add("drag-over");
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+    row.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      row.classList.remove("drag-over");
+      const dragId = e.dataTransfer.getData("text/plain");
+      const dropId = String(it.id);
+      if (dragId && dragId !== dropId) {
+        await reorderShowcase(dragId, dropId);
+        onReorder();
+      }
+    });
+
+    return row;
+  }
+
+  // ── Tab: Notes ───────────────────────────────────────────────────────────────
+  let _accountNotesFilter = "all";
+  let _accountNotesSearch = "";
+
+  function renderAccountTab_Notes(el) {
+    const wrapper = document.createElement("div");
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "account-notes-toolbar";
+
+    const filterDefs = [
+      { key: "all",        label: "All"        },
+      { key: "with-notes", label: "With notes" },
+      { key: "no-notes",   label: "No notes"   },
+    ];
+    for (const fd of filterDefs) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "account-filter-chip";
+      chip.setAttribute("aria-pressed", String(_accountNotesFilter === fd.key));
+      chip.textContent = fd.label;
+      chip.addEventListener("click", () => {
+        _accountNotesFilter = fd.key;
+        for (const c of toolbar.querySelectorAll(".account-filter-chip")) {
+          c.setAttribute("aria-pressed", c === chip ? "true" : "false");
+        }
+        refreshNotesList();
+      });
+      toolbar.appendChild(chip);
+    }
+
+    const search = document.createElement("input");
+    search.type = "search";
+    search.className = "account-collection-search";
+    search.style.maxWidth = "14rem";
+    search.placeholder = "Filter…";
+    search.value = _accountNotesSearch;
+    search.addEventListener("input", () => {
+      _accountNotesSearch = search.value;
+      refreshNotesList();
+    });
+    toolbar.appendChild(search);
+    wrapper.appendChild(toolbar);
+
+    const notesList = document.createElement("div");
+    notesList.className = "account-notes-v2-list";
+    wrapper.appendChild(notesList);
+
+    function getFilteredItems() {
+      const q = _accountNotesSearch.trim().toLowerCase();
+      return Array.from(itemById.values())
+        .filter((it) => {
+          if (isFuturePiece(it)) return false;
+          const hasNote = Boolean(String(it?.notes ?? "").trim());
+          if (_accountNotesFilter === "with-notes" && !hasNote) return false;
+          if (_accountNotesFilter === "no-notes" && hasNote) return false;
+          if (q) {
+            const hay = [it?.name, it?.brand, it?.category].map((x) => String(x ?? "").toLowerCase()).join(" ");
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => {
+          const an = Boolean(String(a?.notes ?? "").trim());
+          const bn = Boolean(String(b?.notes ?? "").trim());
+          if (an !== bn) return an ? -1 : 1;
+          return String(a?.name ?? "").localeCompare(String(b?.name ?? ""), undefined, { sensitivity: "base" });
+        });
+    }
+
+    let expandedIds = new Set();
+
+    function refreshNotesList() {
+      notesList.replaceChildren();
+      for (const it of getFilteredItems()) {
+        notesList.appendChild(buildNotesRow(it));
+      }
+    }
+
+    function buildNotesRow(it) {
+      const row = document.createElement("div");
+      row.className = "account-notes-v2-row";
+
+      const head = document.createElement("div");
+      head.className = "account-notes-v2-head";
+      head.setAttribute("role", "button");
+      head.setAttribute("tabindex", "0");
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "account-notes-v2-name";
+      nameEl.textContent = String(it?.name ?? it?.id ?? "");
+
+      const brandEl = document.createElement("span");
+      brandEl.className = "account-notes-v2-brand";
+      brandEl.textContent = String(it?.brand ?? "").trim();
+
+      const status = document.createElement("span");
+      status.className = "account-notes-v2-status";
+
+      head.append(nameEl, brandEl, status);
+      row.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "account-notes-v2-body";
+      const hasNote = Boolean(String(it?.notes ?? "").trim());
+      const isExpanded = expandedIds.has(String(it.id));
+
+      if (isExpanded) {
+        const textarea = document.createElement("textarea");
+        textarea.className = "account-notes-v2-textarea";
+        textarea.value = String(it?.notes ?? "").trim();
+        textarea.placeholder = "No notes yet…";
+
+        let saveTimer = 0;
+        const setStatus = (state, msg) => {
+          status.textContent = msg;
+          status.dataset.state = state;
+          if (state === "saved") {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => { status.textContent = ""; status.dataset.state = ""; }, 2200);
+          }
+        };
+
+        textarea.addEventListener("blur", async () => {
+          const newVal = textarea.value.trim();
+          const oldVal = String(it?.notes ?? "").trim();
+          if (newVal === oldVal) return;
+          setStatus("saving", "Saving…");
+          try {
+            const patch = { ...it, notes: newVal };
+            const saved = await saveWardrobeItemToCloud(patch);
+            upsertWardrobeBaseRowInMemory(saved);
+            it.notes = newVal;
+            if (isLocalCatalogueItemId(String(it.id ?? ""))) {
+              try {
+                const allOv = loadCollectionOverrides();
+                allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), notes: newVal };
+                await saveCollectionOverrides(allOv);
+              } catch { /* non-fatal */ }
+            }
+            mergeWardrobeFromSources();
+            setStatus("saved", "Saved");
+          } catch (err) {
+            console.warn("[account] notes save failed:", err);
+            setStatus("error", "Save failed");
+          }
+        });
+
+        requestAnimationFrame(() => {
+          textarea.style.height = "auto";
+          textarea.style.height = `${textarea.scrollHeight}px`;
+          textarea.focus();
+        });
+        body.appendChild(textarea);
+      } else if (hasNote) {
+        const preview = document.createElement("div");
+        preview.className = "account-notes-v2-preview";
+        const text = String(it?.notes ?? "").trim();
+        preview.textContent = text.length > 120 ? text.slice(0, 120) + "…" : text;
+        body.appendChild(preview);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "account-notes-v2-empty";
+        empty.textContent = "Click to add a note";
+        body.appendChild(empty);
+      }
+      row.appendChild(body);
+
+      function toggle() {
+        if (expandedIds.has(String(it.id))) {
+          expandedIds.delete(String(it.id));
+        } else {
+          expandedIds.add(String(it.id));
+        }
+        const updated = buildNotesRow(it);
+        row.replaceWith(updated);
+      }
+
+      head.addEventListener("click", toggle);
+      head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+
+      return row;
+    }
+
+    refreshNotesList();
+    el.appendChild(wrapper);
+  }
+
+  // ── Tab: Future ──────────────────────────────────────────────────────────────
+  let _accountFutureDrawerItemId = null;
+
+  function renderAccountTab_Future(el) {
+    const futureItems = Array.from(itemById.values()).filter((it) => isFuturePiece(it));
+
+    const wrapper = document.createElement("div");
+
+    if (!futureItems.length) {
+      const empty = document.createElement("div");
+      empty.style.cssText = "font-size:0.82rem;color:var(--ink-muted);font-style:italic;";
+      empty.textContent = "No future pieces in the collection.";
+      wrapper.appendChild(empty);
+      el.appendChild(wrapper);
+      return;
+    }
+
+    const hint = document.createElement("p");
+    hint.className = "account-future-hint";
+    hint.textContent = `${futureItems.length} future piece${futureItems.length === 1 ? "" : "s"}`;
+    wrapper.appendChild(hint);
+
+    const layout = document.createElement("div");
+    layout.className = "account-future-layout";
+
+    const listPane = document.createElement("div");
+    listPane.className = "account-cat-list";
+
+    const drawer = buildAccountEditDrawer(() => {
+      _accountFutureDrawerItemId = null;
+      drawer.classList.add("account-edit-drawer--hidden");
+      listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+    });
+    drawer.classList.add("account-edit-drawer--hidden");
+
+    for (const it of futureItems) {
+      const row = buildAccountCatRow(it, () => {
+        _accountFutureDrawerItemId = String(it.id);
+        drawer.classList.remove("account-edit-drawer--hidden");
+        fillAccountEditDrawer(drawer, it, () => {
+          _accountFutureDrawerItemId = null;
+          drawer.classList.add("account-edit-drawer--hidden");
+          listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+        });
+        listPane.querySelectorAll(".account-cat-row").forEach((r) => {
+          r.setAttribute("aria-selected", String(r.dataset.itemId === String(it.id)));
+        });
+      });
+      row.setAttribute("aria-selected", String(String(it.id) === _accountFutureDrawerItemId));
+      listPane.appendChild(row);
+    }
+
+    if (_accountFutureDrawerItemId) {
+      const it = itemById.get(_accountFutureDrawerItemId);
+      if (it) {
+        drawer.classList.remove("account-edit-drawer--hidden");
+        fillAccountEditDrawer(drawer, it, () => {
+          _accountFutureDrawerItemId = null;
+          drawer.classList.add("account-edit-drawer--hidden");
+        });
+      }
+    }
+
+    layout.append(listPane, drawer);
+    wrapper.appendChild(layout);
+    el.appendChild(wrapper);
+  }
+
+  // ── Tab: Brands ──────────────────────────────────────────────────────────────
+  function renderAccountTab_Brands(el) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "account-brands-v2";
 
     const brands = twDistinctBrandCounts();
     const totalPieces = brands.reduce((n, b) => n + b.count, 0);
-    const hint = document.createElement("p");
-    hint.className = "account-card__hint";
-    hint.textContent = `Rename a brand to update every piece that uses it. ${brands.length} brands · ${totalPieces} pieces.`;
-    card.appendChild(hint);
 
-    const form = document.createElement("form");
-    form.className = "account-brand-form";
-    const list = document.createElement("ul");
-    list.className = "account-brand-list";
-    for (const { name: brand, count } of brands) {
-      const li = document.createElement("li");
-      li.className = "account-brand-row";
+    const hint = document.createElement("p");
+    hint.className = "account-brands-v2-hint";
+    hint.textContent = `${brands.length} brand${brands.length === 1 ? "" : "s"} · ${totalPieces} pieces · edit to rename across the collection`;
+    wrapper.appendChild(hint);
+
+    const list = document.createElement("div");
+    list.className = "account-brands-v2-list";
+
+    for (const { name: brandName, count } of brands) {
+      const row = document.createElement("div");
+      row.className = "account-brands-v2-row";
+
       const input = document.createElement("input");
       input.type = "text";
-      input.className = "account-brand-input";
-      input.value = brand;
-      input.dataset.brandOriginal = brand;
-      input.setAttribute("aria-label", `Brand name (${count} pieces)`);
+      input.className = "account-brands-v2-input";
+      input.value = brandName;
+      input.dataset.brandOriginal = brandName;
+      input.setAttribute("aria-label", `Brand name: ${brandName} (${count} pieces)`);
+
       const countEl = document.createElement("span");
-      countEl.className = "account-brand-count";
+      countEl.className = "account-brands-v2-count";
       countEl.textContent = String(count);
-      li.append(input, countEl);
-      list.appendChild(li);
-    }
-    form.appendChild(list);
 
-    const actions = document.createElement("div");
-    actions.className = "account-brand-actions";
-    const saveBtn = document.createElement("button");
-    saveBtn.type = "submit";
-    saveBtn.className = "btn btn--small";
-    saveBtn.textContent = "Save changes";
-    const feedback = document.createElement("span");
-    feedback.className = "account-brand-feedback";
-    feedback.setAttribute("aria-live", "polite");
-    actions.append(saveBtn, feedback);
-    form.appendChild(actions);
+      const statusEl = document.createElement("span");
+      statusEl.className = "account-brands-v2-status";
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (twAccountBusy) return;
-      const renames = [];
-      const seen = new Set();
-      for (const input of list.querySelectorAll(".account-brand-input")) {
+      let saveTimer = 0;
+      const setStatus = (state, msg) => {
+        statusEl.textContent = msg;
+        statusEl.dataset.state = state;
+        if (state === "saved") {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => { statusEl.textContent = ""; statusEl.dataset.state = ""; }, 2200);
+        }
+      };
+
+      const doSave = async () => {
         const from = String(input.dataset.brandOriginal ?? "");
         const to = String(input.value ?? "").trim();
-        if (!from || from === to) continue;
-        if (!to) {
-          feedback.textContent = `Brand name can’t be empty (was “${from}”).`;
-          return;
+        if (!to) { input.value = from; return; }
+        if (from === to) return;
+        if (count >= 5) {
+          const ok = globalThis.confirm(`Rename "${from}" to "${to}"?\n\nThis will update ${count} pieces.`);
+          if (!ok) { input.value = from; return; }
         }
-        if (seen.has(from)) continue;
-        seen.add(from);
-        renames.push({ from, to });
-      }
-      if (!renames.length) {
-        feedback.textContent = "No changes to save.";
-        return;
-      }
-      const summary = renames.map((r) => `“${r.from}” → “${r.to}”`).join("\n");
-      if (!globalThis.confirm(`Apply these brand changes across the collection?\n\n${summary}`)) return;
-
-      twAccountBusy = true;
-      saveBtn.disabled = true;
-      feedback.textContent = "Saving…";
-      try {
-        const res = await applyTwBrandRenames(renames);
-        feedback.textContent = res.failed
-          ? `Updated ${res.updated} piece(s); ${res.failed} failed — see console.`
-          : `Updated ${res.updated} piece(s).`;
-      } catch (err) {
-        console.warn("[account] brand rename failed:", err);
-        feedback.textContent = "Save failed — see console.";
-      } finally {
-        twAccountBusy = false;
-        renderTwAccountView();
-      }
-    });
-
-    card.appendChild(form);
-    body.appendChild(card);
-
-
-    // ── Notes bulk editor ──────────────────────────────────────────────────────
-    const notesCard = document.createElement("section");
-    notesCard.className = "account-card account-card--notes";
-    notesCard.id = "notes";
-
-    const notesHeaderRow = document.createElement("div");
-    notesHeaderRow.className = "account-notes-title-row";
-    const notesH2 = document.createElement("h2");
-    notesH2.className = "account-card__title";
-    notesH2.textContent = "Notes";
-    const itemsWithNotes = items.filter((it) => String(it?.notes ?? "").trim());
-    const notesCount = document.createElement("span");
-    notesCount.className = "account-notes-count";
-    notesCount.textContent = `${itemsWithNotes.length} piece${itemsWithNotes.length === 1 ? "" : "s"} with notes.`;
-    const copyAllBtn = document.createElement("button");
-    copyAllBtn.type = "button";
-    copyAllBtn.className = "btn btn--small account-notes-copy-btn";
-    copyAllBtn.textContent = "Copy all";
-    copyAllBtn.addEventListener("click", () => {
-      const allText = itemsWithNotes
-        .map((it) => `— ${String(it.name ?? "").trim()} —\n${String(it.notes ?? "").trim()}`)
-        .join("\n\n");
-      navigator.clipboard.writeText(allText).then(
-        () => {
-          const prev = copyAllBtn.textContent;
-          copyAllBtn.textContent = "Copied";
-          setTimeout(() => { copyAllBtn.textContent = prev; }, 1800);
-        },
-        () => { copyAllBtn.textContent = "Copy failed"; }
-      );
-    });
-    const saveAllBtn = document.createElement("button");
-    saveAllBtn.type = "button";
-    saveAllBtn.className = "btn btn--small account-notes-save-all-btn";
-    saveAllBtn.textContent = "Save all";
-    saveAllBtn.disabled = true;
-    const dirtyRows = new Set();
-    const refreshSaveAllBtn = () => {
-      saveAllBtn.disabled = dirtyRows.size === 0 || twAccountBusy;
-    };
-    saveAllBtn.addEventListener("click", async () => {
-      if (twAccountBusy || dirtyRows.size === 0) return;
-      twAccountBusy = true;
-      saveAllBtn.textContent = "Saving…";
-      saveAllBtn.disabled = true;
-      let saved = 0;
-      let failed = 0;
-      for (const fn of [...dirtyRows]) {
-        try { await fn(); saved++; } catch { failed++; }
-      }
-      twAccountBusy = false;
-      saveAllBtn.textContent = "Save all";
-      refreshSaveAllBtn();
-      if (failed) showToast(`Saved ${saved}, failed ${failed}.`);
-      else showToast(`${saved} note${saved === 1 ? "" : "s"} saved.`);
-    });
-    notesHeaderRow.append(notesH2, notesCount, saveAllBtn, copyAllBtn);
-    notesCard.appendChild(notesHeaderRow);
-
-    const notesList = document.createElement("div");
-    notesList.className = "account-notes-list";
-
-    const allItems = [...items].sort((a, b) =>
-      String(a?.name ?? "").localeCompare(String(b?.name ?? ""), undefined, { sensitivity: "base" })
-    );
-
-    const notesFeedback = document.createElement("span");
-    notesFeedback.className = "account-notes-feedback";
-    notesFeedback.setAttribute("aria-live", "polite");
-
-    for (const it of allItems) {
-      const row = document.createElement("div");
-      row.className = "account-notes-row";
-      row.dataset.itemId = String(it.id ?? "");
-
-      const label = document.createElement("div");
-      label.className = "account-notes-row__label";
-      const nameLink = document.createElement("a");
-      nameLink.href = `/item/${encodeURIComponent(String(it.id ?? ""))}`;
-      nameLink.className = "account-notes-row__name";
-      nameLink.textContent = String(it.name ?? "").trim() || String(it.id ?? "");
-      const brandSpan = document.createElement("span");
-      brandSpan.className = "account-notes-row__brand";
-      brandSpan.textContent = String(it.brand ?? "").trim();
-      label.append(nameLink, brandSpan);
-
-      const textarea = document.createElement("textarea");
-      textarea.className = "account-notes-row__textarea";
-      textarea.value = String(it.notes ?? "").trim();
-      textarea.placeholder = "No notes";
-      textarea.rows = 3;
-      textarea.setAttribute("aria-label", `Notes for ${String(it.name ?? it.id ?? "")}`);
-      const markDirty = (dirty) => {
-        if (dirty) dirtyRows.add(doSave); else dirtyRows.delete(doSave);
-        refreshSaveAllBtn();
-        saveRowBtn.disabled = !dirty;
-      };
-      textarea.addEventListener("input", () => {
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
-        markDirty(textarea.value.trim() !== String(it.notes ?? "").trim());
-      });
-
-      const rowActions = document.createElement("div");
-      rowActions.className = "account-notes-row__actions";
-      const saveRowBtn = document.createElement("button");
-      saveRowBtn.type = "button";
-      saveRowBtn.className = "btn btn--small account-notes-row__save";
-      saveRowBtn.textContent = "Save";
-      saveRowBtn.disabled = true;
-      let saveResetTimer = 0;
-      const setSaveBtnState = (state) => {
-        clearTimeout(saveResetTimer);
-        saveRowBtn.removeAttribute("data-state");
-        if (state === "saving") {
-          saveRowBtn.textContent = "Saving…";
-          saveRowBtn.disabled = true;
-        } else if (state === "saved") {
-          saveRowBtn.textContent = "Saved";
-          saveRowBtn.dataset.state = "saved";
-          saveRowBtn.disabled = true;
-          saveResetTimer = setTimeout(() => {
-            saveRowBtn.textContent = "Save";
-            saveRowBtn.removeAttribute("data-state");
-          }, 2000);
-        } else if (state === "error") {
-          saveRowBtn.textContent = "Failed";
-          saveRowBtn.dataset.state = "error";
-          saveRowBtn.disabled = false;
-          saveResetTimer = setTimeout(() => {
-            saveRowBtn.textContent = "Save";
-            saveRowBtn.removeAttribute("data-state");
-          }, 3000);
-        } else {
-          saveRowBtn.textContent = "Save";
-          saveRowBtn.disabled = textarea.value.trim() === String(it.notes ?? "").trim();
-        }
-      };
-      const doSave = async () => {
-        const newNotes = textarea.value.trim();
-        setSaveBtnState("saving");
+        setStatus("saving", "Saving…");
         try {
-          const patch = { ...it, notes: newNotes };
-          const savedItem = await saveWardrobeItemToCloud(patch);
-          upsertWardrobeBaseRowInMemory(savedItem);
-          it.notes = newNotes;
-          if (isLocalCatalogueItemId(it.id)) {
-            try {
-              const allOv = loadCollectionOverrides();
-              allOv[it.id] = { ...(allOv[it.id] ?? {}), notes: newNotes };
-              await saveCollectionOverrides(allOv);
-            } catch (ovErr) {
-              console.warn("[account] notes override persist failed:", ovErr);
-            }
-          }
-          dirtyRows.delete(doSave);
-          refreshSaveAllBtn();
-          setSaveBtnState("saved");
+          const res = await applyTwBrandRenames([{ from, to }]);
+          input.dataset.brandOriginal = to;
+          countEl.textContent = String(res.updated || count);
+          setStatus("saved", "Saved");
         } catch (err) {
-          console.warn("[account] notes save failed:", err);
-          setSaveBtnState("error");
-          throw err;
+          console.warn("[account] brand rename failed:", err);
+          setStatus("error", "Failed");
+          input.value = from;
         }
       };
-      saveRowBtn.addEventListener("click", async () => {
-        if (twAccountBusy) return;
-        twAccountBusy = true;
-        try {
-          await doSave();
-          showToast("Notes saved.");
-        } catch {
-          showToast("Failed to save notes.");
-        } finally {
-          twAccountBusy = false;
-          refreshSaveAllBtn();
-        }
-      });
-      rowActions.appendChild(saveRowBtn);
 
-      row.append(label, textarea, rowActions);
-      notesList.appendChild(row);
+      input.addEventListener("blur", doSave);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
 
-      // auto-size on mount
-      requestAnimationFrame(() => {
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
-      });
+      row.append(input, countEl, statusEl);
+      list.appendChild(row);
     }
 
-    notesCard.appendChild(notesList);
-    body.appendChild(notesCard);
-
-    const signOutBtn = document.createElement("button");
-    signOutBtn.type = "button";
-    signOutBtn.className = "account-signout";
-    signOutBtn.style.marginTop = "2.5rem";
-    signOutBtn.textContent = "Sign Out";
-    signOutBtn.addEventListener("click", signOutTwAccountAndReturnHome);
-    body.appendChild(signOutBtn);
+    wrapper.appendChild(list);
+    el.appendChild(wrapper);
   }
+
+
 
   function twSiteBaseUrl() {
     const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
