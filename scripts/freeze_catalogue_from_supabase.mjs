@@ -86,6 +86,29 @@ const lock = {
 };
 fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2), "utf8");
 
+// Write showcase-order.json: ordered list of showcase item IDs (used by build-og-image.mjs)
+const showcaseOrderPath = path.join(root, "data", "showcase-order.json");
+const showcaseItems = rawRows
+  .filter((r) => {
+    const rank = r?.metadata?.showcase_rank;
+    return typeof rank === "number" && Number.isInteger(rank) && rank >= 0;
+  })
+  .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
+
+if (showcaseItems.length >= 3) {
+  const existing = fs.existsSync(showcaseOrderPath)
+    ? JSON.parse(fs.readFileSync(showcaseOrderPath, "utf8"))
+    : {};
+  const updated = {
+    _note: existing._note ?? "Ordered list of showcase item IDs for the default OG image. Updated by db:freeze-catalogue when showcase_rank is set in Supabase. Edit manually to curate the OG image selection.",
+    ids: showcaseItems.map((r) => String(r.id)),
+  };
+  fs.writeFileSync(showcaseOrderPath, JSON.stringify(updated, null, 2), "utf8");
+  console.log(`  ${path.relative(root, showcaseOrderPath)} (${showcaseItems.length} showcase items)`);
+} else {
+  console.log(`  showcase-order.json unchanged (${showcaseItems.length} showcase item${showcaseItems.length === 1 ? "" : "s"} in Supabase — need ≥ 3 to update)`);
+}
+
 console.log(`Frozen ${seedItems.length} pieces.`);
 console.log(`  ${path.relative(root, wardrobeJsPath)}`);
 console.log(`  ${path.relative(root, lockPath)}`);
