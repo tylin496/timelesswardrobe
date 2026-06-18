@@ -11782,8 +11782,9 @@
         siteHeader.style.removeProperty("--tw-header-monogram");
       }
       if (heroInner) {
-        const copyBottom = heroInner.getBoundingClientRect().bottom;
-        const copyOpacity = Math.min(1, Math.max(0, (copyBottom - siteHeader.offsetHeight) / 120));
+        const copyTop = heroInner.getBoundingClientRect().top;
+        const shellH = shell.offsetHeight;
+        const copyOpacity = Math.min(1, Math.max(0, (copyTop - shellH) / 120));
         heroInner.style.opacity = copyOpacity < 1 ? copyOpacity.toFixed(3) : "";
       }
     };
