@@ -11734,7 +11734,6 @@
     if (!siteHeader || !shell) return;
 
     const hero = document.querySelector(".ed-lp__hero");
-    const heroInner = hero?.querySelector(".ed-lp__hero-inner") ?? null;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -11757,11 +11756,19 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      if (heroInner) {
-        const copyBottom = heroInner.getBoundingClientRect().bottom;
-        const fadeRange = 120;
-        const opacity = Math.min(1, Math.max(0, (copyBottom - siteHeader.offsetHeight) / fadeRange));
-        heroInner.style.opacity = opacity < 1 ? opacity.toFixed(3) : "";
+      if (!solid && hero) {
+        const heroH = hero.offsetHeight;
+        const headerH = siteHeader.offsetHeight;
+        const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+        const flipAt = heroH - headerH - 4;
+        const fadeStart = heroH * 0.4;
+        const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
+        const opacity = t * t * t;
+        siteHeader.classList.add("site-header--scroll-driven");
+        siteHeader.style.setProperty("--tw-header-bg-opacity", opacity.toFixed(3));
+      } else {
+        siteHeader.classList.remove("site-header--scroll-driven");
+        siteHeader.style.removeProperty("--tw-header-bg-opacity");
       }
     };
 
@@ -11792,11 +11799,11 @@
       window.removeEventListener("resize", update);
       ro?.disconnect();
       mo.disconnect();
-      siteHeader.classList.remove("site-header--overlay");
+      siteHeader.classList.remove("site-header--overlay", "site-header--scroll-driven");
       siteHeader.classList.add("site-header--solid");
+      siteHeader.style.removeProperty("--tw-header-bg-opacity");
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
-      if (heroInner) heroInner.style.opacity = "";
     };
   }
 

@@ -1180,6 +1180,11 @@ body.theme-catalogue .site-header.site-header--overlay {
   --tw-header-underline-active: var(--tw-brand-green);
 }
 
+/* Homepage: suppress ::before transition while scroll is driving opacity, to prevent lag. */
+body.home-page .site-header--scroll-driven::before {
+  transition: none;
+}
+
 /* Homepage (OS dark): monogram + wordmark invert on dark surfaces; collection stays theme-catalogue light. */
 @media (prefers-color-scheme: dark) {
   body.home-page .site-header--solid {
