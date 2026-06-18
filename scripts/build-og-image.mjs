@@ -2,12 +2,18 @@
 /**
  * Generate og-image.png (1200×630) from real collection item thumbnails.
  *
- * Image selection order:
- *   1. data/showcase-order.json   (updated by db:freeze-catalogue)
- *   2. Built-in fallback list     (hardcoded editorial selection)
+ * Item selection: items with metadata.showcase_rank set in data/wardrobe.js,
+ * sorted by rank. Falls back to a hardcoded editorial selection when fewer
+ * than 5 showcase items are present in the frozen seed.
  *
- * Layout: 5 portrait item panels, full-bleed, separated by 2px parchment dividers.
- * Branding appears as a dark gradient caption at the bottom.
+ * Layout:
+ *   ┌──────────────────────┬──────────┬──────────┐
+ *   │                      │  item 2  │  item 4  │
+ *   │   hero (item 1)      ├──────────┼──────────┤
+ *   │                      │  item 3  │  item 5  │
+ *   └──────────────────────┴──────────┴──────────┘
+ *
+ * Branding (dark gradient + text) is overlaid on the hero panel only.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -16,161 +22,175 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = path.join(root, "og-image.png");
 
+// ── Dimensions ────────────────────────────────────────────────────────────────
+
+const W = 1200;
+const H = 630;
+const GAP = 3; // px between panels
+
+// Hero panel: left ~55%
+const HERO_W = 660;
+const HERO_H = H;
+
+// Right 2×2 grid fills the rest
+const RIGHT_W = W - HERO_W - GAP;          // 537
+const CELL_W = Math.floor((RIGHT_W - GAP) / 2);  // 267
+const CELL_H = Math.floor((H - GAP) / 2);         // 313
+
+// ── Item selection ────────────────────────────────────────────────────────────
+
 const FALLBACK_IDS = [
-  "datejust-36-mod",
   "camel-hair-polo-coat",
+  "datejust-36-mod",
   "balmacaan-coat",
   "beaufort-waxed-jacket",
   "glen-check-tweed-jacket",
 ];
 
-const PANEL_COUNT = 5;
-const WIDTH = 1200;
-const HEIGHT = 630;
-const GAP = 2; // px between panels (parchment colour shows through)
-const PANEL_W = Math.floor((WIDTH - GAP * (PANEL_COUNT - 1)) / PANEL_COUNT); // 238
-const PARCHMENT = { r: 251, g: 248, b: 241, alpha: 1 };
-
-function resolveShowcaseIds() {
-  const lockPath = path.join(root, "data", "showcase-order.json");
-  if (fs.existsSync(lockPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(lockPath, "utf8"));
-      if (Array.isArray(data.ids) && data.ids.length >= 3) return data.ids;
-    } catch {
-      // fall through
-    }
-  }
-  return FALLBACK_IDS;
+function loadWardrobeItems() {
+  const src = fs.readFileSync(path.join(root, "data", "wardrobe.js"), "utf8");
+  const fn = new Function(`${src}\n; return WARDROBE_ITEMS;`);
+  return fn();
 }
 
 function thumbPath(id) {
   return path.join(root, "images", "wardrobe", id, "thumb", "1.webp");
 }
 
-function pickItems(ids) {
-  const resolved = [];
-  for (const id of ids) {
-    const p = thumbPath(id);
-    if (fs.existsSync(p)) {
-      resolved.push({ id, p });
-      if (resolved.length === PANEL_COUNT) break;
-    }
-  }
-  if (resolved.length < PANEL_COUNT) {
-    // Fill remaining slots from fallback
-    for (const id of FALLBACK_IDS) {
-      if (resolved.find((x) => x.id === id)) continue;
-      const p = thumbPath(id);
-      if (fs.existsSync(p)) {
-        resolved.push({ id, p });
-        if (resolved.length === PANEL_COUNT) break;
-      }
-    }
-  }
-  return resolved.slice(0, PANEL_COUNT);
+function hasThumb(id) {
+  return fs.existsSync(thumbPath(id));
 }
 
-function textSvg() {
-  // Dark gradient overlay + branding text
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}">
+function resolveItems() {
+  const all = loadWardrobeItems();
+
+  // Prefer items with showcase_rank, sorted by rank
+  const showcased = all
+    .filter((it) => {
+      const r = it?.metadata?.showcase_rank;
+      return typeof r === "number" && Number.isInteger(r) && r >= 0 && hasThumb(it.id);
+    })
+    .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank)
+    .slice(0, 5);
+
+  if (showcased.length >= 5) return showcased.map((it) => it.id);
+
+  // Fill from showcase first, then top up from fallback
+  const ids = showcased.map((it) => String(it.id));
+  for (const id of FALLBACK_IDS) {
+    if (!ids.includes(id) && hasThumb(id)) ids.push(id);
+    if (ids.length === 5) break;
+  }
+  return ids;
+}
+
+// ── Text overlay (hero panel only) ───────────────────────────────────────────
+
+function heroOverlaySvg() {
+  const cx = HERO_W / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${HERO_W}" height="${HERO_H}">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a1f18" stop-opacity="0"/>
-      <stop offset="42%" stop-color="#0a1f18" stop-opacity="0.62"/>
-      <stop offset="100%" stop-color="#0a1f18" stop-opacity="0.88"/>
+      <stop offset="0%"   stop-color="#0d1f18" stop-opacity="0"/>
+      <stop offset="48%"  stop-color="#0d1f18" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#0d1f18" stop-opacity="0.86"/>
     </linearGradient>
-    <!-- subtle vignette on all sides -->
     <radialGradient id="v" cx="50%" cy="50%" r="70%">
-      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.28"/>
+      <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.22"/>
     </radialGradient>
   </defs>
 
   <!-- bottom gradient for text legibility -->
-  <rect x="0" y="${HEIGHT - 240}" width="${WIDTH}" height="240" fill="url(#g)"/>
+  <rect x="0" y="${HERO_H - 260}" width="${HERO_W}" height="260" fill="url(#g)"/>
 
-  <!-- corner vignette -->
-  <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#v)"/>
-
-  <!-- thin top rule -->
-  <line x1="48" y1="32" x2="${WIDTH - 48}" y2="32" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1"/>
+  <!-- subtle vignette -->
+  <rect width="${HERO_W}" height="${HERO_H}" fill="url(#v)"/>
 
   <!-- top micro-label -->
-  <text x="${WIDTH / 2}" y="26"
+  <text x="${cx}" y="28"
     text-anchor="middle"
     font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
     font-size="9" font-weight="500" letter-spacing="0.26em"
-    fill="#ffffff" fill-opacity="0.38">PRIVATE ARCHIVE</text>
+    fill="#ffffff" fill-opacity="0.36">PRIVATE ARCHIVE</text>
+  <line x1="48" y1="35" x2="${HERO_W - 48}" y2="35"
+    stroke="#ffffff" stroke-opacity="0.14" stroke-width="0.8"/>
 
   <!-- main title -->
-  <text x="${WIDTH / 2}" y="${HEIGHT - 72}"
+  <text x="${cx}" y="${HERO_H - 76}"
     text-anchor="middle"
     font-family="Georgia, Times New Roman, serif"
-    font-size="38" letter-spacing="0.28em"
+    font-size="36" letter-spacing="0.28em"
     fill="#ffffff" fill-opacity="0.97">TIMELESS WARDROBE</text>
 
-  <!-- divider rule -->
-  <line x1="${WIDTH / 2 - 160}" y1="${HEIGHT - 52}" x2="${WIDTH / 2 + 160}" y2="${HEIGHT - 52}"
-    stroke="#ffffff" stroke-opacity="0.24" stroke-width="0.8"/>
+  <!-- rule -->
+  <line x1="${cx - 130}" y1="${HERO_H - 56}" x2="${cx + 130}" y2="${HERO_H - 56}"
+    stroke="#ffffff" stroke-opacity="0.22" stroke-width="0.8"/>
 
   <!-- subtitle -->
-  <text x="${WIDTH / 2}" y="${HEIGHT - 30}"
+  <text x="${cx}" y="${HERO_H - 34}"
     text-anchor="middle"
     font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
-    font-size="13" font-weight="400" letter-spacing="0.08em"
-    fill="#ffffff" fill-opacity="0.62">A private archive of classic menswear</text>
+    font-size="12.5" font-weight="400" letter-spacing="0.08em"
+    fill="#ffffff" fill-opacity="0.58">A private archive of classic menswear</text>
 </svg>`;
 }
 
+// ── Build ─────────────────────────────────────────────────────────────────────
+
 const sharp = (await import("sharp")).default;
 
-const ids = resolveShowcaseIds();
-const items = pickItems(ids);
+const ids = resolveItems();
+console.log(`[og-build] hero: ${ids[0]}`);
+console.log(`[og-build] supporting: ${ids.slice(1).join(", ")}`);
 
-if (items.length === 0) {
-  console.error("[og-build] No item thumbs found — cannot build collage OG image");
-  process.exit(1);
-}
+// Resize each slot
+const [heroBuf, s2, s3, s4, s5] = await Promise.all([
+  sharp(thumbPath(ids[0]))
+    .resize(HERO_W, HERO_H, { fit: "cover", position: sharp.strategy.attention })
+    .toBuffer(),
+  sharp(thumbPath(ids[1]))
+    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .toBuffer(),
+  sharp(thumbPath(ids[2]))
+    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .toBuffer(),
+  sharp(thumbPath(ids[3]))
+    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .toBuffer(),
+  sharp(thumbPath(ids[4]))
+    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .toBuffer(),
+]);
 
-console.log(`[og-build] Using items: ${items.map((x) => x.id).join(", ")}`);
+// Hero overlay (gradient + text rendered into HERO_W×HERO_H SVG)
+const overlayBuf = await sharp(Buffer.from(heroOverlaySvg()))
+  .resize(HERO_W, HERO_H)
+  .toBuffer();
 
-// Resize each panel
-const panelBuffers = await Promise.all(
-  items.map(({ p }) =>
-    sharp(p)
-      .resize(PANEL_W, HEIGHT, { fit: "cover", position: sharp.strategy.attention })
-      .toBuffer()
-  )
-);
-
-// Composite: parchment base → panels (with gap spacing) → text overlay
-const composites = [];
-
-for (let i = 0; i < panelBuffers.length; i++) {
-  composites.push({
-    input: panelBuffers[i],
-    left: i * (PANEL_W + GAP),
-    top: 0,
-  });
-}
-
-// Text + gradient overlay
-composites.push({
-  input: Buffer.from(textSvg()),
-  left: 0,
-  top: 0,
-});
-
+// Composite onto parchment base
 await sharp({
   create: {
-    width: WIDTH,
-    height: HEIGHT,
+    width: W,
+    height: H,
     channels: 4,
-    background: PARCHMENT,
+    background: { r: 251, g: 248, b: 241, alpha: 1 },
   },
 })
-  .composite(composites)
+  .composite([
+    // Hero
+    { input: heroBuf,    left: 0,                   top: 0 },
+    // Top-left supporting
+    { input: s2,         left: HERO_W + GAP,         top: 0 },
+    // Top-right supporting
+    { input: s3,         left: HERO_W + GAP + CELL_W + GAP, top: 0 },
+    // Bottom-left supporting
+    { input: s4,         left: HERO_W + GAP,         top: CELL_H + GAP },
+    // Bottom-right supporting
+    { input: s5,         left: HERO_W + GAP + CELL_W + GAP, top: CELL_H + GAP },
+    // Text overlay on hero
+    { input: overlayBuf, left: 0,                   top: 0 },
+  ])
   .png({ compressionLevel: 9 })
   .toFile(outPath);
 
