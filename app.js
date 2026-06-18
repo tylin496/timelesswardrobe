@@ -11417,10 +11417,11 @@
       "wheel",
       (e) => {
         const isDesktop = globalThis.matchMedia?.("(min-width: 901px)")?.matches ?? false;
-        const isBrowseByCategoryRail =
+        const isPageRail =
           scroller.id === "ed-lp-division-rail" ||
-          scroller.classList.contains("ed-lp__division-rail-scroller");
-        if (isDesktop && isBrowseByCategoryRail) return;
+          scroller.classList.contains("ed-lp__division-rail-scroller") ||
+          scroller.classList.contains("ed-lp__horizontal-rail-scroller");
+        if (isDesktop && isPageRail) return;
         if (trackDragActive || scrollerDragActive) return;
         const max = scrollMax();
         if (max <= 4) return;
