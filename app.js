@@ -11771,9 +11771,9 @@
         clearScrollDriven();
       }
       if (heroInner) {
-        const copyTop = heroInner.getBoundingClientRect().top;
+        const copyBottom = heroInner.getBoundingClientRect().bottom;
         const shellH = shell.offsetHeight;
-        const copyOpacity = Math.min(1, Math.max(0, (copyTop - shellH) / 120));
+        const copyOpacity = Math.min(1, Math.max(0.08, (copyBottom - shellH) / 140));
         heroInner.style.opacity = copyOpacity < 1 ? copyOpacity.toFixed(3) : "";
       }
     };
