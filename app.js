@@ -11511,13 +11511,9 @@
     if (!(strip instanceof HTMLElement)) return;
     const row = strip.closest(".styling-board__board-row");
     if (!(row instanceof HTMLElement)) return;
-    const stack = strip.closest(".styling-board__board-stack");
-    const railHost = stack instanceof HTMLElement ? stack : row;
-    row.setAttribute("data-styling-board-outfit-rail", "");
-    let track = railHost.querySelector(".styling-board__outfit-rail-progress");
-    if (!(track instanceof HTMLElement)) {
-      track = row.querySelector(".styling-board__outfit-rail-progress");
-    }
+    const currentSection = strip.closest(".styling-board__current") ?? row;
+    currentSection.setAttribute("data-styling-board-outfit-rail", "");
+    let track = currentSection.querySelector(".styling-board__outfit-rail-progress");
     if (!(track instanceof HTMLElement)) {
       track = document.createElement("div");
       track.className = "styling-board__outfit-rail-progress";
@@ -11533,10 +11529,10 @@
       thumb.setAttribute("aria-hidden", "true");
       track.appendChild(thumb);
     }
-    if (track.parentElement !== railHost) {
-      railHost.appendChild(track);
+    if (track.parentElement !== currentSection) {
+      row.after(track);
     }
-    wireHorizontalRailScroller(strip, { railRoot: row });
+    wireHorizontalRailScroller(strip, { railRoot: currentSection });
   }
 
   function refreshStylingBoardOutfitRailScroller() {
