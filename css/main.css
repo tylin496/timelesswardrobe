@@ -9916,6 +9916,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     min-height: 3.9rem;
     margin-bottom: 0.1rem;
     padding: 0.08rem 0.5rem 0.25rem;
+    overflow: hidden;
   }
 
   .styling-board-drawer .saved-card__piece {
