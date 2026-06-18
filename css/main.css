@@ -1633,28 +1633,8 @@ body.theme-catalogue .site-header.site-header--overlay {
     box-shadow 0.22s var(--ease-out);
 }
 
-/* Outfits count — transparent header (mobile icon badge ring only). */
+/* Outfits count — solid header: green pill, ivory numeral. */
 @media (max-width: 1024px) {
-  .site-header--overlay:not(:hover):not(:focus-within)
-    .site-header__styling-board-btn:not(:hover):not(:focus-visible):not([aria-expanded="true"])
-    .site-header__styling-board-count {
-    background-color: transparent;
-    color: var(--tw-header-fg);
-    -webkit-text-fill-color: currentColor;
-    opacity: var(--site-header-tool-glyph-opacity, 0.72);
-    box-shadow: 0 0 0 1px currentColor;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-
-  .site-header--overlay:has(.site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]))
-    .site-header__styling-board-btn
-    .site-header__styling-board-count {
-    opacity: 1;
-    box-shadow: 0 0 0 1px currentColor;
-  }
-
-  /* Opaque header (solid or overlay hover) — green icon-corner pill, ivory numeral. */
   .site-header--solid .site-header__styling-board-btn .site-header__styling-board-count,
   .site-header--overlay:is(:hover, :focus-within) .site-header__styling-board-btn .site-header__styling-board-count {
     -webkit-mask-image: none;
