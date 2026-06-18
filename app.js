@@ -2492,10 +2492,11 @@
 
   function twAccountEditActions() {
     return [
-      { label: "Add piece", href: "/collection?additem=1" },
+      { label: "Add piece", href: "/account#collection" },
       { label: "Editorial stories", href: "/editorial" },
-      { label: "Manage brands", href: "/account#manage-brands" },
-      { label: "Collection", href: "/collection" },
+      { label: "Manage brands", href: "/account#brands" },
+      { label: "Collection", href: "/account#collection" },
+      { label: "Showcase", href: "/account#showcase" },
       { label: "Notes", href: "/account#notes" },
     ];
   }
