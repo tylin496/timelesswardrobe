@@ -11759,8 +11759,6 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      const scrolled = (globalThis.scrollY ?? globalThis.pageYOffset ?? 0) > 4;
-      siteHeader.classList.toggle("site-header--scrolled", scrolled);
     };
 
     if (initHomeHeroHeader._wired) {
