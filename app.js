@@ -11764,7 +11764,10 @@
         const fadeStart = heroH * 0.4;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
         const bgOpacity = t * t * t;
-        const overlayPct = Math.round((1 - t) * 100);
+        // Stay white until background is ~42% filled (t=0.75), then rapidly shift dark.
+        // Quadratic ease-in over the remaining 0.25 of t minimises the unreadable grey midpoint.
+        const fgLinear = Math.min(1, Math.max(0, (t - 0.75) / 0.25));
+        const overlayPct = Math.round((1 - fgLinear * fgLinear) * 100);
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
         siteHeader.style.setProperty("--tw-header-bg", "var(--tw-brand-ivory)");
