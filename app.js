@@ -11762,12 +11762,23 @@
         const flipAt = heroH - headerH - 4;
         const fadeStart = heroH * 0.4;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
-        const opacity = t * t * t;
+        const bgOpacity = t * t * t;
+        // Text transitions linearly (turns dark faster than background fills in).
+        const overlayPct = Math.round((1 - t) * 100);
         siteHeader.classList.add("site-header--scroll-driven");
-        siteHeader.style.setProperty("--tw-header-bg-opacity", opacity.toFixed(3));
+        siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
+        siteHeader.style.setProperty("--tw-header-fg",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-wordmark))`);
+        siteHeader.style.setProperty("--tw-header-fg-muted",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--ink-muted))`);
+        siteHeader.style.setProperty("--tw-header-monogram",
+          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-monogram-green))`);
       } else {
         siteHeader.classList.remove("site-header--scroll-driven");
         siteHeader.style.removeProperty("--tw-header-bg-opacity");
+        siteHeader.style.removeProperty("--tw-header-fg");
+        siteHeader.style.removeProperty("--tw-header-fg-muted");
+        siteHeader.style.removeProperty("--tw-header-monogram");
       }
     };
 
@@ -11793,11 +11804,15 @@
     window.addEventListener("resize", update, { passive: true });
     const mo = new MutationObserver(update);
     mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    // Hover must override the scroll-driven inline style — remove it on enter, restore on leave.
-    const onHeaderEnter = () => {
-      siteHeader.style.removeProperty("--tw-header-bg-opacity");
+    const clearScrollDriven = () => {
       siteHeader.classList.remove("site-header--scroll-driven");
+      siteHeader.style.removeProperty("--tw-header-bg-opacity");
+      siteHeader.style.removeProperty("--tw-header-fg");
+      siteHeader.style.removeProperty("--tw-header-fg-muted");
+      siteHeader.style.removeProperty("--tw-header-monogram");
     };
+    // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
+    const onHeaderEnter = () => clearScrollDriven();
     const onHeaderLeave = () => update();
     siteHeader.addEventListener("mouseenter", onHeaderEnter);
     siteHeader.addEventListener("mouseleave", onHeaderLeave);
@@ -11808,9 +11823,9 @@
       siteHeader.removeEventListener("mouseleave", onHeaderLeave);
       ro?.disconnect();
       mo.disconnect();
-      siteHeader.classList.remove("site-header--overlay", "site-header--scroll-driven");
+      clearScrollDriven();
+      siteHeader.classList.remove("site-header--overlay");
       siteHeader.classList.add("site-header--solid");
-      siteHeader.style.removeProperty("--tw-header-bg-opacity");
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
     };
