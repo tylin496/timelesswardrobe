@@ -6529,7 +6529,8 @@
     if (name) lines.push(name);
     if (item.brand) lines.push(String(item.brand).trim());
     const colour = colourLabelForItem(item);
-    const season = seasonUiLabel(item.season);
+    const seasonNorm = normalizeSeason(item.season);
+    const season = seasonNorm === "SS" ? "Spring / Summer" : seasonNorm === "AW" ? "Autumn / Winter" : seasonNorm === "ALL" ? "All seasons" : "";
     const size = String(item.size ?? "").trim();
     const meta = [];
     if (colour) meta.push(`Colour: ${colour}`);
@@ -25366,7 +25367,7 @@
   }
 
   function appendItemDetailNavigation(body, item) {
-    const allItems = sortItemsShowcaseArchive([...items]);
+    const allItems = getCollectionSortedDataset();
     const idx = allItems.findIndex((i) => i.id === item.id);
     if (idx === -1 || allItems.length < 2) return;
     const prev = idx > 0 ? allItems[idx - 1] : null;
