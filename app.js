@@ -11733,6 +11733,7 @@
     if (!siteHeader || !shell) return;
 
     const hero = document.querySelector(".ed-lp__hero");
+    const heroInner = hero?.querySelector(".ed-lp__hero-inner") ?? null;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -11780,6 +11781,11 @@
         siteHeader.style.removeProperty("--tw-header-fg-muted");
         siteHeader.style.removeProperty("--tw-header-monogram");
       }
+      if (heroInner) {
+        const copyBottom = heroInner.getBoundingClientRect().bottom;
+        const copyOpacity = Math.min(1, Math.max(0, (copyBottom - siteHeader.offsetHeight) / 120));
+        heroInner.style.opacity = copyOpacity < 1 ? copyOpacity.toFixed(3) : "";
+      }
     };
 
     if (initHomeHeroHeader._wired) {
@@ -11826,6 +11832,7 @@
       clearScrollDriven();
       siteHeader.classList.remove("site-header--overlay");
       siteHeader.classList.add("site-header--solid");
+      if (heroInner) heroInner.style.opacity = "";
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
     };
