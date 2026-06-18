@@ -10991,6 +10991,10 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   gap: 0.2rem;
 }
 
+.styling-board-drawer .styling-board__current--empty {
+  display: none;
+}
+
 .styling-board-drawer .styling-board__current--empty .styling-board__board-row {
   display: none;
 }

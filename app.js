@@ -17317,6 +17317,7 @@
         ? "Confirm Save"
         : "Save Outfit";
     btn.textContent = n > 0 ? `${base} (${n})` : base;
+    btn.hidden = n === 0;
     btn.title = editingSavedOutfitId
       ? "Save changes to the outfit you opened with Edit."
       : "Save the current strip as a new named outfit.";
