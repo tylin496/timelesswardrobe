@@ -9793,7 +9793,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     box-sizing: border-box;
     width: auto;
     min-height: 10px;
-    margin: 0.35rem 0 0.12rem;
+    margin: 0.35rem calc(-1 * var(--styling-board-scroll-inline, 1.25rem)) 0.12rem 0;
     padding: 0 0 8px;
     cursor: pointer;
     touch-action: none;
