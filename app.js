@@ -1258,6 +1258,12 @@
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
       '<path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/>' +
       "</svg>",
+    share:
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<polyline points="16 6 12 2 8 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      "</svg>",
   };
 
   /**
@@ -6376,24 +6382,24 @@
     return hints.size ? [...hints].join("; ") : "unspecified_infer_from_fabric_and_weight";
   }
 
-  const ITEM_DETAIL_COPY_AI_SUCCESS_MS = 1650;
-  let itemDetailCopyAiSuccessTimer = 0;
+  const ITEM_DETAIL_SHARE_SUCCESS_MS = 1650;
+  let itemDetailShareSuccessTimer = 0;
   const COLLECTION_COPY_SUCCESS_MS = 1450;
   let collectionCopySuccessTimer = 0;
 
-  function playItemDetailCopyAiSuccess(btn) {
+  function playItemDetailShareSuccess(btn) {
     if (!(btn instanceof HTMLButtonElement)) return;
-    if (itemDetailCopyAiSuccessTimer) {
-      clearTimeout(itemDetailCopyAiSuccessTimer);
-      itemDetailCopyAiSuccessTimer = 0;
+    if (itemDetailShareSuccessTimer) {
+      clearTimeout(itemDetailShareSuccessTimer);
+      itemDetailShareSuccessTimer = 0;
     }
-    btn.classList.remove("item-detail__copy-ai-btn--copied");
+    btn.classList.remove("item-detail__share-btn--copied");
     void btn.offsetWidth;
-    btn.classList.add("item-detail__copy-ai-btn--copied");
-    const ms = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 900 : ITEM_DETAIL_COPY_AI_SUCCESS_MS;
-    itemDetailCopyAiSuccessTimer = window.setTimeout(() => {
-      btn.classList.remove("item-detail__copy-ai-btn--copied");
-      itemDetailCopyAiSuccessTimer = 0;
+    btn.classList.add("item-detail__share-btn--copied");
+    const ms = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 900 : ITEM_DETAIL_SHARE_SUCCESS_MS;
+    itemDetailShareSuccessTimer = window.setTimeout(() => {
+      btn.classList.remove("item-detail__share-btn--copied");
+      itemDetailShareSuccessTimer = 0;
     }, ms);
   }
 
@@ -6512,8 +6518,86 @@
   async function copyItemPlainTextForAi(item, opts = {}) {
     const text = buildItemAiStylingBrief(item);
     const btn = opts.button instanceof HTMLButtonElement ? opts.button : null;
-    const ok = await writeTextToClipboard(text, { successToast: "Copied AI styling brief." });
-    if (ok && btn) playItemDetailCopyAiSuccess(btn);
+    const ok = await writeTextToClipboard(text, { successToast: "Copied." });
+    if (ok && btn) playItemDetailShareSuccess(btn);
+  }
+
+  function buildItemShareText(item) {
+    if (!item) return "";
+    const lines = [];
+    const name = displayNameWithoutLeadingColour(item);
+    if (name) lines.push(name);
+    if (item.brand) lines.push(String(item.brand).trim());
+    const colour = colourLabelForItem(item);
+    const season = seasonUiLabel(item.season);
+    const size = String(item.size ?? "").trim();
+    const meta = [];
+    if (colour) meta.push(`Colour: ${colour}`);
+    if (season) meta.push(`Season: ${season}`);
+    if (size) meta.push(`Size: ${size}`);
+    if (meta.length) { lines.push(""); lines.push(...meta); }
+    const notes = itemNotesDisplayText(item.notes);
+    if (notes) { lines.push(""); lines.push("Notes:"); lines.push(notes); }
+    return lines.join("\n");
+  }
+
+  let itemDetailShareMenuDismiss = null;
+
+  function showItemShareMenu(btn, item) {
+    if (itemDetailShareMenuDismiss) { itemDetailShareMenuDismiss(); return; }
+    const url = buildItemPageUrl(item.id).toString();
+    const menu = document.createElement("div");
+    menu.className = "item-share-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", "Share options");
+    const options = [
+      { label: "Copy Link", action: async () => { await writeTextToClipboard(url, { successToast: "Link copied." }); dismiss(); } },
+      { label: "Copy Item Summary", action: async () => { await copyItemPlainTextForAi(item, {}); dismiss(); } },
+    ];
+    for (const opt of options) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "item-share-menu__item";
+      row.setAttribute("role", "menuitem");
+      row.textContent = opt.label;
+      row.addEventListener("click", () => void opt.action());
+      menu.appendChild(row);
+    }
+    document.body.appendChild(menu);
+    const rect = btn.getBoundingClientRect();
+    const menuW = 180;
+    let left = rect.left + window.scrollX;
+    if (left + menuW > window.innerWidth - 8) left = rect.right + window.scrollX - menuW;
+    menu.style.top = `${rect.bottom + window.scrollY + 6}px`;
+    menu.style.left = `${left}px`;
+    btn.setAttribute("aria-expanded", "true");
+    const dismiss = () => {
+      menu.remove();
+      btn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", outsideClick, true);
+      itemDetailShareMenuDismiss = null;
+    };
+    itemDetailShareMenuDismiss = dismiss;
+    requestAnimationFrame(() => {
+      document.addEventListener("click", outsideClick, true);
+    });
+    function outsideClick(e) {
+      if (!menu.contains(/** @type {Node} */ (e.target)) && e.target !== btn) dismiss();
+    }
+  }
+
+  async function handleItemShareAction(item, btn) {
+    const url = buildItemPageUrl(item.id).toString();
+    const text = buildItemShareText(item);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: displayNameWithoutLeadingColour(item), text, url });
+      } catch (err) {
+        if (err?.name !== "AbortError") console.warn("share", err);
+      }
+      return;
+    }
+    showItemShareMenu(btn, item);
   }
 
   /** Previously saved Chinese clothing slots → Clothing (典藏·配件 handled in `itemSlot`). */
@@ -24331,40 +24415,17 @@
     );
   }
 
-  function itemDetailCopyAiSparkIconMarkup() {
-    return TW_ITEM_EDIT_ICON.aiBrief.replace(
-      'aria-hidden="true"',
-      'class="item-detail__copy-ai-icon item-detail__copy-ai-icon--spark" aria-hidden="true"'
-    );
-  }
-
-  function itemDetailCopyAiCheckIconMarkup() {
-    return (
-      '<svg class="item-detail__copy-ai-icon item-detail__copy-ai-icon--check" xmlns="http://www.w3.org/2000/svg" ' +
-      'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" ' +
-      'stroke-linejoin="round" aria-hidden="true">' +
-      '<path class="item-detail__copy-ai-check-path" d="M6.5 12.5 10 16.5 17.5 7.5"/>' +
-      "</svg>"
-    );
-  }
-
-  function itemDetailCopyAiButtonInnerMarkup() {
-    return (
-      '<span class="item-detail__copy-ai-icon-stack" aria-hidden="true">' +
-      itemDetailCopyAiSparkIconMarkup() +
-      itemDetailCopyAiCheckIconMarkup() +
-      "</span>"
-    );
-  }
-
-  function createItemDetailCopyAiButton() {
+  function createItemDetailShareButton() {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "item-detail__copy-ai-btn";
-    btn.id = "item-detail-copy-ai";
-    btn.setAttribute("aria-label", "Copy for AI styling");
-    btn.title = "Copy structured item brief for AI outfit planning";
-    btn.innerHTML = itemDetailCopyAiButtonInnerMarkup();
+    btn.className = "item-detail__share-btn";
+    btn.id = "item-detail-share";
+    btn.setAttribute("aria-label", "Share item");
+    btn.title = "Share item";
+    btn.innerHTML =
+      '<span class="item-detail__share-icon-wrap" aria-hidden="true">' +
+      TW_ITEM_EDIT_ICON.share.replace('aria-hidden="true"', 'class="item-detail__share-icon" aria-hidden="true"') +
+      "</span>";
     return btn;
   }
 
@@ -25185,7 +25246,7 @@
     const titleRow = document.createElement("div");
     titleRow.className = "item-detail__title-row";
     titleRow.appendChild(title);
-    titleRow.appendChild(createItemDetailCopyAiButton());
+    titleRow.appendChild(createItemDetailShareButton());
     titleRow.appendChild(createItemDetailEditButton());
     body.appendChild(titleRow);
 
@@ -25217,18 +25278,10 @@
       if (col) {
         const picker = document.createElement("div");
         picker.className = "item-detail__colour-picker item-detail__colour-picker--solo";
-        const labelRow = document.createElement("p");
-        labelRow.className = "item-detail__colour-label";
-        const labelK = document.createElement("span");
-        labelK.className = "item-detail__colour-label-k";
-        labelK.textContent = "Colour:";
-        const labelV = document.createElement("span");
-        labelV.className = "item-detail__colour-label-v";
-        labelV.textContent = col;
-        labelRow.appendChild(labelK);
-        labelRow.appendChild(document.createTextNode(" "));
-        labelRow.appendChild(labelV);
-        picker.appendChild(labelRow);
+        const heading = document.createElement("p");
+        heading.className = "item-detail__colour-heading";
+        heading.textContent = "Colour";
+        picker.appendChild(heading);
         const soloFields = {
           colour: item.colour ?? item.color,
           colourCode: itemColourCode(item),
@@ -25238,23 +25291,20 @@
         };
         const priHex = resolveSwatchHexFromFields(soloFields);
         const secHex = variantSecondarySwatchHex(soloFields);
-        if (
-          priHex ||
-          secHex ||
-          hasSecondaryColourFields({
-            colour: soloFields.secondaryColour,
-            colourCode: soloFields.secondaryColourCode,
-          })
-        ) {
-          const swRow = document.createElement("div");
-          swRow.className = "card__swatches item-detail__colour-swatches";
+        const inlineRow = document.createElement("div");
+        inlineRow.className = "item-detail__colour-inline";
+        if (priHex || secHex || hasSecondaryColourFields({ colour: soloFields.secondaryColour, colourCode: soloFields.secondaryColourCode })) {
           const sw = document.createElement("span");
-          sw.className = "card__swatch card__swatch--detail card__swatch--colour-fill";
+          sw.className = "card__swatch card__swatch--colour-fill item-detail__colour-swatch-inline";
           sw.setAttribute("aria-hidden", "true");
           applyVariantSwatchFill(sw, soloFields);
-          swRow.appendChild(sw);
-          picker.appendChild(swRow);
+          inlineRow.appendChild(sw);
         }
+        const labelV = document.createElement("span");
+        labelV.className = "item-detail__colour-label-v";
+        labelV.textContent = col;
+        inlineRow.appendChild(labelV);
+        picker.appendChild(inlineRow);
         body.appendChild(picker);
       }
     }
@@ -25312,8 +25362,53 @@
       appendMeasurementDisplaySection(body, item);
     }
 
+    if (isItemPageView) {
+      appendItemDetailNavigation(body, item);
+    }
+
     root.appendChild(body);
     afterItemDetailPageRender(root, false);
+  }
+
+  function appendItemDetailNavigation(body, item) {
+    const allItems = sortItemsShowcaseArchive([...items]);
+    const idx = allItems.findIndex((i) => i.id === item.id);
+    if (idx === -1 || allItems.length < 2) return;
+    const prev = idx > 0 ? allItems[idx - 1] : null;
+    const next = idx < allItems.length - 1 ? allItems[idx + 1] : null;
+    if (!prev && !next) return;
+    const nav = document.createElement("nav");
+    nav.className = "item-detail__item-nav";
+    nav.setAttribute("aria-label", "Browse collection");
+    if (prev) {
+      const link = document.createElement("a");
+      link.href = buildItemPageUrl(prev.id).toString();
+      link.className = "item-detail__item-nav-link item-detail__item-nav-link--prev";
+      const dir = document.createElement("span");
+      dir.className = "item-detail__item-nav-dir";
+      dir.textContent = "← Previous Item";
+      const name = document.createElement("span");
+      name.className = "item-detail__item-nav-name";
+      name.textContent = displayNameWithoutLeadingColour(prev);
+      link.appendChild(dir);
+      link.appendChild(name);
+      nav.appendChild(link);
+    }
+    if (next) {
+      const link = document.createElement("a");
+      link.href = buildItemPageUrl(next.id).toString();
+      link.className = "item-detail__item-nav-link item-detail__item-nav-link--next";
+      const dir = document.createElement("span");
+      dir.className = "item-detail__item-nav-dir";
+      dir.textContent = "Next Item →";
+      const name = document.createElement("span");
+      name.className = "item-detail__item-nav-name";
+      name.textContent = displayNameWithoutLeadingColour(next);
+      link.appendChild(dir);
+      link.appendChild(name);
+      nav.appendChild(link);
+    }
+    body.appendChild(nav);
   }
 
   function replaceItemPageUrl(id, withEdit) {
@@ -25637,10 +25732,10 @@
           addToOutfit(String(outfitBtn.dataset.outfitAdd ?? ""));
           return;
         }
-        const copyAiBtn = t?.closest("#item-detail-copy-ai");
-        if (copyAiBtn instanceof HTMLButtonElement) {
+        const shareBtn = t?.closest("#item-detail-share");
+        if (shareBtn instanceof HTMLButtonElement) {
           const it = itemById.get(detailItemId);
-          if (it) void copyItemPlainTextForAi(it, { button: copyAiBtn });
+          if (it) void handleItemShareAction(it, shareBtn);
           return;
         }
         if (t?.closest("#item-detail-duplicate")) {
