@@ -4274,6 +4274,7 @@
       if (isTwEditorUser() || twEditorSession?.denied) clearTwLoginOAuthPending();
       applyTwAdminModeUi();
       installTwEditorAuthUi();
+      renderSavedOutfits();
       if (isTwAccountPage()) {
         void handleTwAccountPage();
         return;
