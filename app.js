@@ -17408,6 +17408,15 @@
     return d ? `Cloud save failed: ${d}` : "Cloud save failed.";
   }
 
+  function isoToLocalDateInput(iso) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
   function outfitDateFieldToIso() {
     const val = els.outfitDate?.value ?? "";
     if (!val) return null;
@@ -17705,7 +17714,7 @@
     editingSavedOutfitId = forEdit ? id : null;
     if (els.outfitName) els.outfitName.value = forEdit ? String(found.name ?? "").trim() : "";
     if (els.outfitNotes) els.outfitNotes.value = forEdit ? String(found.notes ?? "").trim() : "";
-    if (els.outfitDate) els.outfitDate.value = forEdit && found.createdAt ? new Date(found.createdAt).toISOString().slice(0, 10) : "";
+    if (els.outfitDate) els.outfitDate.value = forEdit && found.createdAt ? isoToLocalDateInput(found.createdAt) : "";
     syncOutfitSaveButtonLabel();
     onOutfitChange();
     openStylingBoardDrawer();
