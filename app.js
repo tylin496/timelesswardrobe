@@ -1,7 +1,16 @@
 (function () {
   const STORAGE_KEY = "timeless-wardrobe-outfits-v1";
+  const OUTFIT_TOKENS_KEY = "timeless-wardrobe-outfit-tokens-v1";
   /** User-visible label for the outfit builder (header, drawer, aria, toasts). */
   const OUTFITS_UI_NAME = "Outfits";
+
+  // Minimal SVG icons for outfit card actions (stroke-based, matches site language).
+  const OUTFIT_CARD_ICON = {
+    share: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3.5L12.5 7 9 10.5"/><path d="M12.5 7H5.5A2.5 2.5 0 003 9.5v.5"/></svg>',
+    edit: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10.5L9.5 3.5l2 2-7 7-2.5.5.5-2.5z"/></svg>',
+    delete: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h9M5.5 4.5V3h4v1.5M6 7v4M9 7v4M4 4.5l.5 7a1 1 0 001 .5h4a1 1 0 001-.5l.5-7"/></svg>',
+    duplicate: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="7.5" height="7.5" rx="1.2"/><path d="M9.5 5V3.5a1 1 0 00-1-1h-5a1 1 0 00-1 1v5a1 1 0 001 1H5"/></svg>',
+  };
 
   const STYLING_BOARD_DRAFT_KEY = "timeless-wardrobe-styling-board-draft-v1";
   const MAX_OUTFIT_ITEMS = 16;
@@ -16833,6 +16842,47 @@
       /* quota / private mode */
     }
   }
+
+  // ── Outfit owner-token storage (anonymous ownership) ──────────────────────
+  function loadOutfitTokens() {
+    try {
+      const raw = localStorage.getItem(OUTFIT_TOKENS_KEY);
+      if (!raw) return {};
+      const data = JSON.parse(raw);
+      return data && typeof data.tokens === "object" ? data.tokens : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveOutfitOwnerToken(id, token) {
+    try {
+      const tokens = loadOutfitTokens();
+      tokens[String(id)] = String(token);
+      localStorage.setItem(OUTFIT_TOKENS_KEY, JSON.stringify({ version: 1, tokens }));
+    } catch {
+      /* quota / private mode */
+    }
+  }
+
+  function getOutfitOwnerToken(id) {
+    return loadOutfitTokens()[String(id)] ?? null;
+  }
+
+  function isOutfitOwner(id) {
+    return Boolean(getOutfitOwnerToken(id));
+  }
+
+  function removeOutfitOwnerToken(id) {
+    try {
+      const tokens = loadOutfitTokens();
+      delete tokens[String(id)];
+      localStorage.setItem(OUTFIT_TOKENS_KEY, JSON.stringify({ version: 1, tokens }));
+    } catch {
+      /* quota / private mode */
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
 
   function normalizeStylingBoardDraftSlot(raw) {
     if (!raw || typeof raw !== "object") return null;

@@ -285,8 +285,8 @@ export async function fetchOutfits(client) {
   try {
     return await withNetworkRetries("fetchOutfits", async () => {
       const selectWithNotes =
-        "id, name, notes, created_at, outfit_items(item_id, sort_order, colour_key)";
-      const selectLegacy = "id, name, created_at, outfit_items(item_id, sort_order, colour_key)";
+        "id, name, notes, slug, created_at, outfit_items(item_id, sort_order, colour_key)";
+      const selectLegacy = "id, name, slug, created_at, outfit_items(item_id, sort_order, colour_key)";
       let data;
       let error;
       ({ data, error } = await client.from("outfits").select(selectWithNotes).order("created_at", { ascending: false }));
@@ -301,7 +301,7 @@ export async function fetchOutfits(client) {
         return { ok: false, error: error.message };
       }
 
-      /** @type {{ id: string, name: string, slots: { itemId: string, colourKey?: string }[], createdAt: string }[]} */
+      /** @type {{ id: string, name: string, slug?: string, slots: { itemId: string, colourKey?: string }[], createdAt: string }[]} */
       const outfits = [];
       for (const row of data || []) {
         const links = Array.isArray(row.outfit_items) ? row.outfit_items : [];
@@ -320,6 +320,7 @@ export async function fetchOutfits(client) {
           id: String(row.id),
           name: String(row.name ?? ""),
           notes: String(row.notes ?? ""),
+          slug: row.slug ? String(row.slug) : null,
           slots,
           createdAt: row.created_at
             ? new Date(row.created_at).toISOString()
@@ -331,6 +332,110 @@ export async function fetchOutfits(client) {
   } catch (e) {
     const msg = typeof e?.message === "string" ? e.message : String(e ?? "");
     return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Fetch a single outfit by slug or UUID (for URL routing).
+ * Returns only public fields — no token hash.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} slugOrId
+ */
+export async function fetchOutfitBySlugOrId(client, slugOrId) {
+  try {
+    const slugOrId_ = String(slugOrId ?? "").trim();
+    if (!slugOrId_) return { ok: false, error: "No slug or id provided" };
+
+    const selectCols = "id, name, notes, slug, created_at, outfit_items(item_id, sort_order, colour_key)";
+    // Try slug first, then fall back to id
+    let { data, error } = await client.from("outfits").select(selectCols).eq("slug", slugOrId_).maybeSingle();
+    if ((!data || error) && !error) {
+      ({ data, error } = await client.from("outfits").select(selectCols).eq("id", slugOrId_).maybeSingle());
+    }
+    if (error) return { ok: false, error: error.message };
+    if (!data) return { ok: false, error: "Outfit not found" };
+
+    const links = Array.isArray(data.outfit_items) ? data.outfit_items : [];
+    links.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const slots = links.map((x) => {
+      const itemId = String(x.item_id ?? "").trim();
+      const ck = String(x.colour_key ?? x.color_key ?? "").trim();
+      return ck ? { itemId, colourKey: ck } : { itemId };
+    });
+    return {
+      ok: true,
+      outfit: {
+        id: String(data.id),
+        name: String(data.name ?? ""),
+        notes: String(data.notes ?? ""),
+        slug: data.slug ? String(data.slug) : null,
+        slots,
+        createdAt: data.created_at ? new Date(data.created_at).toISOString() : new Date().toISOString(),
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: typeof e?.message === "string" ? e.message : String(e ?? "") };
+  }
+}
+
+/**
+ * Create a new outfit via Edge Function (visitor / anonymous path).
+ * Returns { ok: true, id, slug, ownerToken } or { ok: false, error }.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ name: string, notes?: string, slots: { itemId: string, colourKey?: string }[] }} record
+ */
+export async function createOutfitViaEdgeFunction(client, record) {
+  try {
+    const { data, error } = await client.functions.invoke("outfit-create", {
+      body: {
+        name: record.name,
+        notes: record.notes ?? "",
+        slots: record.slots ?? [],
+      },
+    });
+    if (error) return { ok: false, error: error.message ?? String(error) };
+    if (data?.error) return { ok: false, error: data.error };
+    return { ok: true, id: data.id, slug: data.slug, ownerToken: data.ownerToken };
+  } catch (e) {
+    return { ok: false, error: typeof e?.message === "string" ? e.message : String(e ?? "") };
+  }
+}
+
+/**
+ * Update or delete an outfit via Edge Function (visitor / anonymous path).
+ * Requires the raw ownerToken that was stored in localStorage at creation.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ outfitId: string, ownerToken: string, action: 'update' | 'delete', name?: string, notes?: string, slots?: { itemId: string, colourKey?: string }[] }} opts
+ */
+export async function mutateOutfitViaEdgeFunction(client, opts) {
+  try {
+    const { data, error } = await client.functions.invoke("outfit-mutate", {
+      body: opts,
+    });
+    if (error) return { ok: false, error: error.message ?? String(error) };
+    if (data?.error) return { ok: false, error: data.error };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: typeof e?.message === "string" ? e.message : String(e ?? "") };
+  }
+}
+
+/**
+ * Duplicate an outfit via Edge Function.
+ * Returns { ok: true, id, slug, ownerToken, slots } or { ok: false, error }.
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} sourceOutfitId
+ */
+export async function duplicateOutfitViaEdgeFunction(client, sourceOutfitId) {
+  try {
+    const { data, error } = await client.functions.invoke("outfit-duplicate", {
+      body: { sourceOutfitId },
+    });
+    if (error) return { ok: false, error: error.message ?? String(error) };
+    if (data?.error) return { ok: false, error: data.error };
+    return { ok: true, id: data.id, slug: data.slug, ownerToken: data.ownerToken, slots: data.slots ?? [] };
+  } catch (e) {
+    return { ok: false, error: typeof e?.message === "string" ? e.message : String(e ?? "") };
   }
 }
 
