@@ -21375,7 +21375,7 @@ video.ed-lp__hero-layer-video {
   max-width: var(--hero-body-copy-max, min(19rem, 90%));
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(0.8rem, 2.35vw, 0.94rem);
-  font-style: normal;
+  font-style: italic;
   font-weight: 400;
   letter-spacing: 0.045em;
   line-height: 1.26;
@@ -21412,7 +21412,7 @@ video.ed-lp__hero-layer-video {
   .ed-lp__hero-inner {
     --hero-body-copy-max: min(20.9rem, 90%);
     --hero-eyebrow-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
-    --hero-body-line-gap: 0.066rem;
+    --hero-body-line-gap: clamp(0.45rem, 1.2vh, 0.65rem);
     --hero-cta-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
   }
 
