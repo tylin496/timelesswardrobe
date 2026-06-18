@@ -11408,8 +11408,8 @@ body.tw-outfit-drag-active * {
   max-width: 100%;
   min-height: 5.9rem;
   margin: 0;
-  padding: 0.08rem 0.5rem 0.4rem;
-  overflow: visible;
+  padding: 0.08rem 0.9rem 0.4rem;
+  overflow: hidden;
   background: transparent;
   isolation: isolate;
 }
@@ -11441,7 +11441,7 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
-  margin-left: -0.44rem;
+  margin-left: -1.0rem;
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(n) {
