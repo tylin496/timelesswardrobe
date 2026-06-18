@@ -11744,6 +11744,53 @@ body.tw-outfit-drag-active * {
   outline-offset: 2px;
 }
 
+/* ── Icon-only action buttons (replace text VIEW/EDIT/DELETE) ──────────── */
+.styling-board-drawer [data-outfit-open] {
+  cursor: pointer;
+}
+
+.styling-board-drawer .saved-card__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--sb-ink) 58%, transparent);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.16s var(--ease-out), background 0.16s var(--ease-out);
+}
+
+.styling-board-drawer .saved-card__icon-btn:hover {
+  color: var(--tw-brand-signature-navy, #163229);
+  background: color-mix(in srgb, var(--sb-ink) 6%, transparent);
+}
+
+.styling-board-drawer .saved-card__icon-btn:active {
+  opacity: 0.72;
+  transition-duration: 80ms;
+}
+
+.styling-board-drawer .saved-card__icon-btn:focus-visible {
+  outline: 2px solid var(--tw-brand-signature-navy, #163229);
+  outline-offset: 1px;
+}
+
+.styling-board-drawer .saved-card__icon-btn--danger {
+  color: color-mix(in srgb, var(--sb-danger) 72%, transparent);
+}
+
+.styling-board-drawer .saved-card__icon-btn--danger:hover {
+  color: var(--sb-danger);
+  background: color-mix(in srgb, var(--sb-danger) 8%, transparent);
+}
+/* ─────────────────────────────────────────────────────────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
   .styling-board-drawer .saved-card--enter {
     animation: none;

@@ -2413,6 +2413,7 @@
       id: o.id,
       name: o.name,
       notes: typeof o.notes === "string" ? o.notes : "",
+      slug: typeof o.slug === "string" && o.slug ? o.slug : null,
       createdAt: typeof o.createdAt === "string" ? o.createdAt : new Date().toISOString(),
       slots,
     };
@@ -17561,25 +17562,34 @@
   }
 
   async function duplicateOutfit(id) {
-    if (!supabaseClient) {
-      showToast("Cloud not available — cannot duplicate.");
+    // Look up slots locally first; fall back to a DB fetch for outfits not yet in savedOutfits.
+    let source = savedOutfits.find((o) => o.id === id) ?? null;
+    if (!source && supabaseClient) {
+      showToast("Loading…");
+      try {
+        const api = await import("./js/supabase-client.js");
+        const res = await api.fetchOutfitBySlugOrId(supabaseClient, id);
+        if (!res.ok || !res.outfit) {
+          showToast("Could not load outfit.");
+          return;
+        }
+        source = res.outfit;
+      } catch {
+        showToast("Could not load outfit.");
+        return;
+      }
+    }
+    if (!source) {
+      showToast("Outfit not found.");
       return;
     }
-    showToast("Duplicating…");
-    const api = await import("./js/supabase-client.js");
-    const res = await api.duplicateOutfitViaEdgeFunction(supabaseClient, id);
-    if (!res.ok) {
-      showToast(`Duplicate failed: ${res.error}`);
-      return;
-    }
-    // Store ownership token for the new copy.
-    saveOutfitOwnerToken(res.id, res.ownerToken);
-    // Load the duplicated slots into the builder (user must save explicitly).
-    const validSlots = (res.slots ?? []).filter((s) => {
+    // Preload builder only — no DB write until the user names the outfit and saves.
+    const rawSlots = outfitSlotsFromRecord(source);
+    const valid = rawSlots.filter((s) => {
       const it = itemById.get(s.itemId);
       return it && itemEligibleForOutfit(it);
     });
-    currentOutfitSlots = validSlots;
+    currentOutfitSlots = valid;
     editingSavedOutfitId = null;
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
@@ -17587,7 +17597,7 @@
     onOutfitChange();
     openStylingBoardDrawer();
     setStylingBoardSaveFormOpen(true);
-    showToast("Duplicate loaded — name it and save to keep it.");
+    showToast("Pieces loaded — name the outfit and save to keep it.");
   }
 
   /**

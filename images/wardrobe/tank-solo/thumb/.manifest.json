@@ -6,5 +6,9 @@
   "2.webp": {
     "srcHash": "ef4773b16e51a4b11f2cdfa06cf91bab",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "3.webp": {
+    "srcHash": "31f6fe183f9542399e9ae48628b48da9",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   }
 }
