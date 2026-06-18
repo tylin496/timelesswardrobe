@@ -3083,7 +3083,16 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   body.account-page .site-header__brand-nav .site-header__tools {
     margin-left: auto;
   }
+}
 
+@media (min-width: 1025px) {
+  /* No nav links on account page — stretch bar to full width so ml-auto on tools works. */
+  body.account-page .site-header__brand-nav {
+    flex: 1 0 0%;
+  }
+}
+
+@media (max-width: 1024px) {
   body.collection-ui--search-results-plp .items-toolbar {
     padding-top: 0;
     padding-bottom: 0.35rem;
