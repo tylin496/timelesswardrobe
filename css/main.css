@@ -11507,7 +11507,6 @@ body.tw-outfit-drag-active * {
   color: color-mix(in srgb, var(--sb-ink) 94%, var(--sb-ink-muted));
 }
 
-/* Reorder: body (name + meta) first, item strip below */
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
   align-items: flex-end;
@@ -11520,16 +11519,16 @@ body.tw-outfit-drag-active * {
   overflow: visible;
   background: transparent;
   isolation: isolate;
-  order: 1;
 }
 
 .styling-board-drawer .saved-card__footer {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  align-items: baseline;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.18rem 0.4rem;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem 0.28rem 0.65rem;
 }
 
 .styling-board-drawer .saved-card__piece {
@@ -11620,22 +11619,23 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__body {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
   min-width: 0;
-  padding: 0.38rem 0.65rem 0.1rem;
-  order: 0;
+  padding: 0.38rem 0.65rem 0.12rem;
 }
 
 .styling-board-drawer .saved-card__meta {
   margin: 0;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.58rem;
   font-weight: 400;
   line-height: 1.3;
   letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--sb-ink-muted) 80%, transparent);
+  color: color-mix(in srgb, var(--sb-ink-muted) 72%, transparent);
 }
 
 .styling-board-drawer .saved-card__actions {
@@ -11709,16 +11709,16 @@ body.tw-outfit-drag-active * {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   margin: 0;
   padding: 0;
   appearance: none;
   border: none;
   background: transparent;
-  color: color-mix(in srgb, var(--sb-ink) 58%, transparent);
+  color: color-mix(in srgb, var(--sb-ink) 38%, transparent);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: color 0.16s var(--ease-out), background 0.16s var(--ease-out);
 }
 
