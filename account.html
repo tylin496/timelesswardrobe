@@ -116,6 +116,257 @@
       <div id="account-body" class="account-body" hidden></div>
     </main>
 
+    <div
+      id="site-header-search-wrap"
+      class="site-header__search-wrap desktop-search-flyout"
+      data-search-state="closed"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="site-header__search-dim" aria-hidden="true"></div>
+      <div class="desktop-search-flyout-inner site-header__search-megamenu-inner">
+        <div class="site-header__search-surface">
+          <div class="site-header__search-top">
+            <div class="site-header__search-head">
+            <div class="site-header__search-row site-header__search-field--rl">
+              <span class="site-header__search-field-icon site-header__search-icon" aria-hidden="true">
+                <svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>
+                  <line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>
+                </svg>
+              </span>
+              <label class="site-header__search-input-label" for="filter-search">
+                <span class="filters__search-field">
+                <input
+                  id="filter-search"
+                  type="search"
+                  aria-label="Search wardrobe"
+                  placeholder="Search"
+                  autocomplete="off"
+                  spellcheck="false"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  enterkeyhint="search"
+                  title="Search wardrobe by brand, name, category, season, colour, notes…"
+                />
+                <button
+                  type="button"
+                  id="filter-search-clear"
+                  class="filters__search-clear"
+                  aria-label="Clear search"
+                  hidden
+                >
+                  <span class="filters__search-clear-icon" aria-hidden="true">×</span>
+                </button>
+                </span>
+              </label>
+            </div>
+            </div>
+            <button
+              type="button"
+              id="site-header-search-close"
+              class="site-header__search-close"
+              aria-label="Close search"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div id="site-header-search-browse" class="site-header__search-browse">
+            <div class="site-header__search-dropdown-body">
+              <section
+                class="site-header__search-dropdown-aside site-header__search-dropdown-aside--trending"
+                aria-label="Trending searches"
+              >
+                <p class="site-header__search-trending-heading">Trending Searches</p>
+                <nav class="site-header__search-trending-aside-nav" aria-label="Trending searches">
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Polo shirt">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Polo Shirt</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Bags">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Bags</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Watches">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Watches</span>
+                  </button>
+                  <button type="button" class="site-header__search-trending-row" data-trending-search="Fragrance">
+                    <span class="site-header__search-trending-chip-icon" aria-hidden="true"></span>
+                    <span>Fragrance</span>
+                  </button>
+                </nav>
+              </section>
+              <section
+                id="site-header-search-recent-block"
+                class="site-header__search-dropdown-aside site-header__search-dropdown-aside--recent"
+                hidden
+                aria-label="Recent searches"
+              >
+                <p class="site-header__search-recent-heading">Recent Searches</p>
+                <nav
+                  id="site-header-search-recent-nav"
+                  class="site-header__search-recent-nav"
+                  aria-label="Recent searches"
+                ></nav>
+              </section>
+              <section class="site-header__search-dropdown-main" aria-label="Popular categories">
+                <p class="site-header__search-main-heading">Popular Categories</p>
+                <div class="site-header__search-category-scroller-wrap">
+                  <div
+                    id="site-header-search-featured-subcats"
+                    class="site-header__search-category-grid"
+                    role="list"
+                    aria-label="Featured subcategories"
+                  ></div>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div
+            id="site-header-search-results-pane"
+            class="site-header__search-results-pane"
+            hidden
+            aria-live="polite"
+          >
+            <div id="site-header-search-results-empty" class="site-header__search-results-empty" hidden>
+              <p class="site-header__search-results-empty__title">No results found</p>
+              <p class="site-header__search-results-empty__hint">Try another search term.</p>
+            </div>
+            <div
+              id="site-header-search-results-grid"
+              class="site-header__search-results-grid"
+              role="list"
+              aria-label="Search results"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="styling-board-drawer__backdrop"
+        id="styling-board-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close Outfits"
+      ></button>
+      <div
+        class="styling-board-drawer__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="styling-board-heading"
+      >
+        <header class="styling-board-drawer__header">
+          <div class="styling-board-drawer__status" id="styling-board-drawer-status" hidden>
+            <span class="styling-board-drawer__status-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="styling-board-drawer__status-text" id="styling-board-drawer-status-text">Added to Outfits</p>
+          </div>
+          <h2 id="styling-board-heading" class="styling-board-drawer__title">My Outfits</h2>
+          <button
+            type="button"
+            class="styling-board-drawer__close"
+            id="styling-board-drawer-close"
+            aria-label="Close Outfits"
+          >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3.5" y1="3.5" x2="14.5" y2="14.5"/><line x1="14.5" y1="3.5" x2="3.5" y2="14.5"/></svg>
+          </button>
+        </header>
+        <div class="styling-board-drawer__scroll">
+          <section
+            id="styling-board-drawer-added"
+            class="styling-board-drawer__added"
+            hidden
+            aria-labelledby="styling-board-drawer-status-text"
+          >
+            <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+          </section>
+          <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
+            <div class="styling-board__current-head">
+              <h3 id="styling-board-current-heading" class="styling-board__section-title">Current outfit</h3>
+              <button
+                type="button"
+                class="btn btn--ghost styling-board__clear-link styling-board__clear-link--head"
+                id="outfit-clear"
+                hidden
+                aria-label="Clear All pieces from Outfits"
+              >
+                Clear All
+              </button>
+            </div>
+            <div class="styling-board__board-row">
+              <div class="styling-board__board-stack">
+                <div
+                  id="outfit-strip"
+                  class="styling-board__pieces outfit-strip"
+                  role="list"
+                  aria-label="Pieces on outfits"
+                ></div>
+              </div>
+            </div>
+            <p id="outfit-empty" class="styling-board__empty" hidden>
+              Save pieces here to build outfits from the collection.
+            </p>
+            <div
+              id="styling-board-save-form"
+              class="styling-board__save outfit-actions"
+              hidden
+              aria-label="Name and save outfit"
+            >
+              <label class="field field--inline">
+                <span class="field__label">Outfit name</span>
+                <input
+                  id="outfit-name"
+                  type="text"
+                  maxlength="80"
+                  placeholder="e.g. Monday · tonal layers"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--notes">
+                <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
+                <textarea
+                  id="outfit-notes"
+                  class="styling-board__notes"
+                  rows="1"
+                  maxlength="500"
+                  placeholder="Occasion, weather, or styling notes"
+                ></textarea>
+              </label>
+              <label class="field field--inline">
+                <span class="field__label">Date <span class="field__label-optional">(optional)</span></span>
+                <input
+                  id="outfit-date"
+                  type="date"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+          </section>
+          <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
+            <h3 class="saved-outfits__title styling-board__section-title" id="saved-outfits-heading">Saved outfits</h3>
+            <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
+            <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
+              No saved outfits yet. Add pieces to Outfits, name your look, and save.
+            </p>
+          </section>
+        </div>
+        <footer class="styling-board-drawer__footer">
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
+            Save Outfit
+          </button>
+          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+            Continue Browsing
+          </button>
+        </footer>
+      </div>
+    </div>
+
     <script src="data/wardrobe.js"></script>
     <script src="js/tw-supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
