@@ -11431,6 +11431,7 @@
         if (max <= 4) return;
         const absX = Math.abs(e.deltaX);
         const absY = Math.abs(e.deltaY);
+        if (isOutfitStripRailScroller(scroller) && absY > absX) return;
         const horizontalDelta = absX > absY ? e.deltaX : e.deltaY;
         if (Math.abs(horizontalDelta) < 1) return;
         const el = getScrollEl();
