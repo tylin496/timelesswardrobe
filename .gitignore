@@ -14,3 +14,4 @@ data/wardrobe.json
 data/local/*.json
 data/local/*.txt
 !data/local/.gitkeep
+.vercel
