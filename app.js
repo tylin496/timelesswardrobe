@@ -11737,6 +11737,7 @@
     if (!siteHeader || !shell) return;
 
     const hero = document.querySelector(".ed-lp__hero");
+    const heroInner = hero?.querySelector(".ed-lp__hero-inner") ?? null;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -11759,6 +11760,12 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
+      if (heroInner) {
+        const copyBottom = heroInner.getBoundingClientRect().bottom;
+        const fadeRange = 120;
+        const opacity = Math.min(1, Math.max(0, (copyBottom - siteHeader.offsetHeight) / fadeRange));
+        heroInner.style.opacity = opacity < 1 ? opacity.toFixed(3) : "";
+      }
     };
 
     if (initHomeHeroHeader._wired) {
@@ -11792,6 +11799,7 @@
       siteHeader.classList.add("site-header--solid");
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
+      if (heroInner) heroInner.style.opacity = "";
     };
   }
 
