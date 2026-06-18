@@ -7121,7 +7121,7 @@
     const min = Math.max(1, Number(options.min) || 12);
     const max = Math.max(min, Number(options.max) || 18);
     const target = Math.min(max, Math.max(min, Number(options.target) || 15));
-    const sorted = sortItemsShowcaseArchive(Array.isArray(pool) ? pool : []);
+    const shuffled = (Array.isArray(pool) ? pool.slice() : []).sort(() => Math.random() - 0.5);
     /** @type {object[]} */
     const picked = [];
     /** @type {Set<string>} */
@@ -7141,15 +7141,12 @@
       return true;
     };
 
-    for (const item of sorted.filter((it) => itemFeaturedRank(it) >= 2).slice(0, 9)) {
-      tryAdd(item, { force: true });
-    }
-    for (const item of sorted) {
+    for (const item of shuffled) {
       if (picked.length >= target) break;
       tryAdd(item);
     }
     if (picked.length < min) {
-      for (const item of sorted) {
+      for (const item of shuffled) {
         if (picked.length >= min) break;
         tryAdd(item, { force: true });
       }
