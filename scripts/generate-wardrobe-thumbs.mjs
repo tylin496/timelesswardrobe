@@ -59,7 +59,7 @@ function saveManifest(thumbDir, manifest) {
 async function buildThumb(srcPath, outPath) {
   // Resize item cutout to fit within the frame (preserves aspect ratio).
   const itemBuffer = await sharp(srcPath)
-    .resize({ width: MAX_WIDTH, height: MAX_HEIGHT, fit: "inside", withoutEnlargement: true })
+    .resize({ width: MAX_WIDTH, height: MAX_HEIGHT, fit: "inside" })
     .toBuffer();
 
   // Composite item onto background, north-aligned to match CSS flex-start.
