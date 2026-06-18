@@ -114,6 +114,13 @@ function toRows(items) {
   });
 }
 
+/**
+ * Metadata keys managed at runtime (via the UI / Supabase directly).
+ * The seed import must never overwrite these — they are preserved from
+ * the existing Supabase row regardless of what the seed file contains.
+ */
+const RUNTIME_METADATA_KEYS = ["showcase_rank"];
+
 const useJson = process.env.USE_JSON === "1" || process.env.USE_JSON === "true";
 const rawItems = useJson ? loadItemsFromJson() : loadItemsFromJs();
 const rows = toRows(rawItems);
@@ -122,10 +129,44 @@ const client = createClient(url, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+// Fetch existing metadata so runtime-managed keys survive the upsert.
+const { data: existingRows, error: fetchErr } = await client
+  .from("wardrobe_items")
+  .select("id, metadata");
+if (fetchErr) {
+  console.error("Failed to fetch existing metadata:", fetchErr.message);
+  process.exit(1);
+}
+const existingMetaById = new Map(
+  (existingRows ?? []).map((r) => [String(r.id), r.metadata])
+);
+
+function mergePreservingRuntime(seedMeta, existingMeta) {
+  const merged = { ...(seedMeta ?? {}) };
+  if (existingMeta && typeof existingMeta === "object") {
+    for (const key of RUNTIME_METADATA_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(existingMeta, key)) {
+        // Preserve the runtime value (even null = user explicitly cleared it).
+        if (existingMeta[key] == null) {
+          delete merged[key];
+        } else {
+          merged[key] = existingMeta[key];
+        }
+      }
+    }
+  }
+  return Object.keys(merged).length ? merged : null;
+}
+
+const safeRows = rows.map((row) => ({
+  ...row,
+  metadata: mergePreservingRuntime(row.metadata, existingMetaById.get(row.id)),
+}));
+
 const chunkSize = 200;
 let inserted = 0;
-for (let i = 0; i < rows.length; i += chunkSize) {
-  const chunk = rows.slice(i, i + chunkSize);
+for (let i = 0; i < safeRows.length; i += chunkSize) {
+  const chunk = safeRows.slice(i, i + chunkSize);
   const { error } = await client.from("wardrobe_items").upsert(chunk, {
     onConflict: "id",
   });
@@ -134,7 +175,7 @@ for (let i = 0; i < rows.length; i += chunkSize) {
     process.exit(1);
   }
   inserted += chunk.length;
-  console.error(`Upserted ${inserted} / ${rows.length}`);
+  console.error(`Upserted ${inserted} / ${safeRows.length}`);
 }
 
-console.log(`Done. Upserted ${rows.length} wardrobe_items.`);
+console.log(`Done. Upserted ${safeRows.length} wardrobe_items.`);
