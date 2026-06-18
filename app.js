@@ -16863,6 +16863,11 @@
     }
     toastEl.textContent = text;
     toastEl.hidden = false;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        toastEl.classList.add("outfit-toast--visible");
+      });
+    });
     toastTimer = setTimeout(() => {
       dismissOutfitToastAnimated(toastEl, () => {
         toastTimer = null;
