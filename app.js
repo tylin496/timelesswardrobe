@@ -30621,6 +30621,13 @@
 
     initOutfitVariantDialog();
 
+    if (els.outfitStrip) {
+      els.outfitStrip.addEventListener(
+        "wheel",
+        (e) => { e.preventDefault(); },
+        { passive: false }
+      );
+    }
 
     if (els.outfitSave) {
       els.outfitSave.addEventListener("click", handleOutfitSaveClick);
