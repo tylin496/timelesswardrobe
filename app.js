@@ -17451,9 +17451,9 @@
       persistSavedOutfitsCache();
       editingSavedOutfitId = null;
       syncOutfitSaveButtonLabel();
-      if (els.outfitName) els.outfitName.value = “”;
-      if (els.outfitNotes) els.outfitNotes.value = “”;
-      if (els.outfitDate) els.outfitDate.value = “”;
+      if (els.outfitName) els.outfitName.value = "";
+      if (els.outfitNotes) els.outfitNotes.value = "";
+      if (els.outfitDate) els.outfitDate.value = "";
       setStylingBoardSaveFormOpen(false);
       renderSavedOutfits();
       resetCurrentOutfitAfterSave();
