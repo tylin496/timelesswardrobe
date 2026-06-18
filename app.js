@@ -10934,21 +10934,20 @@
       let displaySrc = cover;
       let displayKind = /** @type {"cover" | "gallery"} */ ("cover");
 
-      if (mode === "gallery") {
-        const galleryPool = homeEditorialGalleryPool(item);
+      const galleryPool = homeEditorialGalleryPool(item);
+      if (galleryPool.length > 0) {
         const available = galleryPool.filter((u) => !usedUrls.has(u));
         const pickFrom = available.length ? available : galleryPool;
         displaySrc = pickWeightedHomeEditorialGalleryUrl(pickFrom, cover) || cover;
         displayKind = "gallery";
+      } else if (mode === "gallery") {
+        displayKind = "gallery";
       }
 
       if (usedUrls.has(displaySrc)) {
-        if (mode === "gallery") {
-          const alt = homeEditorialGalleryPool(item).find((u) => !usedUrls.has(u));
-          if (alt) displaySrc = alt;
-        } else if (cover && !usedUrls.has(cover)) {
-          displaySrc = cover;
-        }
+        const alt = galleryPool.find((u) => !usedUrls.has(u));
+        if (alt) displaySrc = alt;
+        else if (cover && !usedUrls.has(cover)) displaySrc = cover;
       }
 
       if (displaySrc) usedUrls.add(displaySrc);
