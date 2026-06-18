@@ -11094,6 +11094,7 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .field--inline input[type="text"],
+.styling-board-drawer .field--inline input[type="date"],
 .styling-board-drawer .styling-board__notes {
   color: var(--sb-ink);
   background: var(--sb-drawer-bg);
@@ -11118,7 +11119,7 @@ body.tw-outfit-drag-active * {
   resize: vertical;
 }
 
-/* Name + date stack left; notes spans full right column. */
+/* Name left, notes right (same row); date below name. */
 .styling-board-drawer #styling-board-save-form.outfit-actions {
   display: grid;
   grid-template-columns: minmax(9rem, 0.44fr) minmax(0, 0.56fr);
@@ -11141,7 +11142,7 @@ body.tw-outfit-drag-active * {
 
 .styling-board-drawer #styling-board-save-form .field--notes {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
 }
@@ -11152,19 +11153,22 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
+.styling-board-drawer #styling-board-save-form .field--inline input[type="date"],
 .styling-board-drawer #styling-board-save-form .styling-board__notes {
   width: 100%;
   box-sizing: border-box;
 }
 
-.styling-board-drawer #styling-board-save-form .field--inline input[type="text"] {
+.styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
+.styling-board-drawer #styling-board-save-form .field--inline input[type="date"] {
   height: 2.85rem;
 }
 
 .styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
-  flex: 1 1 auto;
-  min-height: 5.5rem;
+  height: 2.85rem;
+  min-height: 0;
   resize: none;
+  overflow-y: auto;
 }
 
 @media (max-width: 520px) {
@@ -11180,15 +11184,17 @@ body.tw-outfit-drag-active * {
   }
 
   .styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
-    min-height: 3.25rem;
+    height: 2.85rem;
+    min-height: 0;
     flex: none;
-    resize: vertical;
+    resize: none;
   }
 }
 
 @media (max-width: 900px) {
   /* iOS Safari zoom guard: keep editable controls at >=16px while typing in Outfits drawer. */
   .styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
+  .styling-board-drawer #styling-board-save-form .field--inline input[type="date"],
   .styling-board-drawer #styling-board-save-form .styling-board__notes {
     font-size: 16px;
     line-height: 1.4;
