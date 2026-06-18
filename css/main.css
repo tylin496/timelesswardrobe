@@ -9701,26 +9701,35 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 
   /* Current Outfit: horizontal rail only — calm swipe, no overlap theatrics. */
-  .styling-board-drawer .styling-board__board-row,
+  .styling-board-drawer .styling-board__board-row {
+    overflow: visible;
+    min-width: 0;
+    margin-inline: calc(-1 * var(--styling-board-scroll-inline));
+    width: calc(100% + 2 * var(--styling-board-scroll-inline));
+    max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+  }
+
   .styling-board-drawer .styling-board__board-stack {
     overflow: visible;
   }
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip {
     gap: 0.55rem;
-    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem env(safe-area-inset-left, 0px);
-    scroll-padding-inline: 0;
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
+    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-end: 0;
   }
 
   .styling-board-drawer .styling-board__pieces.outfit-strip {
     gap: 0.55rem;
     width: 100%;
     max-width: 100%;
-    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem env(safe-area-inset-left, 0px);
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x proximity;
-    scroll-padding-inline: 0;
+    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-end: 0;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
@@ -10921,7 +10930,14 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     scroll-margin-bottom: 0.35rem;
   }
 
-  .styling-board-drawer .styling-board__board-row,
+  .styling-board-drawer .styling-board__board-row {
+    overflow: visible;
+    min-width: 0;
+    margin-inline: calc(-1 * var(--styling-board-scroll-inline));
+    width: calc(100% + 2 * var(--styling-board-scroll-inline));
+    max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+  }
+
   .styling-board-drawer .styling-board__board-stack {
     overflow: visible;
     width: 100%;
@@ -10937,10 +10953,10 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     --outfit-strip-end-pad: max(0px, calc(100% - var(--outfit-strip-card-w)));
     padding-top: 0.4rem;
     padding-bottom: 0.55rem;
-    padding-left: 0;
-    padding-right: var(--outfit-strip-end-pad);
-    scroll-padding-inline-start: 0;
-    scroll-padding-inline-end: var(--outfit-strip-end-pad);
+    padding-left: var(--styling-board-scroll-inline);
+    padding-right: env(safe-area-inset-right, 0px);
+    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-end: 0;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--sb-ink) 26%, transparent) transparent;
     touch-action: auto;
