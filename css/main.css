@@ -20894,11 +20894,6 @@ body.home-page .ed-lp__hero-inner {
   max-width: none;
   padding-left: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
   padding-right: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
-  padding-top: clamp(1.25rem, 2.5vh, 2rem);
-  padding-bottom: clamp(1.25rem, 2.5vh, 2rem);
-  background: rgba(12, 10, 8, 0.22);
-  -webkit-backdrop-filter: blur(10px) saturate(1.1);
-  backdrop-filter: blur(10px) saturate(1.1);
 }
 
 body.home-page .ed-lp__season-grid {
