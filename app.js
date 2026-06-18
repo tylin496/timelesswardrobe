@@ -17505,7 +17505,7 @@
       setStylingBoardSaveFormOpen(false);
       renderSavedOutfits();
       resetCurrentOutfitAfterSave();
-      showToast(`Updated: “${name}”`, { variant: “success” });
+      showToast(`Updated: “${name}”`, { variant: "success" });
       return;
     }
 
@@ -17557,7 +17557,7 @@
     setStylingBoardSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
-    showToast(`Saved outfit: “${name}”`, { variant: “success” });
+    showToast(`Saved outfit: “${name}”`, { variant: "success" });
   }
 
   async function deleteSavedOutfit(id) {
