@@ -30631,7 +30631,10 @@
       const hit = byId.get(id);
       if (!hit) return { ...row };
       if (isLocalCatalogueItemId(row.id)) {
-        return { ...row };
+        // Keep local media but merge cloud metadata (e.g. showcase_rank, notes overrides).
+        const cloudMeta = hit?.metadata && typeof hit.metadata === "object" ? hit.metadata : null;
+        if (!cloudMeta) return { ...row };
+        return { ...row, metadata: { ...(row.metadata ?? {}), ...cloudMeta } };
       }
       return carryForwardMediaNonce(row, hit);
     });
