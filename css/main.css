@@ -11607,6 +11607,10 @@ body.tw-outfit-drag-active * {
   transform: rotate(2deg) translateY(-1px);
 }
 
+.styling-board-drawer .saved-card__piece {
+  filter: drop-shadow(0 2px 7px rgba(20, 19, 18, 0.10));
+}
+
 .styling-board-drawer .saved-card__piece img {
   width: 100%;
   height: 100%;
@@ -11616,7 +11620,7 @@ body.tw-outfit-drag-active * {
   border: none;
   border-radius: 0;
   display: block;
-  filter: drop-shadow(0 2px 7px rgba(20, 19, 18, 0.08));
+  mix-blend-mode: multiply;
 }
 
 @media (max-width: 900px) {
