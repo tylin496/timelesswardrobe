@@ -23184,10 +23184,6 @@
       wireCoverImageWithFallbacks(simg, proj, {
         host: thumb,
         missingClass: null,
-        coverRenderWidth: 132,
-        coverRenderHeight: 176,
-        coverRenderQuality: 78,
-        coverRenderResize: "contain",
         onExhausted: () => {
           thumb.style.background = "transparent";
         },
