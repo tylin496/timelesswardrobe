@@ -11482,8 +11482,8 @@ body.tw-outfit-drag-active * {
   min-height: unset;
   padding: 0;
   overflow: hidden;
-  background: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
-  border: var(--wardrobe-card-border, 1px solid rgba(24, 55, 47, 0.06));
+  background: color-mix(in srgb, var(--bg, #f7f4ed) 91%, #5c4d3a);
+  border: 1px solid rgba(24, 55, 47, 0.08);
   border-radius: var(--wardrobe-card-radius, 12px);
   box-shadow: var(--wardrobe-card-shadow);
   transition:
