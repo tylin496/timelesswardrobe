@@ -33,7 +33,7 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
   try {
-    const { name, notes, slots } = await req.json();
+    const { name, notes, slots, created_at } = await req.json();
     if (!name || !String(name).trim()) {
       return new Response(JSON.stringify({ error: "name is required" }), {
         status: 400,
@@ -62,7 +62,13 @@ serve(async (req) => {
       notes: notes ? String(notes).trim() || null : null,
       slug,
       owner_token_hash: tokenHash,
-      created_at: new Date().toISOString(),
+      created_at: (() => {
+        if (created_at) {
+          const d = new Date(String(created_at));
+          if (!Number.isNaN(d.getTime())) return d.toISOString();
+        }
+        return new Date().toISOString();
+      })(),
     });
     if (outfitErr) throw new Error(outfitErr.message);
 

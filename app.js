@@ -17550,6 +17550,7 @@
             name: record.name,
             notes: record.notes,
             slots: record.slots,
+            created_at: record.createdAt,
           });
           if (!res.ok) {
             showToast(toastForOutfitCloudFkFailure(res.error));

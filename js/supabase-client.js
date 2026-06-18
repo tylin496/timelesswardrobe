@@ -398,6 +398,7 @@ export async function createOutfitViaEdgeFunction(client, record) {
         name: record.name,
         notes: record.notes ?? "",
         slots: record.slots ?? [],
+        ...(record.created_at ? { created_at: record.created_at } : {}),
       },
     });
     if (error) return { ok: false, error: error.message ?? String(error) };
