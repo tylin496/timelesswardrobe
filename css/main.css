@@ -10087,13 +10087,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   background: transparent;
   color: var(--sb-ink-soft);
   cursor: pointer;
-  padding: 0.15rem 0.25rem;
+  padding: 0.2rem;
   line-height: 1;
   justify-self: end;
 }
 
-.styling-board-drawer__close span {
+.styling-board-drawer__close svg {
   display: block;
+  width: 1rem;
+  height: 1rem;
 }
 
 .styling-board-drawer--added .styling-board-drawer__close {
@@ -10273,13 +10275,21 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 .styling-board-drawer__cta--secondary {
-  border: 1px solid var(--tw-brand-signature-navy, #163229);
-  background: var(--sb-drawer-bg);
-  color: var(--tw-brand-signature-navy, #163229);
+  border: 1px solid transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 72%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 32%, transparent);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .styling-board-drawer__cta--secondary:hover {
-  background: rgba(8, 41, 74, 0.04);
+  color: var(--tw-brand-signature-navy, #163229);
+  text-decoration-color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 58%, transparent);
+  background: transparent;
 }
 
 .styling-board-drawer__cta:focus-visible {
@@ -11228,12 +11238,13 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .field__label {
-  color: var(--sb-ink);
-  font-weight: 600;
+  color: color-mix(in srgb, var(--sb-ink) 72%, var(--sb-ink-muted));
+  font-weight: 500;
+  letter-spacing: 0.1em;
 }
 
 .styling-board-drawer .field--notes .field__label-optional {
-  font-weight: 500;
+  font-weight: 400;
   color: var(--sb-ink-muted);
 }
 
@@ -11262,12 +11273,13 @@ body.tw-outfit-drag-active * {
   resize: vertical;
 }
 
-/* Name + notes: shared label baseline, matched control height (not flex-end stagger). */
+/* Name + date stack left; notes spans full right column. */
 .styling-board-drawer #styling-board-save-form.outfit-actions {
   display: grid;
   grid-template-columns: minmax(9rem, 0.44fr) minmax(0, 0.56fr);
+  grid-template-rows: auto auto;
   column-gap: 0.85rem;
-  row-gap: 0;
+  row-gap: 0.65rem;
   align-items: start;
   flex-wrap: nowrap;
 }
@@ -11282,10 +11294,14 @@ body.tw-outfit-drag-active * {
   flex: none;
 }
 
-.styling-board-drawer #styling-board-save-form .field__label {
-  min-height: 2.35em;
+.styling-board-drawer #styling-board-save-form .field--notes {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+}
+
+.styling-board-drawer #styling-board-save-form .field__label {
   margin: 0;
   padding: 0;
 }
@@ -11293,22 +11309,35 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
 .styling-board-drawer #styling-board-save-form .styling-board__notes {
   width: 100%;
-  min-height: 3.25rem;
   box-sizing: border-box;
 }
 
 .styling-board-drawer #styling-board-save-form .field--inline input[type="text"] {
-  height: 3.25rem;
+  height: 2.85rem;
+}
+
+.styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
+  flex: 1 1 auto;
+  min-height: 5.5rem;
+  resize: none;
 }
 
 @media (max-width: 520px) {
   .styling-board-drawer #styling-board-save-form.outfit-actions {
     grid-template-columns: 1fr;
-    row-gap: 0.85rem;
+    grid-template-rows: auto;
+    row-gap: 0.75rem;
   }
 
-  .styling-board-drawer #styling-board-save-form .field__label {
-    min-height: 0;
+  .styling-board-drawer #styling-board-save-form .field--notes {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
+    min-height: 3.25rem;
+    flex: none;
+    resize: vertical;
   }
 }
 
