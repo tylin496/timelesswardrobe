@@ -286,10 +286,17 @@ export async function fetchOutfits(client) {
     return await withNetworkRetries("fetchOutfits", async () => {
       const selectWithNotes =
         "id, name, notes, slug, created_at, outfit_items(item_id, sort_order, colour_key)";
-      const selectLegacy = "id, name, slug, created_at, outfit_items(item_id, sort_order, colour_key)";
+      const selectNoSlug = "id, name, notes, created_at, outfit_items(item_id, sort_order, colour_key)";
+      const selectLegacy = "id, name, created_at, outfit_items(item_id, sort_order, colour_key)";
       let data;
       let error;
       ({ data, error } = await client.from("outfits").select(selectWithNotes).order("created_at", { ascending: false }));
+      if (error && /notes|column/i.test(String(error.message ?? ""))) {
+        ({ data, error } = await client
+          .from("outfits")
+          .select(selectNoSlug)
+          .order("created_at", { ascending: false }));
+      }
       if (error && /notes|column/i.test(String(error.message ?? ""))) {
         ({ data, error } = await client
           .from("outfits")
