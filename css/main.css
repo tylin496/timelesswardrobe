@@ -22283,12 +22283,17 @@ body.home-page .ed-lp__band--muted {
   min-height: 0;
 }
 
-/* Rail layout: fixed card width so flex doesn't collapse. */
-body.home-page .ed-lp__highlights-rail-wrap {
+/* Rail layout: fixed card width, progress bar token, no right padding. */
+body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] {
   --ed-lp-division-rail-pad-left: max(
     var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
+}
+
+body.home-page .ed-lp__highlights-rail-wrap,
+body.home-page .ed-lp__horizontal-rail-scroller#ed-lp-highlights {
+  padding-right: 0;
 }
 
 body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
