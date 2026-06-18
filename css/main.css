@@ -10558,7 +10558,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow: hidden;
   cursor: grab;
   touch-action: pan-x;
-  background: var(--outfit-card-bg);
+  background: var(--outfit-card-bg) url('/images/background.jpg') center / cover no-repeat;
   border: var(--outfit-card-border);
   border-radius: var(--outfit-card-radius);
   box-shadow: var(--outfit-card-shadow);
