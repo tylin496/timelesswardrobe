@@ -11225,7 +11225,7 @@ body.tw-outfit-drag-active * {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    padding-right: env(safe-area-inset-right, 0px);
     scroll-snap-type: x mandatory;
     scroll-snap-stop: always;
     scroll-padding-inline: max(1rem, env(safe-area-inset-left, 0px))
