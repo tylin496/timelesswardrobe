@@ -1446,36 +1446,6 @@ body.theme-catalogue .site-header.site-header--overlay {
   }
 }
 
-/* Narrow desktop: tighten nav + slightly smaller wordmark — stay one line (no stack flash on flyout close). */
-@media (min-width: 901px) and (max-width: 1280px) {
-  .site-header__primary-nav {
-    gap: 0.26rem clamp(0.32rem, 0.85vw, 0.72rem);
-  }
-
-  .site-header__nav-link {
-    font-size: clamp(0.56rem, 0.46rem + 0.48vw, 0.64rem);
-    letter-spacing: 0.09em;
-  }
-
-  .site-title__text-stack,
-  .site-brand-wordmark {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: baseline;
-    white-space: nowrap;
-  }
-
-  .site-title__wordmark-line {
-    display: inline;
-  }
-
-  .site-title__wordmark,
-  .site-title__wordmark-line {
-    font-size: clamp(0.92rem, 0.68rem + 0.9vw, 1.32rem);
-    letter-spacing: 0.035em;
-  }
-}
-
 .site-header__mobile-link.is-active {
   color: var(--ink);
   font-weight: 600;
@@ -7760,14 +7730,6 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
       opacity: 1;
       visibility: visible;
       transform: none;
-    }
-  }
-}
-
-@supports (text-wrap: balance) {
-  @media (min-width: 901px) and (max-width: 1280px) {
-    .site-brand-wordmark {
-      text-wrap: balance;
     }
   }
 }
