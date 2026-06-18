@@ -408,7 +408,10 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
   const type = MIME[ext] || "application/octet-stream";
   const etag = `"${Math.floor(st.mtimeMs)}-${st.size}"`;
   const lastModified = st.mtime.toUTCString();
-  const cacheControl = "no-cache, must-revalidate";
+  // no-store prevents memory-cache bypass of no-cache in Chromium (scripts stay stale otherwise)
+  const cacheControl = ext === ".js" || ext === ".mjs" || ext === ".html"
+    ? "no-store"
+    : "no-cache, must-revalidate";
   const baseHeaders = {
     "Content-Type": type,
     "Cache-Control": cacheControl,
@@ -425,8 +428,61 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     res.end();
     return;
   }
+
+  // For HTML files: rewrite local .js src/href to include mtime-based cache-buster
+  // so each changed version of a script gets a unique URL, bypassing memory cache.
+  if (ext === ".html") {
+    let html = await fs.readFile(filePath, "utf8");
+    html = await rewriteHtmlAssetVersions(html, path.dirname(filePath));
+    const buf = Buffer.from(html, "utf8");
+    res.writeHead(200, { ...baseHeaders, "Content-Length": String(buf.length) });
+    res.end(buf);
+    return;
+  }
+
   res.writeHead(200, { ...baseHeaders, "Content-Length": String(st.size) });
   createReadStream(filePath).pipe(res);
+}
+
+/**
+ * Rewrite <script src="foo.js"> and <link href="foo.css"> in HTML to
+ * <script src="foo.js?_v=MTIME"> so each changed asset gets a unique URL.
+ * Only applies to local (non-protocol-relative, non-absolute-URL) paths.
+ */
+async function rewriteHtmlAssetVersions(html, baseDir) {
+  const localSrcRe = /(<script\b[^>]*?\ssrc=["'])([^"']+)(["'][^>]*>)/gi;
+  const localLinkRe = /(<link\b[^>]*?\shref=["'])([^"']+)(["'][^>]*>)/gi;
+
+  async function stampSrc(match, before, src, after) {
+    if (/^https?:\/\/|^\/\//.test(src)) return match;
+    const stripped = src.replace(/\?.*$/, "");
+    const absPath = path.join(baseDir, stripped.replace(/^\//, ""));
+    try {
+      const s = await fs.stat(absPath);
+      const v = Math.floor(s.mtimeMs);
+      const sep = stripped === src ? "?" : src.includes("?") ? "&" : "?";
+      return `${before}${stripped}${sep}_v=${v}${after}`;
+    } catch {
+      return match;
+    }
+  }
+
+  // Process all matches sequentially
+  const scriptMatches = [];
+  html.replace(localSrcRe, (m, b, s, a) => { scriptMatches.push({ m, b, s, a }); return m; });
+  for (const { m, b, s, a } of scriptMatches) {
+    const stamped = await stampSrc(m, b, s, a);
+    html = html.replace(m, stamped);
+  }
+
+  const linkMatches = [];
+  html.replace(localLinkRe, (m, b, s, a) => { linkMatches.push({ m, b, s, a }); return m; });
+  for (const { m, b, s, a } of linkMatches) {
+    const stamped = await stampSrc(m, b, s, a);
+    html = html.replace(m, stamped);
+  }
+
+  return html;
 }
 
 function runCssBuild(reason = "change") {
