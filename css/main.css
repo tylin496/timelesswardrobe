@@ -11498,27 +11498,29 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__name {
-  margin: 0 0 0.14rem;
+  margin: 0;
   font-family: var(--font-serif);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.012em;
   line-height: 1.12;
   color: color-mix(in srgb, var(--sb-ink) 94%, var(--sb-ink-muted));
 }
 
+/* Reorder: body (name + meta) first, item strip below */
 .styling-board-drawer .saved-card__flatlay {
   display: flex;
   align-items: flex-end;
   justify-content: center;
   width: 100%;
   max-width: 100%;
-  min-height: 5.5rem;
+  min-height: 5.2rem;
   margin: 0;
-  padding: 0.45rem 0.5rem 0.3rem;
+  padding: 0.1rem 0.45rem 0.35rem;
   overflow: visible;
   background: transparent;
   isolation: isolate;
+  order: 1;
 }
 
 .styling-board-drawer .saved-card__footer {
@@ -11527,14 +11529,14 @@ body.tw-outfit-drag-active * {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.35rem 0.75rem;
+  gap: 0.18rem 0.4rem;
 }
 
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 3rem;
-  height: 3.85rem;
+  width: 3.8rem;
+  height: 4.85rem;
   margin-left: 0;
   display: flex;
   align-items: center;
@@ -11545,15 +11547,15 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__piece:not(:first-child) {
-  margin-left: -0.42rem;
+  margin-left: -0.54rem;
 }
 
 .styling-board-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
-  margin-left: -0.36rem;
+  margin-left: -0.46rem;
 }
 
 .styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
-  margin-left: -0.3rem;
+  margin-left: -0.38rem;
 }
 
 .styling-board-drawer .saved-card__piece:first-child {
@@ -11618,22 +11620,22 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__body {
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
+  gap: 0.1rem;
   min-width: 0;
-  padding: 0.48rem 0.75rem 0.55rem;
+  padding: 0.38rem 0.65rem 0.1rem;
+  order: 0;
 }
 
 .styling-board-drawer .saved-card__meta {
   margin: 0;
-  margin-left: auto;
   flex: 0 1 auto;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 1.3;
   letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--sb-ink-muted) 92%, transparent);
+  color: color-mix(in srgb, var(--sb-ink-muted) 80%, transparent);
 }
 
 .styling-board-drawer .saved-card__actions {
