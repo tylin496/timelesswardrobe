@@ -23287,9 +23287,8 @@
       const n = slots.filter((s) => itemById.has(s.itemId)).length;
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
-      meta.textContent = `${n} piece${n === 1 ? "" : "s"}${dateStr ? ` · ${dateStr}` : ""}${
-        notes ? ` · ${notes.length > 40 ? `${notes.slice(0, 37)}…` : notes}` : ""
-      }`;
+      const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
+      meta.textContent = [notesSnip, `${n} piece${n === 1 ? "" : "s"}`, dateStr].filter(Boolean).join(" · ");
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
