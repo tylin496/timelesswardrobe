@@ -20192,10 +20192,8 @@ body.collection-page .collection-container > .collection-actions {
 
   /* Home editorial — same mobile edge rail as PLP toolbar head. */
   body.home-page {
-    --catalogue-plp-inline-x: max(
-      var(--collection-plp-mobile-inline),
-      env(safe-area-inset-left, 0px)
-    );
+    --collection-plp-mobile-inline: 17px;
+    --catalogue-plp-inline-x: max(17px, env(safe-area-inset-left, 0px));
   }
 
   /*
