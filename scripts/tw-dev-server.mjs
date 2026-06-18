@@ -520,6 +520,47 @@ function queueCssBuild(reason = "change") {
   }, 120);
 }
 
+const thumbsScriptPath = path.join(root, "scripts", "generate-wardrobe-thumbs.mjs");
+const wardrobeMainDir = path.join(root, "images", "wardrobe");
+let thumbBuildTimer = null;
+let thumbBuildRunning = false;
+
+function queueThumbBuild(reason) {
+  if (thumbBuildTimer) clearTimeout(thumbBuildTimer);
+  thumbBuildTimer = setTimeout(async () => {
+    thumbBuildTimer = null;
+    if (thumbBuildRunning) { queueThumbBuild("retry-busy"); return; }
+    thumbBuildRunning = true;
+    console.log(`[thumbs] rebuilding (${reason})…`);
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [thumbsScriptPath], { stdio: "inherit" });
+        child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`exit ${code}`))));
+      });
+      console.log("[thumbs] done.");
+    } catch (err) {
+      console.warn("[thumbs] build failed:", err?.message || err);
+    } finally {
+      thumbBuildRunning = false;
+    }
+  }, 600);
+}
+
+function installThumbWatcher() {
+  try {
+    const watcher = watchFs(wardrobeMainDir, { recursive: true, persistent: true }, (eventType, filename) => {
+      const f = String(filename || "");
+      if (!f.includes("/main/") && !f.includes("\\main\\")) return;
+      if (!/\.(webp|png|jpe?g)$/i.test(f)) return;
+      queueThumbBuild(f);
+    });
+    watcher.on("error", (err) => console.warn("[thumbs] watch error:", err?.message || err));
+    console.log("[thumbs] watching images/wardrobe/*/main/ for changes");
+  } catch (err) {
+    console.warn("[thumbs] watcher unavailable:", err?.message || err);
+  }
+}
+
 function installCssAutoBuildWatcher() {
   try {
     const watcher = watchFs(cssWatchDir, { persistent: true }, (eventType, filename) => {
@@ -661,6 +702,7 @@ const server = http.createServer((req, res) => {
 });
 
 installCssAutoBuildWatcher();
+installThumbWatcher();
 
 function listenWithFallback(port, triesLeft) {
   server.once("error", (err) => {
