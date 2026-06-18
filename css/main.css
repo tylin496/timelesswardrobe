@@ -12833,10 +12833,15 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .outfit-toast {
-  @apply mt-2.5;
+  position: fixed;
+  top: calc(var(--site-header-h, 3.25rem) + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
   min-height: 2.25rem;
   padding: 0.5rem 0.85rem;
   max-width: max-content;
+  white-space: nowrap;
   font-size: 0.8125rem;
   line-height: 1.4;
   font-weight: 500;
