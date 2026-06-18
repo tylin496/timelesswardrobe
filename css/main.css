@@ -9731,6 +9731,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack {
     position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: stretch;
