@@ -3514,12 +3514,68 @@
   function fillAccountEditDrawer(drawer, it, onClose) {
     drawer.replaceChildren();
 
+    const autosave = document.createElement("div");
+    autosave.className = "account-drawer-autosave";
+    autosave.setAttribute("aria-live", "polite");
+
+    let saveTimer = 0;
+    const setStatus = (state, msg) => {
+      autosave.textContent = msg;
+      autosave.dataset.state = state;
+      if (state === "saved") {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => { autosave.textContent = ""; autosave.dataset.state = ""; }, 2200);
+      }
+    };
+
+    function makeAutoSaveInput(el, fieldKey) {
+      const isTextarea = el.tagName === "TEXTAREA";
+      el.value = String(it?.[fieldKey] ?? "").trim();
+      el.addEventListener("blur", async () => {
+        const newVal = el.value.trim();
+        if (newVal === String(it?.[fieldKey] ?? "").trim()) return;
+        setStatus("saving", "Saving…");
+        try {
+          const patch = { ...it, [fieldKey]: newVal };
+          const saved = await saveWardrobeItemToCloud(patch);
+          upsertWardrobeBaseRowInMemory(saved);
+          it[fieldKey] = newVal;
+          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
+            try {
+              const allOv = loadCollectionOverrides();
+              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), [fieldKey]: newVal };
+              await saveCollectionOverrides(allOv);
+            } catch { /* non-fatal */ }
+          }
+          mergeWardrobeFromSources();
+          setStatus("saved", "Saved");
+        } catch (err) {
+          console.warn("[account] drawer save failed:", fieldKey, err);
+          setStatus("error", "Save failed");
+        }
+      });
+    }
+
+    // ── Header: editable name + brand ──
     const header = document.createElement("div");
     header.className = "account-drawer-header";
 
-    const nameEl = document.createElement("div");
-    nameEl.className = "account-drawer-name";
-    nameEl.textContent = String(it?.name ?? it?.id ?? "");
+    const headerText = document.createElement("div");
+    headerText.style.cssText = "flex:1;min-width:0;";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "account-drawer-name-input";
+    nameInput.setAttribute("aria-label", "Item name");
+    makeAutoSaveInput(nameInput, "name");
+
+    const brandInput = document.createElement("input");
+    brandInput.type = "text";
+    brandInput.className = "account-drawer-brand-input";
+    brandInput.setAttribute("aria-label", "Brand");
+    makeAutoSaveInput(brandInput, "brand");
+
+    headerText.append(nameInput, brandInput);
 
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
@@ -3528,14 +3584,10 @@
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", onClose);
 
-    header.append(nameEl, closeBtn);
+    header.append(headerText, closeBtn);
     drawer.appendChild(header);
 
-    const brand = document.createElement("div");
-    brand.className = "account-drawer-brand";
-    brand.textContent = String(it?.brand ?? "").trim();
-    drawer.appendChild(brand);
-
+    // ── Image ──
     if (it?.image) {
       const img = document.createElement("img");
       img.className = "account-drawer-thumb";
@@ -3549,65 +3601,27 @@
       drawer.appendChild(ph);
     }
 
-    const autosave = document.createElement("div");
-    autosave.className = "account-drawer-autosave";
-    autosave.setAttribute("aria-live", "polite");
+    // ── Category ──
+    const catLbl = document.createElement("span");
+    catLbl.className = "account-drawer-field-label";
+    catLbl.textContent = "Category";
+    drawer.appendChild(catLbl);
+    const catInput = document.createElement("input");
+    catInput.type = "text";
+    catInput.className = "account-drawer-input";
+    makeAutoSaveInput(catInput, "category");
+    drawer.appendChild(catInput);
 
-    function makeAutoSaveField(labelText, fieldKey, isTextarea = false) {
-      const lbl = document.createElement("span");
-      lbl.className = "account-drawer-field-label";
-      lbl.textContent = labelText;
-      drawer.appendChild(lbl);
-
-      const input = isTextarea ? document.createElement("textarea") : document.createElement("input");
-      input.className = isTextarea ? "account-drawer-textarea" : "account-drawer-input";
-      if (!isTextarea) input.type = "text";
-      const currentVal = String(it?.[fieldKey] ?? "").trim();
-      input.value = currentVal;
-      if (isTextarea) input.placeholder = "No notes yet…";
-
-      let saveTimer = 0;
-      const setStatus = (state, msg) => {
-        autosave.textContent = msg;
-        autosave.dataset.state = state;
-        if (state === "saved") {
-          clearTimeout(saveTimer);
-          saveTimer = setTimeout(() => { autosave.textContent = ""; autosave.dataset.state = ""; }, 2200);
-        }
-      };
-
-      input.addEventListener("blur", async () => {
-        const newVal = (isTextarea ? input.value : input.value.trim());
-        const oldVal = String(it?.[fieldKey] ?? "").trim();
-        if (newVal.trim() === oldVal) return;
-        setStatus("saving", "Saving…");
-        try {
-          const patch = { ...it, [fieldKey]: newVal.trim() };
-          const saved = await saveWardrobeItemToCloud(patch);
-          upsertWardrobeBaseRowInMemory(saved);
-          it[fieldKey] = newVal.trim();
-          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
-            try {
-              const allOv = loadCollectionOverrides();
-              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), [fieldKey]: newVal.trim() };
-              await saveCollectionOverrides(allOv);
-            } catch { /* non-fatal */ }
-          }
-          mergeWardrobeFromSources();
-          setStatus("saved", "Saved");
-        } catch (err) {
-          console.warn("[account] drawer save failed:", fieldKey, err);
-          setStatus("error", "Save failed");
-        }
-      });
-
-      drawer.appendChild(input);
-    }
-
-    makeAutoSaveField("Name", "name");
-    makeAutoSaveField("Brand", "brand");
-    makeAutoSaveField("Category", "category");
-    makeAutoSaveField("Notes", "notes", true);
+    // ── Notes ──
+    const notesLbl = document.createElement("span");
+    notesLbl.className = "account-drawer-field-label";
+    notesLbl.textContent = "Notes";
+    drawer.appendChild(notesLbl);
+    const notesInput = document.createElement("textarea");
+    notesInput.className = "account-drawer-textarea";
+    notesInput.placeholder = "No notes yet…";
+    makeAutoSaveInput(notesInput, "notes");
+    drawer.appendChild(notesInput);
 
     drawer.appendChild(autosave);
 
