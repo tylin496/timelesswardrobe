@@ -28483,7 +28483,14 @@
       deleteBtn.className = "btn btn--ghost ed-editor-delete-btn";
       deleteBtn.textContent = "Delete Story";
       deleteBtn.addEventListener("click", async () => {
-        if (!confirm(`Delete "${story.title}"? This cannot be undone.`)) return;
+        const ok = await openTwConfirmDialog({
+          title: `Delete "${story.title}"?`,
+          message: "This removes the story permanently and cannot be undone.",
+          confirmLabel: "Delete story",
+          cancelLabel: "Cancel",
+          danger: true,
+        });
+        if (!ok) return;
         editorialStories = editorialStories.filter((s) => s.slug !== story.slug);
         await persistEditorialStories();
         closeOverlay();
