@@ -38,22 +38,17 @@
     }
   ],
   "redirects": [
-    { "source": "/collection/additem", "destination": "/collection.html", "permanent": false },
-    { "source": "/collection/editor", "destination": "/collection.html", "permanent": false },
-    { "source": "/item/:id/edit", "destination": "/item.html?id=:id&edit=1", "permanent": false },
+    { "source": "/collection/additem", "destination": "/collection", "permanent": false },
+    { "source": "/collection/editor", "destination": "/collection", "permanent": false },
+    { "source": "/item/:id/edit", "destination": "/item?id=:id&edit=1", "permanent": false },
     { "source": "/collection/login", "destination": "/login", "permanent": false }
   ],
   "rewrites": [
     { "source": "/outfit/:slug", "destination": "/" },
-    { "source": "/editorial", "destination": "/editorial.html" },
-    { "source": "/editorial/:slug", "destination": "/editorial.html" },
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/account", "destination": "/account.html" },
-    { "source": "/item/:id", "destination": "/item.html?id=:id" },
-    { "source": "/collection/item.html", "destination": "/item.html" },
-    { "source": "/collection/item", "destination": "/item.html" },
-    { "source": "/collection", "destination": "/collection.html" },
-    { "source": "/collection/:division", "destination": "/collection.html" },
+    { "source": "/editorial/:slug", "destination": "/editorial" },
+    { "source": "/collection/item.html", "destination": "/item" },
+    { "source": "/collection/item", "destination": "/item" },
+    { "source": "/collection/:division", "destination": "/collection" },
     { "source": "/favicon.ico", "destination": "/favicon.png" }
   ]
 }
