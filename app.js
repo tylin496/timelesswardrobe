@@ -26837,10 +26837,9 @@
     return util ? Math.ceil(util.getBoundingClientRect().bottom) : 0;
   }
 
-  /** Desktop collection PLP: keep `--site-header-chrome-bottom` in sync for `#main` top inset. */
+  /** Collection PLP (all viewports): keep `--site-header-chrome-bottom` in sync for `#main` top inset. */
   function syncCollectionPageChromeInset() {
     if (!document.body.classList.contains("collection-page")) return;
-    if (!globalThis.matchMedia?.("(min-width: 901px)")?.matches) return;
     syncBrandSignatureBarHeight();
     try {
       const chromeBottom = measureHeaderChromeBottom();

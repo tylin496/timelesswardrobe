@@ -20537,6 +20537,33 @@ body.collection-page .collection-container > .collection-actions {
 }
 
 /* ---------------------------------------------------------------------------
+   Collection PLP — mobile fixed header (≤900px).
+   iOS Safari's sticky + URL-bar collapse makes the utility bar visually disappear
+   while the logo jumps to viewport-top, widening the gap between logo and content.
+   Switching to `position: fixed` (matching desktop) keeps both bars pinned together
+   and lets `--site-header-chrome-bottom` drive a stable `#main` top inset.
+   --------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* Sensible CSS initial before JS measures and overwrites via syncCollectionPageChromeInset().
+     Defined on :root so JS inline-style override on <html> wins without cascade conflict. */
+  :root {
+    --site-header-chrome-bottom: calc(var(--brand-signature-bar-height, 38px) + var(--site-header-mobile-row-height, 44px));
+  }
+
+  body.collection-page .site-header-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  body.collection-page #main {
+    padding-top: var(--site-header-chrome-bottom, 82px);
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Collection PLP — desktop editorial rhythm (hero + grid; not item detail pages).
    Placed after mobile collection overrides so min-width rules win on large viewports.
    --------------------------------------------------------------------------- */
