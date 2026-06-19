@@ -11767,7 +11767,8 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      if (!solid && hero) {
+      const isMobile = globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
+      if (!solid && hero && !isMobile) {
         const heroH = hero.offsetHeight;
         const headerH = siteHeader.offsetHeight;
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
