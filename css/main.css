@@ -660,6 +660,11 @@ html {
   scrollbar-gutter: stable;
   /* Sticky filters + skip-link targets — respect notch / safe area */
   scroll-padding-top: max(7.75rem, calc(env(safe-area-inset-top, 0px) + 6.75rem));
+  /* Clip horizontal overflow so off-screen fixed elements (e.g. mobile nav shell at
+     translate3d(100%,0,0)) don't make iOS Safari treat the page as horizontally scrollable,
+     which causes the sticky header to appear wider as content drifts left on scroll.
+     `clip` avoids creating a scroll container (unlike `hidden`) so sticky positioning is unaffected. */
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: no-preference) {
