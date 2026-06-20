@@ -25585,21 +25585,41 @@ body.editorial-page #editorial-root {
     -webkit-touch-callout: none;
   }
 
+  /* Animate press AND release: declare transform/opacity on the resting
+     state so the press settles back instead of snapping. Press uses a
+     faster duration (feels instant); release falls back to these. */
+  .item-detail__gallery-thumb {
+    transition:
+      border-color 0.2s var(--ease-luxe),
+      box-shadow 0.2s var(--ease-luxe),
+      opacity 0.18s var(--ease-out),
+      transform 0.18s var(--ease-out);
+  }
+
+  .collection-drawer-sort-chip,
+  .collection-filter-drawer__clear-all,
+  .collection-filter-drawer__close {
+    transition:
+      opacity 0.18s var(--ease-out),
+      transform 0.18s var(--ease-out);
+  }
+
   .item-detail__gallery-thumb:active {
     opacity: 0.82;
     transform: scale(0.97);
-    transition-duration: 0.1s;
+    transition-duration: 0.08s;
   }
 
   .collection-drawer-sort-chip:active,
   .collection-filter-drawer__clear-all:active,
   .collection-filter-drawer__close:active {
     opacity: 0.62;
-    transition-duration: 0.1s;
+    transform: scale(0.97);
+    transition-duration: 0.08s;
   }
 
   .ed-lp__hero-dot:active {
     transform: scale(0.78);
-    transition-duration: 0.1s;
+    transition-duration: 0.08s;
   }
 }
