@@ -749,7 +749,11 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 100vw;
+  /* Cap to the containing block, not 100vw: on iOS Safari `vw` tracks the layout
+     viewport (ignores scrollbar gutter / safe-area body padding and the dynamic
+     toolbar), letting this sticky shell paint wider than the visible viewport and
+     drift right on scroll. width:100% already equals the body content box. */
+  max-width: 100%;
 }
 
 .site-utility-bar {
@@ -20553,9 +20557,12 @@ body.collection-page .collection-container > .collection-actions {
   body.collection-page .site-header-shell {
     position: fixed;
     top: 0;
+    /* Size from the edge anchors only. A `width: 100%` here resolves against the
+       layout viewport, which on iOS Safari tracks the URL-bar collapse and any
+       horizontal overflow — letting this fixed bar stretch past the visible
+       viewport and drift right on scroll. left/right:0 pin it to the icb edges. */
     left: 0;
     right: 0;
-    width: 100%;
   }
 
   body.collection-page #main {

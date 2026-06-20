@@ -30472,18 +30472,35 @@
 
     syncHeaderMegaMenuNavInset();
 
+    /* iOS Safari collapses the URL bar on scroll, firing `resize` with the width
+       unchanged (only innerHeight changes). Re-measuring + rewriting the header
+       chrome inset on those events thrashes `#main`'s top padding and shoves the
+       PLP grid down mid-scroll (visible tearing). Recompute chrome geometry only
+       on a real width/orientation change; an open overlay still re-syncs so the
+       keyboard / flyout paths keep working. */
+    let lastResizeWidth = globalThis.innerWidth || 0;
     globalThis.addEventListener(
       "resize",
       () => {
+        const width = globalThis.innerWidth || 0;
+        const widthChanged = width !== lastResizeWidth;
+        lastResizeWidth = width;
+        const overlayOpen =
+          document.body.classList.contains("collection-ui--header-submenu-open") ||
+          document.body.classList.contains("collection-ui--header-submenu-closing") ||
+          mobileShell?.classList.contains("is-open") ||
+          isHeaderSearchWrapOpen();
         syncHeaderMegaMenuNavInset();
-        syncCollectionPageChromeInset();
+        if (widthChanged || overlayOpen) {
+          syncCollectionPageChromeInset();
+          syncBrandSignatureBarHeight();
+        }
         if (
           document.body.classList.contains("collection-ui--header-submenu-open") ||
           document.body.classList.contains("collection-ui--header-submenu-closing")
         ) {
           syncHeaderSubmenuBackdropInset();
         }
-        syncBrandSignatureBarHeight();
         if (mobileShell?.classList.contains("is-open")) syncMobileShellTop();
         if (isHeaderSearchWrapOpen() && isHeaderCompactLayout()) {
           mountHeaderSearchWrapToBody();
