@@ -25566,3 +25566,40 @@ body.editorial-page #editorial-root {
   font-size: 0.72rem;
   color: var(--ink-muted);
 }
+
+/* ============================================================
+   Touch tap feedback (coarse pointers / iOS)
+   Adds consistent press response to button-like controls that
+   lacked it, and suppresses the iOS long-press callout so a
+   long press never pops the system menu mid-gesture.
+   Scoped to (hover: none) so mouse/desktop is untouched.
+   Excludes: header, grid cards (inner photo-swipe gesture),
+   and product images (users may long-press to save).
+   ============================================================ */
+@media (hover: none) {
+  .item-detail__gallery-thumb,
+  .collection-drawer-sort-chip,
+  .collection-filter-drawer__clear-all,
+  .collection-filter-drawer__close,
+  .ed-lp__hero-dot {
+    -webkit-touch-callout: none;
+  }
+
+  .item-detail__gallery-thumb:active {
+    opacity: 0.82;
+    transform: scale(0.97);
+    transition-duration: 0.1s;
+  }
+
+  .collection-drawer-sort-chip:active,
+  .collection-filter-drawer__clear-all:active,
+  .collection-filter-drawer__close:active {
+    opacity: 0.62;
+    transition-duration: 0.1s;
+  }
+
+  .ed-lp__hero-dot:active {
+    transform: scale(0.78);
+    transition-duration: 0.1s;
+  }
+}
