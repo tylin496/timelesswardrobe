@@ -23927,7 +23927,7 @@
     let gallery = [...itemGalleryList(prev)];
     const prevImage = image;
     const prevGallerySig = itemGalleryList(prev)
-      .map((u) => String(u).split("?")[0])
+      .map((u) => wardrobeMediaPathKey(u) || String(u).split("?")[0])
       .join("|");
     let hadNewPhotoFiles = false;
     if (!(variantsMode && colourVariantsBuilt?.length)) {
@@ -24122,7 +24122,7 @@
     else delete updated.metadata;
 
     const nextGallerySig = gallery
-      .map((u) => String(u).split("?")[0])
+      .map((u) => wardrobeMediaPathKey(u) || String(u).split("?")[0])
       .join("|");
     const frozenGalleryHealed =
       isLocalCatalogueItemId(id) &&
@@ -24132,7 +24132,7 @@
     const mediaTouched =
       hadNewPhotoFiles ||
       photoManagerDirty ||
-      String(image).split("?")[0] !== String(prevImage).split("?")[0] ||
+      (wardrobeMediaPathKey(image) || String(image).split("?")[0]) !== (wardrobeMediaPathKey(prevImage) || String(prevImage).split("?")[0]) ||
       nextGallerySig !== prevGallerySig ||
       frozenGalleryHealed ||
       frozenGalleryNeedsCloudSync;
