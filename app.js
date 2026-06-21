@@ -25724,15 +25724,9 @@
       thumb.alt = "";
       thumb.loading = "lazy";
       thumb.decoding = "async";
-      if (isPrev) {
-        link.appendChild(thumb);
-        link.appendChild(dir);
-        link.appendChild(name);
-      } else {
-        link.appendChild(dir);
-        link.appendChild(name);
-        link.appendChild(thumb);
-      }
+      link.appendChild(thumb);
+      link.appendChild(dir);
+      link.appendChild(name);
       return link;
     }
     if (prev) nav.appendChild(buildNavLink(prev, true));
