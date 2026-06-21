@@ -25707,34 +25707,36 @@
     const nav = document.createElement("nav");
     nav.className = "item-detail__item-nav";
     nav.setAttribute("aria-label", "Browse collection");
-    if (prev) {
+    function buildNavLink(navItem, isPrev) {
       const link = document.createElement("a");
-      link.href = buildItemPageUrl(prev.id).toString();
-      link.className = "item-detail__item-nav-link item-detail__item-nav-link--prev";
+      link.href = buildItemPageUrl(navItem.id).toString();
+      link.className = `item-detail__item-nav-link item-detail__item-nav-link--${isPrev ? "prev" : "next"}`;
       const dir = document.createElement("span");
       dir.className = "item-detail__item-nav-dir";
-      dir.textContent = "← Previous Item";
+      dir.textContent = isPrev ? "← Previous Item" : "Next Item →";
       const name = document.createElement("span");
       name.className = "item-detail__item-nav-name";
-      name.textContent = displayNameWithoutLeadingColour(prev);
-      link.appendChild(dir);
-      link.appendChild(name);
-      nav.appendChild(link);
+      name.textContent = displayNameWithoutLeadingColour(navItem);
+      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 64, 80, { item: navItem });
+      const thumb = document.createElement("img");
+      thumb.className = "item-detail__item-nav-thumb";
+      thumb.src = thumbSrc || navItem.image || "";
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      thumb.decoding = "async";
+      if (isPrev) {
+        link.appendChild(thumb);
+        link.appendChild(dir);
+        link.appendChild(name);
+      } else {
+        link.appendChild(dir);
+        link.appendChild(name);
+        link.appendChild(thumb);
+      }
+      return link;
     }
-    if (next) {
-      const link = document.createElement("a");
-      link.href = buildItemPageUrl(next.id).toString();
-      link.className = "item-detail__item-nav-link item-detail__item-nav-link--next";
-      const dir = document.createElement("span");
-      dir.className = "item-detail__item-nav-dir";
-      dir.textContent = "Next Item →";
-      const name = document.createElement("span");
-      name.className = "item-detail__item-nav-name";
-      name.textContent = displayNameWithoutLeadingColour(next);
-      link.appendChild(dir);
-      link.appendChild(name);
-      nav.appendChild(link);
-    }
+    if (prev) nav.appendChild(buildNavLink(prev, true));
+    if (next) nav.appendChild(buildNavLink(next, false));
     body.appendChild(nav);
   }
 
