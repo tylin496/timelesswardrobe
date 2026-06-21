@@ -23940,7 +23940,7 @@
           image = "";
           gallery = [];
         } else if (slots.length) {
-          setMsg("Processing images…", false);
+          if (hadNewPhotoFiles) setMsg("Processing images…", false);
           try {
             const materialized = await materializeItemEditPhotoSlots(slots, id, setMsg, {
               keepCoverOnFailure: true,
