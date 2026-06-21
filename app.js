@@ -25717,7 +25717,9 @@
       const name = document.createElement("span");
       name.className = "item-detail__item-nav-name";
       name.textContent = displayNameWithoutLeadingColour(navItem);
-      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 64, 80, { item: navItem });
+      // width > WARDROBE_THUMB_MAX_REQUEST_WIDTH skips the thumb/ redirect so we get
+      // the RGBA transparent cutout from main/ instead of the RGB background photo.
+      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 1001, 1251, { item: navItem });
       const thumb = document.createElement("img");
       thumb.className = "item-detail__item-nav-thumb";
       thumb.src = thumbSrc || navItem.image || "";
