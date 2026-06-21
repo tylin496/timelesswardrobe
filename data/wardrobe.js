@@ -313,7 +313,7 @@ const WARDROBE_ITEMS = [
     "section": "Tailoring & Outerwear",
     "category": "Outerwear",
     "brand": "The Engineer",
-    "name": "Linen Safari Jacket",
+    "name": "Safari Jacket",
     "season": "S/S",
     "colour": "Ecru",
     "colourCode": "#EBE0D6",
