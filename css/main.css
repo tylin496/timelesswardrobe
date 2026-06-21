@@ -3354,10 +3354,15 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 .ed-lp__rail-progress.site-header__search-category-progress {
   /* Pull the track up closer to the cards and inset both ends so it sits narrower than the rail. */
   margin-top: -0.5rem;
-  margin-left: 0.75rem;
-  margin-right: max(calc(var(--chrome-content-inset-right, 1.25rem) + 0.75rem), env(safe-area-inset-right, 0px));
+  margin-left: 0.25rem;
+  margin-right: max(calc(var(--chrome-content-inset-right, 1.25rem) + 0.25rem), env(safe-area-inset-right, 0px));
   padding-top: 8px;
   padding-bottom: 8px;
+}
+
+/* Slimmer progress bar than the homepage rail. */
+.site-header__search-category-progress .ed-lp__rail-progress-bar {
+  height: 1px;
 }
 
 .site-header__search-category-card {
