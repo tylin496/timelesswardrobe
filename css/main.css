@@ -18745,24 +18745,15 @@ a.item-detail__breadcrumb-current {
   white-space: pre-wrap;
 }
 
-.item-detail__notes-text--clamped {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
-  overflow: hidden;
-}
-
 .item-detail__notes-toggle {
-  display: block;
-  margin-top: 6px;
-  padding: 0;
+  display: inline;
+  padding: 0 0 0 0.3em;
   border: none;
   background: none;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: inherit;
   letter-spacing: 0.04em;
   color: color-mix(in srgb, var(--ink) 52%, transparent);
   text-decoration: none;

@@ -5617,38 +5617,70 @@
     const toggle = sec.querySelector(".item-detail__notes-toggle");
     if (!(textEl instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) return;
 
+    const fullText = textEl.textContent;
+    let expanded = false;
+
+    function setContent(str, showToggle) {
+      Array.from(textEl.childNodes).forEach((n) => { if (n !== toggle) n.remove(); });
+      textEl.insertBefore(document.createTextNode(str), textEl.firstChild);
+      toggle.hidden = !showToggle;
+    }
+
+    function findTruncationLength() {
+      const lh = parseFloat(getComputedStyle(textEl).lineHeight) || 22;
+      const maxH = lh * 5;
+      setContent(fullText, false);
+      if (textEl.scrollHeight <= maxH + 2) return -1;
+      setContent(fullText, true);
+      if (textEl.scrollHeight <= maxH + 2) return fullText.length;
+      let lo = 0, hi = fullText.length;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        setContent(fullText.slice(0, mid).replace(/\s+$/, "") + "… ", true);
+        if (textEl.scrollHeight <= maxH + 2) lo = mid; else hi = mid - 1;
+      }
+      const snap = fullText.lastIndexOf(" ", lo);
+      return snap > 0 ? snap : lo;
+    }
+
     const sync = () => {
-      if (sec.classList.contains("item-detail__notes-section--expanded")) return;
-      textEl.classList.add("item-detail__notes-text--clamped");
-      const overflows = textEl.scrollHeight > textEl.clientHeight + 1;
-      if (!overflows) {
-        textEl.classList.remove("item-detail__notes-text--clamped");
-        toggle.hidden = true;
+      if (expanded) return;
+      const len = findTruncationLength();
+      if (len === -1) {
+        setContent(fullText, false);
         sec.classList.remove("item-detail__notes-section--collapsible");
         return;
       }
-      toggle.hidden = false;
+      if (len === fullText.length) {
+        setContent(fullText, true);
+      } else {
+        setContent(fullText.slice(0, len).replace(/\s+$/, "") + "… ", true);
+      }
+      toggle.textContent = "Read more";
+      toggle.setAttribute("aria-expanded", "false");
       sec.classList.add("item-detail__notes-section--collapsible");
     };
 
     requestAnimationFrame(sync);
     if (typeof ResizeObserver !== "undefined") {
-      const ro = new ResizeObserver(() => {
-        if (!sec.classList.contains("item-detail__notes-section--expanded")) sync();
-      });
+      const ro = new ResizeObserver(() => { if (!expanded) sync(); });
       ro.observe(textEl);
     } else {
-      globalThis.addEventListener("resize", () => {
-        if (!sec.classList.contains("item-detail__notes-section--expanded")) sync();
-      }, { passive: true });
+      globalThis.addEventListener("resize", () => { if (!expanded) sync(); }, { passive: true });
     }
 
     toggle.addEventListener("click", () => {
-      const expanded = !sec.classList.contains("item-detail__notes-section--expanded");
+      expanded = !expanded;
       sec.classList.toggle("item-detail__notes-section--expanded", expanded);
-      textEl.classList.toggle("item-detail__notes-text--clamped", !expanded);
-      toggle.textContent = expanded ? "Read less" : "Read more";
-      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+      if (expanded) {
+        setContent(fullText, true);
+        toggle.textContent = "Read less";
+        toggle.setAttribute("aria-expanded", "true");
+      } else {
+        toggle.textContent = "Read more";
+        toggle.setAttribute("aria-expanded", "false");
+        sync();
+      }
     });
   }
 
@@ -5669,11 +5701,10 @@
     const pdpAccordion = Boolean(opts.pdpAccordion);
     const sec = document.createElement("section");
     sec.className = "item-detail__notes-section";
-    if (pdpAccordion) {
-      sec.classList.add("item-detail__notes-section--accordion");
+    function buildNotes(h3text) {
       const h = document.createElement("h3");
       h.className = "item-detail__notes-h";
-      h.textContent = "Notes";
+      h.textContent = h3text;
       const textEl = document.createElement("div");
       textEl.className = "item-detail__notes-text";
       textEl.textContent = text;
@@ -5683,32 +5714,23 @@
       toggle.textContent = "Read more";
       toggle.setAttribute("aria-expanded", "false");
       toggle.hidden = true;
+      textEl.appendChild(toggle);
+      return { h, textEl };
+    }
+
+    if (pdpAccordion) {
+      sec.classList.add("item-detail__notes-section--accordion");
+      const { h, textEl } = buildNotes("Notes");
       sec.appendChild(h);
       sec.appendChild(textEl);
-      sec.appendChild(toggle);
       host.appendChild(sec);
       wireItemDetailNotesReadMore(sec);
       return sec;
     }
 
-    const h = document.createElement("h3");
-    h.className = "item-detail__notes-h";
-    h.textContent = "Notes";
-
-    const textEl = document.createElement("div");
-    textEl.className = "item-detail__notes-text";
-    textEl.textContent = text;
-
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "item-detail__notes-toggle";
-    toggle.textContent = "Read more";
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.hidden = true;
-
+    const { h, textEl } = buildNotes("Notes");
     sec.appendChild(h);
     sec.appendChild(textEl);
-    sec.appendChild(toggle);
     host.appendChild(sec);
     wireItemDetailNotesReadMore(sec);
     return sec;
