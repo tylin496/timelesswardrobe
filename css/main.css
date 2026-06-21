@@ -11538,7 +11538,9 @@ body.tw-outfit-drag-active * {
   border: none;
   border-radius: 0;
   display: block;
-  mix-blend-mode: multiply;
+  /* Transparent cutout/ thumbs sit cleanly on the card backdrop — no multiply
+     hack (that existed only to fade the old composited thumbs' beige plate). */
+  mix-blend-mode: normal;
 }
 
 @media (max-width: 900px) {

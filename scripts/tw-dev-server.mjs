@@ -471,13 +471,40 @@ function queueThumbBuild(reason) {
   }, 600);
 }
 
+const cutoutScriptPath = path.join(root, "scripts", "generate-wardrobe-cutout-thumbs.mjs");
+let cutoutBuildTimer = null;
+let cutoutBuildRunning = false;
+
+function queueCutoutBuild(reason) {
+  if (cutoutBuildTimer) clearTimeout(cutoutBuildTimer);
+  cutoutBuildTimer = setTimeout(async () => {
+    cutoutBuildTimer = null;
+    if (cutoutBuildRunning) { queueCutoutBuild("retry-busy"); return; }
+    cutoutBuildRunning = true;
+    console.log(`[cutouts] rebuilding (${reason})…`);
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [cutoutScriptPath], { stdio: "inherit" });
+        child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`exit ${code}`))));
+      });
+      console.log("[cutouts] done.");
+    } catch (err) {
+      console.warn("[cutouts] build failed:", err?.message || err);
+    } finally {
+      cutoutBuildRunning = false;
+    }
+  }, 600);
+}
+
 function installThumbWatcher() {
   try {
     const watcher = watchFs(wardrobeMainDir, { recursive: true, persistent: true }, (eventType, filename) => {
       const f = String(filename || "");
       if (!f.includes("/main/") && !f.includes("\\main\\")) return;
       if (!/\.(webp|png|jpe?g)$/i.test(f)) return;
+      // main/ changed — regenerate both presentation sets so neither drifts.
       queueThumbBuild(f);
+      queueCutoutBuild(f);
     });
     watcher.on("error", (err) => console.warn("[thumbs] watch error:", err?.message || err));
     console.log("[thumbs] watching images/wardrobe/*/main/ for changes");
@@ -620,6 +647,11 @@ const server = http.createServer((req, res) => {
 
 installCssAutoBuildWatcher();
 installThumbWatcher();
+// Startup reconcile: regenerate any thumb/cutout that drifted from main/ while
+// the dev server was off (watcher only catches live edits). Hash-gated, so this
+// is near-instant when nothing changed.
+queueThumbBuild("startup");
+queueCutoutBuild("startup");
 
 function listenWithFallback(port, triesLeft) {
   server.once("error", (err) => {

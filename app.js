@@ -15850,6 +15850,19 @@
   }
 
   /**
+   * Map a wardrobe cover URL (local or cloud, any `…/images/wardrobe/<item>/main/<n>.<ext>`)
+   * to its transparent `cutout/<n>.webp` sibling. Returns "" when the URL isn't a
+   * local-catalogue main frame (e.g. Supabase-only items have no local cutout).
+   * Cutouts are RGBA → served static at native size, never resized.
+   */
+  function wardrobeCutoutUrlFromCoverUrl(url) {
+    const suffix = localWardrobePathFromUrl(url);
+    const m = suffix && suffix.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+    if (!m) return "";
+    return `/images/wardrobe/${m[1]}/cutout/${m[2]}.webp`;
+  }
+
+  /**
    * Collection PLP cover load order — primary / variant covers only (never `item.gallery` extras).
    * @param {object} item
    * @returns {string[]}
@@ -23447,8 +23460,17 @@
         im.loading = "lazy";
         im.decoding = "async";
         pieceWrap.appendChild(im);
+        // Saved Outfits use the transparent cutout/ set (no baked background) so
+        // pieces read as a clean flatlay; fall back to the composited thumb chain.
+        const baseCandidates = buildCoverCandidates(proj);
+        const cutoutCandidates = [];
+        for (const u of baseCandidates) {
+          const c = wardrobeCutoutUrlFromCoverUrl(u);
+          if (c && !cutoutCandidates.includes(c)) cutoutCandidates.push(c);
+        }
         wireCoverImageWithFallbacks(im, proj, {
           missingClass: null,
+          coverCandidates: cutoutCandidates.length ? [...cutoutCandidates, ...baseCandidates] : undefined,
           coverRenderWidth: OUTFIT_DRAWER_THUMB_RENDER.width,
           coverRenderHeight: OUTFIT_DRAWER_THUMB_RENDER.height,
           coverRenderQuality: OUTFIT_DRAWER_THUMB_RENDER.quality,
