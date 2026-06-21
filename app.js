@@ -23168,6 +23168,11 @@
         if (root.hasAttribute("hidden")) return;
         root.classList.add("styling-board-drawer--visible");
         document.body.classList.add("collection-ui--styling-board");
+        /* Mobile: always open My Outfits scrolled to the top, never a retained position. */
+        if (isHeaderCompactViewport()) {
+          const scroll = root.querySelector(".styling-board-drawer__scroll");
+          if (scroll instanceof HTMLElement) scroll.scrollTop = 0;
+        }
         syncStylingBoardUi();
         renderOutfitStrip();
         document.getElementById("styling-board-drawer-close")?.focus({ preventScroll: true });
