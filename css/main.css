@@ -40,7 +40,7 @@
   --radius-lg: 12px;
   --font-serif: "Cormorant Garamond", Georgia, serif;
   /* PLP / editorial display titles — high-contrast bold serif. */
-  --font-serif-display: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+  --font-serif-display: "Cormorant Garamond", Georgia, serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
   --error: #8b3a3a;
   --error-soft: rgba(139, 58, 58, 0.06);
@@ -2217,8 +2217,8 @@ body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-gl
   --tw-search-container-max: var(--content-max);
   --tw-search-container-pad: var(--page-gutter);
   --tw-search-inline-gutter: clamp(1.35rem, 6.25vw + 0.55rem, 10.5rem);
-  --tw-search-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --tw-search-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --tw-search-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --tw-search-font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
   --tw-search-field-fill: #eee9df;
   position: fixed;
   top: 0;
@@ -5048,7 +5048,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     padding: 0;
     margin-bottom: clamp(0.55rem, 1.1vw, 0.75rem);
     border: none;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 11px;
     font-weight: 600;
     line-height: 1.2;
@@ -5082,7 +5082,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     max-width: 100%;
     padding: 0;
     margin: 0;
-    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
     font-size: clamp(19px, 1.28vw, 22px);
     font-weight: 400;
     line-height: 1.85;
@@ -5235,7 +5235,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     z-index: 2;
     padding: 2.25rem 0.65rem 1.1rem;
     max-width: none;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 10px;
     font-weight: 600;
     line-height: 1.25;
@@ -5253,7 +5253,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .desktop-mega-menu .site-header__submenu-preview-empty {
     grid-column: 1 / -1;
     padding: 0;
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Cormorant Garamond", Georgia, serif;
     font-size: 1rem;
     color: color-mix(in srgb, var(--ink) 55%, var(--ink-muted));
   }
