@@ -18424,16 +18424,18 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__item-nav-thumb {
-  width: 64px;
-  height: 80px;
+  width: 88px;
+  height: 110px;
   object-fit: contain;
   object-position: center;
   display: block;
-  transition: transform 0.2s ease;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .item-detail__item-nav-link:hover .item-detail__item-nav-thumb {
-  transform: scale(1.05);
+  opacity: 1;
+  transform: scale(1.04);
 }
 
 .item-detail__item-nav-dir {

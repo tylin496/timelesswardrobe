@@ -25724,9 +25724,9 @@
       thumb.alt = "";
       thumb.loading = "lazy";
       thumb.decoding = "async";
-      link.appendChild(thumb);
       link.appendChild(dir);
       link.appendChild(name);
+      link.appendChild(thumb);
       return link;
     }
     if (prev) nav.appendChild(buildNavLink(prev, true));
