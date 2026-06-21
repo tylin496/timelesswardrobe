@@ -29030,6 +29030,12 @@
           headerSearchWrap.removeAttribute("hidden");
           headerSearchWrap.setAttribute("aria-hidden", "false");
           resetCompactHeaderSearchSheetScroll();
+          // iOS Safari only raises the soft keyboard when focus() runs synchronously
+          // inside the tap gesture. The post-animation focus (runCompactHeaderSearchAfterOpenMotion)
+          // is treated as programmatic and suppressed, so focus the field here too. The input is
+          // already relocated into the sheet and only opacity-0 (not display/visibility hidden),
+          // so it is focusable; preventScroll avoids iOS jumping to the off-screen sheet.
+          headerSearchInput?.focus({ preventScroll: true });
           const sheet = headerSearchWrap.querySelector(
             ".desktop-search-flyout-inner, .site-header__search-megamenu-inner"
           );
