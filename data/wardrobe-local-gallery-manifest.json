@@ -1,15 +1,15 @@
 {
   "_schema": "timeless-wardrobe-local-gallery-manifest-v1",
-  "generatedAt": "2026-06-15T12:38:24.557Z",
+  "generatedAt": "2026-06-21T10:34:01.121Z",
   "items": {
     "beaufort-waxed-jacket": {
       "main": [
         "/images/wardrobe/beaufort-waxed-jacket/main/1.webp",
         "/images/wardrobe/beaufort-waxed-jacket/main/2.webp",
-        "/images/wardrobe/beaufort-waxed-jacket/main/3.webp",
         "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
         "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
-        "/images/wardrobe/beaufort-waxed-jacket/main/6.webp"
+        "/images/wardrobe/beaufort-waxed-jacket/main/6.webp",
+        "/images/wardrobe/beaufort-waxed-jacket/main/7.webp"
       ],
       "variants": {}
     },
@@ -19,7 +19,8 @@
         "/images/wardrobe/balmacaan-coat/main/2.webp",
         "/images/wardrobe/balmacaan-coat/main/3.webp",
         "/images/wardrobe/balmacaan-coat/main/4.webp",
-        "/images/wardrobe/balmacaan-coat/main/5.webp"
+        "/images/wardrobe/balmacaan-coat/main/5.webp",
+        "/images/wardrobe/balmacaan-coat/main/6.webp"
       ],
       "variants": {}
     },
@@ -28,7 +29,11 @@
         "/images/wardrobe/camel-hair-polo-coat/main/1.webp",
         "/images/wardrobe/camel-hair-polo-coat/main/2.webp",
         "/images/wardrobe/camel-hair-polo-coat/main/3.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/4.webp"
+        "/images/wardrobe/camel-hair-polo-coat/main/4.webp",
+        "/images/wardrobe/camel-hair-polo-coat/main/5.webp",
+        "/images/wardrobe/camel-hair-polo-coat/main/6.webp",
+        "/images/wardrobe/camel-hair-polo-coat/main/7.webp",
+        "/images/wardrobe/camel-hair-polo-coat/main/8.webp"
       ],
       "variants": {}
     },
@@ -43,7 +48,9 @@
     "tank-solo": {
       "main": [
         "/images/wardrobe/tank-solo/main/1.webp",
-        "/images/wardrobe/tank-solo/main/2.webp"
+        "/images/wardrobe/tank-solo/main/2.webp",
+        "/images/wardrobe/tank-solo/main/3.webp",
+        "/images/wardrobe/tank-solo/main/4.webp"
       ],
       "variants": {}
     },
@@ -61,7 +68,12 @@
         "/images/wardrobe/signet-ring/main/1.webp",
         "/images/wardrobe/signet-ring/main/2.webp",
         "/images/wardrobe/signet-ring/main/3.webp",
-        "/images/wardrobe/signet-ring/main/4.webp"
+        "/images/wardrobe/signet-ring/main/4.webp",
+        "/images/wardrobe/signet-ring/main/5.webp",
+        "/images/wardrobe/signet-ring/main/6.webp",
+        "/images/wardrobe/signet-ring/main/7.webp",
+        "/images/wardrobe/signet-ring/main/8.webp",
+        "/images/wardrobe/signet-ring/main/9.webp"
       ],
       "variants": {}
     },
@@ -99,10 +111,10 @@
       ],
       "variants": {}
     },
-    "linen-safari-jacket": {
+    "safari-jacket": {
       "main": [
-        "/images/wardrobe/linen-safari-jacket/main/1.webp",
-        "/images/wardrobe/linen-safari-jacket/main/2.webp"
+        "/images/wardrobe/safari-jacket/main/1.webp",
+        "/images/wardrobe/safari-jacket/main/2.webp"
       ],
       "variants": {}
     },
@@ -132,7 +144,8 @@
         "/images/wardrobe/houndstooth-tweed-jacket/main/3.webp",
         "/images/wardrobe/houndstooth-tweed-jacket/main/4.webp",
         "/images/wardrobe/houndstooth-tweed-jacket/main/5.webp",
-        "/images/wardrobe/houndstooth-tweed-jacket/main/6.webp"
+        "/images/wardrobe/houndstooth-tweed-jacket/main/6.webp",
+        "/images/wardrobe/houndstooth-tweed-jacket/main/7.webp"
       ],
       "variants": {}
     },
@@ -146,7 +159,7 @@
     "golden-fleece-navy-blazer": {
       "main": [
         "/images/wardrobe/golden-fleece-navy-blazer/main/1.webp",
-        "/images/wardrobe/golden-fleece-navy-blazer/main/2.webp",
+        "/images/wardrobe/golden-fleece-navy-blazer/main/2.PNG",
         "/images/wardrobe/golden-fleece-navy-blazer/main/3.webp",
         "/images/wardrobe/golden-fleece-navy-blazer/main/4.webp"
       ],
@@ -181,8 +194,7 @@
         "/images/wardrobe/polo-bear-jumper/main/3.webp",
         "/images/wardrobe/polo-bear-jumper/main/4.webp",
         "/images/wardrobe/polo-bear-jumper/main/5.webp",
-        "/images/wardrobe/polo-bear-jumper/main/6.webp",
-        "/images/wardrobe/polo-bear-jumper/main/7.webp"
+        "/images/wardrobe/polo-bear-jumper/main/6.webp"
       ],
       "variants": {}
     },
@@ -198,7 +210,9 @@
     "cricket-cable-knit-jumper-vest": {
       "main": [
         "/images/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp",
-        "/images/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp"
+        "/images/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp",
+        "/images/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp",
+        "/images/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
       ],
       "variants": {}
     },
@@ -220,7 +234,9 @@
     "rib-knit-roll-neck-jumper": {
       "main": [
         "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
-        "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp"
+        "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp",
+        "/images/wardrobe/rib-knit-roll-neck-jumper/main/3.webp",
+        "/images/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
       ],
       "variants": {}
     },
@@ -287,7 +303,13 @@
     "henley-knit-t-shirt": {
       "main": [
         "/images/wardrobe/henley-knit-t-shirt/main/1.webp",
-        "/images/wardrobe/henley-knit-t-shirt/main/2.webp"
+        "/images/wardrobe/henley-knit-t-shirt/main/2.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/3.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/4.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/5.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/6.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/7.webp",
+        "/images/wardrobe/henley-knit-t-shirt/main/8.webp"
       ],
       "variants": {}
     },
@@ -367,7 +389,9 @@
     "corduroy-trousers": {
       "main": [
         "/images/wardrobe/corduroy-trousers/main/1.webp",
-        "/images/wardrobe/corduroy-trousers/main/2.webp"
+        "/images/wardrobe/corduroy-trousers/main/2.webp",
+        "/images/wardrobe/corduroy-trousers/main/3.webp",
+        "/images/wardrobe/corduroy-trousers/main/4.webp"
       ],
       "variants": {}
     },
@@ -437,8 +461,7 @@
         "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
         "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
         "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
-        "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp",
-        "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.webp"
+        "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
       ],
       "variants": {}
     },
@@ -508,7 +531,7 @@
       "main": [
         "/images/wardrobe/datejust-36-mod/main/1.webp",
         "/images/wardrobe/datejust-36-mod/main/2.webp",
-        "/images/wardrobe/datejust-36-mod/main/3.webp"
+        "/images/wardrobe/datejust-36-mod/main/4.webp"
       ],
       "variants": {}
     },
@@ -531,7 +554,13 @@
     "chukka": {
       "main": [
         "/images/wardrobe/chukka/main/1.webp",
-        "/images/wardrobe/chukka/main/2.webp"
+        "/images/wardrobe/chukka/main/2.webp",
+        "/images/wardrobe/chukka/main/3.webp",
+        "/images/wardrobe/chukka/main/4.webp",
+        "/images/wardrobe/chukka/main/5.webp",
+        "/images/wardrobe/chukka/main/6.webp",
+        "/images/wardrobe/chukka/main/7.webp",
+        "/images/wardrobe/chukka/main/8.webp"
       ],
       "variants": {}
     },
@@ -541,8 +570,7 @@
         "/images/wardrobe/ferret/main/2.webp",
         "/images/wardrobe/ferret/main/3.webp",
         "/images/wardrobe/ferret/main/4.webp",
-        "/images/wardrobe/ferret/main/5.webp",
-        "/images/wardrobe/ferret/main/6.webp"
+        "/images/wardrobe/ferret/main/5.webp"
       ],
       "variants": {}
     },
@@ -559,15 +587,19 @@
         "/images/wardrobe/curb-bracelet/main/1.webp",
         "/images/wardrobe/curb-bracelet/main/2.webp",
         "/images/wardrobe/curb-bracelet/main/3.webp",
-        "/images/wardrobe/curb-bracelet/main/4.webp"
+        "/images/wardrobe/curb-bracelet/main/4.webp",
+        "/images/wardrobe/curb-bracelet/main/5.webp",
+        "/images/wardrobe/curb-bracelet/main/6.webp",
+        "/images/wardrobe/curb-bracelet/main/7.webp"
       ],
       "variants": {}
     },
     "rolo-chain-necklace": {
       "main": [
         "/images/wardrobe/rolo-chain-necklace/main/1.webp",
-        "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
-        "/images/wardrobe/rolo-chain-necklace/main/3.webp"
+        "/images/wardrobe/rolo-chain-necklace/main/2.webp",
+        "/images/wardrobe/rolo-chain-necklace/main/3.webp",
+        "/images/wardrobe/rolo-chain-necklace/main/4.webp"
       ],
       "variants": {}
     },
@@ -575,7 +607,11 @@
       "main": [
         "/images/wardrobe/ruby-gypsy-ring/main/1.webp",
         "/images/wardrobe/ruby-gypsy-ring/main/2.webp",
-        "/images/wardrobe/ruby-gypsy-ring/main/3.webp"
+        "/images/wardrobe/ruby-gypsy-ring/main/3.webp",
+        "/images/wardrobe/ruby-gypsy-ring/main/4.webp",
+        "/images/wardrobe/ruby-gypsy-ring/main/5.webp",
+        "/images/wardrobe/ruby-gypsy-ring/main/6.webp",
+        "/images/wardrobe/ruby-gypsy-ring/main/7.webp"
       ],
       "variants": {}
     },
@@ -657,7 +693,10 @@
         "/images/wardrobe/panama-hat/main/2.webp",
         "/images/wardrobe/panama-hat/main/3.webp",
         "/images/wardrobe/panama-hat/main/4.webp",
-        "/images/wardrobe/panama-hat/main/5.webp"
+        "/images/wardrobe/panama-hat/main/5.webp",
+        "/images/wardrobe/panama-hat/main/6.webp",
+        "/images/wardrobe/panama-hat/main/7.webp",
+        "/images/wardrobe/panama-hat/main/8.webp"
       ],
       "variants": {}
     },

@@ -309,7 +309,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "linen-safari-jacket",
+    "id": "safari-jacket",
     "section": "Tailoring & Outerwear",
     "category": "Outerwear",
     "brand": "The Engineer",
@@ -321,9 +321,9 @@ const WARDROBE_ITEMS = [
     "weight": "~350 gsm",
     "size": "XXL",
     "purchaseDate": "2023-01-28",
-    "image": "/images/wardrobe/linen-safari-jacket/main/1.webp",
+    "image": "/images/wardrobe/safari-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-safari-jacket/main/2.webp"
+      "/images/wardrobe/safari-jacket/main/2.webp"
     ],
     "metadata": {
       "price": 893.32,

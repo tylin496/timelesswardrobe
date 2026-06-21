@@ -9,7 +9,7 @@ const WARDROBE_EDITORIAL_PRIORITIES = {
   "ventile-harrington-jacket":          { featured_rank: 2 },
   "camel-hair-polo-coat":               { featured_rank: 2 },
   "navy-double-breasted-blazer":        { featured_rank: 2 },
-  "linen-safari-jacket":                { featured_rank: 2 },
+  "safari-jacket":                { featured_rank: 2 },
   "herringbone-tweed-jacket":           { featured_rank: 2 },
   "houndstooth-tweed-jacket":           { featured_rank: 2 },
   "golden-fleece-navy-blazer":          { featured_rank: 2 },
