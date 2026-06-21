@@ -45,7 +45,6 @@
   ],
   "rewrites": [
     { "source": "/outfit/:slug", "destination": "/" },
-    { "source": "/editorial/:slug", "destination": "/editorial" },
     { "source": "/collection/item.html", "destination": "/item" },
     { "source": "/collection/item", "destination": "/item" },
     { "source": "/collection/:division", "destination": "/collection" },

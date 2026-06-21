@@ -16,8 +16,6 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const customJsonPath = path.join(root, "data", "custom-items.json");
-const editorialStoriesPath = path.join(root, "data", "editorial-stories.json");
-const editorialImagesDir = path.join(root, "images", "editorial");
 const cssBuildScriptPath = path.join(root, "scripts", "build-css.mjs");
 const cssWatchDir = path.join(root, "css");
 let cssBuildRunning = false;
@@ -181,69 +179,6 @@ async function handlePostWardrobeLocalImage(req, res) {
   }
 }
 
-async function handlePutEditorialStories(req, res) {
-  let body;
-  try {
-    body = await readRequestBody(req);
-  } catch (e) {
-    res.writeHead(400); res.end(); return;
-  }
-  let data;
-  try {
-    data = JSON.parse(body);
-  } catch {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid JSON");
-    return;
-  }
-  if (!Array.isArray(data)) {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Body must be a JSON array");
-    return;
-  }
-  try {
-    await fs.writeFile(editorialStoriesPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-    res.writeHead(204); res.end();
-  } catch (e) {
-    console.error(e);
-    res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Write failed");
-  }
-}
-
-async function handlePostEditorialHeroImage(req, res) {
-  let payload;
-  try {
-    payload = JSON.parse(await readRequestBody(req));
-  } catch {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid JSON");
-    return;
-  }
-  const rawPath = String(payload?.storagePath ?? "").trim().replace(/^\/+/, "");
-  if (!rawPath || rawPath.includes("..") || rawPath.includes("\0") || !/\.(avif|gif|jpe?g|png|webp)$/i.test(rawPath)) {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid storagePath");
-    return;
-  }
-  const bytes = decodeDataUrlImage(payload?.dataUrl);
-  if (!bytes?.length) {
-    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Invalid dataUrl");
-    return;
-  }
-  const absFile = path.join(editorialImagesDir, path.basename(rawPath));
-  try {
-    await fs.mkdir(editorialImagesDir, { recursive: true });
-    await fs.writeFile(absFile, bytes);
-    jsonResponse(res, 200, { ok: true, path: `editorial/${path.basename(rawPath)}` });
-  } catch (e) {
-    console.error(e);
-    res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Write failed");
-  }
-}
-
 async function serveFaviconAsset(/** @type {http.IncomingMessage} */ req, /** @type {http.ServerResponse} */ res, absFile) {
   if (!isPathInsideRoot(absFile)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -327,12 +262,6 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     res.end();
     return;
   }
-  const editorialSlugMatch = pathname.match(/^\/editorial\/(.+)$/);
-  if (editorialSlugMatch) {
-    res.writeHead(302, { Location: `/editorial.html` });
-    res.end();
-    return;
-  }
   let rel = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
   if (pathname === "/item.html" || pathname === "/collection/item.html") {
     rel = "item.html";
@@ -340,10 +269,6 @@ async function handleStatic(/** @type {http.IncomingMessage} */ req, /** @type {
     rel = "login.html";
   } else if (pathname === "/account" || pathname === "/account.html") {
     rel = "account.html";
-  } else if (pathname.startsWith("/images/editorial/")) {
-    rel = pathname.slice(1);
-  } else if (pathname === "/editorial" || pathname === "/editorial.html" || pathname.startsWith("/editorial/")) {
-    rel = "editorial.html";
   } else if (pathname === "/collection" || pathname === "/collection.html") {
     rel = "collection.html";
   } else if (pathname.startsWith("/collection/")) {
@@ -683,14 +608,6 @@ const server = http.createServer((req, res) => {
   }
   if (req.method === "POST" && pathname === "/api/wardrobe/local-image") {
     void handlePostWardrobeLocalImage(req, res);
-    return;
-  }
-  if (req.method === "PUT" && pathname === "/api/editorial-stories") {
-    void handlePutEditorialStories(req, res);
-    return;
-  }
-  if (req.method === "POST" && pathname === "/api/editorial/hero-image") {
-    void handlePostEditorialHeroImage(req, res);
     return;
   }
   if (req.method === "GET" || req.method === "HEAD") {
