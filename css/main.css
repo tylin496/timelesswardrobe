@@ -18430,12 +18430,14 @@ a.item-detail__breadcrumb-current {
   object-position: center;
   display: block;
   opacity: 0.85;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.22)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
+  transition: opacity 0.2s ease, transform 0.2s ease, filter 0.2s ease;
 }
 
 .item-detail__item-nav-link:hover .item-detail__item-nav-thumb {
   opacity: 1;
   transform: scale(1.04);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.28)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.16));
 }
 
 .item-detail__item-nav-dir {
@@ -18744,13 +18746,16 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__notes-text--clamped {
-  max-height: calc(5 * 1.6em);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
   overflow: hidden;
-  position: relative;
 }
 
 .item-detail__notes-toggle {
-  display: inline;
+  display: block;
+  margin-top: 6px;
   padding: 0;
   border: none;
   background: none;
@@ -18766,15 +18771,6 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__notes-toggle:hover {
   color: var(--ink);
-}
-
-.item-detail__notes-section--collapsible .item-detail__notes-text--clamped .item-detail__notes-toggle {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  display: block;
-  padding-left: 3em;
-  background: linear-gradient(to right, transparent, var(--bg) 40%);
 }
 
 .item-detail__notes-head {
