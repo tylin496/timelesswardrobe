@@ -18436,10 +18436,13 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__item-nav-thumb {
-  width: 110px;
+  /* Govern by height so every garment renders at the same visual height;
+     width follows the aspect ratio (max-width guards an unusually wide frame). */
   height: 138px;
+  width: auto;
+  max-width: 140px;
   object-fit: contain;
-  object-position: center;
+  object-position: center bottom;
   display: block;
   filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.08));
   transition: transform 0.25s ease;
