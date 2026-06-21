@@ -15340,7 +15340,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   .account-page-main {
     max-width: none;
     margin-top: clamp(3.75rem, 13vh, 5.25rem);
-    padding: 0 max(1.5rem, env(safe-area-inset-left, 0px)) 3.75rem max(1.5rem, env(safe-area-inset-right, 0px));
+    padding: 0 max(1.5rem, env(safe-area-inset-right, 0px)) 3.75rem max(1.5rem, env(safe-area-inset-left, 0px));
   }
 
   .account-page-main .login-page-main__title {
