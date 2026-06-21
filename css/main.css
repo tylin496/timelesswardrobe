@@ -13761,7 +13761,10 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   font-family: var(--font-sans);
   font-weight: 500;
   color: #ffffff;
-  background: rgba(48, 48, 48, 0.52);
+  /* Lighter glassy fill so the control stops occluding the garment; the glyph
+     keeps its own shadow for legibility on light cut-outs (tap target unchanged). */
+  background: rgba(38, 38, 38, 0.34);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.42);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   box-shadow: none;
