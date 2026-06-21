@@ -26838,39 +26838,12 @@
   }
 
   /** Collection PLP (all viewports): keep `--site-header-chrome-bottom` in sync for `#main` top inset. */
-  /** @type {HTMLElement | null} */
-  let safeAreaInsetProbe = null;
-  /** Live `env(safe-area-inset-top)` in px (jumps 0 → notch height when iOS collapses the URL bar). */
-  function readSafeAreaInsetTop() {
-    if (!safeAreaInsetProbe) {
-      const el = document.createElement("div");
-      el.style.cssText =
-        "position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);";
-      document.body.appendChild(el);
-      safeAreaInsetProbe = el;
-    }
-    return parseFloat(getComputedStyle(safeAreaInsetProbe).paddingTop) || 0;
-  }
-
   function syncCollectionPageChromeInset() {
     if (!document.body.classList.contains("collection-page")) return;
     syncBrandSignatureBarHeight();
     try {
       const chromeBottom = measureHeaderChromeBottom();
-      if (chromeBottom <= 0) return;
-      if (isHeaderCompactViewport()) {
-        /* Mobile (≤900px): the header is position:fixed and its own padding-top uses
-           env(safe-area-inset-top), so iOS collapsing the URL bar grows it by the notch
-           height. Store the at-rest base (measurement minus the live inset) and let CSS
-           re-add env() — the inset then tracks the header with no scroll-time JS, so
-           #main never reflows mid-scroll (no grid push) and the taller header can't
-           cover the breadcrumb. */
-        const base = Math.max(0, Math.round(chromeBottom - readSafeAreaInsetTop()));
-        document.documentElement.style.setProperty(
-          "--site-header-chrome-bottom",
-          `calc(${base}px + env(safe-area-inset-top, 0px))`
-        );
-      } else {
+      if (chromeBottom > 0) {
         document.documentElement.style.setProperty("--site-header-chrome-bottom", `${chromeBottom}px`);
       }
     } catch {

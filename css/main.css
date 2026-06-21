@@ -5778,7 +5778,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-header__inner {
     padding-top: max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.05rem));
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    /* NOT env(safe-area-inset-bottom): this header sits at the top, but that inset
+       is the bottom home-indicator gap — 0 while Safari's URL bar is shown, ~34px
+       once it collapses on scroll. Using it here grew the header ~26px mid-scroll
+       and pushed it over the "HOME /" breadcrumb. A top header has no bottom inset. */
+    padding-bottom: 0.5rem;
   }
 
   .site-header {
@@ -20551,13 +20555,11 @@ body.collection-page .collection-container > .collection-actions {
   /* Sensible CSS initial before JS measures and overwrites via syncCollectionPageChromeInset().
      Defined on :root so JS inline-style override on <html> wins without cascade conflict. */
   :root {
-    /* Must include env(safe-area-inset-top): the fixed header's own padding-top
-       uses it, so when iOS Safari collapses the URL bar the notch inset appears
-       (0 -> ~47px) and the header grows taller. Without the same term here, #main's
-       top inset stays put and the taller header covers the "HOME /" breadcrumb. */
+    /* Pre-JS fallback before syncCollectionPageChromeInset() measures the real
+       header bottom. The header height is constant (its padding no longer tracks
+       any safe-area inset), so a static value is correct. */
     --site-header-chrome-bottom: calc(
-      env(safe-area-inset-top, 0px) + var(--brand-signature-bar-height, 38px) +
-        var(--site-header-mobile-row-height, 44px)
+      var(--brand-signature-bar-height, 38px) + var(--site-header-mobile-row-height, 44px)
     );
   }
 
