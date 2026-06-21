@@ -10472,10 +10472,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 .styling-board-drawer .outfit-slot {
+  /* Catalogue/archive card — flat plate, squared frame, not an iOS product tile. */
   --outfit-card-bg: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
-  --outfit-card-border: var(--wardrobe-card-border, 1px solid rgba(24, 55, 47, 0.06));
-  --outfit-card-radius: var(--wardrobe-card-radius, 12px);
-  --outfit-card-shadow: var(--wardrobe-card-shadow);
+  --outfit-card-border: 1px solid rgba(24, 55, 47, 0.09);
+  --outfit-card-radius: 4px;
+  --outfit-card-shadow: 0 1px 2px rgba(20, 19, 18, 0.05);
   --outfit-stagger-y: 0px;
   --outfit-slot-h: 8.55rem;
   --outfit-thumb-h: 5.75rem;
@@ -10787,8 +10788,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 .styling-board-drawer .outfit-slot__thumb img {
-  width: 88%;
-  height: 88%;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
@@ -10804,13 +10805,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   width: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 0.2rem 0.16rem 0.7rem;
+  padding: 0.32rem 0.2rem 0.4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 0.04rem;
-  background: none;
+  /* Caption plate under the photo — divides image from label like an archive card. */
+  border-top: 1px solid rgba(24, 55, 47, 0.07);
+  background: color-mix(in srgb, var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94)) 60%, transparent);
 }
 
 /* Keep drag affordance on cards, but always allow copying outfit text. */
