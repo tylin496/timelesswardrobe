@@ -23493,6 +23493,22 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
     object-position: top center !important;
   }
 
+  /* Carousel cover img must stay in-flow (position:relative) so the track's
+     translateX doesn't push it out of the carousel's overflow:hidden area. */
+  body.collection-view--compact.collection-page
+    #grid.grid--compact
+    > .card.card--quick-find
+    .card__media--gallery-swipe
+    .card__gallery-carousel-slide--cover
+    .card__media-img--cover {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    flex: none !important;
+  }
+
   /* Mobile quick-find: image only — no brand/title overlay or below-card copy. */
   body.collection-view--compact.collection-page #grid.grid--compact > .card.card--quick-find .card__media::after {
     display: none !important;
