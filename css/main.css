@@ -14356,7 +14356,7 @@ body.item-page .site-header {
   min-height: 40vh;
 }
 
-@media (min-width: 880px) {
+@media (min-width: 901px) {
   .item-detail__root--page {
   @apply mx-auto;
     display: grid;
@@ -14625,7 +14625,7 @@ body.item-page:has(.item-detail__root--edit) {
   }
 }
 
-@media (max-width: 879px) {
+@media (max-width: 900px) {
   .item-detail__gallery:has(.item-detail__gallery-stage--multi) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
@@ -14826,7 +14826,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   margin-right: auto;
 }
 
-@media (min-width: 880px) {
+@media (min-width: 901px) {
   .item-detail__root--page.item-detail__root--not-found {
     display: flex;
     grid-template-columns: unset;
@@ -15789,7 +15789,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @media (hover: hover) and (pointer: fine) and (min-width: 880px) {
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
     .item-detail__root--page .item-detail__media.item-detail__media--zoomable .item-detail__hero-img--zoomable,
     .item-detail__root--edit .item-detail__media.item-detail__media--zoomable .item-detail__hero-img--zoomable,
     .item-detail__root--page .item-detail__gallery-stage.item-detail__media--zoomable .card__media-img,
@@ -16189,7 +16189,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 /* Below desktop edit grid: avoid overflow:auto on an unconstrained flex child (blocks page scroll). */
-@media (max-width: 879px) {
+@media (max-width: 900px) {
   .item-detail__root--page.item-detail__root--edit {
     display: block;
   }
@@ -18735,7 +18735,7 @@ a.item-detail__breadcrumb-current {
 }
 
 /*
- * Mobile (stacked layout < 880px): pin the primary action to the viewport bottom
+ * Mobile (stacked layout ≤ 900px): pin the primary action to the viewport bottom
  * so the key step is reachable without scrolling past the full-height gallery.
  * `sticky; bottom: 0` keeps the bar parked at the foot of the scrollport while its
  * natural position is below the fold, then settles back into flow as you scroll
@@ -18743,7 +18743,7 @@ a.item-detail__breadcrumb-current {
  * Full-bleeds to the viewport edges by mirroring #item-page-main's inline padding;
  * inset longhands keep their physical side (passes npm run lint:insets).
  */
-@media (max-width: 879.98px) {
+@media (max-width: 900px) {
   .item-detail__root--page .item-detail__board-cta-wrap {
     position: sticky;
     bottom: 0;

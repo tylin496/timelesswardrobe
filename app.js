@@ -12194,10 +12194,9 @@
    */
   /*
    * Single source of truth for the PDP swipe-gallery breakpoint: the JS mount gate
-   * AND the resize watcher both read it, and it matches the carousel layout CSS
-   * (@media max-width: 900px). NOTE: the PDP *layout* grid still switches at 880px
-   * — unifying those two values is a separate, broader pass (touches thumb-rail and
-   * zoom/lightbox rules too); keep them in mind together.
+   * AND the resize watcher both read it, and it matches the whole site's mobile/
+   * desktop boundary — carousel CSS, the PDP layout grid, hover-zoom and the sticky
+   * CTA all switch at max-width: 900px / min-width: 901px.
    */
   const ITEM_PAGE_SWIPE_GALLERY_MQ = "(max-width: 900px)";
 
