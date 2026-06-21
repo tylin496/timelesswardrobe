@@ -11254,9 +11254,10 @@
         thumb.style.transform = `translate3d(${ratio * travel}px, 0, 0)`;
         return;
       }
-      /* left % is relative to the track; translateX(%) would be relative to thumb width (wrong). */
-      const posPct = ratio * (1 - thumbFrac) * 100;
-      thumb.style.left = `${posPct}%`;
+      /* Position by actual pixel travel so a CSS min-width on the thumb can't push it
+         past the track's right edge (% math would assume width === thumbFrac). */
+      const travel = Math.max(0, track.clientWidth - thumb.offsetWidth);
+      thumb.style.left = `${ratio * travel}px`;
       thumb.style.transform = "translateY(-50%)";
     }
 

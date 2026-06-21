@@ -3349,6 +3349,17 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   box-sizing: border-box;
 }
 
+/* Popular Categories scroll hint — reuses the homepage rail-progress look, scoped to the search overlay. */
+/* Combine both classes so these beat the base `.ed-lp__rail-progress` rules that sit later in the file. */
+.ed-lp__rail-progress.site-header__search-category-progress {
+  /* Pull the track up closer to the cards and inset both ends so it sits narrower than the rail. */
+  margin-top: -0.5rem;
+  margin-left: 0.75rem;
+  margin-right: max(calc(var(--chrome-content-inset-right, 1.25rem) + 0.75rem), env(safe-area-inset-right, 0px));
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
 .site-header__search-category-card {
   display: flex;
   flex-direction: column;
@@ -6074,8 +6085,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     max-width: 100%;
     min-width: 0;
     height: auto;
+    /* Symmetric inset: reserve the close-X width on the right AND mirror it on the
+       left so the search pill sits centred in the header without moving the X. */
     padding: 0;
     padding-right: calc(var(--tw-mobile-search-row-height, 2.125rem) + 0.5rem);
+    padding-left: calc(var(--tw-mobile-search-row-height, 2.125rem) + 0.5rem);
     box-sizing: border-box;
   }
 
@@ -22693,6 +22707,17 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 
 /* Mobile: side-by-side season duo, shorter banner, swipe + dots only */
 @media (max-width: 767px) {
+  /* Collection Highlights slider: tie it to the cards (less detached gap) + larger thumb. */
+  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
+    margin-top: 0;
+    padding: 9px 0;
+  }
+
+  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
+    height: 4px;
+    min-width: 6rem;
+  }
+
   .site-home-stage {
     --ed-lp-season-duo-gutter: 8px;
     --ed-lp-season-duo-aspect: 4 / 5;
