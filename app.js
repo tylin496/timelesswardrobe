@@ -111,14 +111,11 @@
     ["private-white-vc-midnight-navy-ventile-harrington", "ventile-harrington-jacket"],
     ["prl-beige-basket-weave-linen-jacket", "basket-weave-linen-jacket"],
     ["prl-washed-wine-cream-rugby-shirt", "rugby-shirt"],
-    ["washed-rugby-shirt", "rugby-shirt"],
     ["prl-wine-polo-bear-wool-cashmere-jumper", "polo-bear-jumper"],
     ["spier-mackay-camel-hair-polo-coat", "polo-coat"],
-    ["camel-hair-polo-coat", "polo-coat"],
     ["the-engineer-black-cotton-long-sleeve-polo", "knit-long-sleeve-polo"],
     ["the-engineer-brown-mixed-fair-isle-wool-vest", "fair-isle-vest"],
     ["the-engineer-ecru-linen-safari-jacket", "safari-jacket"],
-    ["linen-safari-jacket", "safari-jacket"],
     ["tissot-prx-quartz-35mm-gold-pvd", "prx-quartz"],
     ["tudor-black-bay-58", "black-bay-58"],
     ["uniqlo-beige-kataaze-knit-mock-neck", "kataaze-knit-mock-neck-jumper"],
@@ -15827,6 +15824,15 @@
     for (const u of variantUrls) add(u);
     if (primaryDisplayable && !primaryOwned) add(primary);
 
+    // Local-catalogue rows whose live cover is a cloud (R2) override: keep the frozen seed
+    // image as a last-resort candidate so a dangling override URL never blanks the cover.
+    if (isLocalCatalogueItemId(item?.id) && /^https?:\/\//i.test(String(primary).split("?")[0])) {
+      const seed = catalogueSeedRow(item.id);
+      const seedCover =
+        String(seed?.image ?? "").trim() || String(seed?.colourVariants?.[0]?.image ?? "").trim();
+      if (seedCover && isDisplayableCloudImageUrl(seedCover)) add(seedCover);
+    }
+
     return out.map((u) => resolveWardrobeImageTransportUrl(u, item) || withWardrobeImageCacheBust(u, item));
   }
 
@@ -16674,6 +16680,7 @@
 
       const url = heroFrameSrc(frames[currentIndex].url);
       if (url) {
+        delete heroImgEl.dataset.twSeedFallbackTried;
         heroImgEl.src = url;
         if (currentIndex === 0) heroImgEl.dataset.coverSrc = url;
         heroImgEl.dataset.frameRaw = String(frames[currentIndex].url ?? "").trim();
@@ -16692,7 +16699,14 @@
       const ti = document.createElement("img");
       ti.src = heroFrameSrc(fr.url);
       ti.alt = "";
+      const thumbFallback = fr.fallback ? heroFrameSrc(fr.fallback) : "";
       ti.addEventListener("error", () => {
+        // Try the local seed before evicting the frame — a dead cloud cover must not drop the cover.
+        if (thumbFallback && ti.dataset.twSeedFallbackTried !== "1" && ti.src !== thumbFallback) {
+          ti.dataset.twSeedFallbackTried = "1";
+          ti.src = thumbFallback;
+          return;
+        }
         btn.hidden = true;
         const idx = frames.indexOf(fr);
         if (idx !== -1) {
