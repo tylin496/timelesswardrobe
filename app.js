@@ -24053,7 +24053,7 @@
         const localCount = gallery.filter(
           (u) => isFileBackedLocalWardrobeUrl(itemRef, u) && !/^https?:\/\//i.test(String(u).split("?")[0])
         ).length + (image && isFileBackedLocalWardrobeUrl(itemRef, image) && !/^https?:\/\//i.test(image.split("?")[0]) ? 1 : 0);
-        setMsg(localCount > 0 ? `Uploading ${localCount} catalogue photo${localCount > 1 ? "s" : ""} to cloud…` : "Syncing photos to cloud…", false);
+        if (hadNewPhotoFiles) setMsg(localCount > 0 ? `Uploading ${localCount} catalogue photo${localCount > 1 ? "s" : ""} to cloud…` : "Syncing photos to cloud…", false);
         const synced = await ensureFrozenCatalogueMediaUrlsOnCloud(id, image, gallery, setMsg);
         image = synced.image;
         gallery = synced.gallery;
