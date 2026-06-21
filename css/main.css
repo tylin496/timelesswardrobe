@@ -22689,7 +22689,10 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   }
 
   body.home-page .ed-lp__hero-inner {
-    bottom: calc(var(--hero-content-bottom) + env(safe-area-inset-bottom, 0px));
+    /* No env(safe-area-inset-bottom) — see base rule. This home-page override is
+       more specific and was re-adding the inset, so the copy still slid up on iOS
+       scroll. --hero-content-bottom (min 2.35rem) already clears the home indicator. */
+    bottom: var(--hero-content-bottom);
     width: 100%;
     max-width: 1200px;
     padding-left: max(var(--catalogue-plp-inline-x), env(safe-area-inset-left, 0px));
