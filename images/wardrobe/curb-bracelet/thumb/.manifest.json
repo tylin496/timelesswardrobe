@@ -12,11 +12,19 @@
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   },
   "4.webp": {
-    "srcHash": "7a3eaa5558f4d075f0f7ffdd0f2fbe9c",
+    "srcHash": "0f72d27f5fdf28abe2220bd946324255",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   },
   "5.webp": {
-    "srcHash": "cc6ac047e63f1dbb2d8c62f16616bc8d",
+    "srcHash": "ae39c7808148754ae9c62008fd1593c1",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "6.webp": {
+    "srcHash": "10322cabe3cce0d9a0cb83b461708608",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "7.webp": {
+    "srcHash": "beae455ceee9b58322a736c79e6d5875",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   }
 }

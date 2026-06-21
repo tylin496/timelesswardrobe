@@ -10,5 +10,9 @@
   "3.webp": {
     "srcHash": "31f6fe183f9542399e9ae48628b48da9",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "4.webp": {
+    "srcHash": "405b0477d076e8f209332418fa6e33a8",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   }
 }

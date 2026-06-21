@@ -18,5 +18,21 @@
   "5.webp": {
     "srcHash": "06bd3bdff95e813f393dda27eabb69a7",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "6.webp": {
+    "srcHash": "47e002c8541f9fa3fd7c31c15b5e42c2",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "7.webp": {
+    "srcHash": "d1cb770f9b13bacc09ce7b72355072ae",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "8.webp": {
+    "srcHash": "73358f76f3adea4b90be389ebfeeedf3",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "9.webp": {
+    "srcHash": "f69ffc8a18467f67f904600365cfa3bc",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   }
 }

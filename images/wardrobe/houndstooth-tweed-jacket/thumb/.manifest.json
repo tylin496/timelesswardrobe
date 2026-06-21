@@ -22,5 +22,9 @@
   "6.webp": {
     "srcHash": "3122655d25917bf18d7ecbdfcc1fff5f",
     "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
+  },
+  "7.webp": {
+    "srcHash": "e902798e4d600d048e2dad682b722ae0",
+    "bgHash": "08fa4a02245ec8d1d2be6fad52e31e03"
   }
 }
