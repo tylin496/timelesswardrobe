@@ -5784,27 +5784,16 @@
   }
 
   /**
-   * Display-only rounding for collection / cards / spend total.
-   * Currencies without minor units (0 fraction digits, e.g. JPY/KRW/TWD) are half-up rounded on screen.
-   * `item.price` storage stays unchanged.
+   * Display-only: every currency is shown as a whole number (half-up rounded on
+   * screen) for a consistent, minimal look — e.g. US$718.20 → US$718, matching the
+   * integer primary price. `item.price` storage stays exact; sort/spend math uses
+   * convertPriceAmount directly and is unaffected.
    */
   function formatMoneyInCurrency(amount, currencyCode) {
     if (!Number.isFinite(amount)) return "";
     const raw = String(currencyCode ?? "TWD").trim();
     const code = /^[A-Za-z]{3}/.test(raw) ? raw.slice(0, 3).toUpperCase() : "TWD";
-    let fractionDigits = 2;
-    try {
-      const resolved = new Intl.NumberFormat(undefined, {
-        style: "currency",
-        currency: code,
-      }).resolvedOptions();
-      if (Number.isFinite(resolved.maximumFractionDigits)) {
-        fractionDigits = resolved.maximumFractionDigits;
-      }
-    } catch {
-      fractionDigits = code === "TWD" ? 0 : 2;
-    }
-    const roundedAmount = fractionDigits === 0 ? Math.round(Number(amount)) : Number(amount);
+    const roundedAmount = Math.round(Number(amount));
 
     if (code === "TWD") {
       try {
@@ -5813,9 +5802,9 @@
           currency: "TWD",
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
-        }).format(Math.round(roundedAmount));
+        }).format(roundedAmount);
       } catch {
-        return `NT$${Math.round(roundedAmount).toLocaleString("zh-TW")}`;
+        return `NT$${roundedAmount.toLocaleString("zh-TW")}`;
       }
     }
 
@@ -5824,12 +5813,10 @@
         style: "currency",
         currency: code,
         minimumFractionDigits: 0,
-        maximumFractionDigits: fractionDigits,
+        maximumFractionDigits: 0,
       }).format(roundedAmount);
     } catch {
-      if (fractionDigits === 0) return `${code} ${Math.round(roundedAmount)}`;
-      const scale = 10 ** Math.min(3, Math.max(1, fractionDigits));
-      return `${code} ${Math.round(roundedAmount * scale) / scale}`;
+      return `${code} ${roundedAmount.toLocaleString()}`;
     }
   }
 
