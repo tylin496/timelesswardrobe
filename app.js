@@ -25717,7 +25717,9 @@
       const name = document.createElement("span");
       name.className = "item-detail__item-nav-name";
       name.textContent = displayNameWithoutLeadingColour(navItem);
-      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 64, 80, { item: navItem });
+      // Use main photo (with background) — pass width > WARDROBE_THUMB_MAX_REQUEST_WIDTH
+      // so localWardrobeThumbPath skips the transparent cutout redirect.
+      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 1001, 1251, { item: navItem });
       const thumb = document.createElement("img");
       thumb.className = "item-detail__item-nav-thumb";
       thumb.src = thumbSrc || navItem.image || "";
