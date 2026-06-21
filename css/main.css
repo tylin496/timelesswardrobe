@@ -6090,10 +6090,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     max-width: 100%;
     min-width: 0;
     height: auto;
-    /* Full-width field: reserve only the close-X width on the right; the X is a
-       separate top-right control, so the pill stays left-anchored and wide. */
+    /* Full-width field: reserve exactly the close-X width on the right so the pill
+       sits flush against the close button — no gap between them. */
     padding: 0;
-    padding-right: calc(var(--tw-mobile-search-row-height, 2.125rem) + 0.5rem);
+    padding-right: var(--tw-mobile-search-row-height, 2.125rem);
     box-sizing: border-box;
   }
 
