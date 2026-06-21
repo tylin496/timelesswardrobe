@@ -10871,7 +10871,7 @@
 
   function homeEditorialGalleryPool(item) {
     const cover = homeEditorialCoverSrc(item);
-    return itemGalleryList(item).filter((u) => u && u !== cover && isDisplayableCloudImageUrl(u));
+    return itemDisplayGalleryList(item).filter((u) => u && u !== cover && isDisplayableCloudImageUrl(u));
   }
 
   /**
@@ -15769,6 +15769,21 @@
     return arr.filter((u) => u && u !== main);
   }
 
+  /** True when the item is jewellery — its last gallery frame is the authenticity certificate. */
+  function isJewelleryItem(item) {
+    return recordCategoryForDrill(item) === "Jewellery";
+  }
+
+  /**
+   * Gallery frames for random showcase/editorial display.
+   * For jewellery, drops the final frame (the certificate) so it never surfaces in random tiles.
+   */
+  function itemDisplayGalleryList(item) {
+    const list = itemGalleryList(item);
+    if (list.length > 1 && isJewelleryItem(item)) return list.slice(0, -1);
+    return list;
+  }
+
   function isDisplayableCloudImageUrl(u) {
     const s = String(u ?? "").trim();
     if (!s) return false;
@@ -15976,7 +15991,7 @@
     /** @type {{ item: object, url: string }[]} */
     const entries = [];
     for (const it of pool) {
-      for (const u of itemGalleryList(it)) {
+      for (const u of itemDisplayGalleryList(it)) {
         if (isDisplayableCloudImageUrl(u)) entries.push({ item: it, url: String(u).trim() });
       }
     }
