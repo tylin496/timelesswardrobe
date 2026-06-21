@@ -307,6 +307,15 @@
     transform: translate3d(0, 0, 0);
   }
 }
+/*
+ * IMPORTANT: every `tlw-fade-up` usage must fill `backwards`, never `both`/`forwards`.
+ * Animating transform never yields literal `none` at 100% — it computes to the
+ * identity matrix, which (when held by forwards-fill) is still toxic: it makes the
+ * element a containing block (breaks descendant position: sticky / fixed — see the
+ * .site-header search-open reset) and a permanent GPU layer + stacking context
+ * (every #grid card). `backwards` keeps the pre-start hide during the delay, then
+ * reverts to the base style (transform: none) once the run ends — motion unchanged.
+ */
 
 @keyframes tlw-fade-in {
   from {
@@ -910,7 +919,7 @@ body {
 
 /* Run once on load — re-applying `animation` after search close caused a visible header jump. */
 .site-header:not(.site-header--entered) {
-  animation: tlw-fade-up 0.58s var(--ease-luxe) both;
+  animation: tlw-fade-up 0.58s var(--ease-luxe) backwards;
 }
 
 .site-header.site-header--entered {
@@ -6232,19 +6241,19 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-header__search-wrap.site-header__search-wrap--visible .site-header__search-top .site-header__search-head {
-    animation: tlw-fade-up 0.54s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.1s both;
+    animation: tlw-fade-up 0.54s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.1s backwards;
   }
 
   .site-header__search-wrap.site-header__search-wrap--visible .site-header__search-dropdown-aside--trending {
-    animation: tlw-fade-up 0.54s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.16s both;
+    animation: tlw-fade-up 0.54s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.16s backwards;
   }
 
   .site-header__search-wrap.site-header__search-wrap--visible .site-header__search-dropdown-main {
-    animation: tlw-fade-up 0.58s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.24s both;
+    animation: tlw-fade-up 0.58s var(--tw-mobile-search-ease, var(--ease-luxe)) 0.24s backwards;
   }
 
   .site-header__search-wrap.site-header__search-wrap--visible .site-header__search-category-card {
-    animation: tlw-fade-up 0.52s var(--tw-mobile-search-ease, var(--ease-luxe)) both;
+    animation: tlw-fade-up 0.52s var(--tw-mobile-search-ease, var(--ease-luxe)) backwards;
   }
 
   .site-header__search-wrap.site-header__search-wrap--visible .site-header__search-category-card:nth-child(1) {
@@ -12532,7 +12541,7 @@ dialog.add-item-dialog[open]::backdrop {
   padding: 0 var(--space-page-inline) 1.5rem;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 55%, var(--bg)) 0%, var(--bg) 42%, var(--bg) 100%);
-  animation: tlw-fade-up 0.55s var(--ease-luxe) 0.1s both;
+  animation: tlw-fade-up 0.55s var(--ease-luxe) 0.1s backwards;
 }
 
 .outfit-dock:not(.outfit-dock--builder-open) .outfit-dock__builder {
@@ -12929,7 +12938,7 @@ body:not(.item-page):not(.tw-page-loader-revealed) #main {
   /* Skip layout/paint for off-screen cards while scrolling long collections. */
   content-visibility: auto;
   contain-intrinsic-size: auto 520px;
-  animation: tlw-fade-up 0.52s var(--ease-luxe) both;
+  animation: tlw-fade-up 0.52s var(--ease-luxe) backwards;
 }
 
 #grid .card:nth-child(1) {
@@ -14262,7 +14271,7 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 }
 
 .item-detail__root--page {
-  animation: tlw-fade-up 0.55s var(--ease-luxe) 0.06s both;
+  animation: tlw-fade-up 0.55s var(--ease-luxe) 0.06s backwards;
 }
 
 .item-page {
@@ -18731,17 +18740,6 @@ a.item-detail__breadcrumb-current {
  * inset longhands keep their physical side (passes npm run lint:insets).
  */
 @media (max-width: 879.98px) {
-  /*
-   * The root's entrance animation (tlw-fade-up, fill: both) freezes a
-   * translate3d(0,0,0) transform, and ANY non-none transform on an ancestor kills
-   * position: sticky inside it. Swap to the opacity-only tlw-fade-in on mobile so the
-   * sticky CTA below resolves against the page scroller. (animation-name only —
-   * duration / delay / fill from the base shorthand are preserved.)
-   */
-  .item-detail__root--page {
-    animation-name: tlw-fade-in;
-  }
-
   .item-detail__root--page .item-detail__board-cta-wrap {
     position: sticky;
     bottom: 0;
