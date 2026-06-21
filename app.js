@@ -5617,26 +5617,41 @@
     const toggle = sec.querySelector(".item-detail__notes-toggle");
     if (!(textEl instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) return;
 
-    const fullText = textEl.textContent;
+    // Capture only the text node content, not the button text inside textEl
+    const fullText = Array.from(textEl.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join("");
     let expanded = false;
 
-    function setContent(str, showToggle) {
+    // inline=true: toggle lives inside textEl (collapsed, flows after "…")
+    // inline=false: toggle is a sibling of textEl (expanded, block below)
+    function placeToggle(inline) {
+      if (inline) {
+        if (toggle.parentElement !== textEl) textEl.appendChild(toggle);
+      } else {
+        if (toggle.parentElement !== sec) sec.insertBefore(toggle, textEl.nextSibling);
+      }
+    }
+
+    function setTextOnly(str) {
       Array.from(textEl.childNodes).forEach((n) => { if (n !== toggle) n.remove(); });
       textEl.insertBefore(document.createTextNode(str), textEl.firstChild);
-      toggle.hidden = !showToggle;
+    }
+
+    // Strip trailing punctuation/whitespace before appending ellipsis.
+    function trimTrailing(str) {
+      return str.replace(/[\s.,;:!?…]+$/, "");
     }
 
     function findTruncationLength() {
       const lh = parseFloat(getComputedStyle(textEl).lineHeight) || 22;
       const maxH = lh * 5;
-      setContent(fullText, false);
+      placeToggle(false); setTextOnly(fullText); toggle.hidden = true;
       if (textEl.scrollHeight <= maxH + 2) return -1;
-      setContent(fullText, true);
+      placeToggle(true); toggle.hidden = false; setTextOnly(fullText);
       if (textEl.scrollHeight <= maxH + 2) return fullText.length;
       let lo = 0, hi = fullText.length;
       while (lo < hi) {
         const mid = Math.ceil((lo + hi) / 2);
-        setContent(fullText.slice(0, mid).replace(/\s+$/, "") + "… ", true);
+        setTextOnly(trimTrailing(fullText.slice(0, mid)) + "… ");
         if (textEl.scrollHeight <= maxH + 2) lo = mid; else hi = mid - 1;
       }
       const snap = fullText.lastIndexOf(" ", lo);
@@ -5647,15 +5662,12 @@
       if (expanded) return;
       const len = findTruncationLength();
       if (len === -1) {
-        setContent(fullText, false);
+        placeToggle(false); setTextOnly(fullText); toggle.hidden = true;
         sec.classList.remove("item-detail__notes-section--collapsible");
         return;
       }
-      if (len === fullText.length) {
-        setContent(fullText, true);
-      } else {
-        setContent(fullText.slice(0, len).replace(/\s+$/, "") + "… ", true);
-      }
+      placeToggle(true); toggle.hidden = false;
+      setTextOnly(len === fullText.length ? fullText : trimTrailing(fullText.slice(0, len)) + "… ");
       toggle.textContent = "Read more";
       toggle.setAttribute("aria-expanded", "false");
       sec.classList.add("item-detail__notes-section--collapsible");
@@ -5673,7 +5685,10 @@
       expanded = !expanded;
       sec.classList.toggle("item-detail__notes-section--expanded", expanded);
       if (expanded) {
-        setContent(fullText, true);
+        // Full text in textEl; toggle becomes a block sibling below
+        placeToggle(false);
+        setTextOnly(fullText);
+        toggle.hidden = false;
         toggle.textContent = "Read less";
         toggle.setAttribute("aria-expanded", "true");
       } else {

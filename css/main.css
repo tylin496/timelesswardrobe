@@ -18745,9 +18745,11 @@ a.item-detail__breadcrumb-current {
   white-space: pre-wrap;
 }
 
+/* Default (expanded state): block sibling below the text */
 .item-detail__notes-toggle {
-  display: inline;
-  padding: 0 0 0 0.3em;
+  display: block;
+  margin-top: 6px;
+  padding: 0;
   border: none;
   background: none;
   font-family: var(--font-sans);
@@ -18758,6 +18760,13 @@ a.item-detail__breadcrumb-current {
   color: color-mix(in srgb, var(--ink) 68%, transparent);
   text-decoration: none;
   cursor: pointer;
+}
+
+/* Collapsed state: toggle lives inline inside the text element */
+.item-detail__notes-text .item-detail__notes-toggle {
+  display: inline;
+  margin-top: 0;
+  padding: 0 0 0 0.3em;
 }
 
 .item-detail__notes-toggle:hover {
