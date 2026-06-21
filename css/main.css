@@ -18414,9 +18414,12 @@ a.item-detail__breadcrumb-current {
   max-width: 45%;
 }
 
+.item-detail__item-nav-link {
+  align-items: center;
+}
+
 .item-detail__item-nav-link--next {
-  align-items: flex-end;
-  text-align: right;
+  text-align: center;
 }
 
 .item-detail__item-nav-link:hover {
@@ -18424,11 +18427,12 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__item-nav-thumb {
-  width: 88px;
-  height: 110px;
+  width: 110px;
+  height: 138px;
   object-fit: contain;
   object-position: center;
   display: block;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.08));
   transition: transform 0.25s ease;
 }
 
@@ -18751,7 +18755,7 @@ a.item-detail__breadcrumb-current {
   font-weight: 400;
   line-height: inherit;
   letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--ink) 52%, transparent);
+  color: color-mix(in srgb, var(--ink) 68%, transparent);
   text-decoration: none;
   cursor: pointer;
 }
