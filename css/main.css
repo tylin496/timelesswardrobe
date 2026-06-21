@@ -21255,7 +21255,11 @@ video.ed-lp__hero-layer-video {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--hero-content-bottom) + env(safe-area-inset-bottom, 0px));
+  /* No env(safe-area-inset-bottom): this is absolutely positioned inside the hero,
+     not pinned to the viewport bottom. On iOS the inset jumps 0 → ~34px when the URL
+     bar collapses on scroll, sliding the copy upward. --hero-content-bottom (≥40px)
+     already clears the home indicator on its own, so the inset only added the jump. */
+  bottom: var(--hero-content-bottom);
   z-index: 3;
   isolation: isolate;
   width: 100%;
