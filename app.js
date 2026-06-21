@@ -8456,10 +8456,40 @@
     return withWardrobeImageCacheBust(u.href, /** @type {any} */ (transformOpts?.item));
   }
 
+  /** True when the URL is a Cloudflare R2 public URL (pub-*.r2.dev/<path>). */
+  function isR2WardrobeImageUrl(url) {
+    return /^https?:\/\/[^/]*\.r2\.dev\//i.test(String(url ?? "").trim().split("?")[0]);
+  }
+
   async function deleteWardrobeImageUrlFromCloud(url) {
     if (!isSupabaseReady()) return false;
     const path = wardrobeStoragePathFromMediaUrl(url);
     if (!path) return false;
+
+    // R2-hosted images live in Cloudflare R2, not Supabase Storage — route the
+    // delete to the upload worker's authenticated DELETE handler.
+    if (isR2WardrobeImageUrl(url)) {
+      try {
+        const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
+        const session = refreshed?.data?.session ?? (supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null);
+        const token = session?.access_token || "";
+        if (!token) throw new Error("Not authenticated.");
+        const res = await fetch(R2_UPLOAD_WORKER_URL, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ path }),
+        });
+        if (!res.ok) {
+          const msg = await res.text().catch(() => String(res.status));
+          throw new Error(`R2 delete failed: ${msg}`);
+        }
+        return true;
+      } catch (err) {
+        console.warn("Could not delete wardrobe image from R2.", err);
+        return false;
+      }
+    }
+
     const { error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).remove([path]);
     if (error) {
       console.warn("Could not delete wardrobe image from Supabase Storage.", error);

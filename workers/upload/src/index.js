@@ -18,7 +18,7 @@ export default {
     const allowed = env.ALLOWED_ORIGIN || "*";
     const corsHeaders = {
       "Access-Control-Allow-Origin": allowed === "*" ? "*" : origin,
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
 
@@ -26,7 +26,7 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    if (request.method !== "POST") {
+    if (request.method !== "POST" && request.method !== "DELETE") {
       return new Response("Method not allowed", { status: 405, headers: corsHeaders });
     }
 
@@ -41,6 +41,26 @@ export default {
     });
     if (!verifyRes.ok) {
       return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+    }
+
+    // DELETE — remove an object from R2
+    if (request.method === "DELETE") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return new Response("Invalid JSON", { status: 400, headers: corsHeaders });
+      }
+      const path = body?.path;
+      if (typeof path !== "string" || !path.trim()) {
+        return new Response("Missing path", { status: 400, headers: corsHeaders });
+      }
+      const safePath = path.replace(/^\/+/, "").replace(/\.\./g, "");
+      await env.WARDROBE_IMAGES.delete(safePath);
+      return new Response(JSON.stringify({ deleted: safePath }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse form data
