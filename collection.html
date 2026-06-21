@@ -1085,5 +1085,55 @@
     <script src="js/tw-supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js"></script>
     <script src="app.js"></script>
+    <!-- TEMP iOS header-width debug overlay. Only loads with ?hdbg=1. Remove after diagnosis. -->
+    <script>
+    (function () {
+      try {
+        if (!/[?&]hdbg=1/.test(location.search)) return;
+        var probe = document.createElement("div");
+        probe.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);visibility:hidden;pointer-events:none;";
+        document.body.appendChild(probe);
+        var panel = document.createElement("pre");
+        panel.style.cssText = "position:fixed;left:6px;bottom:6px;z-index:2147483647;margin:0;padding:8px 10px;font:11px/1.45 ui-monospace,Menlo,monospace;color:#0f0;background:rgba(0,0,0,.82);border-radius:8px;white-space:pre;pointer-events:none;max-width:92vw;";
+        document.body.appendChild(panel);
+        var r = function (n) { return Math.round(n); };
+        function rect(sel) {
+          var el = document.querySelector(sel);
+          if (!el) return null;
+          var b = el.getBoundingClientRect();
+          return b;
+        }
+        function read() {
+          var vv = window.visualViewport;
+          var cs = getComputedStyle(probe);
+          var sat = parseFloat(cs.paddingTop) || 0;
+          var sal = parseFloat(cs.paddingLeft) || 0;
+          var sar = parseFloat(cs.paddingRight) || 0;
+          var shell = rect(".site-header-shell");
+          var inner = rect(".site-header__container.site-header__inner") || rect(".site-header__inner");
+          var crumb = rect(".collection-heading__crumb--link") || rect(".collection-heading__context");
+          var de = document.documentElement;
+          var chromeVar = getComputedStyle(de).getPropertyValue("--site-header-chrome-bottom").trim();
+          var lines = [
+            "iw=" + window.innerWidth + " ih=" + window.innerHeight,
+            "vv  w=" + (vv ? r(vv.width) : "-") + " h=" + (vv ? r(vv.height) : "-") + " offT=" + (vv ? r(vv.offsetTop) : "-") + " offL=" + (vv ? r(vv.offsetLeft) : "-") + " scale=" + (vv ? (Math.round(vv.scale * 100) / 100) : "-"),
+            "safe t=" + r(sat) + " l=" + r(sal) + " r=" + r(sar),
+            "scrollY=" + r(window.scrollY) + " docSW=" + de.scrollWidth + " bodySW=" + document.body.scrollWidth,
+            "shell  L=" + (shell ? r(shell.left) : "-") + " R=" + (shell ? r(shell.right) : "-") + " W=" + (shell ? r(shell.width) : "-") + " B=" + (shell ? r(shell.bottom) : "-"),
+            "inner  B=" + (inner ? r(inner.bottom) : "-") + "  crumb T=" + (crumb ? r(crumb.top) : "-"),
+            "chromeVar=" + chromeVar + "  overlap=" + (inner && crumb ? r(inner.bottom - crumb.top) : "-")
+          ];
+          panel.textContent = lines.join("\n");
+        }
+        read();
+        window.addEventListener("scroll", read, { passive: true });
+        window.addEventListener("resize", read, { passive: true });
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", read);
+          window.visualViewport.addEventListener("scroll", read);
+        }
+      } catch (e) {}
+    })();
+    </script>
   </body>
 </html>
