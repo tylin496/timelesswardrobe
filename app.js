@@ -11347,7 +11347,14 @@
     }
 
     const scrollTargets = homeHorizontalRailScrollTargets(scroller);
-    const scrollSyncHandler = isOutfitStripRailScroller(scroller) ? scheduleScrollSync : syncUi;
+    /* Search-overlay category rail: rAF-coalesce the progress-track sync so the
+       per-scroll-event reflow (getBoundingClientRect + thumb writes) can't stutter
+       native iOS momentum. */
+    const isSearchCategoryRail =
+      scroller.classList.contains("site-header__search-category-scroller-wrap") ||
+      scroller.id === "site-header-search-featured-subcats";
+    const scrollSyncHandler =
+      isOutfitStripRailScroller(scroller) || isSearchCategoryRail ? scheduleScrollSync : syncUi;
 
     for (const scrollPort of scrollTargets) {
       scrollPort.addEventListener("pointerdown", (e) => {

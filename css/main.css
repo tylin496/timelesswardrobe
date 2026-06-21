@@ -6315,7 +6315,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     min-width: 0;
     overflow-x: auto;
     overflow-y: visible;
-    scroll-snap-type: x proximity;
+    /* Free momentum scroll — proximity snap made iOS re-catch on each card edge
+       ("段"-by-"段"). Matches the smooth trending rail which is also snap: none. */
+    scroll-snap-type: none;
     scroll-padding-inline: 0 max(var(--chrome-content-inset-right, 1.25rem), env(safe-area-inset-right, 0px));
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
