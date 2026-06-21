@@ -20651,10 +20651,12 @@ body.collection-page .collection-container > .collection-actions {
   :root {
     /* Pre-JS fallback before syncCollectionPageChromeInset() measures the real
        header bottom. The header height is constant (its padding no longer tracks
-       any safe-area inset), so a static value is correct. */
-    --site-header-chrome-bottom: calc(
-      var(--brand-signature-bar-height, 38px) + var(--site-header-mobile-row-height, 44px)
-    );
+       any safe-area inset), so a static value is correct. Must equal the real
+       measured bottom: utility bar (30px) + header inner row (56px) = 86px. The old
+       `--brand-signature-bar-height + --site-header-mobile-row-height` (36+44=80) used
+       proxy vars that undercount the rendered chrome by 6px, so any frame that fell back
+       to it shifted the PLP grid up 6px. */
+    --site-header-chrome-bottom: 86px;
   }
 
   body.collection-page .site-header-shell {

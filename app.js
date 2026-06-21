@@ -27060,7 +27060,8 @@
       dim.setAttribute("aria-hidden", "true");
     }
     try {
-      document.documentElement.style.removeProperty("--site-header-chrome-bottom");
+      /* Keep --site-header-chrome-bottom: it tracks the live header bottom (header never
+         disappears here). Removing it dropped #main to the CSS fallback → 6px PLP jump. */
       document.documentElement.style.removeProperty("--site-header-submenu-dim-top");
       document.documentElement.style.removeProperty("--tw-search-dim-top");
     } catch {
@@ -27145,7 +27146,7 @@
     document.body.classList.remove("collection-ui--header-submenu-open", "collection-ui--header-submenu-closing");
     hideHeaderFlyoutDimIfIdle();
     try {
-      document.documentElement.style.removeProperty("--site-header-chrome-bottom");
+      /* Leave --site-header-chrome-bottom alone — it's the live header bottom, not a submenu var. */
       document.documentElement.style.removeProperty("--site-header-submenu-dim-top");
     } catch {
       /* ignore */
@@ -27954,7 +27955,8 @@
     };
 
     const clearHeaderSubmenuBackdropInset = () => {
-      document.documentElement.style.removeProperty("--site-header-chrome-bottom");
+      /* Only clear the backdrop/dim inset. --site-header-chrome-bottom is the live header
+         bottom used by #main's top padding; clearing it caused a 6px PLP jump on open. */
       document.documentElement.style.removeProperty("--site-header-submenu-dim-top");
     };
 
