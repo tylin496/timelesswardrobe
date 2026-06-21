@@ -15869,6 +15869,48 @@
   }
 
   /**
+   * Last-resort cover for a local-catalogue item whose live cover is a cloud (R2/Supabase) URL:
+   * the frozen seed image from `data/wardrobe.js`. Lets carousel slides survive a dangling
+   * `archive_overrides` URL (e.g. the R2 file was deleted) by degrading to the local file.
+   * @param {object} item
+   * @param {string} liveCoverRaw the cover URL actually in use (only cloud URLs get a fallback)
+   * @param {object} [frame] render frame (width/height) to resize the seed image to
+   * @returns {string} resolved fallback frame URL, or "" when not applicable
+   */
+  function seedCoverFallbackFrameUrl(item, liveCoverRaw, frame) {
+    const sid = String(item?.id ?? "").trim();
+    if (!isLocalCatalogueItemId(sid)) return "";
+    // Only meaningful when the live cover is a cloud override — the seed is the local original.
+    if (!/^https?:\/\//i.test(String(liveCoverRaw ?? "").split("?")[0])) return "";
+    const seed = catalogueSeedRow(sid);
+    const seedCover =
+      String(seed?.image ?? "").trim() || String(seed?.colourVariants?.[0]?.image ?? "").trim();
+    if (!seedCover || !isDisplayableCloudImageUrl(seedCover)) return "";
+    return frame?.width && frame?.height
+      ? wardrobeImageForFrame(seedCover, item, frame) || withWardrobeImageCacheBust(seedCover, item)
+      : resolveWardrobeImageTransportUrl(seedCover, item) || withWardrobeImageCacheBust(seedCover, item);
+  }
+
+  /**
+   * On `<img>` error, swap to `fallbackUrl` once before giving up. Calls `onFail` when there is
+   * no fallback, the fallback was already tried, or the fallback itself failed.
+   * @param {HTMLImageElement} imgEl
+   * @param {string} fallbackUrl
+   * @param {() => void} [onFail]
+   */
+  function wireImgSeedFallback(imgEl, fallbackUrl, onFail) {
+    imgEl.addEventListener("error", () => {
+      const fb = String(fallbackUrl ?? "").trim();
+      if (fb && imgEl.dataset.twSeedFallbackTried !== "1" && imgEl.src !== fb) {
+        imgEl.dataset.twSeedFallbackTried = "1";
+        imgEl.src = fb;
+        return;
+      }
+      onFail?.();
+    });
+  }
+
+  /**
    * Raw cover URL for collection grid frame 0 (not gallery extras or stale unowned primary).
    * @param {object} item
    * @returns {string}

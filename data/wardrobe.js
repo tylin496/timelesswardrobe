@@ -67,7 +67,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "camel-hair-polo-coat",
+    "id": "polo-coat",
     "section": "Foundation",
     "pillar": "Clothing",
     "category": "Outerwear",
@@ -80,15 +80,15 @@ const WARDROBE_ITEMS = [
     "weight": "760 gsm",
     "size": "46",
     "purchaseDate": "2025-02-16",
-    "image": "/images/wardrobe/camel-hair-polo-coat/main/1.webp",
+    "image": "/images/wardrobe/polo-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/camel-hair-polo-coat/main/2.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/3.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/4.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/5.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/6.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/7.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/8.webp"
+      "/images/wardrobe/polo-coat/main/2.webp",
+      "/images/wardrobe/polo-coat/main/3.webp",
+      "/images/wardrobe/polo-coat/main/4.webp",
+      "/images/wardrobe/polo-coat/main/5.webp",
+      "/images/wardrobe/polo-coat/main/6.webp",
+      "/images/wardrobe/polo-coat/main/7.webp",
+      "/images/wardrobe/polo-coat/main/8.webp"
     ],
     "metadata": {
       "price": 718.2,
@@ -856,7 +856,7 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "washed-rugby-shirt",
+    "id": "rugby-shirt",
     "section": "Shirts & Tops",
     "category": "Layering",
     "brand": "Polo Ralph Lauren",
@@ -867,11 +867,11 @@ const WARDROBE_ITEMS = [
     "fabric": "Cotton",
     "size": "XL",
     "purchaseDate": "2025-01-19",
-    "image": "/images/wardrobe/washed-rugby-shirt/main/1.webp",
+    "image": "/images/wardrobe/rugby-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/washed-rugby-shirt/main/2.webp",
-      "/images/wardrobe/washed-rugby-shirt/main/3.webp",
-      "/images/wardrobe/washed-rugby-shirt/main/4.webp"
+      "/images/wardrobe/rugby-shirt/main/2.webp",
+      "/images/wardrobe/rugby-shirt/main/3.webp",
+      "/images/wardrobe/rugby-shirt/main/4.webp"
     ],
     "metadata": {
       "price": 6490,

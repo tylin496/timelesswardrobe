@@ -1,6 +1,6 @@
 {
   "_schema": "timeless-wardrobe-local-gallery-manifest-v1",
-  "generatedAt": "2026-06-21T10:34:01.121Z",
+  "generatedAt": "2026-06-21T10:36:09.528Z",
   "items": {
     "beaufort-waxed-jacket": {
       "main": [
@@ -24,16 +24,16 @@
       ],
       "variants": {}
     },
-    "camel-hair-polo-coat": {
+    "polo-coat": {
       "main": [
-        "/images/wardrobe/camel-hair-polo-coat/main/1.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/2.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/3.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/4.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/5.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/6.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/7.webp",
-        "/images/wardrobe/camel-hair-polo-coat/main/8.webp"
+        "/images/wardrobe/polo-coat/main/1.webp",
+        "/images/wardrobe/polo-coat/main/2.webp",
+        "/images/wardrobe/polo-coat/main/3.webp",
+        "/images/wardrobe/polo-coat/main/4.webp",
+        "/images/wardrobe/polo-coat/main/5.webp",
+        "/images/wardrobe/polo-coat/main/6.webp",
+        "/images/wardrobe/polo-coat/main/7.webp",
+        "/images/wardrobe/polo-coat/main/8.webp"
       ],
       "variants": {}
     },
@@ -291,12 +291,12 @@
       ],
       "variants": {}
     },
-    "washed-rugby-shirt": {
+    "rugby-shirt": {
       "main": [
-        "/images/wardrobe/washed-rugby-shirt/main/1.webp",
-        "/images/wardrobe/washed-rugby-shirt/main/2.webp",
-        "/images/wardrobe/washed-rugby-shirt/main/3.webp",
-        "/images/wardrobe/washed-rugby-shirt/main/4.webp"
+        "/images/wardrobe/rugby-shirt/main/1.webp",
+        "/images/wardrobe/rugby-shirt/main/2.webp",
+        "/images/wardrobe/rugby-shirt/main/3.webp",
+        "/images/wardrobe/rugby-shirt/main/4.webp"
       ],
       "variants": {}
     },
