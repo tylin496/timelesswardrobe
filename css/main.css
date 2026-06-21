@@ -22721,7 +22721,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   }
 
   body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
-    min-width: 8.5rem;
+    min-width: 6rem;
   }
 
   .site-home-stage {
