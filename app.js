@@ -9768,17 +9768,22 @@
     prepareHomeHorizontalRailScroller(scroller);
   }
 
-  /** Popular Categories mobile rail: native horizontal momentum (no custom drag / edge bump). */
+  /** Popular Categories mobile rail: native horizontal momentum + homepage-style progress track. */
   function wireHeaderSearchCategoryRail() {
     const grid = document.getElementById("site-header-search-featured-subcats");
     const wrap = document.querySelector(".site-header__search-category-scroller-wrap");
+    const section = document.querySelector(".site-header__search-dropdown-main");
     if (!(grid instanceof HTMLElement)) return;
     const useWrapScroller = isHeaderCompactViewport() && wrap instanceof HTMLElement;
     const scrollEl = useWrapScroller ? wrap : grid;
-    wireHeaderSearchOverlayRail(scrollEl);
+    wireHorizontalRailScroller(scrollEl, { railRoot: section instanceof HTMLElement ? section : undefined });
+    /* The overlay opens with an animation, so the rail may be wired while still collapsed (scrollWidth
+       not final). Re-measure once layout settles so the progress track shows/sizes correctly. */
+    refreshHomeHorizontalRailScroller(scrollEl);
+    globalThis.setTimeout(() => refreshHomeHorizontalRailScroller(scrollEl), 180);
     grid.querySelectorAll("img").forEach((img) => {
       if (img.complete) return;
-      img.addEventListener("load", () => prepareHomeHorizontalRailScroller(scrollEl), { once: true });
+      img.addEventListener("load", () => refreshHomeHorizontalRailScroller(scrollEl), { once: true });
     });
   }
 
@@ -16055,6 +16060,18 @@
     height: 450,
     quality: 80,
     resize: /** @type {const} */ ("cover"),
+  });
+
+  /**
+   * Outfits drawer thumbnails (strip pieces + saved-card flatlay) — tiny render to cap
+   * decode memory. These are ~44–150px on screen but previously loaded full-res originals;
+   * Chrome iOS (WKWebView, low Jetsam ceiling) crashed when un-covering a large image grid.
+   */
+  const OUTFIT_DRAWER_THUMB_RENDER = Object.freeze({
+    width: 360,
+    height: 480,
+    quality: 78,
+    resize: /** @type {const} */ ("contain"),
   });
 
   const ITEM_DETAIL_GALLERY_RENDER = Object.freeze({
@@ -23308,11 +23325,17 @@
       thumb.className = "outfit-slot__thumb";
       const simg = document.createElement("img");
       simg.alt = "";
+      simg.loading = "lazy";
+      simg.decoding = "async";
       simg.draggable = false;
       simg.setAttribute("draggable", "false");
       wireCoverImageWithFallbacks(simg, proj, {
         host: thumb,
         missingClass: null,
+        coverRenderWidth: OUTFIT_DRAWER_THUMB_RENDER.width,
+        coverRenderHeight: OUTFIT_DRAWER_THUMB_RENDER.height,
+        coverRenderQuality: OUTFIT_DRAWER_THUMB_RENDER.quality,
+        coverRenderResize: OUTFIT_DRAWER_THUMB_RENDER.resize,
         onExhausted: () => {
           thumb.style.background = "transparent";
         },
@@ -23394,8 +23417,15 @@
         const im = document.createElement("img");
         im.alt = "";
         im.loading = "lazy";
+        im.decoding = "async";
         pieceWrap.appendChild(im);
-        wireCoverImageWithFallbacks(im, proj, { missingClass: null });
+        wireCoverImageWithFallbacks(im, proj, {
+          missingClass: null,
+          coverRenderWidth: OUTFIT_DRAWER_THUMB_RENDER.width,
+          coverRenderHeight: OUTFIT_DRAWER_THUMB_RENDER.height,
+          coverRenderQuality: OUTFIT_DRAWER_THUMB_RENDER.quality,
+          coverRenderResize: OUTFIT_DRAWER_THUMB_RENDER.resize,
+        });
         flatlay.appendChild(pieceWrap);
       }
       if (previewSlots.length) {
