@@ -18721,6 +18721,48 @@ a.item-detail__breadcrumb-current {
   cursor: default;
 }
 
+/*
+ * Mobile (stacked layout < 880px): pin the primary action to the viewport bottom
+ * so the key step is reachable without scrolling past the full-height gallery.
+ * `sticky; bottom: 0` keeps the bar parked at the foot of the scrollport while its
+ * natural position is below the fold, then settles back into flow as you scroll
+ * down — so the notes / prev-next below it are never trapped behind the bar.
+ * Full-bleeds to the viewport edges by mirroring #item-page-main's inline padding;
+ * inset longhands keep their physical side (passes npm run lint:insets).
+ */
+@media (max-width: 879.98px) {
+  /*
+   * The root's entrance animation (tlw-fade-up, fill: both) freezes a
+   * translate3d(0,0,0) transform, and ANY non-none transform on an ancestor kills
+   * position: sticky inside it. Swap to the opacity-only tlw-fade-in on mobile so the
+   * sticky CTA below resolves against the page scroller. (animation-name only —
+   * duration / delay / fill from the base shorthand are preserved.)
+   */
+  .item-detail__root--page {
+    animation-name: tlw-fade-in;
+  }
+
+  .item-detail__root--page .item-detail__board-cta-wrap {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-top: 1.5rem;
+    margin-left: calc(-1 * max(var(--content-inline), env(safe-area-inset-left, 0px)));
+    margin-right: calc(-1 * max(var(--content-inline), env(safe-area-inset-right, 0px)));
+    padding-top: 0.7rem;
+    padding-left: max(var(--content-inline), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--content-inline), env(safe-area-inset-right, 0px));
+    padding-bottom: max(0.7rem, env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  }
+
+  .item-detail__root--page .item-detail__board-cta {
+    height: 48px;
+    min-height: 48px;
+  }
+}
+
 .item-detail__notes-section {
   @apply mt-6;
   padding-top: 1.35rem;
