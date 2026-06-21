@@ -4,7 +4,7 @@
  * remove unreferenced gallery objects from Storage.
  *
  *   node scripts/repair_frozen_gallery_drift.mjs
- *   node scripts/repair_frozen_gallery_drift.mjs camel-hair-polo-coat   # one id
+ *   node scripts/repair_frozen_gallery_drift.mjs polo-coat   # one id
  */
 
 import fs from "node:fs";
