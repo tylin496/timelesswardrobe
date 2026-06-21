@@ -9906,11 +9906,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
     --outfit-stagger-y: 0px;
-    --outfit-slot-h: 11.75rem;
-    flex: 0 0 132px;
-    width: 132px;
-    min-width: 132px;
-    max-width: 132px;
+    --outfit-slot-h: 10.5rem;
+    flex: 0 0 6.5rem;
+    width: 6.5rem;
+    min-width: 6.5rem;
+    max-width: 6.5rem;
     height: var(--outfit-slot-h);
     min-height: var(--outfit-slot-h);
     max-height: var(--outfit-slot-h);
@@ -11285,10 +11285,11 @@ body.tw-outfit-drag-active * {
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
-    flex: 0 0 clamp(96px, 27vw, 108px);
-    width: clamp(96px, 27vw, 108px);
-    min-width: 96px;
-    max-width: 108px;
+    /* Fixed card width — no viewport flex, every piece the same. */
+    flex: 0 0 6.5rem;
+    width: 6.5rem;
+    min-width: 6.5rem;
+    max-width: 6.5rem;
     margin-left: 0 !important;
     scroll-snap-align: start;
     touch-action: pan-x;
