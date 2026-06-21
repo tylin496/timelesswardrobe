@@ -82,10 +82,15 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2025-02-16",
     "image": "/images/wardrobe/camel-hair-polo-coat/main/1.webp",
     "gallery": [
+      "/images/wardrobe/camel-hair-polo-coat/main/10.webp",
       "/images/wardrobe/camel-hair-polo-coat/main/2.webp",
       "/images/wardrobe/camel-hair-polo-coat/main/3.webp",
       "/images/wardrobe/camel-hair-polo-coat/main/4.webp",
-      "/images/wardrobe/camel-hair-polo-coat/main/5.webp"
+      "/images/wardrobe/camel-hair-polo-coat/main/5.webp",
+      "/images/wardrobe/camel-hair-polo-coat/main/6.webp",
+      "/images/wardrobe/camel-hair-polo-coat/main/7.webp",
+      "/images/wardrobe/camel-hair-polo-coat/main/8.webp",
+      "/images/wardrobe/camel-hair-polo-coat/main/9.webp"
     ],
     "metadata": {
       "price": 718.2,
@@ -132,7 +137,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-11-03",
     "image": "/images/wardrobe/tank-solo/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tank-solo/main/2.webp"
+      "/images/wardrobe/tank-solo/main/2.webp",
+      "/images/wardrobe/tank-solo/main/3.webp",
+      "/images/wardrobe/tank-solo/main/4.webp"
     ],
     "notes": "Reference: W5200004\nMovement: Cartier Cal. 690 quartz\nCase: 34.8 × 27.4 mm, 18ct yellow gold\nStrap: Brown square-scale alligator leather with original 18ct yellow gold ardillon buckle\n\nDesigned by Louis Cartier in 1917, the Tank remains one of the defining forms of modern watch design. In continuous production for over a century, it has remained unmistakable while becoming one of the canonical objects of the twentieth century. As the only solid-gold watch in this collection, it serves as its aesthetic anchor.",
     "metadata": {
@@ -187,7 +194,11 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/signet-ring/main/2.webp",
       "/images/wardrobe/signet-ring/main/3.webp",
       "/images/wardrobe/signet-ring/main/4.webp",
-      "/images/wardrobe/signet-ring/main/5.webp"
+      "/images/wardrobe/signet-ring/main/5.webp",
+      "/images/wardrobe/signet-ring/main/6.webp",
+      "/images/wardrobe/signet-ring/main/7.webp",
+      "/images/wardrobe/signet-ring/main/8.webp",
+      "/images/wardrobe/signet-ring/main/9.webp"
     ],
     "notes": "Size: HK 14 (2020-11-20; confirmed 2026-04-07)\nWeight: 9.6 g (actual)       Gold price: 411 CNY/g (base: 385 CNY/g)\nMaking: 78 CNY/g\nTotal: 4,698 CNY ≈ 20,000 TWD (2020)\nDate: 1 November 2020\n\nEngraving: Victorian interlaced monogram (TYL)",
     "metadata": {
@@ -388,7 +399,8 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/houndstooth-tweed-jacket/main/3.webp",
       "/images/wardrobe/houndstooth-tweed-jacket/main/4.webp",
       "/images/wardrobe/houndstooth-tweed-jacket/main/5.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/6.webp"
+      "/images/wardrobe/houndstooth-tweed-jacket/main/6.webp",
+      "/images/wardrobe/houndstooth-tweed-jacket/main/7.webp"
     ],
     "metadata": {
       "price": 79.99,
@@ -1463,8 +1475,7 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
       "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/6.webp"
+      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
     ],
     "purchaseDate": "2014-03-10",
     "notes": "Originally owned by my father.",
@@ -1655,7 +1666,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/datejust-36-mod/main/1.webp",
     "gallery": [
       "/images/wardrobe/datejust-36-mod/main/2.webp",
-      "/images/wardrobe/datejust-36-mod/main/3.webp"
+      "/images/wardrobe/datejust-36-mod/main/4.webp"
     ],
     "notes": "Inspired by the proportions of the contemporary Datejust 36, this modified Seiko adopts an all-gold configuration no longer found in the current Rolex catalogue, combining modern proportions with an aesthetic more closely associated with earlier generations of the model.",
     "metadata": {
@@ -1810,7 +1821,9 @@ const WARDROBE_ITEMS = [
       "/images/wardrobe/curb-bracelet/main/2.webp",
       "/images/wardrobe/curb-bracelet/main/3.webp",
       "/images/wardrobe/curb-bracelet/main/4.webp",
-      "/images/wardrobe/curb-bracelet/main/5.webp"
+      "/images/wardrobe/curb-bracelet/main/5.webp",
+      "/images/wardrobe/curb-bracelet/main/6.webp",
+      "/images/wardrobe/curb-bracelet/main/7.webp"
     ],
     "notes": "Size: 20.5 cm （8.07inches）\nWeight: 11.71 g\nGold price: 596 CNY/g (base: 472, +45% vs 2020)\nMaking: 124 CNY/g\nTotal: 6,973 CNY ≈ 31,200 TWD (2024)\nDate: 26 October 2024",
     "metadata": {
@@ -1833,8 +1846,9 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2024-08-20",
     "image": "/images/wardrobe/rolo-chain-necklace/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain-necklace/main/2.JPG",
-      "/images/wardrobe/rolo-chain-necklace/main/3.webp"
+      "/images/wardrobe/rolo-chain-necklace/main/2.webp",
+      "/images/wardrobe/rolo-chain-necklace/main/3.webp",
+      "/images/wardrobe/rolo-chain-necklace/main/4.webp"
     ],
     "notes": "Size: 50 cm\nWeight: 9.29 g\nGold price: 514 CNY/g (base: 431, +25% vs 2020)\nMaking: 83 CNY/g\nTotal: 4,778 CNY ≈ 21,400 TWD (2024)\n\u001aDate: 20 August 2024",
     "metadata": {
@@ -1860,7 +1874,11 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/ruby-gypsy-ring/main/1.webp",
     "gallery": [
       "/images/wardrobe/ruby-gypsy-ring/main/2.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/3.webp"
+      "/images/wardrobe/ruby-gypsy-ring/main/3.webp",
+      "/images/wardrobe/ruby-gypsy-ring/main/4.webp",
+      "/images/wardrobe/ruby-gypsy-ring/main/5.webp",
+      "/images/wardrobe/ruby-gypsy-ring/main/6.webp",
+      "/images/wardrobe/ruby-gypsy-ring/main/7.webp"
     ],
     "notes": "Size: HK 22 (2024-10-10; adjusted to 22.5–23 on 2026-04-07)\nWeight: 8.20 g (total, including stones)       Gold price: 604 CNY/g (base 450, +47% vs 2020)\nRuby: 3 × 4 mm (~0.2 ct)\nDiamonds: 2.3 mm × 2 (total ~0.1 ct)\nMaking: 154 CNY/g\nTotal: 5,057 CNY ≈ 22,600 TWD (2024)\n\nEngraving\nInscription: Ad Meliora . 2024\n\nReference: A gold ring inset with a single turquoise, inscribed Rumpenheim, 1843",
     "metadata": {
