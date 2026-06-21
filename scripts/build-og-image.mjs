@@ -40,7 +40,7 @@ const CELL_H = Math.floor((H - GAP) / 2);         // 313
 // ── Item selection ────────────────────────────────────────────────────────────
 
 const FALLBACK_IDS = [
-  "camel-hair-polo-coat",
+  "polo-coat",
   "datejust-36-mod",
   "balmacaan-coat",
   "beaufort-waxed-jacket",

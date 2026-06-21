@@ -110,12 +110,15 @@
     ["paraboot-ferret-lisse-cafe", "ferret"],
     ["private-white-vc-midnight-navy-ventile-harrington", "ventile-harrington-jacket"],
     ["prl-beige-basket-weave-linen-jacket", "basket-weave-linen-jacket"],
-    ["prl-washed-wine-cream-rugby-shirt", "washed-rugby-shirt"],
+    ["prl-washed-wine-cream-rugby-shirt", "rugby-shirt"],
+    ["washed-rugby-shirt", "rugby-shirt"],
     ["prl-wine-polo-bear-wool-cashmere-jumper", "polo-bear-jumper"],
-    ["spier-mackay-camel-hair-polo-coat", "camel-hair-polo-coat"],
+    ["spier-mackay-camel-hair-polo-coat", "polo-coat"],
+    ["camel-hair-polo-coat", "polo-coat"],
     ["the-engineer-black-cotton-long-sleeve-polo", "knit-long-sleeve-polo"],
     ["the-engineer-brown-mixed-fair-isle-wool-vest", "fair-isle-vest"],
-    ["the-engineer-ecru-linen-safari-jacket", "linen-safari-jacket"],
+    ["the-engineer-ecru-linen-safari-jacket", "safari-jacket"],
+    ["linen-safari-jacket", "safari-jacket"],
     ["tissot-prx-quartz-35mm-gold-pvd", "prx-quartz"],
     ["tudor-black-bay-58", "black-bay-58"],
     ["uniqlo-beige-kataaze-knit-mock-neck", "kataaze-knit-mock-neck-jumper"],
@@ -16276,11 +16279,11 @@
     const extras = allLocal
       ? [...extrasRaw].sort((a, b) => localBasename(a).localeCompare(localBasename(b), undefined, { numeric: true, sensitivity: "base" }))
       : extrasRaw;
-    /** @type {{ url: string, label: string }[]} */
+    /** @type {{ url: string, label: string, fallback?: string }[]} */
     const frames = [];
     const seen = new Set();
     if (cover) {
-      frames.push({ url: cover, label: "Cover" });
+      frames.push({ url: cover, label: "Cover", fallback: seedCoverFallbackFrameUrl(item, cover) });
       seen.add(wardrobeMediaPathKey(cover) || cover.split("?")[0]);
     }
     extras.forEach((url) => {
@@ -16472,6 +16475,8 @@
       if (url) simg.src = url;
       if (i === 0 && !isClone) simg.dataset.coverSrc = url;
       simg.dataset.frameRaw = String(fr.url ?? "").trim();
+      const fb = fr.fallback ? heroFrameSrc(fr.fallback) : "";
+      if (fb) wireImgSeedFallback(simg, fb);
       slide.appendChild(simg);
       return slide;
     };
@@ -16612,6 +16617,17 @@
         ? buildPdpMobileGalleryCarousel(stageEl, heroImgEl, frames, heroFrameSrc)
         : null;
 
+    // Desktop hero is one reused <img>; on a dead cloud cover, fall back to the local seed
+    // for the current frame (only the cover carries a fallback). Reset per frame swap below.
+    heroImgEl.addEventListener("error", () => {
+      const fr = frames[currentIndex];
+      const fb = fr?.fallback ? heroFrameSrc(fr.fallback) : "";
+      if (fb && heroImgEl.src !== fb && heroImgEl.dataset.twSeedFallbackTried !== "1") {
+        heroImgEl.dataset.twSeedFallbackTried = "1";
+        heroImgEl.src = fb;
+      }
+    });
+
     const syncHeroMetaFromIndex = (idx) => {
       const carousel = getPdpMobileGalleryCarousel(stageEl);
       const activeImg = itemDetailActiveHeroImg(stageEl, heroImgEl);
@@ -16619,7 +16635,10 @@
       if (url) {
         if (idx === 0) heroImgEl.dataset.coverSrc = url;
         heroImgEl.dataset.frameRaw = String(frames[idx].url ?? "").trim();
-        if (!carousel) heroImgEl.src = url;
+        if (!carousel) {
+          delete heroImgEl.dataset.twSeedFallbackTried;
+          heroImgEl.src = url;
+        }
       }
       heroImgEl.alt =
         idx === 0
@@ -20353,7 +20372,11 @@
     const coverKey = String(coverUrl).split("?")[0];
     if (coverUrl && coverKey) {
       seen.add(coverKey);
-      out.push({ url: coverUrl, cutout: true });
+      out.push({
+        url: coverUrl,
+        cutout: true,
+        fallback: seedCoverFallbackFrameUrl(item, coverRaw, COLLECTION_GRID_CARD_RENDER),
+      });
     }
 
     const galleryRender = isCollectionCardCoarsePointer()
@@ -21088,6 +21111,7 @@
         if (img.sizes) simg.sizes = img.sizes;
         if (i === 0) {
           simg.src = entry.url;
+          wireImgSeedFallback(simg, entry.fallback, () => { slide.hidden = true; });
         } else {
           simg.dataset.twFrameSrc = entry.url;
         }
@@ -21238,7 +21262,7 @@
         simg.decoding = "async";
         simg.draggable = false;
         simg.src = entry.url;
-        simg.addEventListener("error", () => { slide.hidden = true; }, { once: true });
+        wireImgSeedFallback(simg, entry.fallback, () => { slide.hidden = true; });
         slide.appendChild(simg);
         return slide;
       };
@@ -27499,7 +27523,7 @@
       title: "Mediterranean Leisure",
       subtitle: "Linen, open collars, pale cotton, and summer objects.",
       pieceIds: [
-        "linen-safari-jacket",
+        "safari-jacket",
         "basket-weave-linen-jacket",
         "linen-camp-collar-shirt",
         "linen-loop-collar-shirt",
@@ -27513,7 +27537,7 @@
       title: "Ivy Weekend",
       subtitle: "Washed rugby, cricket knit, oxford cloth, tassel loafers, and casual tailoring.",
       pieceIds: [
-        "washed-rugby-shirt",
+        "rugby-shirt",
         "cricket-cable-knit-jumper-vest",
         "ocbd-shirt",
         "tassel-loafer",
