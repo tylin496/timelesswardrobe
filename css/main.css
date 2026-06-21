@@ -9789,7 +9789,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
     overflow-x: auto;
     overflow-y: auto;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: none;
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
     -webkit-overflow-scrolling: touch;
@@ -9818,7 +9818,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   .styling-board-drawer .styling-board__pieces.outfit-strip,
   .styling-board-drawer .styling-board__board-stack > #outfit-strip {
     cursor: grab;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: none;
     scroll-snap-stop: normal;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
@@ -10376,7 +10376,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   padding: 0.35rem max(0.85rem, env(safe-area-inset-right, 0px)) 0.2rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
   overflow-x: auto;
   overflow-y: auto;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: none;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   touch-action: pan-x;
@@ -10976,7 +10976,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow-y: auto;
   overscroll-behavior-x: contain;
   padding: 0.4rem env(safe-area-inset-right, 0px) 0.35rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
-  scroll-snap-type: x proximity;
+  scroll-snap-type: none;
   scroll-padding-inline-start: var(--styling-board-scroll-inline, 0.85rem);
   scroll-padding-inline-end: 0;
   -webkit-overflow-scrolling: touch;
@@ -11274,8 +11274,8 @@ body.tw-outfit-drag-active * {
     overflow-x: auto;
     overflow-y: hidden;
     padding-right: env(safe-area-inset-right, 0px);
-    scroll-snap-type: x mandatory;
-    scroll-snap-stop: always;
+    scroll-snap-type: none;
+    scroll-snap-stop: normal;
     scroll-padding-inline: max(1rem, env(safe-area-inset-left, 0px))
       calc(max(1rem, env(safe-area-inset-right, 0px)) + 1.35rem);
   }
@@ -21655,7 +21655,9 @@ video.ed-lp__hero-layer-video {
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
+  /* Free momentum scroll: proximity snap made iOS re-catch on each card edge
+     ("段"-by-"段"). Tactile feedback lives at the ends (edge-bump), not per card. */
+  scroll-snap-type: none;
   scroll-padding-inline: 0;
   scrollbar-width: none;
   padding-bottom: 0.35rem;
@@ -21727,29 +21729,34 @@ video.ed-lp__hero-layer-video {
   display: none;
 }
 
-/* Horizontal rail edge feedback (home rails only). */
+/* Horizontal rail edge feedback ("到底" tactile bump — home rails). */
 .ed-lp__horizontal-rail-scroller,
+.ed-lp__viewed-rail-scroller,
 .ed-lp__division-rail-scroller {
+  /* Snappy push-out, soft settle back — reads as a physical wall hit. */
   transition:
-    transform 240ms var(--ease-out),
+    transform 280ms cubic-bezier(0.22, 1.2, 0.36, 1),
     filter 260ms var(--ease-out);
   will-change: transform, filter;
 }
 
 .ed-lp__horizontal-rail-scroller.is-edge-bump-right,
+.ed-lp__viewed-rail-scroller.is-edge-bump-right,
 .ed-lp__division-rail-scroller.is-edge-bump-right {
-  transform: translateX(-4px);
-  filter: saturate(1.04) brightness(0.99);
+  transform: translateX(-7px);
+  filter: saturate(1.05) brightness(0.99);
 }
 
 .ed-lp__horizontal-rail-scroller.is-edge-bump-left,
+.ed-lp__viewed-rail-scroller.is-edge-bump-left,
 .ed-lp__division-rail-scroller.is-edge-bump-left {
-  transform: translateX(4px);
-  filter: saturate(1.04) brightness(0.99);
+  transform: translateX(7px);
+  filter: saturate(1.05) brightness(0.99);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ed-lp__horizontal-rail-scroller,
+  .ed-lp__viewed-rail-scroller,
   .ed-lp__division-rail-scroller {
     transition: none;
   }
@@ -21773,7 +21780,8 @@ video.ed-lp__hero-layer-video {
   .ed-lp__division-rail-scroller-wrap {
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-snap-type: x mandatory;
+    /* Free momentum scroll (was mandatory) — smoother slide, no per-tile catch. */
+    scroll-snap-type: none;
     scroll-padding-left: var(--ed-lp-division-rail-pad-left);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -21790,7 +21798,7 @@ video.ed-lp__hero-layer-video {
     width: max-content;
     max-width: none;
     overflow: visible;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: none;
     padding-right: max(1rem, env(safe-area-inset-right, 0px));
     cursor: default;
     touch-action: pan-x pan-y;
