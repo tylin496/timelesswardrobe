@@ -6090,11 +6090,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     max-width: 100%;
     min-width: 0;
     height: auto;
-    /* Symmetric inset: reserve the close-X width on the right AND mirror it on the
-       left so the search pill sits centred in the header without moving the X. */
+    /* Full-width field: reserve only the close-X width on the right; the X is a
+       separate top-right control, so the pill stays left-anchored and wide. */
     padding: 0;
     padding-right: calc(var(--tw-mobile-search-row-height, 2.125rem) + 0.5rem);
-    padding-left: calc(var(--tw-mobile-search-row-height, 2.125rem) + 0.5rem);
     box-sizing: border-box;
   }
 
