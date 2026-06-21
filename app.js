@@ -12199,6 +12199,16 @@
     return globalThis.matchMedia?.("(max-width: 900px), (hover: none), (pointer: coarse)")?.matches ?? false;
   }
 
+  /**
+   * The PDP swipe carousel's layout CSS lives only inside `@media (max-width: 900px)`.
+   * Gate the JS mount on the SAME breakpoint so the two never desync — otherwise a wide
+   * touch device (Surface / touch laptop, coarse pointer >900px) would mount an unstyled
+   * carousel whose track collapses to `display:block` and stacks every slide vertically.
+   */
+  function isItemPageSwipeGalleryViewport() {
+    return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
+  }
+
   /** Desktop mouse: hover “+” cursor, click magnifies inside the hero frame only. */
   function isItemPageDesktopHoverZoom() {
     if (isItemPageCoarsePointer()) return false;
@@ -16609,7 +16619,7 @@
     };
 
     const pdpMobileCarousel =
-      multi && isItemPageCoarsePointer()
+      multi && isItemPageSwipeGalleryViewport()
         ? buildPdpMobileGalleryCarousel(stageEl, heroImgEl, frames, heroFrameSrc)
         : null;
 
