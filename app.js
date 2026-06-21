@@ -12205,8 +12205,61 @@
    * touch device (Surface / touch laptop, coarse pointer >900px) would mount an unstyled
    * carousel whose track collapses to `display:block` and stacks every slide vertically.
    */
+  /*
+   * Single source of truth for the PDP swipe-gallery breakpoint: the JS mount gate
+   * AND the resize watcher both read it, and it matches the carousel layout CSS
+   * (@media max-width: 900px). NOTE: the PDP *layout* grid still switches at 880px
+   * — unifying those two values is a separate, broader pass (touches thumb-rail and
+   * zoom/lightbox rules too); keep them in mind together.
+   */
+  const ITEM_PAGE_SWIPE_GALLERY_MQ = "(max-width: 900px)";
+
   function isItemPageSwipeGalleryViewport() {
-    return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
+    return globalThis.matchMedia?.(ITEM_PAGE_SWIPE_GALLERY_MQ)?.matches ?? false;
+  }
+
+  let itemPageSwipeGalleryWatcherBound = false;
+  /** Bind the breakpoint watcher exactly once (mount can run many times: variant swap, edit toggle). */
+  function ensureItemPageSwipeGalleryWatcher() {
+    if (itemPageSwipeGalleryWatcherBound) return;
+    const mq = globalThis.matchMedia?.(ITEM_PAGE_SWIPE_GALLERY_MQ);
+    if (!mq?.addEventListener) return;
+    itemPageSwipeGalleryWatcherBound = true;
+    mq.addEventListener("change", remountItemPageGalleryForViewportChange);
+  }
+
+  /*
+   * The gallery picks its mode (swipe carousel vs desktop hero + thumb rail) once at
+   * render. Crossing the breakpoint afterwards — iPad portrait↔landscape, window drag,
+   * DevTools responsive — would otherwise strand a stale build: a mobile carousel at
+   * desktop width loses its layout CSS and the track collapses to a 7574px vertical
+   * stack (the very symptom first seen here). Re-mount on the live stage for the new
+   * viewport, preserving the current frame. mountItemDetailPageGallery tears down
+   * fully first, so this is leak-free. Skipped in edit mode (the edit preview wires
+   * its own photo-manager sync).
+   */
+  function remountItemPageGalleryForViewportChange() {
+    const root = itemDetailMountRoot();
+    if (!root || !root.classList.contains("item-detail__root--page")) return;
+    if (root.classList.contains("item-detail__root--edit")) return;
+    const stage = root.querySelector(".item-detail__gallery-stage");
+    if (!(stage instanceof HTMLElement)) return;
+    const heroImg = stage.__twGalleryHeroImg;
+    const item = stage.__twGalleryItem;
+    const galleryRoot = stage.closest(".item-detail__gallery");
+    const thumbs = galleryRoot?.querySelector(".item-detail__gallery-thumbs");
+    if (
+      !(heroImg instanceof HTMLImageElement) ||
+      !item ||
+      !galleryRoot ||
+      !(thumbs instanceof HTMLElement)
+    ) {
+      return;
+    }
+    const idx = Number.parseInt(String(stage.dataset.galleryIndex ?? ""), 10);
+    mountItemDetailPageGallery(galleryRoot, thumbs, stage, heroImg, item, {
+      initialIndex: Number.isFinite(idx) ? idx : 0,
+    });
   }
 
   /** Desktop mouse: hover “+” cursor, click magnifies inside the hero frame only. */
@@ -16795,12 +16848,17 @@
     };
 
     stageEl.__twPdpGallery = pdpGalleryApi;
+    // Stash for the breakpoint watcher: the projected (variant-aware) item and the
+    // reused hero <img>, so a viewport-change remount rebuilds the right photos.
+    stageEl.__twGalleryItem = item;
+    stageEl.__twGalleryHeroImg = heroImgEl;
     stageEl.__twDesktopZoomCleanup = wireItemDetailHeroStageInteractions(
       stageEl,
       heroImgEl,
       item,
       pdpGalleryApi
     );
+    ensureItemPageSwipeGalleryWatcher();
   }
 
   function remountItemDetailHeroGallery(heroHost, heroImg, item) {
