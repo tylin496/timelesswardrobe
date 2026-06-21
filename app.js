@@ -5669,23 +5669,32 @@
     const pdpAccordion = Boolean(opts.pdpAccordion);
     const sec = document.createElement("section");
     sec.className = "item-detail__notes-section";
-    if (pdpAccordion) {
-      sec.classList.add("item-detail__notes-section--accordion");
-      const h = document.createElement("h3");
-      h.className = "item-detail__notes-h";
-      h.textContent = "Notes";
-      const textEl = document.createElement("div");
-      textEl.className = "item-detail__notes-text";
-      textEl.textContent = text;
+    function makeNotesToggle() {
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.className = "item-detail__notes-toggle";
       toggle.textContent = "Read more";
       toggle.setAttribute("aria-expanded", "false");
       toggle.hidden = true;
+      return toggle;
+    }
+    function makeNotesTextEl(str) {
+      const el = document.createElement("div");
+      el.className = "item-detail__notes-text";
+      el.appendChild(document.createTextNode(str));
+      return el;
+    }
+
+    if (pdpAccordion) {
+      sec.classList.add("item-detail__notes-section--accordion");
+      const h = document.createElement("h3");
+      h.className = "item-detail__notes-h";
+      h.textContent = "Notes";
+      const textEl = makeNotesTextEl(text);
+      const toggle = makeNotesToggle();
+      textEl.appendChild(toggle);
       sec.appendChild(h);
       sec.appendChild(textEl);
-      sec.appendChild(toggle);
       host.appendChild(sec);
       wireItemDetailNotesReadMore(sec);
       return sec;
@@ -5694,21 +5703,12 @@
     const h = document.createElement("h3");
     h.className = "item-detail__notes-h";
     h.textContent = "Notes";
-
-    const textEl = document.createElement("div");
-    textEl.className = "item-detail__notes-text";
-    textEl.textContent = text;
-
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "item-detail__notes-toggle";
-    toggle.textContent = "Read more";
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.hidden = true;
+    const textEl = makeNotesTextEl(text);
+    const toggle = makeNotesToggle();
+    textEl.appendChild(toggle);
 
     sec.appendChild(h);
     sec.appendChild(textEl);
-    sec.appendChild(toggle);
     host.appendChild(sec);
     wireItemDetailNotesReadMore(sec);
     return sec;
@@ -25717,9 +25717,7 @@
       const name = document.createElement("span");
       name.className = "item-detail__item-nav-name";
       name.textContent = displayNameWithoutLeadingColour(navItem);
-      // Use main photo (with background) — pass width > WARDROBE_THUMB_MAX_REQUEST_WIDTH
-      // so localWardrobeThumbPath skips the transparent cutout redirect.
-      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 1001, 1251, { item: navItem });
+      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 64, 80, { item: navItem });
       const thumb = document.createElement("img");
       thumb.className = "item-detail__item-nav-thumb";
       thumb.src = thumbSrc || navItem.image || "";

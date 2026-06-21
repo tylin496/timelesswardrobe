@@ -18426,19 +18426,16 @@ a.item-detail__breadcrumb-current {
 .item-detail__item-nav-thumb {
   width: 88px;
   height: 110px;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center;
   display: block;
   opacity: 0.85;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.12);
-  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .item-detail__item-nav-link:hover .item-detail__item-nav-thumb {
   opacity: 1;
   transform: scale(1.04);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.14);
 }
 
 .item-detail__item-nav-dir {
@@ -18747,16 +18744,13 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__notes-text--clamped {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
+  max-height: calc(5 * 1.6em);
   overflow: hidden;
+  position: relative;
 }
 
 .item-detail__notes-toggle {
-  display: block;
-  @apply mt-2;
+  display: inline;
   padding: 0;
   border: none;
   background: none;
@@ -18772,6 +18766,15 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__notes-toggle:hover {
   color: var(--ink);
+}
+
+.item-detail__notes-section--collapsible .item-detail__notes-text--clamped .item-detail__notes-toggle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: block;
+  padding-left: 3em;
+  background: linear-gradient(to right, transparent, var(--bg) 40%);
 }
 
 .item-detail__notes-head {
