@@ -6,16 +6,6 @@
  * `html.tw-preview-mobile` so narrow-layout CSS matches real phones in IDE previews.
  */
 (function twPageThemeBoot() {
-  // Account dark mode — apply before paint to prevent FOUC.
-  // Explicit manual override wins; otherwise follow OS preference.
-  try {
-    const stored = localStorage.getItem("tw:account-theme");
-    const osDark = globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-    if (stored === "dark" || (stored !== "light" && osDark)) {
-      document.documentElement.classList.add("tw-account-dark");
-    }
-  } catch (_) {}
-
   const params = new URLSearchParams(String(globalThis.location?.search ?? ""));
   const forceMobilePreview =
     params.get("mobile") === "1" || params.get("viewport") === "mobile";
@@ -37,6 +27,19 @@
   const path = String(globalThis.location?.pathname ?? "");
   const isHome = path === "/" || path === "" || /\/index\.html$/i.test(path);
   if (isHome) return;
+
+  // Account dark mode — scoped to /account only to avoid leaking into catalogue pages.
+  const isAccountPage = path === "/account" || path === "/account/" || /\/account\.html?$/i.test(path);
+  if (isAccountPage) {
+    try {
+      const stored = localStorage.getItem("tw:account-theme");
+      const osDark = globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+      if (stored === "dark" || (stored !== "light" && osDark)) {
+        document.documentElement.classList.add("tw-account-dark");
+      }
+    } catch (_) {}
+  }
+
   const root = document.documentElement;
   root.classList.add("theme-catalogue");
   root.style.colorScheme = root.classList.contains("tw-account-dark") ? "dark" : "light";
