@@ -18926,7 +18926,7 @@ a.item-detail__breadcrumb-current {
 .item-detail__related-grid::-webkit-scrollbar { display: none; }
 
 .item-detail__related-card {
-  flex: 0 0 160px;
+  flex: 0 0 calc(66.67% - 0.5rem);
   scroll-snap-align: start;
   display: block;
   text-decoration: none;
@@ -18969,6 +18969,13 @@ a.item-detail__breadcrumb-current {
   line-height: 1.3;
   color: var(--ink);
   margin: 0;
+}
+
+/* Mobile: hide nav buttons (rail is touch-scrollable) */
+@media (max-width: 899px) {
+  .item-detail__related-nav {
+    display: none;
+  }
 }
 
 /* Desktop: larger cards, groups side-by-side */
@@ -22514,7 +22521,7 @@ video.ed-lp__hero-layer-video {
 
 .ed-lp__division-rail-progress,
 .ed-lp__rail-progress {
-  @apply mt-[clamp(1rem,2vw,1.35rem)] ml-[var(--ed-lp-division-rail-pad-left)] mr-0;
+  @apply mt-[clamp(1rem,2vw,1.35rem)] ml-[var(--ed-lp-division-rail-pad-left)] mr-[var(--ed-lp-division-rail-pad-left)];
   position: relative;
   padding: 14px 0;
   box-sizing: border-box;
