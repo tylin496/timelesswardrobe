@@ -5707,7 +5707,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     inset: 0;
     z-index: 0;
     opacity: 0;
-    background: rgba(22, 20, 17, 0.26);
+    background: rgba(20, 19, 18, 0.28);
     cursor: pointer;
     pointer-events: none;
     transition: opacity var(--tw-mobile-search-duration) var(--tw-mobile-search-ease);
@@ -6688,7 +6688,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     padding: 0;
     border: none;
     appearance: none;
-    background: rgba(20, 19, 18, 0.32);
+    background: rgba(20, 19, 18, 0.34);
     cursor: default;
     opacity: 0;
     pointer-events: none;
@@ -9607,7 +9607,7 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   --sb-danger: #8b4545;
   --sb-danger-line: rgba(139, 69, 69, 0.38);
   /* Wardrobe cards sit slightly above the drawer panel surface. */
-  --wardrobe-card-bg: color-mix(in srgb, var(--bg) 91%, #5c4d3a);
+  --wardrobe-card-bg: color-mix(in srgb, var(--bg) 86%, #5c4d3a);
   --wardrobe-card-border: 1px solid rgba(24, 55, 47, 0.14);
   --wardrobe-card-radius: 12px;
   --wardrobe-card-shadow:
@@ -9635,7 +9635,7 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   padding: 0;
   border: none;
   cursor: pointer;
-  background: rgba(24, 22, 19, 0.32);
+  background: rgba(20, 19, 18, 0.34);
   opacity: 0;
   transition: opacity 0.28s var(--ease-out);
 }
