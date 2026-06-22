@@ -11652,9 +11652,17 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__piece {
-  /* Contact shadow, not a card shadow: a tight near-touch layer grounds the
-     piece on the paper, a faint diffuse layer adds weight — no sticker float. */
+  /* Three layers, each doing one job:
+     1. Luminance-edge separation — a 0.6px near-zero-offset trace that only
+        becomes perceptible where a light piece meets the light paper (white
+        Polo/trousers/sneakers). On darker pieces it's mechanically invisible,
+        so it's a separation aid, not an outline effect. KEEP IT AT 0.6px — at
+        1.5–2px it turns into a visible retouched-looking stroke. Scoped to
+        Saved Outfits only; future cream/white pieces inherit the fix for free.
+     2–3. Contact shadow: tight near-touch + faint diffuse grounds the piece on
+        the paper without sticker float. */
   filter:
+    drop-shadow(0 0 0.6px rgba(54, 49, 44, 0.55))
     drop-shadow(0 1px 1px rgb(0 0 0 / 0.08))
     drop-shadow(0 3px 4px rgb(0 0 0 / 0.04));
 }
