@@ -19007,8 +19007,11 @@ a.item-detail__breadcrumb-current {
     flex: 1;
     min-width: 0;
   }
+  /* Exactly 4 per page (no peek) — this is a paginated grid, not a scroll rail.
+     The ‹ › nav (goPage) computes perPage from this and jumps a full page of 4.
+     4 cards + 3 × 0.75rem grid gaps = 100%. */
   .item-detail__related-card {
-    flex: 0 0 clamp(180px, 24%, 240px);
+    flex: 0 0 calc((100% - 2.25rem) / 4);
   }
   .item-detail__related-name {
     font-size: 0.9rem;
