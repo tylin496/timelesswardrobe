@@ -9912,8 +9912,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     box-sizing: border-box;
     width: auto;
     min-height: 10px;
-    margin: 0.35rem 0 0.12rem 0;
-    padding: 0 0 8px;
+    margin: 0.2rem 0 0.1rem 0;
+    padding: 7px 0;
     cursor: pointer;
     touch-action: none;
     user-select: none;
@@ -9929,39 +9929,33 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    top: auto;
+    top: 50%;
+    bottom: auto;
     height: 1px;
-    transform: none;
-    background: color-mix(in srgb, var(--sb-ink) 7%, var(--sb-line));
+    transform: translateY(-50%);
+    background: color-mix(in srgb, var(--line) 62%, var(--tw-brand-ivory));
     pointer-events: none;
   }
 
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar {
     position: absolute;
     left: 0;
-    bottom: 0;
-    top: auto;
-    height: 1.5px;
-    min-width: 2.75rem;
+    top: calc(50% - 1px);
+    bottom: auto;
+    height: 2px;
+    min-width: 4.5rem;
     width: 28%;
-    /* Quiet at rest — the rail should hint at scroll, not out-shout the outfit.
-       Darkens only on interaction. */
-    background: color-mix(in srgb, var(--sb-ink) 20%, var(--sb-ink-muted));
+    /* Match the homepage Collection Highlights rail — solid ink thumb on a
+       centred hairline. (X is driven by JS via transform, so centre with top.) */
+    background: var(--ink);
     transform: translate3d(0, 0, 0);
-    transition: background 160ms var(--ease-out, ease);
     will-change: transform, width;
     cursor: grab;
-  }
-
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress:hover .ed-lp__rail-progress-bar {
-    background: color-mix(in srgb, var(--sb-ink) 34%, var(--sb-ink-muted));
   }
 
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress.is-dragging .ed-lp__rail-progress-bar,
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar.is-dragging {
     cursor: grabbing;
-    background: color-mix(in srgb, var(--sb-ink) 45%, var(--sb-ink-muted));
     transition: none;
   }
 
