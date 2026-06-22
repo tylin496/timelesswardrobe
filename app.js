@@ -3258,19 +3258,25 @@
     // ── Stats grid (full width) ─────────────────────────────────────────────────
     const notesPct    = ownedItems.length ? Math.round((notesCount    / ownedItems.length) * 100) : 0;
     const showcasePct = ownedItems.length ? Math.round((showcaseCount / ownedItems.length) * 100) : 0;
+    const totalValue  = sumPriceInDisplayCurrency(ownedItems);
+    const totalValueFmt = totalValue > 0 ? formatMoneyInCurrency(totalValue, collectionDisplayCurrency) : null;
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
+    statsGrid.style.gridTemplateColumns = totalValueFmt ? "repeat(5, 1fr)" : "repeat(4, 1fr)";
     for (const s of [
       { n: ownedItems.length, label: "Pieces"                            },
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
       { n: futureCount,       label: "Wishlist"                          },
+      ...(totalValueFmt ? [{ n: totalValueFmt, label: "Est. Value", raw: true }] : []),
     ]) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
+      if (s.raw) cell.classList.add("account-overview__stat--wide");
       const n = document.createElement("div");
       n.className = "account-overview__stat-n";
-      n.textContent = String(s.n);
+      n.textContent = s.raw ? String(s.n) : String(s.n);
+      if (s.raw) n.style.cssText = "font-size:clamp(0.9rem,1.8vw,1.25rem);font-variant-numeric:tabular-nums;";
       const lbl = document.createElement("div");
       lbl.className = "account-overview__stat-label";
       lbl.textContent = s.label;
@@ -3624,7 +3630,7 @@
       // Desktop column header
       const hdr = document.createElement("div");
       hdr.className = "account-cat-list__header";
-      ["", "NAME", "BRAND", "CATEGORY", "SEASON", "YEAR", ""].forEach((t) => {
+      ["", "NAME", "BRAND", "CATEGORY", "SEASON", "YEAR", "PRICE", ""].forEach((t) => {
         const s = document.createElement("span");
         s.textContent = t;
         hdr.appendChild(s);
@@ -3730,11 +3736,13 @@
       d.textContent = text;
       return d;
     };
+    const priceStr = formattedCollectionPriceLine(it, { brief: true });
     row.append(
       mkCol("account-cat-col--brand",    brand),
       mkCol("account-cat-col--category", cat),
       mkCol("account-cat-col--season",   season),
       mkCol("account-cat-col--year",     acqYear ? String(acqYear) : ""),
+      mkCol("account-cat-col--price",    priceStr),
     );
 
     const flags = document.createElement("div");
@@ -4520,7 +4528,7 @@
     // Desktop column header
     const hdr = document.createElement("div");
     hdr.className = "account-brands-v2-hdr";
-    ["BRAND", "SINCE", "PIECES", ""].forEach((t) => {
+    ["BRAND", "SINCE", "PIECES", "", ""].forEach((t) => {
       const s = document.createElement("span");
       s.textContent = t;
       hdr.appendChild(s);
@@ -4587,7 +4595,29 @@
       input.addEventListener("blur", doSave);
       input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
 
-      row.append(input, sinceEl, countEl, statusEl);
+      // Filter link — navigates to Collection filtered by this brand
+      const filterLink = document.createElement("button");
+      filterLink.type = "button";
+      filterLink.className = "account-brands-v2-filter-link";
+      filterLink.title = `View ${count} piece${count === 1 ? "" : "s"} in Collection`;
+      filterLink.textContent = "→";
+      filterLink.addEventListener("click", () => {
+        _accountCollectionBrand = brandName;
+        _accountCollectionSearch = "";
+        _accountCurrentTab = "collection";
+        history.pushState(null, "", "/account#collection");
+        const contentEl = document.querySelector(".account-tab-content");
+        if (contentEl) {
+          renderAccountActiveTab(contentEl);
+          // update nav active state
+          for (const a of document.querySelectorAll(".account-tab-nav__item")) {
+            a.setAttribute("aria-current", a.href.endsWith("#collection") ? "page" : "false");
+          }
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }
+      });
+
+      row.append(input, sinceEl, countEl, filterLink, statusEl);
       list.appendChild(row);
     }
 

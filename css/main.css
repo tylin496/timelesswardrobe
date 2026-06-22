@@ -26167,7 +26167,7 @@ body.editorial-page #editorial-root {
 
   .account-brands-v2-hdr {
     display: grid;
-    grid-template-columns: 1fr 4.5rem 4rem 5rem;
+    grid-template-columns: 1fr 4.5rem 4rem 2rem 5rem;
     gap: 0 1rem;
     padding: 0.3rem 0.4rem 0.3rem;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
@@ -26185,7 +26185,7 @@ body.editorial-page #editorial-root {
 
   .account-brands-v2-row {
     display: grid;
-    grid-template-columns: 1fr 4.5rem 4rem 5rem;
+    grid-template-columns: 1fr 4.5rem 4rem 2rem 5rem;
     gap: 0 1rem;
     align-items: center;
     padding: 0.35rem 0.4rem;
@@ -26269,6 +26269,25 @@ body.editorial-page #editorial-root {
 .account-brands-v2-status[data-state="saving"] { opacity: 0.7; }
 .account-brands-v2-status[data-state="saved"] { opacity: 1; color: var(--ink); }
 .account-brands-v2-status[data-state="error"] { opacity: 1; color: #8b4545; }
+
+.account-brands-v2-filter-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  opacity: 0.4;
+  padding: 0;
+  line-height: 1;
+  transition: opacity 0.12s, color 0.12s;
+  text-align: center;
+}
+
+.account-brands-v2-filter-link:hover {
+  opacity: 1;
+  color: var(--ink);
+}
 
 /* ── Collection filter selects ─────────────────────────────────────────────── */
 
@@ -26502,7 +26521,7 @@ body.editorial-page #editorial-root {
   /* Collection rows become a 7-column grid */
   .account-cat-row {
     display: grid;
-    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem auto;
+    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem auto;
     gap: 0 1.1rem;
     align-items: center;
     padding: 0.45rem 0.6rem;
@@ -26525,10 +26544,17 @@ body.editorial-page #editorial-root {
     text-overflow: ellipsis;
   }
 
+  .account-cat-col--price {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--ink);
+    opacity: 0.75;
+  }
+
   /* Column header row */
   .account-cat-list__header {
     display: grid;
-    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem auto;
+    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem auto;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
