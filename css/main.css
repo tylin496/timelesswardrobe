@@ -9764,13 +9764,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     color: color-mix(in srgb, var(--sb-ink-soft) 92%, transparent);
   }
 
-  /* Current Outfit: horizontal rail only — calm swipe, no overlap theatrics. */
+  /* Current Outfit: horizontal rail only — calm swipe, no overlap theatrics.
+     Row sits at the content edge so the first card aligns with the
+     "Current outfit" heading (no full-bleed negative margin). */
   .styling-board-drawer .styling-board__board-row {
     overflow: visible;
     min-width: 0;
-    margin-inline: calc(-1 * var(--styling-board-scroll-inline));
-    width: calc(100% + 2 * var(--styling-board-scroll-inline));
-    max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+    margin-inline: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .styling-board-drawer .styling-board__board-stack {
@@ -11041,9 +11043,9 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   .styling-board-drawer .styling-board__board-row {
     overflow: visible;
     min-width: 0;
-    margin-inline: calc(-1 * var(--styling-board-scroll-inline));
-    width: calc(100% + 2 * var(--styling-board-scroll-inline));
-    max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+    margin-inline: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .styling-board-drawer .styling-board__board-stack {
