@@ -25034,7 +25034,7 @@ body.editorial-page #editorial-root {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .account-overview__body {
     grid-template-columns: 1fr 1fr;
   }
@@ -25155,7 +25155,7 @@ body.editorial-page #editorial-root {
 
 .account-overview__dist-row {
   display: grid;
-  grid-template-columns: 9rem 1fr 2.5rem;
+  grid-template-columns: minmax(5rem, 9rem) 1fr 2.5rem;
   align-items: center;
   gap: 0.6rem;
   font-family: var(--font-sans);
@@ -26686,20 +26686,67 @@ body.editorial-page #editorial-root {
   display: none;
 }
 
+/* ── Tablet collection layout (640–1023px) ──────────────────────────────────── */
+/* 5-col: thumb | name | brand | category | flags                               */
+@media (min-width: 640px) {
+  .account-cat-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 9rem 8rem auto;
+    gap: 0 1rem;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .account-cat-sub,
+  .account-cat-details { display: none; }
+
+  .account-cat-col--brand,
+  .account-cat-col--category {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.77rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .account-cat-list__header {
+    display: grid;
+    grid-template-columns: 44px 1fr 9rem 8rem auto;
+    gap: 0 1rem;
+    padding: 0.3rem 0.6rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .account-cat-list__header span {
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    opacity: 0.55;
+  }
+
+  /* Hide SEASON/YEAR/PRICE/trailing header spans at tablet */
+  .account-cat-list__header span:nth-child(n+5) { display: none; }
+
+  .account-cat-flags {
+    flex-direction: row;
+    gap: 0.4rem;
+    align-items: center;
+  }
+}
+
+/* ── Desktop collection layout (1024px+) ───────────────────────────────────── */
+/* Extends tablet to full 8-col; adds season / year / price.                   */
 @media (min-width: 1024px) {
   /* Collection rows become a 7-column grid */
   .account-cat-row {
-    display: grid;
     grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem auto;
     gap: 0 1.1rem;
-    align-items: center;
     padding: 0.45rem 0.6rem;
-  }
-
-  /* Mobile meta stack: only name stays; sub + details hidden */
-  .account-cat-sub,
-  .account-cat-details {
-    display: none;
   }
 
   /* Desktop-only column cells */
@@ -26713,7 +26760,11 @@ body.editorial-page #editorial-root {
     text-overflow: ellipsis;
   }
 
+  .account-cat-col--season,
+  .account-cat-col--year { display: block; }
+
   .account-cat-col--price {
+    display: block;
     font-variant-numeric: tabular-nums;
     text-align: right;
     color: var(--ink);
@@ -26722,23 +26773,14 @@ body.editorial-page #editorial-root {
 
   /* Column header row */
   .account-cat-list__header {
-    display: grid;
     grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem auto;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
     margin-bottom: 0;
   }
 
-  .account-cat-list__header span {
-    font-family: var(--font-sans);
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    opacity: 0.55;
-  }
+  /* Restore all 8 header spans */
+  .account-cat-list__header span:nth-child(n+5) { display: unset; }
 
   /* Flags: compact single-column on desktop */
   .account-cat-flags {
