@@ -25190,6 +25190,73 @@ body.editorial-page #editorial-root {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Brand Growth Timeline ──────────────────────────────────────────────────── */
+
+.account-overview__brand-timeline {
+  width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.account-overview__brand-timeline-row {
+  display: grid;
+  align-items: center;
+  gap: 0 0.3rem;
+  padding: 0.28rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.account-overview__brand-timeline-hdr span {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.45;
+  text-align: center;
+}
+
+.account-overview__brand-timeline-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-overview__brand-timeline-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  margin: 0 auto;
+  transition: background 0.1s;
+}
+
+.account-overview__brand-timeline-dot[data-active="true"] {
+  background: var(--ink);
+  opacity: 0.75;
+}
+
+.account-overview__brand-timeline-dot[data-active="true"][data-count="1"] { opacity: 0.45; }
+.account-overview__brand-timeline-dot[data-active="true"][data-count="2"] { opacity: 0.6; }
+.account-overview__brand-timeline-dot[data-active="true"][data-count="3"] { opacity: 0.75; }
+.account-overview__brand-timeline-dot[data-active="true"]:not([data-count="1"]):not([data-count="2"]):not([data-count="3"]) {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.account-overview__brand-timeline-total {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
 .account-overview__stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

@@ -3498,6 +3498,132 @@
       wrapper.appendChild(row);
     }
 
+    // ── Row 4: Brand Growth Timeline | Acquisition by Month ─────────────────────
+    {
+      const { row, left, right } = mkRow();
+      row.style.marginTop = "clamp(1.75rem, 3vw, 2.5rem)";
+
+      // ── Brand Growth Timeline ────────────────────────────────────────────────
+      // Dot matrix: top brands × year showing at least one acquisition
+      const brandYearMap = new Map(); // brand → Map<year, count>
+      for (const it of ownedItems) {
+        const b = String(it?.brand ?? "").trim();
+        if (!b || b === "[No brand]") continue;
+        const pd = String(it?.purchaseDate ?? "").trim();
+        if (!pd) continue;
+        const yr = new Date(pd).getFullYear();
+        if (!yr || yr < 1990 || yr > 2100) continue;
+        if (!brandYearMap.has(b)) brandYearMap.set(b, new Map());
+        const ym = brandYearMap.get(b);
+        ym.set(yr, (ym.get(yr) ?? 0) + 1);
+      }
+
+      // Sort brands by total count, take top 10
+      const topBrandsForTimeline = [...brandYearMap.entries()]
+        .map(([b, ym]) => ({ brand: b, years: ym, total: [...ym.values()].reduce((s, n) => s + n, 0) }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 10);
+
+      // Determine year range
+      const allYears = new Set();
+      for (const { years } of topBrandsForTimeline) for (const yr of years.keys()) allYears.add(yr);
+      const yearList = [...allYears].sort();
+
+      if (topBrandsForTimeline.length && yearList.length) {
+        const tl = document.createElement("div");
+        tl.className = "account-overview__brand-timeline";
+
+        // Header row: blank brand col + one cell per year
+        const hdr = document.createElement("div");
+        hdr.className = "account-overview__brand-timeline-row account-overview__brand-timeline-hdr";
+        hdr.style.gridTemplateColumns = `7rem repeat(${yearList.length}, 1fr) 2rem`;
+        const blank = document.createElement("span");
+        hdr.appendChild(blank);
+        for (const yr of yearList) {
+          const y = document.createElement("span");
+          y.textContent = String(yr).slice(2); // "21" not "2021"
+          hdr.appendChild(y);
+        }
+        const totalHdr = document.createElement("span");
+        totalHdr.textContent = "#";
+        hdr.appendChild(totalHdr);
+        tl.appendChild(hdr);
+
+        // Brand rows
+        for (const { brand, years, total } of topBrandsForTimeline) {
+          const r = document.createElement("div");
+          r.className = "account-overview__brand-timeline-row";
+          r.style.gridTemplateColumns = `7rem repeat(${yearList.length}, 1fr) 2rem`;
+
+          const lbl = document.createElement("span");
+          lbl.className = "account-overview__brand-timeline-label";
+          lbl.textContent = brand;
+          lbl.title = brand;
+          r.appendChild(lbl);
+
+          for (const yr of yearList) {
+            const cnt = years.get(yr) ?? 0;
+            const dot = document.createElement("span");
+            dot.className = "account-overview__brand-timeline-dot";
+            if (cnt > 0) {
+              dot.dataset.active = "true";
+              dot.dataset.count = String(cnt);
+              dot.title = `${brand} · ${yr} · ${cnt} piece${cnt > 1 ? "s" : ""}`;
+            }
+            r.appendChild(dot);
+          }
+
+          const tot = document.createElement("span");
+          tot.className = "account-overview__brand-timeline-total";
+          tot.textContent = String(total);
+          r.appendChild(tot);
+
+          tl.appendChild(r);
+        }
+        left.append(mkTitle("Brand Growth"), tl);
+      }
+
+      // ── Acquisition by Month ─────────────────────────────────────────────────
+      const monthCounts = new Array(12).fill(0);
+      for (const it of ownedItems) {
+        const pd = String(it?.purchaseDate ?? "").trim();
+        if (!pd) continue;
+        const m = new Date(pd).getMonth(); // 0–11
+        if (m >= 0 && m < 12) monthCounts[m]++;
+      }
+      const monthMax = Math.max(...monthCounts, 1);
+      const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      const monthDist = document.createElement("div");
+      monthDist.className = "account-overview__dist";
+      for (let i = 0; i < 12; i++) {
+        const cnt = monthCounts[i];
+        const rowEl = document.createElement("div");
+        rowEl.className = "account-overview__dist-row";
+
+        const lbl = document.createElement("span");
+        lbl.className = "account-overview__dist-label";
+        lbl.textContent = MONTH_LABELS[i];
+
+        const barWrap = document.createElement("div");
+        barWrap.className = "account-overview__dist-bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = "account-overview__dist-bar";
+        bar.style.width = `${Math.round((cnt / monthMax) * 100)}%`;
+        barWrap.appendChild(bar);
+
+        const num = document.createElement("span");
+        num.className = "account-overview__dist-count";
+        num.textContent = cnt > 0 ? String(cnt) : "";
+
+        rowEl.append(lbl, barWrap, num);
+        monthDist.appendChild(rowEl);
+      }
+      right.append(mkTitle("Acquisitions by Month"), monthDist);
+
+      wrapper.appendChild(row);
+    }
+
     el.appendChild(wrapper);
   }
 
