@@ -23078,12 +23078,18 @@
     document.body.style.left = "";
     document.body.style.right = "";
     document.body.style.width = "";
-    if (y > 0) globalThis.scrollTo(0, y);
+    if (y > 0) globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
+    document.documentElement.style.scrollBehavior = "";
   }
 
   function lockCollectionPageScroll() {
     if (collectionPageScrollLockCount === 0) {
       collectionPageScrollLockY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      /* Suppress the global `scroll-behavior: smooth` while locked. position:fixed +
+         overflow:hidden snaps the real scroll to 0; with smooth active that snap (and the
+         restore on unlock) animates — the visible "jumps back to scroll position" glitch.
+         Cleared again on unlock so normal scrolling stays smooth. */
+      document.documentElement.style.scrollBehavior = "auto";
       document.documentElement.style.overflow = "hidden";
       document.body.style.position = "fixed";
       document.body.style.top = `-${collectionPageScrollLockY}px`;
@@ -23438,24 +23444,21 @@
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
       const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
-      // Name row carries a light piece-count beside the title so the header reads
-      // name·count → notes → date; the cutout flatlay stays the focus.
+      // Two-line header: name + date on the title row, notes + piece-count on the
+      // line below. Keeps the cutout flatlay the focus and the card compact.
       const nameRow = document.createElement("div");
       nameRow.className = "saved-card__name-row";
       const title = document.createElement("p");
       title.className = "saved-card__name";
       title.textContent = outfit.name;
-      const count = document.createElement("span");
-      count.className = "saved-card__count";
-      count.textContent = `${n} piece${n === 1 ? "" : "s"}`;
-      nameRow.append(title, count);
+      const dateEl = document.createElement("span");
+      dateEl.className = "saved-card__date";
+      dateEl.textContent = dateStr;
+      nameRow.append(title, dateEl);
+      const piecesStr = `${n} Piece${n === 1 ? "" : "s"}`;
       const meta = document.createElement("p");
       meta.className = "saved-card__meta";
-      meta.textContent = notesSnip;
-      meta.hidden = !notesSnip;
-      const dateLine = document.createElement("p");
-      dateLine.className = "saved-card__date";
-      dateLine.textContent = dateStr;
+      meta.textContent = notesSnip ? `${notesSnip}, ${piecesStr}` : piecesStr;
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
@@ -23547,7 +23550,7 @@
       body.className = "saved-card__body";
       const info = document.createElement("div");
       info.className = "saved-card__info";
-      info.append(nameRow, meta, dateLine);
+      info.append(nameRow, meta);
       body.append(info, act);
       card.append(body, flatlay);
       li.appendChild(card);
