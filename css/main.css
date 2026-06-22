@@ -22088,37 +22088,93 @@ video.ed-lp__hero-layer-video {
   }
 }
 
-/* Desktop hero — eyebrow, body copy, CTA all 110% of shared base (mobile ≤767px unchanged). */
+/* Desktop hero — RL editorial register (mobile ≤767px already carries this look).
+   Hierarchy flips toward the reference: the all-caps label recedes to a quiet
+   eyebrow, the serif sentence becomes the display moment, and the CTA drops the
+   filled boxes for a thin underlined text-link (same treatment mobile uses). */
 @media (min-width: 768px) {
   .ed-lp__hero-inner {
-    --hero-body-copy-max: min(20.9rem, 90%);
-    --hero-eyebrow-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
-    --hero-body-line-gap: 0.18rem;
-    --hero-cta-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
+    --hero-body-copy-max: min(25.5rem, 92%);
+    --hero-eyebrow-part-gap: clamp(0.85rem, 2.4vh, 1.05rem);
+    --hero-body-line-gap: clamp(0.45rem, 1.4vh, 0.7rem);
+    --hero-cta-part-gap: clamp(1.25rem, 3.4vh, 1.7rem);
   }
 
+  /* Quiet label — recedes so the serif leads (was bold 700 / 0.42em / ~1.12rem). */
   .ed-lp__hero-eyebrow {
-    font-size: clamp(0.88rem, 3.135vw, 1.122rem);
+    font-size: clamp(0.72rem, 1.55vw, 0.84rem);
+    font-weight: 600;
+    letter-spacing: 0.38em;
+    opacity: 0.92;
   }
 
+  /* The display moment — large serif pull-line (was ~1.078rem body copy). */
   .ed-lp__hero-title {
-    font-size: clamp(0.924rem, 2.805vw, 1.078rem);
+    max-width: var(--hero-body-copy-max, min(25.5rem, 92%));
+    font-size: clamp(1.55rem, 0.95rem + 1.85vw, 2.15rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: 0.005em;
   }
 
   .ed-lp__hero-line {
-    font-size: clamp(0.88rem, 2.585vw, 1.034rem);
+    font-size: clamp(0.92rem, 2.585vw, 1.08rem);
+    opacity: 0.9;
   }
 
+  /* Underlined text-link CTA — no boxes. */
   .ed-lp__hero-cta {
-    gap: 0.55rem;
-    max-width: calc(var(--hero-body-copy-max, 20.9rem) - 0.385rem);
+    gap: clamp(1.4rem, 2.4vw, 2.1rem);
+    align-items: baseline;
+    max-width: none;
   }
 
   .ed-lp__hero-cta .ed-lp__btn {
-    min-height: 44px;
-    padding-block: 0.65rem;
-    padding-inline: 1.15rem;
-    font-size: 9.9px;
+    min-height: 0;
+    padding: 0.4rem 0 0.1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .ed-lp__hero-cta .ed-lp__btn--solid {
+    color: #ffffff;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.5em;
+    text-decoration-color: color-mix(in srgb, #ffffff 92%, transparent);
+  }
+
+  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
+  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    text-decoration-color: #ffffff;
+    opacity: 0.88;
+  }
+
+  /* Secondary recedes — plain link, underline only on hover. */
+  .ed-lp__hero-cta .ed-lp__btn--ghost {
+    color: color-mix(in srgb, #ffffff 70%, transparent);
+    background: transparent;
+    border: none;
+    text-decoration: none;
+  }
+
+  .ed-lp__hero-cta .ed-lp__btn--ghost:hover,
+  .ed-lp__hero-cta .ed-lp__btn--ghost:focus-visible {
+    color: #ffffff;
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.5em;
   }
 
 }
