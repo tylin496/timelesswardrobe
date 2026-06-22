@@ -10849,6 +10849,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 .styling-board-drawer .outfit-slot__name {
   width: 100%;
+  /* Extra bottom padding lifts the title slightly off the card edge. */
+  padding-bottom: 0.22rem;
   color: #fff;
   text-shadow: 0 1px 3px rgba(15, 14, 13, 0.5);
   font-size: 0.6rem;
@@ -11584,7 +11586,7 @@ body.tw-outfit-drag-active * {
   justify-content: space-between;
   gap: 0.4rem;
   min-width: 0;
-  padding: 0.42rem 0.72rem 0.1rem 0.8rem;
+  padding: 0.42rem 0.8rem 0.1rem 0.8rem;
 }
 
 .styling-board-drawer .saved-card__info {
