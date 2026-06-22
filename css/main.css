@@ -9979,8 +9979,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 
   .styling-board-drawer .saved-card__piece {
-    width: 2.9rem;
-    height: 3.1rem;
+    width: 3.1rem;
+    height: 3.3rem;
     margin-left: 0;
   }
 
@@ -10788,7 +10788,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   align-items: center;
   justify-content: center;
   /* Leave room at the bottom so the cutout floats above the title scrim. */
-  padding: 0.15rem 0.15rem 1.1rem;
+  padding: 0.5rem 0.5rem 1.6rem;
   border-radius: 0;
   overflow: hidden;
   background: transparent;
@@ -11521,8 +11521,8 @@ body.tw-outfit-drag-active * {
 .styling-board-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
-  width: 4.4rem;
-  height: 4.7rem;
+  width: 4.7rem;
+  height: 5rem;
   margin-left: 0;
   display: flex;
   align-items: center;
