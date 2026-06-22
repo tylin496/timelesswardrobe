@@ -24410,14 +24410,7 @@
       const piecesStr = `${n} Piece${n === 1 ? "" : "s"}`;
       const meta = document.createElement("p");
       meta.className = "saved-card__meta";
-      const metaNotes = document.createElement("span");
-      metaNotes.className = "saved-card__meta-notes";
-      if (notesSnip) metaNotes.textContent = `${notesSnip},`;
-      else metaNotes.hidden = true;
-      const metaTail = document.createElement("span");
-      metaTail.className = "saved-card__meta-tail";
-      metaTail.textContent = `${piecesStr} · ${dateStr}`;
-      meta.append(metaNotes, metaTail);
+      meta.textContent = `${piecesStr} · ${dateStr}`;
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
