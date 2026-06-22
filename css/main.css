@@ -13124,6 +13124,7 @@ body:not(.item-page):not(.tw-page-loader-revealed) #main {
   /* Pure opacity fade — no rise. Thumb already signals the filter change;
      the cards just need to appear cleanly, not draw attention to themselves. */
   animation: tlw-fade-in 0.22s ease backwards;
+}
 
 /* Collection PLP — quick-find: layout at file end (`body.collection-view--compact`). */
 body.collection-page #grid.grid--compact .card__meta-line,
