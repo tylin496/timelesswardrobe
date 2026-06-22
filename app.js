@@ -4139,9 +4139,9 @@
         list.appendChild(empty);
         return;
       }
-      for (const it of showcaseItems) {
-        list.appendChild(buildPlaylistRow(it, renderPlaylist));
-      }
+      showcaseItems.forEach((it, i) => {
+        list.appendChild(buildPlaylistRow(it, i + 1, renderPlaylist));
+      });
     }
 
     renderPlaylist();
@@ -4191,7 +4191,7 @@
           row.className = "account-picker-row";
           const thumb = document.createElement("img");
           thumb.className = "account-picker-thumb";
-          thumb.src = String(it?.image ?? "");
+          thumb.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
           thumb.alt = "";
           thumb.loading = "lazy";
           const name = document.createElement("span");
@@ -4217,7 +4217,7 @@
     }
   }
 
-  function buildPlaylistRow(it, onReorder) {
+  function buildPlaylistRow(it, position, onReorder) {
     const row = document.createElement("div");
     row.className = "account-playlist-row";
     row.draggable = true;
@@ -4228,9 +4228,14 @@
     handle.textContent = "⠿";
     handle.setAttribute("aria-hidden", "true");
 
+    const posEl = document.createElement("span");
+    posEl.className = "account-playlist-pos";
+    posEl.textContent = String(position);
+    posEl.setAttribute("aria-hidden", "true");
+
     const thumb = document.createElement("img");
     thumb.className = "account-playlist-thumb";
-    thumb.src = String(it?.image ?? "");
+    thumb.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     thumb.alt = "";
     thumb.loading = "lazy";
     thumb.decoding = "async";
@@ -4263,7 +4268,7 @@
       onReorder();
     });
 
-    row.append(handle, thumb, name, brand, removeBtn);
+    row.append(handle, posEl, thumb, name, brand, removeBtn);
 
     // Drag-and-drop
     row.addEventListener("dragstart", (e) => {
@@ -7646,6 +7651,8 @@
 
   /** Returns 0-based Showcase position, or -1 if item is not in Showcase. */
   function showcaseRank(item) {
+    // Prefer dedicated column (showcase_order); fall back to metadata for seed/legacy items.
+    if (typeof item?.showcaseOrder === "number" && item.showcaseOrder >= 0) return item.showcaseOrder;
     const r = item?.metadata?.showcase_rank;
     return typeof r === "number" && Number.isInteger(r) && r >= 0 ? r : -1;
   }
@@ -7678,14 +7685,20 @@
     const saves = [];
     const orderedIds = new Set(orderedItems.map((it) => String(it.id)));
 
+    const nowIso = new Date().toISOString();
     orderedItems.forEach((item, i) => {
-      if (showcaseRank(item) === i) return;
+      const sparseOrder = i * 10;
+      const rankUnchanged = item.showcaseOrder === sparseOrder || (item.showcaseOrder == null && item?.metadata?.showcase_rank === i);
+      if (rankUnchanged && item.showcaseAt) return;
+      if (!item.showcaseAt) item.showcaseAt = nowIso;
+      item.showcaseOrder = sparseOrder;
       item.metadata = { ...(item.metadata ?? {}), showcase_rank: i };
       saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
     });
 
     for (const item of itemById.values()) {
       if (isInShowcase(item) && !orderedIds.has(String(item.id))) {
+        item.showcaseOrder = null;
         item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
         saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
       }
@@ -7982,6 +7995,8 @@
       metadata: row.metadata ?? null,
       createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
       updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
+      showcaseOrder: typeof row.showcase_order === "number" ? row.showcase_order : null,
+      showcaseAt: row.showcase_at ? new Date(row.showcase_at).toISOString() : null,
       __source: "supabase",
     };
     if (colourVariants) out.colourVariants = colourVariants;
@@ -8079,6 +8094,8 @@
     "gallery",
     "notes",
     "metadata",
+    "showcase_order",
+    "showcase_at",
   ];
 
   /** Same row shape with American column names (legacy DBs PostgREST still exposes). */
@@ -8101,6 +8118,8 @@
     "gallery",
     "notes",
     "metadata",
+    "showcase_order",
+    "showcase_at",
   ];
 
   /**
@@ -8218,6 +8237,8 @@
       gallery: Array.isArray(item.gallery) ? item.gallery : [],
       notes: String(item.notes ?? ""),
       metadata: metadataOut,
+      showcase_order: typeof item.showcaseOrder === "number" ? item.showcaseOrder : null,
+      showcase_at: item.showcaseAt ?? null,
     };
     if (spelling === "us") {
       return { ...base, color: colourText, color_code: codeText };
