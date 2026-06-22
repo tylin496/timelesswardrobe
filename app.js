@@ -12645,7 +12645,8 @@
       if (document.body.classList.contains("collection-ui--header-search-open")) return true;
       if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
       if (document.body.classList.contains("collection-ui--styling-board")) return true;
-      if (document.body.classList.contains("collection-ui--mobile-nav-open")) return true;
+      // Mobile nav: keep the header in its overlay state — the opaque ivory is supplied by the
+      // sliding `.site-header::after` surface, and overlay lets the white ink restore on close.
       if (!hero) return true;
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
       return scrollY >= hero.offsetHeight / 2;
@@ -28417,6 +28418,7 @@
 
     document.body.classList.remove(
       "collection-ui--mobile-nav-open",
+      "collection-ui--mobile-nav-closing",
       "collection-ui--header-search-open",
       "collection-ui--header-search-closing",
       "collection-ui--header-submenu-open",
@@ -29765,7 +29767,7 @@
         resetMobileNavDrill();
         headerMenuBtn?.setAttribute("aria-expanded", "false");
         headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
-        document.body.classList.remove("collection-ui--mobile-nav-open");
+        document.body.classList.remove("collection-ui--mobile-nav-open", "collection-ui--mobile-nav-closing");
         setMobileNavDimVisible(false);
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
@@ -29785,6 +29787,8 @@
         return;
       }
 
+      // Mark closing so the header surface + ink slide/fade back out in step with the panel.
+      document.body.classList.add("collection-ui--mobile-nav-closing");
       mobileShell.classList.add("is-closing");
       mobileShellCloseAbort = twAfterMotion(mobileShell, MOBILE_NAV_MOTION_MS, finish);
     }
@@ -29801,6 +29805,7 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
+      document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");

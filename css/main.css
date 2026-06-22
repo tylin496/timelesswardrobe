@@ -7791,6 +7791,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
     .site-mobile-shell__bar,
     .site-mobile-nav__level,
     .site-mobile-nav-drill-portal,
+    .site-header::after,
     .site-header__search-wrap {
       transition-duration: 0.01ms;
     }
@@ -23564,13 +23565,13 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     border-radius: 0;
     color: #ffffff;
     font-family: "DM Sans", system-ui, sans-serif;
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 8.5px;
+    font-weight: 500;
     letter-spacing: 0.18em;
     text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.42em;
-    text-decoration-color: color-mix(in srgb, #ffffff 92%, transparent);
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 0.62em;
+    text-decoration-color: color-mix(in srgb, #ffffff 88%, transparent);
     box-sizing: border-box;
   }
 
