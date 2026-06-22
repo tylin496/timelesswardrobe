@@ -18972,11 +18972,11 @@ a.item-detail__breadcrumb-current {
   padding-bottom: 0.25rem;
 }
 
-/* Mobile: bleed past page gutter so next card visibly peeks */
+/* Mobile: extend rail to full viewport width; first card aligns with content, right bleeds */
 @media (max-width: 899px) {
   .item-detail__related-grid {
-    margin-right: calc(-1 * max(var(--content-inline), env(safe-area-inset-right, 0px)));
-    padding-right: max(var(--content-inline), env(safe-area-inset-right, 0px));
+    margin-inline: calc(-1 * max(var(--content-inline), env(safe-area-inset-right, 0px)));
+    padding-left: max(var(--content-inline), env(safe-area-inset-left, 0px));
   }
 }
 
@@ -22639,15 +22639,6 @@ video.ed-lp__hero-layer-video {
   transition: none;
 }
 
-@media (max-width: 900px) {
-  /* Beefier progress thumb on touch — the 2px hairline bar reads too thin on
-     phones. (Styling-board outfit bar keeps 2px via its higher-specificity rule.) */
-  .ed-lp__division-rail-progress-bar,
-  .ed-lp__rail-progress-bar {
-    height: 3px;
-  }
-}
-
 /* Recently viewed — title left, horizontal product rail (Ralph Lauren). */
 .ed-lp__viewed-rail {
   width: 100%;
@@ -23412,8 +23403,11 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     padding: 9px 0;
   }
 
+  /* Longer thumb on mobile — ~40% of the track. % resolves against the track, so
+     it overrides the JS-set inline width; the scroller positions by offsetWidth
+     so travel stays correct. */
   body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
-    min-width: 6rem;
+    min-width: 40%;
   }
 
   .site-home-stage {
