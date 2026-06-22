@@ -3072,9 +3072,12 @@
     { key: "collection",  label: "Collection"  },
     { key: "showcase",    label: "Showcase"    },
     { key: "notes",       label: "Notes"       },
-    { key: "future",      label: "Future"      },
+    { key: "wishlist",    label: "Wishlist"    },
     { key: "brands",      label: "Brands"      },
   ];
+
+  const _accountTabScrollPositions = {};
+  let _accountCurrentTab = "collection";
 
   function getAccountActiveTab() {
     const hash = String(globalThis.location.hash ?? "").replace(/^#/, "").toLowerCase();
@@ -3093,6 +3096,20 @@
       a.href = `/account#${tab.key}`;
       a.textContent = tab.label;
       if (tab.key === active) a.setAttribute("aria-current", "page");
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (tab.key === _accountCurrentTab) return;
+        _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
+        history.pushState(null, "", `/account#${tab.key}`);
+        _accountCurrentTab = tab.key;
+        const contentEl = document.querySelector(".account-tab-content");
+        if (contentEl) {
+          renderAccountActiveTab(contentEl);
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: _accountTabScrollPositions[tab.key] ?? 0, behavior: "instant" });
+          });
+        }
+      });
       nav.appendChild(a);
     }
     return nav;
@@ -3119,7 +3136,7 @@
       case "collection": renderAccountTab_Collection(contentEl); break;
       case "showcase":   renderAccountTab_Showcase(contentEl); break;
       case "notes":      renderAccountTab_Notes(contentEl); break;
-      case "future":     renderAccountTab_Future(contentEl); break;
+      case "wishlist":   renderAccountTab_Wishlist(contentEl); break;
       case "brands":     renderAccountTab_Brands(contentEl); break;
       default:           renderAccountTab_Collection(contentEl); break;
     }
@@ -3153,13 +3170,23 @@
     contentEl.className = "account-tab-content";
     body.appendChild(contentEl);
 
+    _accountCurrentTab = getAccountActiveTab();
     renderAccountActiveTab(contentEl);
 
     if (!body.dataset.hashListenerInstalled) {
       body.dataset.hashListenerInstalled = "1";
-      globalThis.addEventListener("hashchange", () => {
+      globalThis.addEventListener("popstate", () => {
+        const newTab = getAccountActiveTab();
+        if (newTab === _accountCurrentTab) return;
+        _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
+        _accountCurrentTab = newTab;
         const current = document.querySelector(".account-tab-content");
-        if (current) renderAccountActiveTab(current);
+        if (current) {
+          renderAccountActiveTab(current);
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: _accountTabScrollPositions[newTab] ?? 0, behavior: "instant" });
+          });
+        }
       });
     }
   }
@@ -3280,12 +3307,23 @@
     const filters = document.createElement("div");
     filters.className = "account-collection-filters";
 
+    const nonWishlist = items.filter((it) => !isFuturePiece(it));
+    const filterCounts = {
+      all:        nonWishlist.length,
+      showcase:   nonWishlist.filter((it) => isInShowcase(it)).length,
+      "no-notes": nonWishlist.filter((it) => !String(it?.notes ?? "").trim()).length,
+      "no-price": nonWishlist.filter((it) => {
+        const p = it?.price ?? it?.metadata?.price;
+        return p === undefined || p === null || p === "";
+      }).length,
+      wishlist:   items.filter((it) => isFuturePiece(it)).length,
+    };
     const filterDefs = [
-      { key: "all",       label: "All",      warn: false },
-      { key: "showcase",  label: "Showcase", warn: false },
-      { key: "no-notes",  label: "No notes", warn: true  },
-      { key: "no-price",  label: "No price", warn: true  },
-      { key: "future",    label: "Future",   warn: false },
+      { key: "all",       label: `All (${filterCounts.all})`,              warn: false },
+      { key: "showcase",  label: `Showcase (${filterCounts.showcase})`,    warn: false },
+      { key: "no-notes",  label: `No notes (${filterCounts["no-notes"]})`, warn: true  },
+      { key: "no-price",  label: `No price (${filterCounts["no-price"]})`, warn: true  },
+      { key: "wishlist",  label: `Wishlist (${filterCounts.wishlist})`,     warn: false },
     ];
     for (const fd of filterDefs) {
       const chip = document.createElement("button");
@@ -3340,7 +3378,7 @@
           const p = it?.price ?? it?.metadata?.price;
           if ((p !== undefined && p !== null && p !== "") || isFuturePiece(it)) return false;
         }
-        if (_accountCollectionFilter === "future" && !isFuturePiece(it)) return false;
+        if (_accountCollectionFilter === "wishlist" && !isFuturePiece(it)) return false;
         if (_accountCollectionFilter === "all") { /* no-op */ }
         if (q) {
           const hay = [it?.name, it?.brand, it?.category, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
@@ -3422,7 +3460,15 @@
     const cat = String(it?.category ?? "").trim();
     sub.textContent = [brand, cat].filter(Boolean).join(" · ");
 
-    meta.append(name, sub);
+    const season = String(it?.season ?? "").trim();
+    const purchaseDate = String(it?.purchaseDate ?? "").trim();
+    const acqYear = purchaseDate ? new Date(purchaseDate).getFullYear() : null;
+    const detailParts = [season, acqYear ? String(acqYear) : null].filter(Boolean);
+    const details = document.createElement("div");
+    details.className = "account-cat-details";
+    if (detailParts.length) details.textContent = detailParts.join(" · ");
+
+    meta.append(name, sub, details);
     row.appendChild(meta);
 
     const flags = document.createElement("div");
@@ -3471,9 +3517,10 @@
     };
 
     function makeAutoSaveInput(el, fieldKey) {
-      const isTextarea = el.tagName === "TEXTAREA";
       el.value = String(it?.[fieldKey] ?? "").trim();
-      el.addEventListener("blur", async () => {
+      let debounceTimer = 0;
+      const doSave = async () => {
+        clearTimeout(debounceTimer);
         const newVal = el.value.trim();
         if (newVal === String(it?.[fieldKey] ?? "").trim()) return;
         setStatus("saving", "Saving…");
@@ -3495,6 +3542,12 @@
           console.warn("[account] drawer save failed:", fieldKey, err);
           setStatus("error", "Save failed");
         }
+      };
+      el.addEventListener("blur", doSave);
+      el.addEventListener("input", () => {
+        setStatus("saving", "Saving…");
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(doSave, 1400);
       });
     }
 
@@ -3896,7 +3949,9 @@
           }
         };
 
-        textarea.addEventListener("blur", async () => {
+        let notesDebounce = 0;
+        const doNotesSave = async () => {
+          clearTimeout(notesDebounce);
           const newVal = textarea.value.trim();
           const oldVal = String(it?.notes ?? "").trim();
           if (newVal === oldVal) return;
@@ -3919,6 +3974,12 @@
             console.warn("[account] notes save failed:", err);
             setStatus("error", "Save failed");
           }
+        };
+        textarea.addEventListener("blur", doNotesSave);
+        textarea.addEventListener("input", () => {
+          setStatus("saving", "Saving…");
+          clearTimeout(notesDebounce);
+          notesDebounce = setTimeout(doNotesSave, 1400);
         });
 
         requestAnimationFrame(() => {
@@ -3961,10 +4022,10 @@
     el.appendChild(wrapper);
   }
 
-  // ── Tab: Future ──────────────────────────────────────────────────────────────
+  // ── Tab: Wishlist ─────────────────────────────────────────────────────────────
   let _accountFutureDrawerItemId = null;
 
-  function renderAccountTab_Future(el) {
+  function renderAccountTab_Wishlist(el) {
     const futureItems = items.filter((it) => isFuturePiece(it));
 
     const wrapper = document.createElement("div");
@@ -3972,7 +4033,7 @@
     if (!futureItems.length) {
       const empty = document.createElement("div");
       empty.style.cssText = "font-size:0.82rem;color:var(--ink-muted);font-style:italic;";
-      empty.textContent = "No future pieces in the collection.";
+      empty.textContent = "No wishlist pieces yet.";
       wrapper.appendChild(empty);
       el.appendChild(wrapper);
       return;
@@ -3980,7 +4041,7 @@
 
     const hint = document.createElement("p");
     hint.className = "account-future-hint";
-    hint.textContent = `${futureItems.length} future piece${futureItems.length === 1 ? "" : "s"}`;
+    hint.textContent = `${futureItems.length} wishlist piece${futureItems.length === 1 ? "" : "s"}`;
     wrapper.appendChild(hint);
 
     const layout = document.createElement("div");
