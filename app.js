@@ -23377,9 +23377,21 @@
       simg.decoding = "async";
       simg.draggable = false;
       simg.setAttribute("draggable", "false");
+      // Current Outfit cards layer a transparent cutout over a shared backdrop
+      // (bg → cutout → white title), so feed the cutout/ set with the composited
+      // thumb chain as fallback — same source ladder as the Saved Outfits flatlay.
+      const slotBaseCandidates = buildCoverCandidates(proj);
+      const slotCutoutCandidates = [];
+      for (const u of slotBaseCandidates) {
+        const c = wardrobeCutoutUrlFromCoverUrl(u);
+        if (c && !slotCutoutCandidates.includes(c)) slotCutoutCandidates.push(c);
+      }
       wireCoverImageWithFallbacks(simg, proj, {
         host: thumb,
         missingClass: null,
+        coverCandidates: slotCutoutCandidates.length
+          ? [...slotCutoutCandidates, ...slotBaseCandidates]
+          : undefined,
         coverRenderWidth: OUTFIT_DRAWER_THUMB_RENDER.width,
         coverRenderHeight: OUTFIT_DRAWER_THUMB_RENDER.height,
         coverRenderQuality: OUTFIT_DRAWER_THUMB_RENDER.quality,

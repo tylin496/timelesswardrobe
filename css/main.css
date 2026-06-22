@@ -9942,8 +9942,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 
   .styling-board-drawer .outfit-slot__meta {
-    flex: 0 0 auto;
-    padding: 0.18rem 0.14rem 0.62rem;
+    padding: 0.85rem 0.18rem 0.42rem;
   }
 
   .styling-board-drawer .outfit-slot__name {
@@ -10501,7 +10500,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow: hidden;
   cursor: grab;
   touch-action: pan-x;
-  background: var(--outfit-card-bg);
+  /* Layered card: shared backdrop photo → transparent cutout → white title. */
+  background: url('/images/background.jpg') center center / cover no-repeat;
   border: var(--outfit-card-border);
   border-radius: var(--outfit-card-radius);
   box-shadow: var(--outfit-card-shadow);
@@ -10776,15 +10776,17 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 .styling-board-drawer .outfit-slot__thumb {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
   min-height: 0;
-  flex: 1 1 auto;
-  flex-shrink: 1;
   max-height: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Leave room at the bottom so the cutout floats above the title scrim. */
+  padding: 0.5rem 0.5rem 1.5rem;
   border-radius: 0;
   overflow: hidden;
   background: transparent;
@@ -10796,29 +10798,37 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  /* Fill the thumb top-to-bottom — crop the beige side margins, never letterbox. */
-  object-fit: cover;
-  object-position: center center;
-  filter: none;
+  /* Cutout floats on the backdrop — contain, never crop or letterbox a plate. */
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 4px 9px rgba(20, 19, 18, 0.24));
   -webkit-user-drag: none;
   user-select: none;
   pointer-events: none;
 }
 
 .styling-board-drawer .outfit-slot__meta {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 0.32rem 0.2rem 0.4rem;
+  padding: 0.85rem 0.35rem 0.4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 0.04rem;
-  /* Caption plate under the photo — divides image from label like an archive card. */
-  border-top: 1px solid rgba(24, 55, 47, 0.07);
-  background: color-mix(in srgb, var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94)) 60%, transparent);
+  /* Scrim keeps the white title legible over any cutout/backdrop. */
+  border-top: none;
+  background: linear-gradient(
+    to top,
+    rgba(20, 19, 18, 0.58) 0%,
+    rgba(20, 19, 18, 0.32) 42%,
+    rgba(20, 19, 18, 0) 100%
+  );
 }
 
 /* Keep drag affordance on cards, but always allow copying outfit text. */
@@ -10837,10 +10847,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 .styling-board-drawer .outfit-slot__name {
   width: 100%;
-  color: color-mix(in srgb, var(--sb-ink) 92%, var(--sb-ink-muted));
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(15, 14, 13, 0.5);
   font-size: 0.6rem;
-  font-weight: 400;
-  letter-spacing: 0.015em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   line-height: 1.2;
   text-align: center;
   display: -webkit-box;
