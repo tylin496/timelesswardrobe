@@ -18879,7 +18879,7 @@ a.item-detail__breadcrumb-current {
 .item-detail__related-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.65rem;
   margin-bottom: 1rem;
 }
 
