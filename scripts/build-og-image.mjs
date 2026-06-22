@@ -53,35 +53,51 @@ function loadWardrobeItems() {
   return fn();
 }
 
-function thumbPath(id) {
-  return path.join(root, "images", "wardrobe", id, "thumb", "1.webp");
-}
-
-function hasThumb(id) {
-  return fs.existsSync(thumbPath(id));
+// Composited cover thumb for an item: the canonical main/thumb/1.webp when present,
+// else the nested variant thumb derived from a variant-only item's cover URL.
+function thumbFileForItem(item) {
+  const id = String(item?.id ?? "").trim();
+  if (id) {
+    const mainThumb = path.join(root, "images", "wardrobe", id, "thumb", "1.webp");
+    if (fs.existsSync(mainThumb)) return mainThumb;
+  }
+  const raw = String(item?.image ?? "").trim().split("?")[0];
+  const m = raw.match(/\/images\/wardrobe\/([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+  if (m && !/^preview$/i.test(m[3])) {
+    const seg = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
+    const f = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), "thumb", `${seg(m[3])}.webp`);
+    if (fs.existsSync(f)) return f;
+  }
+  return "";
 }
 
 function resolveItems() {
   const all = loadWardrobeItems();
+  const byId = new Map(all.map((it) => [String(it.id), it]));
 
-  // Prefer items with showcase_rank, sorted by rank
-  const showcased = all
+  const picks = []; // { id, thumb }
+  const seen = new Set();
+  const tryAdd = (item) => {
+    if (!item || picks.length >= 5) return;
+    const id = String(item.id ?? "").trim();
+    if (!id || seen.has(id)) return;
+    const thumb = thumbFileForItem(item);
+    if (!thumb) return;
+    seen.add(id);
+    picks.push({ id, thumb });
+  };
+
+  // Prefer items with showcase_rank, sorted by rank; then top up from fallback.
+  all
     .filter((it) => {
       const r = it?.metadata?.showcase_rank;
-      return typeof r === "number" && Number.isInteger(r) && r >= 0 && hasThumb(it.id);
+      return typeof r === "number" && Number.isInteger(r) && r >= 0;
     })
     .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank)
-    .slice(0, 5);
+    .forEach(tryAdd);
+  for (const id of FALLBACK_IDS) tryAdd(byId.get(id));
 
-  if (showcased.length >= 5) return showcased.map((it) => it.id);
-
-  // Fill from showcase first, then top up from fallback
-  const ids = showcased.map((it) => String(it.id));
-  for (const id of FALLBACK_IDS) {
-    if (!ids.includes(id) && hasThumb(id)) ids.push(id);
-    if (ids.length === 5) break;
-  }
-  return ids;
+  return picks.slice(0, 5);
 }
 
 // ── Text overlay (hero panel only) ───────────────────────────────────────────
@@ -140,25 +156,25 @@ function heroOverlaySvg() {
 
 const sharp = (await import("sharp")).default;
 
-const ids = resolveItems();
-console.log(`[og-build] hero: ${ids[0]}`);
-console.log(`[og-build] supporting: ${ids.slice(1).join(", ")}`);
+const picks = resolveItems();
+console.log(`[og-build] hero: ${picks[0]?.id}`);
+console.log(`[og-build] supporting: ${picks.slice(1).map((p) => p.id).join(", ")}`);
 
 // Resize each slot
 const [heroBuf, s2, s3, s4, s5] = await Promise.all([
-  sharp(thumbPath(ids[0]))
+  sharp(picks[0].thumb)
     .resize(HERO_W, HERO_H, { fit: "cover", position: sharp.strategy.attention })
     .toBuffer(),
-  sharp(thumbPath(ids[1]))
+  sharp(picks[1].thumb)
     .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
     .toBuffer(),
-  sharp(thumbPath(ids[2]))
+  sharp(picks[2].thumb)
     .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
     .toBuffer(),
-  sharp(thumbPath(ids[3]))
+  sharp(picks[3].thumb)
     .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
     .toBuffer(),
-  sharp(thumbPath(ids[4]))
+  sharp(picks[4].thumb)
     .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
     .toBuffer(),
 ]);
