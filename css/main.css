@@ -10788,7 +10788,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   align-items: center;
   justify-content: center;
   /* Leave room at the bottom so the cutout floats above the title scrim. */
-  padding: 0.3rem 0.3rem 1.25rem;
+  padding: 0.15rem 0.15rem 1.1rem;
   border-radius: 0;
   overflow: hidden;
   background: transparent;
