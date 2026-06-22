@@ -12132,10 +12132,10 @@
       const el = getScrollEl();
       if (!(thumb instanceof HTMLElement) || !(track instanceof HTMLElement) || el.scrollWidth <= 0) return;
       const thumbFracMin = isDivisionRailScroller(scroller)
-        ? 0.34
+        ? 0.5
         : isOutfitStripRailScroller(scroller)
           ? 0.12
-          : 0.12;
+          : 0.25;
       const thumbFrac = Math.max(thumbFracMin, el.clientWidth / el.scrollWidth);
       const ratio = scrollRatio();
       thumb.style.width = `${thumbFrac * 100}%`;

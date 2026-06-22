@@ -22568,8 +22568,8 @@ video.ed-lp__hero-layer-video {
   left: 0;
   top: 50%;
   height: 2px;
-  min-width: 16rem;
-  width: 80%;
+  min-width: 4.5rem;
+  width: 28%;
   background: var(--ink);
   transform: translateY(-50%);
   transition:
