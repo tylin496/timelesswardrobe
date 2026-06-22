@@ -471,6 +471,38 @@ function queueThumbBuild(reason) {
   }, 600);
 }
 
+// Source normaliser: force-centre cover cutouts (1.webp) before deriving thumbs/
+// cutouts, so a newly-added cover is auto-centred with no manual step. Hash-gated,
+// so it's near-instant and writes nothing when covers are already centred (which
+// also keeps the file watcher from looping on its own rewrites).
+const centerScriptPath = path.join(root, "scripts", "center-cutouts.mjs");
+let centerBuildTimer = null;
+let centerBuildRunning = false;
+
+function queueCenterBuild(reason) {
+  if (centerBuildTimer) clearTimeout(centerBuildTimer);
+  centerBuildTimer = setTimeout(async () => {
+    centerBuildTimer = null;
+    if (centerBuildRunning) { queueCenterBuild("retry-busy"); return; }
+    centerBuildRunning = true;
+    console.log(`[center] reconciling (${reason})…`);
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [centerScriptPath], { stdio: "inherit" });
+        child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`exit ${code}`))));
+      });
+      console.log("[center] done.");
+    } catch (err) {
+      console.warn("[center] failed:", err?.message || err);
+    } finally {
+      centerBuildRunning = false;
+      // Always derive presentation sets afterwards (hash-gated, near-instant if nothing moved).
+      queueThumbBuild(`after-center:${reason}`);
+      queueCutoutBuild(`after-center:${reason}`);
+    }
+  }, 600);
+}
+
 const cutoutScriptPath = path.join(root, "scripts", "generate-wardrobe-cutout-thumbs.mjs");
 let cutoutBuildTimer = null;
 let cutoutBuildRunning = false;
@@ -499,12 +531,14 @@ function queueCutoutBuild(reason) {
 function installThumbWatcher() {
   try {
     const watcher = watchFs(wardrobeMainDir, { recursive: true, persistent: true }, (eventType, filename) => {
-      const f = String(filename || "");
-      if (!f.includes("/main/") && !f.includes("\\main\\")) return;
+      const f = String(filename || "").replace(/\\/g, "/");
+      const inMain = f.includes("/main/");
+      const isVariantCover = /\/variants\/[^/]+\/1\.webp$/i.test(f);
+      if (!inMain && !isVariantCover) return;
       if (!/\.(webp|png|jpe?g)$/i.test(f)) return;
-      // main/ changed — regenerate both presentation sets so neither drifts.
-      queueThumbBuild(f);
-      queueCutoutBuild(f);
+      // Source changed — re-centre the cover first, then regenerate both
+      // presentation sets (queueCenterBuild chains thumb + cutout on completion).
+      queueCenterBuild(f);
     });
     watcher.on("error", (err) => console.warn("[thumbs] watch error:", err?.message || err));
     console.log("[thumbs] watching images/wardrobe/*/main/ for changes");
@@ -647,11 +681,11 @@ const server = http.createServer((req, res) => {
 
 installCssAutoBuildWatcher();
 installThumbWatcher();
-// Startup reconcile: regenerate any thumb/cutout that drifted from main/ while
-// the dev server was off (watcher only catches live edits). Hash-gated, so this
-// is near-instant when nothing changed.
-queueThumbBuild("startup");
-queueCutoutBuild("startup");
+// Startup reconcile: centre any new/uncentred cover, then regenerate any
+// thumb/cutout that drifted from main/ while the dev server was off (watcher
+// only catches live edits). All hash-gated, so this is near-instant when nothing
+// changed. queueCenterBuild chains thumb + cutout on completion.
+queueCenterBuild("startup");
 
 function listenWithFallback(port, triesLeft) {
   server.once("error", (err) => {
