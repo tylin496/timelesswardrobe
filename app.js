@@ -24400,21 +24400,24 @@
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
       const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
-      // Two-line header: name + date on the title row, notes + piece-count on the
-      // line below. Keeps the cutout flatlay the focus and the card compact.
-      const nameRow = document.createElement("div");
-      nameRow.className = "saved-card__name-row";
+      // Header: title alone on line 1 (top-right corner reserved for the hover
+      // tools); all metadata on line 2. The notes truncate but the piece-count +
+      // date tail stays fixed, so the date is always visible and never collides
+      // with the action icons.
       const title = document.createElement("p");
       title.className = "saved-card__name";
       title.textContent = outfit.name;
-      const dateEl = document.createElement("span");
-      dateEl.className = "saved-card__date";
-      dateEl.textContent = dateStr;
-      nameRow.append(title, dateEl);
       const piecesStr = `${n} Piece${n === 1 ? "" : "s"}`;
       const meta = document.createElement("p");
       meta.className = "saved-card__meta";
-      meta.textContent = notesSnip ? `${notesSnip}, ${piecesStr}` : piecesStr;
+      const metaNotes = document.createElement("span");
+      metaNotes.className = "saved-card__meta-notes";
+      if (notesSnip) metaNotes.textContent = `${notesSnip},`;
+      else metaNotes.hidden = true;
+      const metaTail = document.createElement("span");
+      metaTail.className = "saved-card__meta-tail";
+      metaTail.textContent = `${piecesStr} · ${dateStr}`;
+      meta.append(metaNotes, metaTail);
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
@@ -24506,7 +24509,7 @@
       body.className = "saved-card__body";
       const info = document.createElement("div");
       info.className = "saved-card__info";
-      info.append(nameRow, meta);
+      info.append(title, meta);
       body.append(info, act);
       card.append(body, flatlay);
       li.appendChild(card);
@@ -26874,9 +26877,9 @@
 
   function appendItemDetailRelated(root, item) {
     const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
-    const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 4);
+    const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 3);
     const brandIds = new Set(byBrand.map((it) => it.id));
-    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 4);
+    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 3);
     if (!byBrand.length && !byCat.length) return;
 
     const sec = document.createElement("section");
@@ -26894,8 +26897,8 @@
       h.className = "item-detail__related-heading";
       h.textContent = label;
       group.appendChild(h);
-      const grid = document.createElement("div");
-      grid.className = "item-detail__related-grid";
+      const list = document.createElement("div");
+      list.className = "item-detail__related-grid";
       for (const peer of peers) {
         const a = document.createElement("a");
         a.href = buildItemPageUrl(peer.id).toString();
@@ -26906,14 +26909,21 @@
         img.alt = displayNameWithoutLeadingColour(peer);
         img.loading = "lazy";
         img.decoding = "async";
+        const meta = document.createElement("div");
+        meta.className = "item-detail__related-meta";
+        const brand = document.createElement("span");
+        brand.className = "item-detail__related-brand";
+        brand.textContent = peer.brand || "";
         const name = document.createElement("p");
         name.className = "item-detail__related-name";
         name.textContent = displayNameWithoutLeadingColour(peer);
+        meta.appendChild(brand);
+        meta.appendChild(name);
         a.appendChild(img);
-        a.appendChild(name);
-        grid.appendChild(a);
+        a.appendChild(meta);
+        list.appendChild(a);
       }
-      group.appendChild(grid);
+      group.appendChild(list);
       return group;
     }
 

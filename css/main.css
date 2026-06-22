@@ -11700,10 +11700,10 @@ body.tw-outfit-drag-active * {
 
 .styling-board-drawer .saved-card__meta {
   margin: 0;
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
   text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 0.6rem;
   font-weight: 400;
   line-height: 1.3;
@@ -11711,15 +11711,22 @@ body.tw-outfit-drag-active * {
   color: color-mix(in srgb, var(--sb-ink-muted) 92%, transparent);
 }
 
-.styling-board-drawer .saved-card__date {
-  flex: 0 0 auto;
-  margin-left: auto;
+/* Notes flex and truncate; the piece-count + date tail stays fixed so the date
+   is always visible (and never collides with the hover action icons up top). */
+.styling-board-drawer .saved-card__meta-notes {
+  min-width: 0;
+  flex: 0 1 auto;
+  /* Gap after the comma (a trailing space would be trimmed at the flex boundary). */
+  margin-right: 0.3em;
+  overflow: hidden;
   white-space: nowrap;
-  font-size: 0.56rem;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--sb-ink-muted) 72%, transparent);
+  text-overflow: ellipsis;
+}
+
+.styling-board-drawer .saved-card__meta-tail {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--sb-ink-muted) 78%, transparent);
 }
 
 .styling-board-drawer .saved-card__actions {
@@ -11733,9 +11740,8 @@ body.tw-outfit-drag-active * {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* Don't reserve inline space for the hover-only actions — that left an empty
-     block right of the date. Float them over the top-right corner instead, and
-     swap the date out for the actions on hover so they don't overlap. */
+  /* Hover-only actions float over the top-right corner (no reserved inline
+     space). The date now lives on the metadata line, so nothing collides. */
   .styling-board-drawer .saved-card__actions {
     position: absolute;
     top: 0.34rem;
@@ -11747,10 +11753,10 @@ body.tw-outfit-drag-active * {
   .styling-board-drawer .saved-card:focus-within .saved-card__actions {
     opacity: 1;
   }
-  .styling-board-drawer .saved-card:hover .saved-card__date,
-  .styling-board-drawer .saved-card:focus-within .saved-card__date {
-    opacity: 0;
-    transition: opacity 0.18s var(--ease-out);
+  /* Keep the title clear of the floating actions on hover. */
+  .styling-board-drawer .saved-card:hover .saved-card__name,
+  .styling-board-drawer .saved-card:focus-within .saved-card__name {
+    padding-right: 4.5rem;
   }
 }
 
@@ -18877,7 +18883,7 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__related-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem 0.75rem;
 }
 
@@ -18885,6 +18891,22 @@ a.item-detail__breadcrumb-current {
   display: block;
   text-decoration: none;
   color: inherit;
+}
+
+.item-detail__related-meta {
+  margin-top: 0.55rem;
+}
+
+.item-detail__related-brand {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.6;
+  margin-bottom: 0.2rem;
 }
 
 .item-detail__related-img {
@@ -18903,16 +18925,16 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__related-name {
   font-family: var(--font-serif);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   line-height: 1.3;
   color: var(--ink);
-  margin: 0.45rem 0 0;
+  margin: 0;
 }
 
 /* Mobile: cards become a horizontal scroll strip */
 @media (max-width: 599px) {
   .item-detail__related-grid {
-    grid-template-columns: repeat(4, 120px);
+    grid-template-columns: repeat(3, 130px);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -18921,15 +18943,51 @@ a.item-detail__breadcrumb-current {
   .item-detail__related-grid::-webkit-scrollbar { display: none; }
 }
 
-/* Desktop: groups side by side */
+/* Desktop: vertical editorial list — image left, name right */
 @media (min-width: 900px) {
   .item-detail__related-inner {
-    flex-direction: row;
-    gap: 2rem 3rem;
+    flex-direction: column;
+    gap: 3rem;
   }
   .item-detail__related-group {
-    flex: 1;
     min-width: 0;
+  }
+  .item-detail__related-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    grid-template-columns: unset;
+  }
+  .item-detail__related-card {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.75rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+    align-items: start;
+  }
+  .item-detail__related-card:first-child {
+    border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  }
+  .item-detail__related-meta {
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+  .item-detail__related-brand {
+    font-size: 0.62rem;
+    margin-bottom: 0.35rem;
+    opacity: 0.55;
+  }
+  .item-detail__related-name {
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+  .item-detail__related-img {
+    aspect-ratio: 3 / 4;
+    width: 100%;
   }
 }
 
