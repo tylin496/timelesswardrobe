@@ -3131,6 +3131,7 @@
 
     toggle.addEventListener("click", () => {
       const nowDark = document.documentElement.classList.toggle("tw-account-dark");
+      document.documentElement.style.colorScheme = nowDark ? "dark" : "light";
       try { localStorage.setItem("tw:account-theme", nowDark ? "dark" : "light"); } catch (_) {}
       applyToggleState(nowDark);
     });

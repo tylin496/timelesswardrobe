@@ -7,8 +7,11 @@
  */
 (function twPageThemeBoot() {
   // Account dark mode — apply before paint to prevent FOUC.
+  // Explicit manual override wins; otherwise follow OS preference.
   try {
-    if (localStorage.getItem("tw:account-theme") === "dark") {
+    const stored = localStorage.getItem("tw:account-theme");
+    const osDark = globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+    if (stored === "dark" || (stored !== "light" && osDark)) {
       document.documentElement.classList.add("tw-account-dark");
     }
   } catch (_) {}
@@ -36,7 +39,7 @@
   if (isHome) return;
   const root = document.documentElement;
   root.classList.add("theme-catalogue");
-  root.style.colorScheme = "light";
+  root.style.colorScheme = root.classList.contains("tw-account-dark") ? "dark" : "light";
   const body = document.body;
   if (body) body.classList.add("theme-catalogue");
 
