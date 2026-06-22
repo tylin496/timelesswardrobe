@@ -26809,10 +26809,6 @@
       appendMeasurementDisplaySection(body, item);
     }
 
-    if (isItemPageView) {
-      appendItemDetailNavigation(body, item);
-    }
-
     root.appendChild(body);
     if (isItemPageView) appendItemDetailRelated(root, item);
     afterItemDetailPageRender(root, false);
