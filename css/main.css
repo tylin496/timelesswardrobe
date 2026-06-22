@@ -8443,8 +8443,13 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   }
 }
 
-.collection-heading.collection-heading--swapping .collection-heading__context {
-  animation: collection-heading-swap-x 0.5s var(--ease-luxe) backwards;
+/* Only newly-appended crumbs animate, not the stable "COLLECTION /" base.
+   JS marks each new crumb span/button with this class. */
+.collection-heading__crumb--entering {
+  animation: collection-heading-swap-x 0.44s var(--ease-luxe) backwards;
+}
+.collection-heading__crumb-sep--entering {
+  animation: collection-heading-swap-x 0.44s var(--ease-luxe) backwards;
 }
 .collection-heading.collection-heading--swapping .collection-heading__title,
 .collection-heading.collection-heading--swapping .items-toolbar__page-title {
