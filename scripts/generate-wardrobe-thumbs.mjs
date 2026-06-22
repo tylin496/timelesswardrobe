@@ -76,6 +76,29 @@ function isUpToDate(srcPath, outPath, thumbName, manifest) {
   return entry.srcHash === fileHash(srcPath) && entry.bgHash === BG_HASH;
 }
 
+// preview.webp is a tiny pre-made swatch (used directly as previewImage), never a thumb source.
+const isThumbSource = (f) => SOURCE_RE.test(f) && !/^preview\./i.test(f);
+
+/**
+ * Source→output dir pairs for an item. main/ thumbs are siblings (item/thumb/);
+ * each variant's source images live directly in variants/<key>/, so their thumbs
+ * nest one level deeper at variants/<key>/thumb/.
+ */
+function collectThumbGroups(itemDir) {
+  const groups = [];
+  const mainDir = path.join(itemDir, "main");
+  if (existsSync(mainDir)) groups.push({ srcDir: mainDir, outDir: path.join(itemDir, "thumb") });
+  const variantsDir = path.join(itemDir, "variants");
+  if (existsSync(variantsDir)) {
+    for (const d of readdirSync(variantsDir, { withFileTypes: true })) {
+      if (!d.isDirectory()) continue;
+      const vDir = path.join(variantsDir, d.name);
+      groups.push({ srcDir: vDir, outDir: path.join(vDir, "thumb") });
+    }
+  }
+  return groups;
+}
+
 async function run() {
   if (!existsSync(WARDROBE_DIR)) {
     console.log("[thumbs] no images/wardrobe directory — nothing to do.");
@@ -89,43 +112,42 @@ async function run() {
   let skipped = 0;
   let removed = 0;
   for (const item of items) {
-    const mainDir = path.join(WARDROBE_DIR, item, "main");
-    if (!existsSync(mainDir)) continue;
-    const sources = readdirSync(mainDir).filter((f) => SOURCE_RE.test(f));
-    const thumbDir = path.join(WARDROBE_DIR, item, "thumb");
-    const manifest = loadManifest(thumbDir);
-    let manifestDirty = false;
+    for (const { srcDir, outDir } of collectThumbGroups(path.join(WARDROBE_DIR, item))) {
+      const sources = readdirSync(srcDir).filter(isThumbSource);
+      const manifest = loadManifest(outDir);
+      let manifestDirty = false;
 
-    // Build/update thumbs for every source image.
-    for (const file of sources) {
-      const srcPath = path.join(mainDir, file);
-      const thumbName = file.replace(SOURCE_RE, ".webp");
-      const outPath = path.join(thumbDir, thumbName);
-      if (isUpToDate(srcPath, outPath, thumbName, manifest)) {
-        skipped++;
-        continue;
+      // Build/update thumbs for every source image.
+      for (const file of sources) {
+        const srcPath = path.join(srcDir, file);
+        const thumbName = file.replace(SOURCE_RE, ".webp");
+        const outPath = path.join(outDir, thumbName);
+        if (isUpToDate(srcPath, outPath, thumbName, manifest)) {
+          skipped++;
+          continue;
+        }
+        if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+        await buildThumb(srcPath, outPath);
+        manifest[thumbName] = { srcHash: fileHash(srcPath), bgHash: BG_HASH };
+        manifestDirty = true;
+        built++;
       }
-      if (!existsSync(thumbDir)) mkdirSync(thumbDir, { recursive: true });
-      await buildThumb(srcPath, outPath);
-      manifest[thumbName] = { srcHash: fileHash(srcPath), bgHash: BG_HASH };
-      manifestDirty = true;
-      built++;
-    }
 
-    // Remove orphaned thumbs that no longer have a matching source in main/.
-    if (existsSync(thumbDir)) {
-      const expectedThumbs = new Set(sources.map((f) => f.replace(SOURCE_RE, ".webp")));
-      for (const thumbFile of readdirSync(thumbDir).filter((f) => /\.webp$/i.test(f))) {
-        if (!expectedThumbs.has(thumbFile)) {
-          rmSync(path.join(thumbDir, thumbFile));
-          delete manifest[thumbFile];
-          manifestDirty = true;
-          removed++;
+      // Remove orphaned thumbs that no longer have a matching source.
+      if (existsSync(outDir)) {
+        const expectedThumbs = new Set(sources.map((f) => f.replace(SOURCE_RE, ".webp")));
+        for (const thumbFile of readdirSync(outDir).filter((f) => /\.webp$/i.test(f))) {
+          if (!expectedThumbs.has(thumbFile)) {
+            rmSync(path.join(outDir, thumbFile));
+            delete manifest[thumbFile];
+            manifestDirty = true;
+            removed++;
+          }
         }
       }
-    }
 
-    if (manifestDirty) saveManifest(thumbDir, manifest);
+      if (manifestDirty) saveManifest(outDir, manifest);
+    }
   }
   const removedStr = removed ? `, removed ${removed} orphans` : "";
   console.log(`[thumbs] built ${built}, skipped ${skipped} (up to date)${removedStr}.`);

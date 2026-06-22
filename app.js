@@ -8347,9 +8347,19 @@
     if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
-    const m = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-    if (!m) return "";
-    const thumb = `${m[1]}thumb/${m[2]}.webp`;
+    // main/<n> → sibling thumb/<n>; variants/<key>/<n> → nested variants/<key>/thumb/<n>.
+    // preview.webp is a swatch served as-is — never redirect it to a (nonexistent) thumb.
+    let thumb = "";
+    const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+    if (mMain) {
+      thumb = `${mMain[1]}thumb/${mMain[2]}.webp`;
+    } else {
+      const mVar = pathPart.match(
+        /^((?:\/)?images\/wardrobe\/[^/]+\/variants\/[^/]+\/)([^/]+)\.(?:webp|png|jpe?g)$/i
+      );
+      if (mVar && !/^preview$/i.test(mVar[2])) thumb = `${mVar[1]}thumb/${mVar[2]}.webp`;
+    }
+    if (!thumb) return "";
     return query ? `${thumb}?${query}` : thumb;
   }
 
@@ -15862,9 +15872,15 @@
    */
   function wardrobeCutoutUrlFromCoverUrl(url) {
     const suffix = localWardrobePathFromUrl(url);
-    const m = suffix && suffix.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-    if (!m) return "";
-    return `/images/wardrobe/${m[1]}/cutout/${m[2]}.webp`;
+    if (!suffix) return "";
+    // main/<n> → sibling cutout/<n>; variants/<key>/<n> → nested variants/<key>/cutout/<n>.
+    const mMain = suffix.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+    if (mMain) return `/images/wardrobe/${mMain[1]}/cutout/${mMain[2]}.webp`;
+    const mVar = suffix.match(/^([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+    if (mVar && !/^preview$/i.test(mVar[3])) {
+      return `/images/wardrobe/${mVar[1]}/variants/${mVar[2]}/cutout/${mVar[3]}.webp`;
+    }
+    return "";
   }
 
   /**
