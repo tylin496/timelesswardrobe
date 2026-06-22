@@ -26863,7 +26863,12 @@
     const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
     const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 6);
     const brandIds = new Set(byBrand.map((it) => it.id));
-    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 6);
+    const byCatExact = owned.filter((it) => it.category === item.category && !brandIds.has(it.id));
+    const slot = itemSlot(item);
+    const byCat = byCatExact.length
+      ? byCatExact.slice(0, 6)
+      : owned.filter((it) => itemSlot(it) === slot && !brandIds.has(it.id)).slice(0, 6);
+    const catLabel = byCatExact.length ? `Other ${item.category}` : `Other ${slot}`;
     if (!byBrand.length && !byCat.length) return;
 
     const sec = document.createElement("section");
@@ -26943,7 +26948,7 @@
     }
 
     const brandGroup = buildGroup(byBrand, `Other ${item.brand}`);
-    const catGroup   = buildGroup(byCat,   `Other ${item.category}`);
+    const catGroup   = buildGroup(byCat,   catLabel);
     if (brandGroup) inner.appendChild(brandGroup);
     if (catGroup)   inner.appendChild(catGroup);
     sec.appendChild(inner);
