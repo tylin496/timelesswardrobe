@@ -26070,6 +26070,17 @@ body.editorial-page #editorial-root {
 
 .account-playlist-handle:active { cursor: grabbing; }
 
+.account-playlist-pos {
+  flex-shrink: 0;
+  width: 1.4rem;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--ink) 28%, transparent);
+  line-height: 1;
+}
+
 .account-playlist-thumb {
   width: 30px;
   height: 38px;
