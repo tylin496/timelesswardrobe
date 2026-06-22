@@ -3448,9 +3448,8 @@
     const countLabel = document.createElement("span");
     countLabel.className = "account-collection-count";
 
-    toolbar.append(search, brandSel, catSel, seasonSel, statusSel, clearBtn, addBtn);
+    toolbar.append(search, brandSel, catSel, seasonSel, statusSel, clearBtn, countLabel, addBtn);
     wrapper.appendChild(toolbar);
-    wrapper.appendChild(countLabel);
 
     // Layout: list + drawer
     const layout = document.createElement("div");
@@ -3504,6 +3503,17 @@
       countLabel.textContent = hasActiveFilter()
         ? `${filtered.length} of ${items.length} pieces`
         : `${items.length} pieces`;
+
+      // Desktop column header
+      const hdr = document.createElement("div");
+      hdr.className = "account-cat-list__header";
+      ["", "NAME", "BRAND", "CATEGORY", "SEASON", "YEAR", ""].forEach((t) => {
+        const s = document.createElement("span");
+        s.textContent = t;
+        hdr.appendChild(s);
+      });
+      listPane.appendChild(hdr);
+
       if (!filtered.length) {
         const empty = document.createElement("div");
         empty.className = "account-cat-list__empty";
@@ -3596,13 +3606,28 @@
     meta.append(name, sub, details);
     row.appendChild(meta);
 
+    // Desktop-only column cells (hidden on mobile)
+    const mkCol = (cls, text) => {
+      const d = document.createElement("div");
+      d.className = `account-cat-col ${cls}`;
+      d.textContent = text;
+      return d;
+    };
+    row.append(
+      mkCol("account-cat-col--brand",    brand),
+      mkCol("account-cat-col--category", cat),
+      mkCol("account-cat-col--season",   season),
+      mkCol("account-cat-col--year",     acqYear ? String(acqYear) : ""),
+    );
+
     const flags = document.createElement("div");
     flags.className = "account-cat-flags";
 
     if (isInShowcase(it)) {
       const f = document.createElement("span");
       f.className = "account-cat-flag account-cat-flag--showcase";
-      f.textContent = "★ Showcase";
+      f.textContent = "★";
+      f.title = "In Showcase";
       flags.appendChild(f);
     }
     if (!String(it?.notes ?? "").trim() && !isFuturePiece(it)) {
@@ -3611,7 +3636,7 @@
       f.textContent = "No notes";
       flags.appendChild(f);
     }
-    if (flags.children.length) row.appendChild(flags);
+    row.appendChild(flags);
 
     row.addEventListener("click", onClick);
     row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } });
@@ -4268,10 +4293,33 @@
     const brands = twDistinctBrandCounts();
     const totalPieces = brands.reduce((n, b) => n + b.count, 0);
 
+    // Compute first-acquired year per brand from items
+    const brandFirstYear = new Map();
+    for (const it of items) {
+      const b = String(it?.brand ?? "").trim();
+      if (!b) continue;
+      const pd = String(it?.purchaseDate ?? "").trim();
+      if (!pd) continue;
+      const yr = new Date(pd).getFullYear();
+      if (!yr || yr < 2000) continue;
+      const prev = brandFirstYear.get(b);
+      if (!prev || yr < prev) brandFirstYear.set(b, yr);
+    }
+
     const hint = document.createElement("p");
     hint.className = "account-brands-v2-hint";
     hint.textContent = `${brands.length} brand${brands.length === 1 ? "" : "s"} · ${totalPieces} pieces · edit to rename across the collection`;
     wrapper.appendChild(hint);
+
+    // Desktop column header
+    const hdr = document.createElement("div");
+    hdr.className = "account-brands-v2-hdr";
+    ["BRAND", "SINCE", "PIECES", ""].forEach((t) => {
+      const s = document.createElement("span");
+      s.textContent = t;
+      hdr.appendChild(s);
+    });
+    wrapper.appendChild(hdr);
 
     const list = document.createElement("div");
     list.className = "account-brands-v2-list";
@@ -4286,6 +4334,10 @@
       input.value = brandName;
       input.dataset.brandOriginal = brandName;
       input.setAttribute("aria-label", `Brand name: ${brandName} (${count} pieces)`);
+
+      const sinceEl = document.createElement("span");
+      sinceEl.className = "account-brands-v2-since";
+      sinceEl.textContent = brandFirstYear.has(brandName) ? String(brandFirstYear.get(brandName)) : "—";
 
       const countEl = document.createElement("span");
       countEl.className = "account-brands-v2-count";
@@ -4329,7 +4381,7 @@
       input.addEventListener("blur", doSave);
       input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
 
-      row.append(input, countEl, statusEl);
+      row.append(input, sinceEl, countEl, statusEl);
       list.appendChild(row);
     }
 
