@@ -11057,6 +11057,57 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   padding-inline-start: calc(env(safe-area-inset-left, 0px) + var(--styling-board-scroll-inline));
 }
 
+/* Outfit rail progress track + thumb — base (ALL widths). The matching rules in
+   the max-width:900 block only cover mobile; without this the track stays
+   position:static/height:0 on desktop and the bar falls back to the .ed-lp
+   landing-page positioning, floating a dark line across the card middles. The
+   track must be relative so the absolutely-positioned bar sits inside it (below
+   the strip), centred on its hairline. */
+.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: auto;
+  min-height: 10px;
+  margin: 0.2rem 0 0.1rem 0;
+  padding: 7px 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  background: transparent;
+}
+
+.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress[hidden] {
+  display: none !important;
+}
+
+.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  bottom: auto;
+  height: 1px;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--line) 62%, var(--tw-brand-ivory));
+  pointer-events: none;
+}
+
+.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar {
+  position: absolute;
+  left: 0;
+  top: calc(50% - 1px);
+  bottom: auto;
+  height: 2px;
+  min-width: 4.5rem;
+  width: 28%;
+  background: var(--ink);
+  transform: translate3d(0, 0, 0);
+  will-change: transform, width;
+  cursor: grab;
+}
+
 .styling-board-drawer .styling-board__board-stack {
   position: relative;
   display: block;
