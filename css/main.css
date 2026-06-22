@@ -10747,8 +10747,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot--enter:not(.outfit-slot--dismissing):not(.outfit-slot--dragging) {
-  animation: tlw-fade-in 0.3s ease both;
-  animation-delay: calc(var(--outfit-slot-stagger, 0) * 40ms);
+  animation: tlw-fade-in 0.2s ease both;
+  animation-delay: calc(var(--outfit-slot-stagger, 0) * 30ms);
 }
 
 
