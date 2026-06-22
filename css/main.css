@@ -11446,12 +11446,7 @@ body.tw-outfit-drag-active * {
   min-height: unset;
   padding: 0;
   overflow: hidden;
-  background:
-    linear-gradient(
-      color-mix(in srgb, var(--bg, #f7f4ed) 72%, transparent),
-      color-mix(in srgb, var(--bg, #f7f4ed) 72%, transparent)
-    ),
-    url('/images/background.jpg') center center / cover no-repeat;
+  background: url('/images/w_polo_brand_flyout_c01_bg.jpg') center center / cover no-repeat;
   border: 1px solid rgba(24, 55, 47, 0.14);
   border-radius: var(--wardrobe-card-radius, 12px);
   box-shadow: var(--wardrobe-card-shadow);
