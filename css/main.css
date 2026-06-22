@@ -10392,23 +10392,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   touch-action: pan-x;
 }
 
-/* Dissolve a clipped card into the backdrop instead of a hard cut. Faded only on
-   the side(s) that can still scroll, so end cards stay crisp at the extremes. */
-.styling-board-drawer .styling-board__current.is-rail-scrollable.is-rail-at-start:not(.is-rail-at-end) #outfit-strip {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.85rem), transparent 100%);
-  mask-image: linear-gradient(to right, #000 calc(100% - 1.85rem), transparent 100%);
-}
-
-.styling-board-drawer .styling-board__current.is-rail-scrollable.is-rail-at-end:not(.is-rail-at-start) #outfit-strip {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.85rem);
-  mask-image: linear-gradient(to right, transparent 0, #000 1.85rem);
-}
-
-.styling-board-drawer .styling-board__current.is-rail-scrollable:not(.is-rail-at-start):not(.is-rail-at-end) #outfit-strip {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.85rem, #000 calc(100% - 1.85rem), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 1.85rem, #000 calc(100% - 1.85rem), transparent 100%);
-}
-
 .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar:vertical,
 .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar:vertical {
   display: none;
@@ -10895,12 +10878,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   letter-spacing: 0.02em;
   line-height: 1.2;
   text-align: center;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
+  /* Single clean line + ellipsis. (line-clamp is unreliable here — another rule
+     forces display:flow-root, which silently drops -webkit-box clamping and lets
+     the name wrap into a clipped second line.) */
+  display: block;
+  white-space: nowrap;
   overflow: hidden;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
 }
 
 @media (min-width: 901px) {
