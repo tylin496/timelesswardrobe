@@ -3436,10 +3436,14 @@
         left.append(mkTitle("Recently Added"), addedList);
       }
 
-      // Recently Updated Notes — items with notes, sorted by purchaseDate desc
+      // Recently Updated Notes — sorted by updatedAt when available, else purchaseDate
       const recentNotes = ownedItems
         .filter((it) => String(it?.notes ?? "").trim())
-        .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
+        .sort((a, b) => {
+          const at = a?.updatedAt ?? a?.purchaseDate ?? "";
+          const bt = b?.updatedAt ?? b?.purchaseDate ?? "";
+          return bt.localeCompare(at);
+        })
         .slice(0, 8);
       if (recentNotes.length) {
         const notesList = document.createElement("div");
@@ -3475,11 +3479,20 @@
           const note = String(it?.notes ?? "").trim();
           preview.textContent = note.length > 90 ? note.slice(0, 90) + "…" : note;
 
+          const ts = it?.updatedAt ? formatRelativeTime(it.updatedAt) : "";
+          if (ts) {
+            const tsEl = document.createElement("span");
+            tsEl.className = "account-overview__activity-ts";
+            tsEl.textContent = ts;
+            name.appendChild(tsEl);
+          }
+
           info.append(name, preview);
           entry.append(thumb, info);
           notesList.appendChild(entry);
         }
-        right.append(mkTitle("Recent Notes"), notesList);
+        const hasTimestamps = recentNotes.some((it) => it?.updatedAt);
+        right.append(mkTitle(hasTimestamps ? "Recently Updated Notes" : "Recent Notes"), notesList);
       }
 
       wrapper.appendChild(row);
@@ -4147,7 +4160,7 @@
     const sortSel = document.createElement("select");
     sortSel.className = "account-filter-select";
     sortSel.style.cssText = "max-width:11rem;";
-    for (const [v, lbl] of [["name", "A – Z"], ["longest", "Longest first"]]) {
+    for (const [v, lbl] of [["name", "A – Z"], ["updated", "Recently edited"], ["longest", "Longest first"]]) {
       const opt = document.createElement("option");
       opt.value = v; opt.textContent = lbl;
       sortSel.appendChild(opt);
@@ -4187,6 +4200,11 @@
         return true;
       });
       return filtered.sort((a, b) => {
+        if (_accountNotesSort === "updated") {
+          const au = a?.updatedAt ?? a?.purchaseDate ?? "";
+          const bu = b?.updatedAt ?? b?.purchaseDate ?? "";
+          if (au !== bu) return bu.localeCompare(au); // desc
+        }
         if (_accountNotesSort === "longest") {
           const aw = String(a?.notes ?? "").trim().split(/\s+/).filter(Boolean).length;
           const bw = String(b?.notes ?? "").trim().split(/\s+/).filter(Boolean).length;
@@ -4340,6 +4358,12 @@
       brandEl.className = "account-notes-v2-brand";
       brandEl.textContent = String(it?.brand ?? "").trim();
       info.append(nameEl, brandEl);
+      if (it?.updatedAt) {
+        const tsEl = document.createElement("div");
+        tsEl.className = "account-notes-list-row__ts";
+        tsEl.textContent = formatRelativeTime(it.updatedAt);
+        info.appendChild(tsEl);
+      }
 
       const noteText = String(it?.notes ?? "").trim();
       const wc = noteText ? noteText.split(/\s+/).filter(Boolean).length : 0;
@@ -6307,6 +6331,21 @@
    * integer primary price. `item.price` storage stays exact; sort/spend math uses
    * convertPriceAmount directly and is unaffected.
    */
+  function formatRelativeTime(isoString) {
+    if (!isoString) return "";
+    const diff = Date.now() - new Date(isoString).getTime();
+    if (!Number.isFinite(diff)) return "";
+    const mins  = Math.floor(diff / 60_000);
+    const hours = Math.floor(diff / 3_600_000);
+    const days  = Math.floor(diff / 86_400_000);
+    if (mins  <  2) return "just now";
+    if (mins  < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days  <  7) return `${days}d ago`;
+    if (days  < 30) return `${Math.floor(days / 7)}w ago`;
+    return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
   function formatMoneyInCurrency(amount, currencyCode) {
     if (!Number.isFinite(amount)) return "";
     const raw = String(currencyCode ?? "TWD").trim();
@@ -7750,6 +7789,8 @@
       gallery: normalizeGalleryFromDb(row.gallery),
       notes: String(row.notes ?? ""),
       metadata: row.metadata ?? null,
+      createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+      updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
       __source: "supabase",
     };
     if (colourVariants) out.colourVariants = colourVariants;

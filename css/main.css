@@ -25126,6 +25126,26 @@ body.editorial-page #editorial-root {
   overflow: hidden;
 }
 
+.account-overview__activity-ts {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  color: var(--ink-muted);
+  opacity: 0.55;
+  margin-left: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  vertical-align: middle;
+}
+
+.account-notes-list-row__ts {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  color: var(--ink-muted);
+  opacity: 0.5;
+  margin-top: 0.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* distribution bar rows (categories + brands) */
 .account-overview__dist {
   display: flex;
