@@ -23450,12 +23450,12 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid {
+  .ed-lp__hero-cta .ed-lp__btn--ghost {
     display: none;
   }
 
   /* RL mobile hero — underlined text link only (no filled button). */
-  .ed-lp__hero-cta .ed-lp__btn--ghost {
+  .ed-lp__hero-cta .ed-lp__btn--solid {
     flex: 0 1 auto;
     width: auto;
     min-height: 0;
@@ -23475,8 +23475,8 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--ghost:hover,
-  .ed-lp__hero-cta .ed-lp__btn--ghost:focus-visible {
+  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
+  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
     background: transparent;
     border: none;
     color: #ffffff;
