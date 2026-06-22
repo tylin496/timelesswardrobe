@@ -18428,7 +18428,7 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__title-row {
-  @apply mb-1.5;
+  @apply mb-1;
   gap: 0.85rem;
 }
 
@@ -18944,13 +18944,14 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__brand {
-  @apply mb-2;
+  @apply mb-5;
   font-family: var(--font-serif);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.005em;
   text-transform: none;
-  color: var(--ink-muted);
+  color: var(--ink);
+  opacity: 0.82;
 }
 
 .item-detail__price {
