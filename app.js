@@ -22190,28 +22190,28 @@
       const isNew = !prevLabels.has(label);
       nextLabels.push(label);
       if (isCurrent || !onClick) {
-        const el = document.createElement(“span”);
-        el.className = “collection-heading__crumb collection-heading__crumb--current”;
-        if (isNew) el.classList.add(“collection-heading__crumb--entering”);
+        const el = document.createElement("span");
+        el.className = "collection-heading__crumb collection-heading__crumb--current";
+        if (isNew) el.classList.add("collection-heading__crumb--entering");
         el.textContent = label;
         nav.appendChild(el);
         return;
       }
-      const btn = document.createElement(“button”);
-      btn.type = “button”;
-      btn.className = “collection-heading__crumb collection-heading__crumb--link”;
-      if (isNew) btn.classList.add(“collection-heading__crumb--entering”);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "collection-heading__crumb collection-heading__crumb--link";
+      if (isNew) btn.classList.add("collection-heading__crumb--entering");
       btn.textContent = label;
-      btn.addEventListener(“click”, (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         onClick();
       });
       nav.appendChild(btn);
     }
 
-    /* Collection hub + season-only PLP (e.g. S/S Collection) — HOME / (title carries “Collection”). */
+    /* Collection hub + season-only PLP (e.g. S/S Collection) — HOME / (title carries "Collection"). */
     if (collectionHeadingUsesHomeCrumb(searchActive)) {
-      appendCrumb(“HOME”, { onClick: navigateToSiteHome });
+      appendCrumb("HOME", { onClick: navigateToSiteHome });
       appendSep();
       host.appendChild(nav);
       lastBreadcrumbLabels = nextLabels;
@@ -22220,7 +22220,7 @@
 
     const collectionRootLabel = season
       ? `${collectionHeadingSeasonShortLabel()} COLLECTION`
-      : “COLLECTION”;
+      : "COLLECTION";
     const subDrilled = subcategoryFilters.size > 0;
 
     appendCrumb(collectionRootLabel, {
@@ -22238,8 +22238,8 @@
     });
 
     if (searchActive) {
-      appendSep({ entering: !prevLabels.has(“SEARCH”) });
-      appendCrumb(“SEARCH”, { isCurrent: true });
+      appendSep({ entering: !prevLabels.has("SEARCH") });
+      appendCrumb("SEARCH", { isCurrent: true });
     } else if (cat && subDrilled) {
       const catLabel = categoryDisplayLabel(cat);
       const catIsNew = !prevLabels.has(catLabel);
@@ -22258,7 +22258,7 @@
     lastBreadcrumbLabels = nextLabels;
   }
 
-  /** Line 2 — active type drill label, division name, or “S/S Collection” when season-only. */
+  /** Line 2 — active type drill label, division name, or "S/S Collection" when season-only. */
   function collectionHeadingTitleLine(parentCategory) {
     const cat = String(parentCategory ?? "").trim();
     if (cat && subcategoryFilters.size === 1) {
