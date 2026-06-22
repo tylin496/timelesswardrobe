@@ -65,8 +65,15 @@ function buildDescription(item) {
 function buildOgImageUrl(item) {
   const raw = String(item.image ?? "").trim();
   if (!raw) return `${BASE_URL}/og-image.png`;
-  // Switch main/ → thumb/ so OG uses the composited presentation asset.
-  const thumb = raw.replace(/\/main\//, "/thumb/");
+  // Use the composited presentation asset: main/<n> → sibling thumb/<n>;
+  // variant-cover items (variants/<key>/<n>) → nested variants/<key>/thumb/<n>.
+  let thumb = raw;
+  if (/\/main\//.test(raw)) {
+    thumb = raw.replace(/\/main\//, "/thumb/");
+  } else {
+    const m = raw.match(/^(.*\/variants\/[^/]+\/)([^/]+\.(?:webp|png|jpe?g))$/i);
+    if (m && !/^preview\./i.test(m[2])) thumb = `${m[1]}thumb/${m[2]}`;
+  }
   return `${BASE_URL}${thumb.startsWith("/") ? thumb : `/${thumb}`}`;
 }
 
