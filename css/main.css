@@ -22227,21 +22227,21 @@ video.ed-lp__hero-layer-video {
 }
 
 .ed-lp__btn--solid {
-  background: #f7f3eb;
+  background: #ffffff;
   color: #1a1814;
-  border-color: #f7f3eb;
+  border-color: #ffffff;
 }
 
 .ed-lp__btn--solid:hover,
 .ed-lp__btn--solid:focus-visible {
-  background: color-mix(in srgb, #f7f3eb 88%, #c4b8a8);
-  border-color: color-mix(in srgb, #f7f3eb 88%, #c4b8a8);
+  background: color-mix(in srgb, #ffffff 88%, #c4b8a8);
+  border-color: color-mix(in srgb, #ffffff 88%, #c4b8a8);
 }
 
 .ed-lp__btn--ghost {
   background: transparent;
-  color: #f7f3eb;
-  border-color: color-mix(in srgb, #f7f3eb 55%, transparent);
+  color: #ffffff;
+  border-color: color-mix(in srgb, #ffffff 55%, transparent);
 }
 
 .ed-lp__btn--ghost:hover,
@@ -22403,6 +22403,13 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
 @media (min-width: 768px) {
   body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
     margin-right: var(--ed-lp-division-rail-pad-left);
+  }
+
+  /* Cap the dark thumb so it reads as a slim indicator rather than spanning
+     most of the track. max-width overrides the inline JS width, and the
+     scroller positions by the rendered offsetWidth so travel stays correct. */
+  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
+    max-width: 34%;
   }
 }
 
