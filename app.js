@@ -12431,7 +12431,10 @@
     prepareHomeHorizontalRailScroller(strip);
     if (strip.dataset.horizontalRailWired === "1") {
       strip.dispatchEvent(new Event("scroll"));
-      requestAnimationFrame(() => strip.dispatchEvent(new Event("scroll")));
+      requestAnimationFrame(() => {
+        strip.dispatchEvent(new Event("scroll"));
+        requestAnimationFrame(() => strip.dispatchEvent(new Event("scroll")));
+      });
       return;
     }
     ensureStylingBoardOutfitRailChrome();
