@@ -3894,7 +3894,7 @@
 
     const img = document.createElement("img");
     img.className = "account-cat-thumb";
-    img.src = String(it?.image ?? "");
+    img.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     img.alt = "";
     img.loading = "lazy";
     img.decoding = "async";
@@ -26539,8 +26539,6 @@
     brand.textContent = item.brand;
     body.appendChild(brand);
 
-    if (isItemPageView) appendItemDetailPrice(body, item);
-
     if (isItemPageView && detailVariants?.length) {
       mountVariantSwatchStrip(body, itemForMedia, {
         outfitPick: true,
@@ -26612,11 +26610,25 @@
     if (isItemPageView && item.category) addRow("Category", item.category);
     addRow("Season", seasonUiLabel(item.season));
     addRow("Size", item.size);
-    {
+    if (isItemPageView) {
+      const pd = String(item.purchaseDate ?? "").trim();
+      const p = item?.price;
+      const hasPd = Boolean(pd);
+      const hasPrice = Number.isFinite(Number(p));
+      if (hasPd || hasPrice) {
+        const parts = [];
+        if (hasPd) parts.push(formatPurchaseDateForDisplay(pd));
+        if (hasPrice) {
+          const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
+          const n = collectionPriceColourVariantCount(item);
+          const rawPrice = formatMoneyInCurrency(Number(p) * n, from);
+          parts.push(rawPrice);
+        }
+        addRow("Acquired", parts.join(" · "));
+      }
+    } else {
       const pd = String(item.purchaseDate ?? "").trim();
       if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
-    }
-    if (!isItemPageView) {
       const pl = formattedCollectionPriceLine(item);
       if (pl) addRow("Price", pl);
     }
@@ -26639,10 +26651,6 @@
       body.appendChild(np);
     }
 
-    if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { essayMode: true });
-    }
-
     if (isItemPageView) {
       appendMeasurementDisplaySection(body, item);
     }
@@ -26652,6 +26660,10 @@
     }
 
     root.appendChild(body);
+    if (notesDisplay && isItemPageView) {
+      const notesSec = mountItemDetailNotesSection(root, notesDisplay, { essayMode: true });
+      if (notesSec) notesSec.classList.add("item-detail__notes-section--page-block");
+    }
     if (isItemPageView) appendItemDetailRelated(root, item);
     afterItemDetailPageRender(root, false);
   }
