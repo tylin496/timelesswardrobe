@@ -18717,15 +18717,60 @@ a.item-detail__breadcrumb-current {
   margin: 0;
 }
 
-/* ── Collection Note: full-width block below the 2-col gallery/info grid ───── */
-.item-detail__notes-section--page-block {
-  grid-column: 1 / -1;
+/* ── Collection Notes: collapsible accordion in right column ────────────────── */
+.item-detail__notes-section--collapsible-pdp {
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+  padding-top: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 66%, transparent);
 }
 
-@media (min-width: 901px) {
-  .item-detail__notes-section--page-block .item-detail__notes-text {
-    max-width: 68ch;
-  }
+.item-detail__notes-accordion-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  gap: 0.5rem;
+}
+
+.item-detail__notes-accordion-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+  opacity: 0.5;
+}
+
+.item-detail__notes-accordion-icon {
+  font-size: 0.6rem;
+  color: var(--ink-muted);
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.item-detail__notes-accordion-icon::after {
+  content: "▼";
+}
+
+.item-detail__notes-section--open .item-detail__notes-accordion-icon {
+  transform: rotate(180deg);
+}
+
+.item-detail__notes-accordion-body {
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  line-height: 1.78;
+  color: var(--ink);
+  white-space: pre-wrap;
+  margin-top: 1rem;
 }
 
 /* ── Related Pieces ─────────────────────────────────────────────────────────── */
