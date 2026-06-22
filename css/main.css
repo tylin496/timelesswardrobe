@@ -10826,6 +10826,12 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   /* Cutout floats on the backdrop — contain, never crop or letterbox a plate. */
   object-fit: contain;
   object-position: center bottom;
+  /* The cutout assets carry ~17% transparent padding top/bottom, which reads as
+     dead space in the card. Zoom from the bottom edge to trim the top band so the
+     garment fills the frame; overflow:hidden on the thumb clips the overscan, and
+     the bottom anchor keeps the piece sitting above the title scrim. */
+  transform: scale(1.2);
+  transform-origin: center bottom;
   filter: drop-shadow(0 4px 9px rgba(20, 19, 18, 0.24));
   -webkit-user-drag: none;
   user-select: none;
@@ -11594,7 +11600,11 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__piece {
-  filter: drop-shadow(0 2px 7px rgba(20, 19, 18, 0.10));
+  /* Contact shadow, not a card shadow: a tight near-touch layer grounds the
+     piece on the paper, a faint diffuse layer adds weight — no sticker float. */
+  filter:
+    drop-shadow(0 1px 1px rgb(0 0 0 / 0.08))
+    drop-shadow(0 3px 4px rgb(0 0 0 / 0.04));
 }
 
 .styling-board-drawer .saved-card__piece img {
