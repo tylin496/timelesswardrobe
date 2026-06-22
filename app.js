@@ -3113,27 +3113,61 @@
       nav.appendChild(a);
     }
 
-    // Theme toggle — sun/moon, persisted to localStorage
+    // Theme toggle — 3-state: system (OS auto) → dark → light → system
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.id = "account-theme-toggle";
     toggle.className = "account-theme-toggle";
-    const sunSVG = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="8" cy="8" r="2.75" stroke="currentColor" stroke-width="1.3"/><line x1="8" y1="1.5" x2="8" y2="0.25" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="15.75" x2="8" y2="14.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="1.5" y1="8" x2="0.25" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="15.75" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="3.4" y1="3.4" x2="2.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="13.5" y1="13.5" x2="12.6" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="12.6" y1="3.4" x2="13.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="2.5" y1="13.5" x2="3.4" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
-    const moonSVG = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.2 10.8C11.8 11.6 10.1 11.9 8.3 11.4C5.3 10.5 3.5 7.6 3.8 4.5C4 3.1 4.6 1.9 5.4 0.9C3 1.6 1 3.4 0.3 5.9C-0.7 9.6 1.5 13.5 5.2 14.6C8.5 15.6 11.9 13.8 13.2 10.8Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-    function applyToggleState(isDark) {
-      toggle.innerHTML = isDark ? sunSVG : moonSVG;
-      toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
-      toggle.setAttribute("title", isDark ? "Light" : "Dark");
+    const sunSVG    = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="8" cy="8" r="2.75" stroke="currentColor" stroke-width="1.3"/><line x1="8" y1="1.5" x2="8" y2="0.25" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="15.75" x2="8" y2="14.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="1.5" y1="8" x2="0.25" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="15.75" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="3.4" y1="3.4" x2="2.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="13.5" y1="13.5" x2="12.6" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="12.6" y1="3.4" x2="13.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="2.5" y1="13.5" x2="3.4" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+    const moonSVG   = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.2 10.8C11.8 11.6 10.1 11.9 8.3 11.4C5.3 10.5 3.5 7.6 3.8 4.5C4 3.1 4.6 1.9 5.4 0.9C3 1.6 1 3.4 0.3 5.9C-0.7 9.6 1.5 13.5 5.2 14.6C8.5 15.6 11.9 13.8 13.2 10.8Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const systemSVG = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="9" rx="1.25" stroke="currentColor" stroke-width="1.3"/><line x1="5.5" y1="13.5" x2="10.5" y2="13.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="11.5" x2="8" y2="13.5" stroke="currentColor" stroke-width="1.3"/></svg>`;
+
+    function getStoredState() {
+      try { return localStorage.getItem("tw:account-theme"); } catch (_) { return null; }
     }
 
-    applyToggleState(document.documentElement.classList.contains("tw-account-dark"));
+    function osDark() {
+      return globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+    }
+
+    function applyTheme(state) {
+      const isDark = state === "dark" || (state === null && osDark());
+      document.documentElement.classList.toggle("tw-account-dark", isDark);
+      document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+      if (state === null) {
+        toggle.innerHTML = systemSVG;
+        toggle.setAttribute("title", "System");
+        toggle.setAttribute("aria-label", "Theme: following system");
+      } else if (state === "dark") {
+        toggle.innerHTML = moonSVG;
+        toggle.setAttribute("title", "Dark");
+        toggle.setAttribute("aria-label", "Theme: dark — click for light");
+      } else {
+        toggle.innerHTML = sunSVG;
+        toggle.setAttribute("title", "Light");
+        toggle.setAttribute("aria-label", "Theme: light — click for system");
+      }
+    }
+
+    applyTheme(getStoredState());
+
+    // Listen for OS changes when in system mode
+    try {
+      globalThis.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        if (getStoredState() === null) applyTheme(null);
+      });
+    } catch (_) {}
 
     toggle.addEventListener("click", () => {
-      const nowDark = document.documentElement.classList.toggle("tw-account-dark");
-      document.documentElement.style.colorScheme = nowDark ? "dark" : "light";
-      try { localStorage.setItem("tw:account-theme", nowDark ? "dark" : "light"); } catch (_) {}
-      applyToggleState(nowDark);
+      const cur = getStoredState();
+      // cycle: system → dark → light → system
+      const next = cur === null ? "dark" : cur === "dark" ? "light" : null;
+      try {
+        if (next === null) localStorage.removeItem("tw:account-theme");
+        else localStorage.setItem("tw:account-theme", next);
+      } catch (_) {}
+      applyTheme(next);
     });
 
     nav.appendChild(toggle);
@@ -6489,9 +6523,39 @@
 
     if (opts.essayMode) {
       sec.classList.add("item-detail__notes-section--essay");
-      const { h, textEl } = buildNotes("Collection Note");
+      const { h, textEl } = buildNotes("Collection Notes");
       sec.appendChild(h);
       sec.appendChild(textEl);
+      host.appendChild(sec);
+      return sec;
+    }
+
+    if (opts.collapsible) {
+      sec.classList.add("item-detail__notes-section--collapsible-pdp");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "item-detail__notes-accordion-btn";
+      btn.setAttribute("aria-expanded", "false");
+      const btnLabel = document.createElement("span");
+      btnLabel.className = "item-detail__notes-accordion-label";
+      btnLabel.textContent = "Collection Notes";
+      const btnIcon = document.createElement("span");
+      btnIcon.className = "item-detail__notes-accordion-icon";
+      btnIcon.setAttribute("aria-hidden", "true");
+      btn.appendChild(btnLabel);
+      btn.appendChild(btnIcon);
+      const body = document.createElement("div");
+      body.className = "item-detail__notes-accordion-body";
+      body.textContent = text;
+      body.hidden = true;
+      btn.addEventListener("click", () => {
+        const open = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!open));
+        body.hidden = open;
+        sec.classList.toggle("item-detail__notes-section--open", !open);
+      });
+      sec.appendChild(btn);
+      sec.appendChild(body);
       host.appendChild(sec);
       return sec;
     }
@@ -26697,6 +26761,10 @@
       body.appendChild(np);
     }
 
+    if (notesDisplay && isItemPageView) {
+      mountItemDetailNotesSection(body, notesDisplay, { collapsible: true });
+    }
+
     if (isItemPageView) {
       appendMeasurementDisplaySection(body, item);
     }
@@ -26706,10 +26774,6 @@
     }
 
     root.appendChild(body);
-    if (notesDisplay && isItemPageView) {
-      const notesSec = mountItemDetailNotesSection(root, notesDisplay, { essayMode: true });
-      if (notesSec) notesSec.classList.add("item-detail__notes-section--page-block");
-    }
     if (isItemPageView) appendItemDetailRelated(root, item);
     afterItemDetailPageRender(root, false);
   }
