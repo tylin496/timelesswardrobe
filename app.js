@@ -6638,15 +6638,17 @@
     const roundedAmount = Math.round(Number(amount));
 
     if (code === "TWD") {
+      // en-US locale renders TWD as "NT$" — zh-TW collapses it to a bare "$",
+      // which is indistinguishable from USD when both appear together.
       try {
-        return new Intl.NumberFormat("zh-TW", {
+        return new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "TWD",
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(roundedAmount);
       } catch {
-        return `NT$${roundedAmount.toLocaleString("zh-TW")}`;
+        return `NT$${roundedAmount.toLocaleString("en-US")}`;
       }
     }
 
@@ -26800,7 +26802,7 @@
     }
 
     if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true });
+      mountItemDetailNotesSection(body, notesDisplay, { essayMode: true });
     }
 
     if (isItemPageView) {
