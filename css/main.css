@@ -14968,6 +14968,7 @@ body.item-page:has(.item-detail__root--edit) {
   transform-origin: center center;
   /* PDP / edit preview: allow native right-click Save Image (grid cards keep drag disabled). */
   -webkit-user-drag: auto;
+  transition: opacity 0.2s ease;
 }
 
 .item-detail__root--page .item-detail__gallery-thumb img,

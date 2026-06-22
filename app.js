@@ -17616,17 +17616,18 @@
         return;
       }
 
-      const url = heroFrameSrc(frames[currentIndex].url);
-      if (url) {
-        delete heroImgEl.dataset.twSeedFallbackTried;
-        heroImgEl.src = url;
-        if (currentIndex === 0) heroImgEl.dataset.coverSrc = url;
-        heroImgEl.dataset.frameRaw = String(frames[currentIndex].url ?? "").trim();
-      }
-      syncHeroMetaFromIndex(currentIndex);
-      syncCardMediaImgFitClass(heroImgEl, currentIndex === 0 ? "cover" : "gallery");
-      syncActiveThumb();
       stageEl.dataset.galleryIndex = String(currentIndex);
+      syncActiveThumb();
+      if (animate) {
+        heroImgEl.style.opacity = "0";
+        setTimeout(() => {
+          syncHeroMetaFromIndex(currentIndex);
+          requestAnimationFrame(() => { heroImgEl.style.opacity = ""; });
+        }, 180);
+      } else {
+        heroImgEl.style.opacity = "";
+        syncHeroMetaFromIndex(currentIndex);
+      }
     };
 
     frames.forEach((fr, i) => {
