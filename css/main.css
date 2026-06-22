@@ -19041,6 +19041,7 @@ a.item-detail__breadcrumb-current {
     flex-direction: row;
     gap: 3rem;
     align-items: start;
+    padding-inline: 1.5rem;
   }
   .item-detail__related-group {
     flex: 1;
