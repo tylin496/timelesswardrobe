@@ -26947,10 +26947,8 @@
       return group;
     }
 
-    const brandGroup = buildGroup(byBrand, `Other ${item.brand}`);
-    const catGroup   = buildGroup(byCat,   catLabel);
-    if (brandGroup) inner.appendChild(brandGroup);
-    if (catGroup)   inner.appendChild(catGroup);
+    const catGroup = buildGroup(byCat, catLabel);
+    if (catGroup) inner.appendChild(catGroup);
     sec.appendChild(inner);
     root.appendChild(sec);
   }
