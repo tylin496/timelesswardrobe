@@ -11038,10 +11038,24 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   max-width: 100%;
 }
 
-/* No bleed: the strip always stays inside the content box. The first card aligns
-   with the "Current outfit" heading (flex-start), and on overflow the cards clip
-   at the trailing content edge (by Clear All) and scroll — they never run past
-   the panel edges on either side. */
+/* Conditional bleed: when the strip fits, the row sits at the content edge so the
+   first card aligns with the "Current outfit" heading. Once the rail overflows
+   (JS adds .is-rail-scrollable), bleed the row to the drawer edges so cards can
+   run past both panel edges. Higher specificity than the base rules above. */
+.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__board-row {
+  margin-inline: calc(-1 * var(--styling-board-scroll-inline));
+  width: calc(100% + 2 * var(--styling-board-scroll-inline));
+  max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+}
+
+/* While bled, inset the strip's leading edge by the same gutter so AT REST
+   (scrollLeft 0) the first card still lines up with the heading — the left keeps
+   its padding. Once you scroll, cards slide past that inset and bleed off the
+   left edge too; the right bleeds from the start. Only when scrollable. */
+.styling-board-drawer .styling-board__current.is-rail-scrollable #outfit-strip,
+.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__pieces.outfit-strip {
+  padding-inline-start: calc(env(safe-area-inset-left, 0px) + var(--styling-board-scroll-inline));
+}
 
 .styling-board-drawer .styling-board__board-stack {
   position: relative;
