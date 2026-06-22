@@ -10380,9 +10380,10 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  /* Centre when the cards fit; fall back to start (scrollable right) on overflow
-     so no card is pushed off the unreachable left edge. */
-  justify-content: safe center;
+  /* Always start-align so the first card pins to the strip's leading edge:
+     aligned with the heading when the cards fit, and bleeding to the drawer
+     edge once the rail overflows (see .is-rail-scrollable bleed rule). */
+  justify-content: flex-start;
   gap: 0.5rem;
   min-height: 0;
   padding: 0.35rem env(safe-area-inset-right, 0px) 0.2rem env(safe-area-inset-left, 0px);
@@ -10994,6 +10995,18 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   max-width: 100%;
 }
 
+/* Conditional bleed: when the strip fits (default), the row sits at the content
+   edge so the first card aligns with the "Current outfit" heading. Once the rail
+   actually overflows (JS adds .is-rail-scrollable when there's >~half a card of
+   scroll), bleed the row to the drawer edges so the first/last cards run to the
+   panel edge instead of leaving a dead margin. Higher specificity than the base
+   rules above, so it wins at every breakpoint. */
+.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__board-row {
+  margin-inline: calc(-1 * var(--styling-board-scroll-inline));
+  width: calc(100% + 2 * var(--styling-board-scroll-inline));
+  max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+}
+
 .styling-board-drawer .styling-board__board-stack {
   position: relative;
   display: block;
@@ -11006,8 +11019,9 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  /* Centre when cards fit; start (scrollable right) on overflow. */
-  justify-content: safe center;
+  /* Start-align: first card pins to the leading edge (heading when it fits,
+     drawer edge on overflow via .is-rail-scrollable bleed). */
+  justify-content: flex-start;
   gap: 0.5rem;
   width: 100%;
   max-width: 100%;
