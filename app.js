@@ -12018,6 +12018,9 @@
   let stylingBoardDrawerFocusReturn = /** @type {Element | null} */ (null);
   let collectionPageScrollLockCount = 0;
   let collectionPageScrollLockY = 0;
+  /** Card the user opened from the PLP, so returning can re-anchor to it (survives the
+      pagehide re-persist during navigation). { itemId, anchorTop } | null. */
+  let collectionReturnFocus = /** @type {{ itemId: string, anchorTop: number } | null} */ (null);
 
   /** Active main-nav slot filter (`itemSlot()`). Empty string = all slots — default collection view. */
   let categoryNavFilter = "";
@@ -15449,6 +15452,66 @@
       const raw = String(btn.dataset.subcategory ?? "");
       btn.classList.toggle("is-active", subcategoryEntryIsActive(raw));
     });
+    syncCategoryDrillThumb(grid);
+  }
+
+  function ensureCategoryDrillThumb(grid) {
+    let thumb = grid.querySelector(":scope > .category-drill__thumb");
+    if (!thumb) {
+      thumb = document.createElement("span");
+      thumb.className = "category-drill__thumb";
+      thumb.setAttribute("aria-hidden", "true");
+      grid.insertBefore(thumb, grid.firstChild);
+    }
+    return thumb;
+  }
+
+  /**
+   * Glide a single accent pill (the "thumb") to the active choice instead of
+   * recolouring each pill in place. Falls back to the plain `.is-active` fill
+   * (by dropping `.has-thumb`) whenever no active pill is laid out.
+   */
+  function syncCategoryDrillThumb(grid, { animate = true } = {}) {
+    if (!grid) return;
+    const active = grid.hidden
+      ? null
+      : grid.querySelector(".category-drill__choice.is-active");
+    if (!active || active.offsetParent === null) {
+      grid.classList.remove("has-thumb");
+      grid
+        .querySelector(":scope > .category-drill__thumb")
+        ?.classList.remove("category-drill__thumb--visible");
+      return;
+    }
+
+    const thumb = ensureCategoryDrillThumb(grid);
+    const wasVisible = thumb.classList.contains("category-drill__thumb--visible");
+    grid.classList.add("has-thumb");
+
+    const apply = () => {
+      thumb.style.width = `${active.offsetWidth}px`;
+      thumb.style.height = `${active.offsetHeight}px`;
+      thumb.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
+    };
+
+    // First reveal (or resize): jump into place; only slide between existing pills.
+    if (!animate || !wasVisible) {
+      const prevTransition = thumb.style.transition;
+      thumb.style.transition = "none";
+      apply();
+      void thumb.offsetWidth; // commit the jump before re-enabling transitions
+      thumb.style.transition = prevTransition;
+      thumb.classList.add("category-drill__thumb--visible");
+    } else {
+      apply();
+    }
+  }
+
+  /** Re-seat both drill thumbs without sliding when layout (wrap / width) changes. */
+  function reseatCategoryDrillThumbs() {
+    document
+      .querySelectorAll(".category-drill__grid")
+      .forEach((grid) => syncCategoryDrillThumb(grid, { animate: false }));
   }
 
   function renderCategoryDrill() {
@@ -15544,6 +15607,10 @@
       grid.hidden = true;
       lastCategoryDrillStructureKey = "";
     }
+
+    // Fresh pill set → seat the accent thumb without sliding; clicks within this
+    // same set hit the reuse branch above and glide it.
+    syncCategoryDrillThumb(grid, { animate: false });
   }
 
   /** Season, slot, drill, basic colour, and brand — no live keyword typing (keywords are commit-only). */
@@ -25931,13 +25998,19 @@
   function persistCollectionListScrollForReturn() {
     if (!document.getElementById("grid")) return;
     try {
-      sessionStorage.setItem(
-        COLLECTION_SCROLL_RESTORE_KEY,
-        JSON.stringify({
-          y: collectionListScrollYForPersistence(),
-          t: Date.now(),
-        })
-      );
+      const payload = {
+        y: collectionListScrollYForPersistence(),
+        t: Date.now(),
+      };
+      /* Prefer re-anchoring to the exact card the user opened: pixel-y drifts when the PLP
+         re-renders shorter (lazy images) on return, landing on the wrong piece. */
+      if (collectionReturnFocus?.itemId) {
+        payload.itemId = collectionReturnFocus.itemId;
+        if (Number.isFinite(collectionReturnFocus.anchorTop)) {
+          payload.anchorTop = Math.round(collectionReturnFocus.anchorTop);
+        }
+      }
+      sessionStorage.setItem(COLLECTION_SCROLL_RESTORE_KEY, JSON.stringify(payload));
     } catch {
       /* private mode / disabled storage */
     }
@@ -26193,14 +26266,66 @@
         body?.offsetHeight ?? 0
       );
       const max = Math.max(0, h - globalThis.innerHeight);
-      globalThis.scrollTo(0, Math.min(Math.max(0, target), max));
+      /* Instant: the global `scroll-behavior: smooth` would otherwise animate every restore
+         pass (and they'd visibly fight as images settle). Returning should land, not glide. */
+      globalThis.scrollTo({ top: Math.min(Math.max(0, target), max), left: 0, behavior: "instant" });
     }
 
-    const run = () => clampScroll(y);
+    const itemId = typeof o?.itemId === "string" ? o.itemId : "";
+    const anchorTop = Number(o?.anchorTop);
+    const useAnchor = itemId !== "" && Number.isFinite(anchorTop);
+    const escId = useAnchor
+      ? (typeof CSS !== "undefined" && CSS.escape ? CSS.escape(itemId) : itemId.replace(/["\\]/g, "\\$&"))
+      : "";
+
+    /* Re-anchor to the opened card so lazy-image height growth above it doesn't strand the
+       restore on the wrong piece: place that card back at the viewport offset it had on leave.
+       Falls back to pixel-y if the card isn't in the (re-rendered) list. */
+    const run = () => {
+      if (useAnchor) {
+        const card = document.querySelector(`#grid .card[data-item-id="${escId}"]`);
+        if (card) {
+          const docTop = card.getBoundingClientRect().top + (globalThis.scrollY ?? 0);
+          clampScroll(docTop - anchorTop);
+          return;
+        }
+      }
+      clampScroll(y);
+    };
+
+    /* Land immediately, then keep re-anchoring as the grid grows. Lazy images decode at
+       unpredictable times, so a ResizeObserver on #grid is more reliable than guessed
+       timeouts — it fires exactly when height changes and shifts the target card. */
+    let done = false;
+    const grid = document.getElementById("grid");
+    let ro = null;
+    let deadline = 0;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      if (deadline) clearTimeout(deadline);
+      if (ro) { try { ro.disconnect(); } catch { /* ignore */ } ro = null; }
+      for (const ev of ["wheel", "touchmove", "keydown"]) globalThis.removeEventListener(ev, finish);
+    };
+    /* Stop the moment the user takes over scrolling so a late pass never yanks them back. */
+    for (const ev of ["wheel", "touchmove", "keydown"]) {
+      globalThis.addEventListener(ev, finish, { passive: true, once: true });
+    }
+    const guarded = () => { if (!done) run(); };
+
     requestAnimationFrame(run);
     requestAnimationFrame(() => requestAnimationFrame(run));
-    setTimeout(run, 80);
-    setTimeout(run, 280);
+    setTimeout(guarded, 80);
+    setTimeout(guarded, 280);
+    if (useAnchor && grid && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => guarded());
+      ro.observe(grid);
+      /* Safety net: images are usually settled well within this; disconnect so we don't
+         observe forever or fight a much-later reflow. */
+      deadline = setTimeout(finish, 4000);
+    } else {
+      setTimeout(finish, 1100);
+    }
   }
 
   /**
@@ -26218,6 +26343,13 @@
       globalThis.open(url, "_blank", "noopener,noreferrer");
       return;
     }
+    /* Capture which card (and its on-screen offset) we're leaving from, so the return
+       re-anchors to it rather than to a raw pixel-y. Measured now, before navigation. */
+    const escId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(id) : String(id).replace(/["\\]/g, "\\$&");
+    const card = document.querySelector(`#grid .card[data-item-id="${escId}"]`);
+    collectionReturnFocus = card
+      ? { itemId: String(id), anchorTop: card.getBoundingClientRect().top }
+      : { itemId: String(id), anchorTop: NaN };
     persistCollectionListScrollForReturn();
     persistCollectionBrowseStateForReturn();
     globalThis.location.assign(url);
@@ -26914,6 +27046,7 @@
         syncCollectionCountLinePlacement();
         syncCollectionQuickFindCardDom();
         syncCollectionBoardAddButtonLabels();
+        reseatCategoryDrillThumbs();
       });
     }
 

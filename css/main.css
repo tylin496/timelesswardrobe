@@ -8430,9 +8430,21 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   }
 }
 
+/* Eyebrow / breadcrumb slides in from the side (horizontal) — a deliberate
+   counterpoint to the title's vertical rise below it. */
+@keyframes collection-heading-swap-x {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--swap-shift, -14px), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .collection-heading.collection-heading--swapping .collection-heading__context {
-  --swap-rise: 6px;
-  animation: collection-heading-swap 0.46s var(--ease-luxe) backwards;
+  animation: collection-heading-swap-x 0.5s var(--ease-luxe) backwards;
 }
 .collection-heading.collection-heading--swapping .collection-heading__title,
 .collection-heading.collection-heading--swapping .items-toolbar__page-title {
@@ -12144,6 +12156,63 @@ body.tw-outfit-drag-active * {
   color: var(--tw-brand-overlay-ink);
   background: color-mix(in srgb, var(--tw-brand-green) 88%, #000);
   border-color: color-mix(in srgb, var(--tw-brand-green) 88%, #000);
+}
+
+/* Sliding accent thumb: a single floating green pill that glides to the active
+   choice, instead of each pill recolouring in place. Enabled per-grid by JS
+   (.has-thumb) once the thumb is positioned, so non-JS / first paint still works
+   off the plain .is-active fill above. */
+.category-drill__grid.has-thumb {
+  position: relative;
+}
+
+.category-drill__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--tw-brand-green);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  will-change: transform, width;
+  transition:
+    transform 0.4s var(--ease-luxe),
+    width 0.4s var(--ease-luxe),
+    opacity 0.2s ease;
+}
+
+.category-drill__grid.has-thumb .category-drill__thumb--visible {
+  opacity: 1;
+}
+
+/* While the thumb is in play, the choices are text-only — the thumb provides the
+   fill, and the active label flips to overlay ink in sync with the glide. */
+.category-drill__grid.has-thumb .category-drill__choice {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  transition:
+    color 0.4s var(--ease-luxe),
+    border-color 0.3s var(--ease-luxe);
+}
+
+.category-drill__grid.has-thumb .category-drill__choice.is-active,
+.category-drill__grid.has-thumb .category-drill__choice.is-active:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+.category-drill__grid.has-thumb .category-drill__choice:not(.is-active):hover {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-drill__thumb {
+    transition: opacity 0.2s ease;
+  }
 }
 
 @media (max-width: 520px) {
