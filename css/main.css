@@ -18692,6 +18692,73 @@ a.item-detail__breadcrumb-current {
 }
 
 /* ── Collection Note (essay mode) ──────────────────────────────────────────── */
+/* ── Acquisition block ──────────────────────────────────────────────────────── */
+.item-detail__acquired {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  margin-top: clamp(1.25rem, 2.5vw, 1.75rem);
+  padding-top: 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.item-detail__acquired-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.5;
+}
+
+.item-detail__acquired-date {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.item-detail__acquired-price {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin-top: 0.1rem;
+}
+
+.item-detail__acquired-twd {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  opacity: 0.6;
+}
+
+/* ── Showcase context strip ─────────────────────────────────────────────────── */
+.item-detail__context {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: clamp(1rem, 2vw, 1.4rem);
+}
+
+.item-detail__context-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.45;
+}
+
+.item-detail__context-pos {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Collection Note essay ──────────────────────────────────────────────────── */
 .item-detail__notes-section--essay {
   margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
   padding-top: 1.35rem;

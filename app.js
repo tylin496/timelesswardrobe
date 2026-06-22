@@ -6562,7 +6562,7 @@
 
     if (pdpAccordion) {
       sec.classList.add("item-detail__notes-section--accordion");
-      const { h, textEl } = buildNotes("Notes");
+      const { h, textEl } = buildNotes("Collection Notes");
       sec.appendChild(h);
       sec.appendChild(textEl);
       host.appendChild(sec);
@@ -26720,23 +26720,7 @@
     if (isItemPageView && item.category) addRow("Category", item.category);
     addRow("Season", seasonUiLabel(item.season));
     addRow("Size", item.size);
-    if (isItemPageView) {
-      const pd = String(item.purchaseDate ?? "").trim();
-      const p = item?.price;
-      const hasPd = Boolean(pd);
-      const hasPrice = Number.isFinite(Number(p));
-      if (hasPd || hasPrice) {
-        const parts = [];
-        if (hasPd) parts.push(formatPurchaseDateForDisplay(pd));
-        if (hasPrice) {
-          const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
-          const n = collectionPriceColourVariantCount(item);
-          const rawPrice = formatMoneyInCurrency(Number(p) * n, from);
-          parts.push(rawPrice);
-        }
-        addRow("Acquired", parts.join(" · "));
-      }
-    } else {
+    if (!isItemPageView) {
       const pd = String(item.purchaseDate ?? "").trim();
       if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
       const pl = formattedCollectionPriceLine(item);
@@ -26746,6 +26730,60 @@
     if (specLine) addRow(isItemPageView ? "Material" : "Details", specLine);
 
     if (dl.children.length) body.appendChild(dl);
+
+    // ── Acquisition block (item page only) ───────────────────────────────────
+    if (isItemPageView) {
+      const pd = String(item.purchaseDate ?? "").trim();
+      const p = item?.price;
+      const hasPd = Boolean(pd);
+      const hasPrice = Number.isFinite(Number(p));
+      if (hasPd || hasPrice) {
+        const acq = document.createElement("div");
+        acq.className = "item-detail__acquired";
+        const acqLabel = document.createElement("span");
+        acqLabel.className = "item-detail__acquired-label";
+        acqLabel.textContent = "Acquired";
+        const acqDate = document.createElement("span");
+        acqDate.className = "item-detail__acquired-date";
+        if (hasPd) acqDate.textContent = formatPurchaseDateForDisplay(pd);
+        acq.append(acqLabel, acqDate);
+        if (hasPrice) {
+          const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
+          const n = collectionPriceColourVariantCount(item);
+          const total = Number(p) * n;
+          const acqPrice = document.createElement("span");
+          acqPrice.className = "item-detail__acquired-price";
+          acqPrice.textContent = formatMoneyInCurrency(total, from);
+          acq.appendChild(acqPrice);
+          if (from !== "TWD") {
+            const twdAmt = convertPriceAmount(total, from, "TWD");
+            if (Number.isFinite(twdAmt)) {
+              const acqTwd = document.createElement("span");
+              acqTwd.className = "item-detail__acquired-twd";
+              acqTwd.textContent = "≈ " + formatMoneyInCurrency(twdAmt, "TWD");
+              acq.appendChild(acqTwd);
+            }
+          }
+        }
+        body.appendChild(acq);
+      }
+    }
+
+    // ── Showcase context (item page only) ────────────────────────────────────
+    if (isItemPageView && isInShowcase(item)) {
+      const rank = showcaseRank(item);
+      const pos = rank >= 0 ? Math.round(rank / 10) + 1 : null;
+      const ctx = document.createElement("div");
+      ctx.className = "item-detail__context";
+      const ctxLabel = document.createElement("span");
+      ctxLabel.className = "item-detail__context-label";
+      ctxLabel.textContent = "Featured in Showcase";
+      const ctxPos = document.createElement("span");
+      ctxPos.className = "item-detail__context-pos";
+      ctxPos.textContent = pos ? `#${pos} Current Order` : "Current Showcase";
+      ctx.append(ctxLabel, ctxPos);
+      body.appendChild(ctx);
+    }
 
     appendItemDetailBoardCta(body, item);
 
@@ -26762,7 +26800,7 @@
     }
 
     if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { collapsible: true });
+      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true });
     }
 
     if (isItemPageView) {
