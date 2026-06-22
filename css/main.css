@@ -8415,6 +8415,33 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   width: 100%;
 }
 
+/* Category-drill switch: gentle fade-up swap of the eyebrow + title cluster.
+   Re-triggered from renderCollectionHeading only when the heading text changes. */
+@keyframes collection-heading-swap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.collection-heading.collection-heading--swapping .collection-heading__context,
+.collection-heading.collection-heading--swapping .collection-heading__title-row,
+.collection-heading.collection-heading--swapping .collection-heading__title-cluster {
+  animation: collection-heading-swap 0.42s var(--ease-luxe) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-heading.collection-heading--swapping .collection-heading__context,
+  .collection-heading.collection-heading--swapping .collection-heading__title-row,
+  .collection-heading.collection-heading--swapping .collection-heading__title-cluster {
+    animation: none;
+  }
+}
+
 .collection-heading__context {
   margin-bottom: var(--collection-plp-gap-eyebrow-title, 0.75rem);
   padding: 0;

@@ -22238,6 +22238,21 @@
       }
     }
     root.setAttribute("aria-label", `${trailParts.join(" / ")} · ${title}`);
+    maybeAnimateCollectionHeadingSwap(root, `${trailParts.join(" / ")} · ${title}`);
+  }
+
+  /** Re-trigger the fade-up swap only when the heading text changed (not on every grid render). */
+  let lastCollectionHeadingSwapKey = null;
+  function maybeAnimateCollectionHeadingSwap(root, key) {
+    if (lastCollectionHeadingSwapKey === null) {
+      lastCollectionHeadingSwapKey = key; // first paint: no swap animation
+      return;
+    }
+    if (key === lastCollectionHeadingSwapKey) return;
+    lastCollectionHeadingSwapKey = key;
+    root.classList.remove("collection-heading--swapping");
+    void root.offsetWidth; // force reflow so the animation restarts
+    root.classList.add("collection-heading--swapping");
   }
   /** Per-slot subcategory drill / mega menu: view entire parent category (empty `subcategoryFilter`). */
   const SUBCATEGORY_ALL_LABEL = "All";
