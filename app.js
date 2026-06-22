@@ -3211,10 +3211,10 @@
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
     const stats = [
-      { n: allItems.length, label: "Pieces" },
+      { n: allItems.filter((it) => !isFuturePiece(it)).length, label: "Pieces" },
       { n: showcaseCount,   label: "In Showcase" },
       { n: notesCount,      label: "With Notes" },
-      { n: futureCount,     label: "Future Pieces" },
+      { n: futureCount,     label: "Wishlist" },
     ];
     for (const s of stats) {
       const cell = document.createElement("div");
@@ -3271,16 +3271,119 @@
       healthList.appendChild(row);
     }
     wrapper.appendChild(healthList);
+
+    // ── Recently Added ──────────────────────────────────────────────────────────
+    const recentlyAdded = allItems
+      .filter((it) => !isFuturePiece(it) && String(it?.purchaseDate ?? "").trim())
+      .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
+      .slice(0, 8);
+
+    if (recentlyAdded.length) {
+      const recentTitle = document.createElement("div");
+      recentTitle.className = "account-overview__section-title";
+      recentTitle.textContent = "Recently Added";
+      wrapper.appendChild(recentTitle);
+
+      const recentRow = document.createElement("div");
+      recentRow.className = "account-recently-added";
+      for (const it of recentlyAdded) {
+        const card = document.createElement("a");
+        card.className = "account-recently-added__card";
+        card.href = `/item/${encodeURIComponent(String(it?.id ?? ""))}`;
+
+        const thumb = document.createElement("img");
+        thumb.className = "account-recently-added__thumb";
+        thumb.src = String(it?.image ?? "");
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        thumb.decoding = "async";
+
+        const name = document.createElement("div");
+        name.className = "account-recently-added__name";
+        name.textContent = String(it?.name ?? it?.id ?? "");
+
+        const meta = document.createElement("div");
+        meta.className = "account-recently-added__meta";
+        const brand = String(it?.brand ?? "").trim();
+        const year = it?.purchaseDate ? new Date(it.purchaseDate).getFullYear() : "";
+        meta.textContent = [brand, year].filter(Boolean).join(" · ");
+
+        card.append(thumb, name, meta);
+        recentRow.appendChild(card);
+      }
+      wrapper.appendChild(recentRow);
+    }
+
+    // ── Collection Timeline ─────────────────────────────────────────────────────
+    const yearCounts = new Map();
+    for (const it of allItems.filter((it) => !isFuturePiece(it))) {
+      const pd = String(it?.purchaseDate ?? "").trim();
+      if (!pd) continue;
+      const yr = new Date(pd).getFullYear();
+      if (yr && yr > 2000 && yr <= new Date().getFullYear()) {
+        yearCounts.set(yr, (yearCounts.get(yr) || 0) + 1);
+      }
+    }
+
+    if (yearCounts.size >= 2) {
+      const timelineTitle = document.createElement("div");
+      timelineTitle.className = "account-overview__section-title";
+      timelineTitle.textContent = "Collection Timeline";
+      wrapper.appendChild(timelineTitle);
+
+      const timeline = document.createElement("div");
+      timeline.className = "account-timeline";
+
+      const maxCount = Math.max(...yearCounts.values());
+      const years = [...yearCounts.keys()].sort((a, b) => a - b);
+      for (const yr of years) {
+        const cnt = yearCounts.get(yr);
+        const row = document.createElement("div");
+        row.className = "account-timeline__row";
+
+        const yearLbl = document.createElement("span");
+        yearLbl.className = "account-timeline__year";
+        yearLbl.textContent = String(yr);
+
+        const barWrap = document.createElement("div");
+        barWrap.className = "account-timeline__bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = "account-timeline__bar";
+        bar.style.width = `${Math.round((cnt / maxCount) * 100)}%`;
+        barWrap.appendChild(bar);
+
+        const countLbl = document.createElement("span");
+        countLbl.className = "account-timeline__count";
+        countLbl.textContent = String(cnt);
+
+        row.append(yearLbl, barWrap, countLbl);
+        timeline.appendChild(row);
+      }
+      wrapper.appendChild(timeline);
+    }
+
     el.appendChild(wrapper);
   }
 
   // ── Tab: Collection ──────────────────────────────────────────────────────────
-  let _accountCollectionFilter = "all";
   let _accountCollectionSearch = "";
+  let _accountCollectionBrand = "";
+  let _accountCollectionCategory = "";
+  let _accountCollectionSeason = "";
+  let _accountCollectionStatus = "";   // "" | "showcase" | "wishlist" | "has-notes" | "no-notes" | "no-price"
   let _accountCollectionDrawerItemId = null;
 
   function applyAccountCollectionFilter(f) {
-    _accountCollectionFilter = f;
+    _accountCollectionBrand = "";
+    _accountCollectionCategory = "";
+    _accountCollectionSeason = "";
+    _accountCollectionStatus = f === "no-notes" ? "no-notes"
+                             : f === "no-price" ? "no-price"
+                             : "";
+    if (_accountCurrentTab !== "collection") {
+      history.pushState(null, "", "/account#collection");
+      _accountCurrentTab = "collection";
+    }
     const contentEl = document.querySelector(".account-tab-content");
     if (contentEl) renderAccountTab_Collection(contentEl);
   }
@@ -3289,7 +3392,12 @@
     el.replaceChildren();
     const wrapper = document.createElement("div");
 
-    // Toolbar
+    // Compute distinct values for dropdown filters
+    const allBrands    = [...new Set(items.map((it) => String(it?.brand    ?? "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+    const allCategories= [...new Set(items.map((it) => String(it?.category ?? "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+    const allSeasons   = [...new Set(items.map((it) => String(it?.season   ?? "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+
+    // Toolbar: search + selects
     const toolbar = document.createElement("div");
     toolbar.className = "account-collection-toolbar";
 
@@ -3298,55 +3406,51 @@
     search.className = "account-collection-search";
     search.placeholder = "Search…";
     search.value = _accountCollectionSearch;
-    search.addEventListener("input", () => {
-      _accountCollectionSearch = search.value;
-      refreshList();
-    });
-    toolbar.appendChild(search);
 
-    const filters = document.createElement("div");
-    filters.className = "account-collection-filters";
-
-    const nonWishlist = items.filter((it) => !isFuturePiece(it));
-    const filterCounts = {
-      all:        nonWishlist.length,
-      showcase:   nonWishlist.filter((it) => isInShowcase(it)).length,
-      "no-notes": nonWishlist.filter((it) => !String(it?.notes ?? "").trim()).length,
-      "no-price": nonWishlist.filter((it) => {
-        const p = it?.price ?? it?.metadata?.price;
-        return p === undefined || p === null || p === "";
-      }).length,
-      wishlist:   items.filter((it) => isFuturePiece(it)).length,
-    };
-    const filterDefs = [
-      { key: "all",       label: `All (${filterCounts.all})`,              warn: false },
-      { key: "showcase",  label: `Showcase (${filterCounts.showcase})`,    warn: false },
-      { key: "no-notes",  label: `No notes (${filterCounts["no-notes"]})`, warn: true  },
-      { key: "no-price",  label: `No price (${filterCounts["no-price"]})`, warn: true  },
-      { key: "wishlist",  label: `Wishlist (${filterCounts.wishlist})`,     warn: false },
-    ];
-    for (const fd of filterDefs) {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "account-filter-chip" + (fd.warn ? " account-filter-chip--warn" : "");
-      chip.setAttribute("aria-pressed", String(_accountCollectionFilter === fd.key));
-      chip.textContent = fd.label;
-      chip.addEventListener("click", () => {
-        _accountCollectionFilter = fd.key;
-        refreshChips();
-        refreshList();
-      });
-      filters.appendChild(chip);
+    function makeSelect(placeholder, opts, current) {
+      const sel = document.createElement("select");
+      sel.className = "account-filter-select";
+      const def = document.createElement("option");
+      def.value = "";
+      def.textContent = placeholder;
+      sel.appendChild(def);
+      for (const o of opts) {
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o;
+        sel.appendChild(opt);
+      }
+      sel.value = current;
+      return sel;
     }
-    toolbar.appendChild(filters);
+
+    const brandSel  = makeSelect("Brand",    allBrands,     _accountCollectionBrand);
+    const catSel    = makeSelect("Category", allCategories, _accountCollectionCategory);
+    const seasonSel = makeSelect("Season",   allSeasons,    _accountCollectionSeason);
+    const statusSel = makeSelect("Status", [], _accountCollectionStatus);
+    for (const [v, lbl] of [["showcase","Showcase"],["wishlist","Wishlist"],["has-notes","Has Notes"],["no-notes","Missing Notes"],["no-price","Missing Price"]]) {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = lbl;
+      statusSel.appendChild(opt);
+    }
+    statusSel.value = _accountCollectionStatus;
+
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "account-filter-clear";
+    clearBtn.textContent = "Clear";
 
     const addBtn = document.createElement("a");
     addBtn.href = "/collection?additem=1";
     addBtn.className = "account-collection-add-btn";
     addBtn.textContent = "+ Add piece";
-    toolbar.appendChild(addBtn);
 
+    const countLabel = document.createElement("span");
+    countLabel.className = "account-collection-count";
+
+    toolbar.append(search, brandSel, catSel, seasonSel, statusSel, clearBtn, addBtn);
     wrapper.appendChild(toolbar);
+    wrapper.appendChild(countLabel);
 
     // Layout: list + drawer
     const layout = document.createElement("div");
@@ -3362,26 +3466,31 @@
     });
     drawer.classList.add("account-edit-drawer--hidden");
 
-    function refreshChips() {
-      for (const chip of filters.querySelectorAll(".account-filter-chip")) {
-        const key = filterDefs[Array.from(filters.children).indexOf(chip)]?.key;
-        chip.setAttribute("aria-pressed", String(_accountCollectionFilter === key));
-      }
+    function hasActiveFilter() {
+      return _accountCollectionSearch || _accountCollectionBrand || _accountCollectionCategory || _accountCollectionSeason || _accountCollectionStatus;
     }
+    clearBtn.hidden = !hasActiveFilter();
 
     function getFilteredItems() {
-      const q = _accountCollectionSearch.trim().toLowerCase();
+      const q  = _accountCollectionSearch.trim().toLowerCase();
+      const b  = _accountCollectionBrand;
+      const c  = _accountCollectionCategory;
+      const s  = _accountCollectionSeason;
+      const st = _accountCollectionStatus;
       return items.filter((it) => {
-        if (_accountCollectionFilter === "showcase" && !isInShowcase(it)) return false;
-        if (_accountCollectionFilter === "no-notes" && (String(it?.notes ?? "").trim() || isFuturePiece(it))) return false;
-        if (_accountCollectionFilter === "no-price") {
+        if (b  && String(it?.brand    ?? "").trim() !== b) return false;
+        if (c  && String(it?.category ?? "").trim() !== c) return false;
+        if (s  && String(it?.season   ?? "").trim() !== s) return false;
+        if (st === "showcase"  && !isInShowcase(it)) return false;
+        if (st === "wishlist"  && !isFuturePiece(it)) return false;
+        if (st === "has-notes" && !String(it?.notes ?? "").trim()) return false;
+        if (st === "no-notes"  && (String(it?.notes ?? "").trim() || isFuturePiece(it))) return false;
+        if (st === "no-price") {
           const p = it?.price ?? it?.metadata?.price;
           if ((p !== undefined && p !== null && p !== "") || isFuturePiece(it)) return false;
         }
-        if (_accountCollectionFilter === "wishlist" && !isFuturePiece(it)) return false;
-        if (_accountCollectionFilter === "all") { /* no-op */ }
         if (q) {
-          const hay = [it?.name, it?.brand, it?.category, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
+          const hay = [it?.name, it?.brand, it?.category, it?.season, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -3390,7 +3499,11 @@
 
     function refreshList() {
       listPane.replaceChildren();
+      clearBtn.hidden = !hasActiveFilter();
       const filtered = getFilteredItems();
+      countLabel.textContent = hasActiveFilter()
+        ? `${filtered.length} of ${items.length} pieces`
+        : `${items.length} pieces`;
       if (!filtered.length) {
         const empty = document.createElement("div");
         empty.className = "account-cat-list__empty";
@@ -3419,6 +3532,18 @@
         listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
       });
     }
+
+    search.addEventListener("input", () => { _accountCollectionSearch = search.value; refreshList(); });
+    brandSel.addEventListener("change",  () => { _accountCollectionBrand    = brandSel.value;  refreshList(); });
+    catSel.addEventListener("change",    () => { _accountCollectionCategory = catSel.value;    refreshList(); });
+    seasonSel.addEventListener("change", () => { _accountCollectionSeason   = seasonSel.value; refreshList(); });
+    statusSel.addEventListener("change", () => { _accountCollectionStatus   = statusSel.value; refreshList(); });
+    clearBtn.addEventListener("click",   () => {
+      _accountCollectionSearch = _accountCollectionBrand = _accountCollectionCategory = _accountCollectionSeason = _accountCollectionStatus = "";
+      search.value = "";
+      brandSel.value = catSel.value = seasonSel.value = statusSel.value = "";
+      refreshList();
+    });
 
     refreshList();
 
@@ -3869,6 +3994,51 @@
     });
     toolbar.appendChild(search);
     wrapper.appendChild(toolbar);
+
+    // ── Recent Notes panel (top 5 by purchaseDate desc, with notes) ────────────
+    const recentNotes = items
+      .filter((it) => !isFuturePiece(it) && String(it?.notes ?? "").trim())
+      .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
+      .slice(0, 5);
+
+    if (recentNotes.length && !_accountNotesSearch && _accountNotesFilter === "all") {
+      const recentSection = document.createElement("div");
+      recentSection.className = "account-notes-recent";
+
+      const recentHeading = document.createElement("div");
+      recentHeading.className = "account-overview__section-title";
+      recentHeading.textContent = "Recent Notes";
+      recentSection.appendChild(recentHeading);
+
+      for (const it of recentNotes) {
+        const row = document.createElement("div");
+        row.className = "account-notes-recent__row";
+
+        const thumb = document.createElement("img");
+        thumb.className = "account-notes-recent__thumb";
+        thumb.src = String(it?.image ?? "");
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        thumb.decoding = "async";
+
+        const body = document.createElement("div");
+        body.className = "account-notes-recent__body";
+
+        const name = document.createElement("div");
+        name.className = "account-notes-recent__name";
+        name.textContent = String(it?.name ?? it?.id ?? "");
+
+        const preview = document.createElement("div");
+        preview.className = "account-notes-recent__preview";
+        const note = String(it?.notes ?? "").trim();
+        preview.textContent = note.length > 140 ? note.slice(0, 140) + "…" : note;
+
+        body.append(name, preview);
+        row.append(thumb, body);
+        recentSection.appendChild(row);
+      }
+      wrapper.appendChild(recentSection);
+    }
 
     const notesList = document.createElement("div");
     notesList.className = "account-notes-v2-list";
@@ -15505,9 +15675,6 @@
   let lastCategoryDrillStructureKey = "";
 
   function categoryDrillStructureKey(slot, typeEntries) {
-    // Structure = which pills exist (slot + the type set), NOT which is active.
-    // Excluding the active filter lets a same-set active change hit the reuse
-    // branch, so the accent thumb glides instead of the grid rebuilding (jump).
     return [slot, ...typeEntries.map((e) => `${e.raw}\t${e.label}`)].join("\0");
   }
 
@@ -15516,66 +15683,6 @@
       const raw = String(btn.dataset.subcategory ?? "");
       btn.classList.toggle("is-active", subcategoryEntryIsActive(raw));
     });
-    syncCategoryDrillThumb(grid);
-  }
-
-  function ensureCategoryDrillThumb(grid) {
-    let thumb = grid.querySelector(":scope > .category-drill__thumb");
-    if (!thumb) {
-      thumb = document.createElement("span");
-      thumb.className = "category-drill__thumb";
-      thumb.setAttribute("aria-hidden", "true");
-      grid.insertBefore(thumb, grid.firstChild);
-    }
-    return thumb;
-  }
-
-  /**
-   * Glide a single accent pill (the "thumb") to the active choice instead of
-   * recolouring each pill in place. Falls back to the plain `.is-active` fill
-   * (by dropping `.has-thumb`) whenever no active pill is laid out.
-   */
-  function syncCategoryDrillThumb(grid, { animate = true } = {}) {
-    if (!grid) return;
-    const active = grid.hidden
-      ? null
-      : grid.querySelector(".category-drill__choice.is-active");
-    if (!active || active.offsetParent === null) {
-      grid.classList.remove("has-thumb");
-      grid
-        .querySelector(":scope > .category-drill__thumb")
-        ?.classList.remove("category-drill__thumb--visible");
-      return;
-    }
-
-    const thumb = ensureCategoryDrillThumb(grid);
-    const wasVisible = thumb.classList.contains("category-drill__thumb--visible");
-    grid.classList.add("has-thumb");
-
-    const apply = () => {
-      thumb.style.width = `${active.offsetWidth}px`;
-      thumb.style.height = `${active.offsetHeight}px`;
-      thumb.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
-    };
-
-    // First reveal (or resize): jump into place; only slide between existing pills.
-    if (!animate || !wasVisible) {
-      const prevTransition = thumb.style.transition;
-      thumb.style.transition = "none";
-      apply();
-      void thumb.offsetWidth; // commit the jump before re-enabling transitions
-      thumb.style.transition = prevTransition;
-      thumb.classList.add("category-drill__thumb--visible");
-    } else {
-      apply();
-    }
-  }
-
-  /** Re-seat both drill thumbs without sliding when layout (wrap / width) changes. */
-  function reseatCategoryDrillThumbs() {
-    document
-      .querySelectorAll(".category-drill__grid")
-      .forEach((grid) => syncCategoryDrillThumb(grid, { animate: false }));
   }
 
   function renderCategoryDrill() {
@@ -15672,9 +15779,6 @@
       lastCategoryDrillStructureKey = "";
     }
 
-    // Fresh pill set → seat the accent thumb without sliding; clicks within this
-    // same set hit the reuse branch above and glide it.
-    syncCategoryDrillThumb(grid, { animate: false });
   }
 
   /** Season, slot, drill, basic colour, and brand — no live keyword typing (keywords are commit-only). */
@@ -27131,7 +27235,6 @@
         syncCollectionCountLinePlacement();
         syncCollectionQuickFindCardDom();
         syncCollectionBoardAddButtonLabels();
-        reseatCategoryDrillThumbs();
       });
     }
 
