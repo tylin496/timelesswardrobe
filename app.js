@@ -26877,9 +26877,9 @@
 
   function appendItemDetailRelated(root, item) {
     const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
-    const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 3);
+    const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 6);
     const brandIds = new Set(byBrand.map((it) => it.id));
-    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 3);
+    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 6);
     if (!byBrand.length && !byCat.length) return;
 
     const sec = document.createElement("section");
@@ -26893,12 +26893,34 @@
       if (!peers.length) return null;
       const group = document.createElement("div");
       group.className = "item-detail__related-group";
+
+      const header = document.createElement("div");
+      header.className = "item-detail__related-header";
       const h = document.createElement("h3");
       h.className = "item-detail__related-heading";
       h.textContent = label;
-      group.appendChild(h);
+      header.appendChild(h);
+
+      const nav = document.createElement("div");
+      nav.className = "item-detail__related-nav";
+      const btnPrev = document.createElement("button");
+      btnPrev.type = "button";
+      btnPrev.className = "item-detail__related-nav-btn";
+      btnPrev.setAttribute("aria-label", "Previous");
+      btnPrev.textContent = "‹";
+      const btnNext = document.createElement("button");
+      btnNext.type = "button";
+      btnNext.className = "item-detail__related-nav-btn";
+      btnNext.setAttribute("aria-label", "Next");
+      btnNext.textContent = "›";
+      nav.appendChild(btnPrev);
+      nav.appendChild(btnNext);
+      header.appendChild(nav);
+      group.appendChild(header);
+
       const list = document.createElement("div");
       list.className = "item-detail__related-grid";
+
       for (const peer of peers) {
         const a = document.createElement("a");
         a.href = buildItemPageUrl(peer.id).toString();
@@ -26923,6 +26945,15 @@
         a.appendChild(meta);
         list.appendChild(a);
       }
+
+      const scrollBy = (dir) => {
+        const card = list.querySelector(".item-detail__related-card");
+        const w = card ? card.offsetWidth + 12 : 240;
+        list.scrollBy({ left: dir * w, behavior: "smooth" });
+      };
+      btnPrev.addEventListener("click", () => scrollBy(-1));
+      btnNext.addEventListener("click", () => scrollBy(1));
+
       group.appendChild(list);
       return group;
     }
