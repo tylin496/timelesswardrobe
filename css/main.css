@@ -6723,7 +6723,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     flex-direction: column;
     position: fixed;
     z-index: calc(var(--z-site-header-chrome) - 1);
-    top: var(--site-mobile-shell-top, var(--site-header-chrome-bottom, 5.5rem));
+    /* Cover the masthead row too: start just below the brand-signature bar, so the drawer
+       (with its own header bar) slides in over the site header as one block. */
+    top: var(--site-mobile-drill-cover-top, var(--brand-signature-bar-height, 36px));
     right: 0;
     left: auto;
     width: 100%;
@@ -6747,9 +6749,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: var(--z-styling-board-drawer, 1300);
   }
 
-  .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
-    display: none;
-  }
+  /* Drill chrome (back/close) is layered over the main bar by `--submenu`; the main bar
+     (logo + tools) shows in both states so the drawer always has its own masthead. */
 
   .site-mobile-shell.is-open {
     visibility: visible;
@@ -6776,10 +6777,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-mobile-shell__chrome {
     flex: 0 0 auto;
     position: relative;
-    min-height: var(--site-header-mobile-row-height, 44px);
-    height: var(--site-header-mobile-row-height, 44px);
+    /* Match the live masthead-row height so the drawer body starts exactly at the header bottom. */
+    min-height: var(--site-mobile-drill-head-height, var(--site-header-mobile-row-height, 44px));
+    height: var(--site-mobile-drill-head-height, var(--site-header-mobile-row-height, 44px));
     background: var(--tw-mobile-nav-surface, var(--tw-brand-ivory, #f7f4ed));
-    border-bottom: 1px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 10%, transparent);
   }
 
   .site-mobile-shell__bar {
@@ -7514,86 +7515,12 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav open: chrome itself stays transparent — the opaque ivory is painted by the
-   * sliding `.site-header::after` surface below, so the masthead background wipes in from the
-   * right in step with the drawer panel instead of snapping solid over the hero.
+   * Mobile nav open: the real masthead is NOT recoloured. The drawer (`.site-mobile-shell`)
+   * extends up over the header row and carries its own ivory header bar (logo + tools), so the
+   * whole drawer — header area included — slides in from the right as one solid block. The site
+   * header simply stays in its overlay state underneath and is covered; nothing wipes across it,
+   * so the logo never sits dark-on-hero mid-animation.
    */
-  body.collection-ui--mobile-nav-open .site-header-shell,
-  body.collection-ui--mobile-nav-open .site-header,
-  body.collection-ui--mobile-nav-open .site-header.site-header--overlay,
-  body.collection-ui--mobile-nav-open .site-header.site-header--solid,
-  body.collection-ui--mobile-nav-open .site-header__flyout,
-  body.collection-ui--mobile-nav-open .site-header__inner,
-  body.collection-ui--mobile-nav-open .site-header__container,
-  body.collection-ui--mobile-nav-open .site-header__brand-nav {
-    background-color: transparent;
-    background-image: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
-  }
-
-  /*
-   * Solid masthead surface: slides in from the right in lock-step with the drawer panel
-   * (same duration/easing/transform), then slides back out on close. Sits above `::before`
-   * (header bg) and below the chrome content (z-index 1), so logo + tools stay legible on top.
-   */
-  .site-header::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-color: var(--tw-mobile-nav-surface, #f7f4ed);
-    /* Parked off the right edge (header is `overflow-x: clip`, so it never shows at rest). */
-    transform: translate3d(100%, 0, 0);
-    transition: transform var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
-  }
-
-  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header::after {
-    transform: translate3d(0, 0, 0);
-  }
-
-  /*
-   * Drawer open: masthead reads as opaque, so use solid ink immediately (not only on :hover).
-   * Drop back to overlay (white) the moment the close starts, so the ink fades back as the
-   * surface slides away rather than snapping at the end of the animation.
-   */
-  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header.site-header--overlay,
-  body.collection-ui--mobile-nav-drill .site-header.site-header--overlay {
-    --tw-header-fg: var(--tw-brand-wordmark);
-    --tw-header-fg-muted: var(--ink-muted);
-    --tw-header-monogram: var(--tw-brand-monogram-green);
-    --tw-header-surface: var(--tw-mobile-nav-surface, var(--bg-elevated));
-    --tw-header-badge-bg: var(--tw-brand-green);
-    --tw-header-badge-fg: var(--tw-header-surface);
-    --tw-header-badge-opacity: 1;
-    color: var(--tw-header-fg);
-  }
-
-  body.collection-ui--mobile-nav-open .site-header--overlay .site-header__tool-glyph,
-  body.collection-ui--mobile-nav-open .site-header--overlay .styling-board-glyph__grid,
-  body.collection-ui--mobile-nav-drill .site-header--overlay .site-header__tool-glyph,
-  body.collection-ui--mobile-nav-drill .site-header--overlay .styling-board-glyph__grid {
-    stroke-opacity: 1;
-  }
-
-  body.collection-ui--mobile-nav-open
-    .site-header--overlay
-    .site-header__styling-board-btn
-    .site-header__styling-board-count,
-  body.collection-ui--mobile-nav-drill
-    .site-header--overlay
-    .site-header__styling-board-btn
-    .site-header__styling-board-count {
-    -webkit-mask-image: none;
-    mask-image: none;
-    background-color: var(--tw-header-badge-bg, var(--tw-brand-green));
-    color: var(--tw-header-badge-fg, var(--tw-header-surface));
-    -webkit-text-fill-color: currentColor;
-    opacity: 1;
-    box-shadow: none;
-  }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
     border-top: 1px solid color-mix(in srgb, var(--line) 38%, transparent);
@@ -7791,7 +7718,6 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
     .site-mobile-shell__bar,
     .site-mobile-nav__level,
     .site-mobile-nav-drill-portal,
-    .site-header::after,
     .site-header__search-wrap {
       transition-duration: 0.01ms;
     }
@@ -14968,7 +14894,6 @@ body.item-page:has(.item-detail__root--edit) {
   transform-origin: center center;
   /* PDP / edit preview: allow native right-click Save Image (grid cards keep drag disabled). */
   -webkit-user-drag: auto;
-  transition: opacity 0.2s ease;
 }
 
 .item-detail__root--page .item-detail__gallery-thumb img,

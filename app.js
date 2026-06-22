@@ -17601,6 +17601,7 @@
     };
 
     const showFrame = (index, animate = true) => {
+      const prevIndex = currentIndex;
       currentIndex = clampGalleryFrameIndex(index);
       stageEl.classList.remove("item-detail__media--zoomed");
       heroImgEl.classList.remove("item-detail__hero-img--zoomed");
@@ -17618,16 +17619,40 @@
 
       stageEl.dataset.galleryIndex = String(currentIndex);
       syncActiveThumb();
-      if (animate) {
-        heroImgEl.style.opacity = "0";
-        setTimeout(() => {
-          syncHeroMetaFromIndex(currentIndex);
-          requestAnimationFrame(() => { heroImgEl.style.opacity = ""; });
-        }, 180);
-      } else {
-        heroImgEl.style.opacity = "";
+
+      if (!animate || currentIndex === prevIndex) {
+        heroImgEl.style.transform = "";
         syncHeroMetaFromIndex(currentIndex);
+        return;
       }
+
+      // Slide direction: next → slide left (dir=1), prev → slide right (dir=-1)
+      const dir = currentIndex > prevIndex ? 1 : -1;
+      const easing = "cubic-bezier(0.4, 0, 0.2, 1)";
+      const duration = "0.38s";
+
+      // Clone exiting image for exit animation
+      const clone = /** @type {HTMLElement} */ (heroImgEl.cloneNode(true));
+      const cs = getComputedStyle(heroImgEl);
+      Object.assign(clone.style, {
+        position: "absolute", inset: "0", width: "100%", height: "100%",
+        objectFit: cs.objectFit, objectPosition: cs.objectPosition,
+        zIndex: "2", transition: `transform ${duration} ${easing}`,
+        transform: "translateX(0)",
+      });
+      stageEl.appendChild(clone);
+
+      // Park incoming image off-screen, swap src, then slide in
+      heroImgEl.style.transition = "none";
+      heroImgEl.style.transform = `translateX(${dir > 0 ? "100%" : "-100%"})`;
+      syncHeroMetaFromIndex(currentIndex);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        clone.style.transform = `translateX(${dir > 0 ? "-100%" : "100%"})`;
+        heroImgEl.style.transition = `transform ${duration} ${easing}`;
+        heroImgEl.style.transform = "translateX(0)";
+        clone.addEventListener("transitionend", () => clone.remove(), { once: true });
+      }));
     };
 
     frames.forEach((fr, i) => {
@@ -28425,7 +28450,6 @@
 
     document.body.classList.remove(
       "collection-ui--mobile-nav-open",
-      "collection-ui--mobile-nav-closing",
       "collection-ui--header-search-open",
       "collection-ui--header-search-closing",
       "collection-ui--header-submenu-open",
@@ -28987,7 +29011,6 @@
           <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="S/S">Spring / Summer</button>
           <button type="button" class="site-mobile-nav__season-link" data-mobile-nav-season="A/W">Autumn / Winter</button>
           <a class="site-mobile-nav__season-link site-mobile-nav__browse-all" href="#" data-mobile-nav-browse-all="1">All pieces</a>
-          <a class="site-mobile-nav__season-link site-mobile-nav__editorial-home" href="/" data-mobile-nav-editorial-home="1">Editorial home</a>
         </div>
       `;
       rootLevel.appendChild(rootFooter);
@@ -29774,7 +29797,7 @@
         resetMobileNavDrill();
         headerMenuBtn?.setAttribute("aria-expanded", "false");
         headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
-        document.body.classList.remove("collection-ui--mobile-nav-open", "collection-ui--mobile-nav-closing");
+        document.body.classList.remove("collection-ui--mobile-nav-open");
         setMobileNavDimVisible(false);
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
@@ -29794,8 +29817,6 @@
         return;
       }
 
-      // Mark closing so the header surface + ink slide/fade back out in step with the panel.
-      document.body.classList.add("collection-ui--mobile-nav-closing");
       mobileShell.classList.add("is-closing");
       mobileShellCloseAbort = twAfterMotion(mobileShell, MOBILE_NAV_MOTION_MS, finish);
     }
@@ -29812,7 +29833,6 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
-      document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");
@@ -30429,13 +30449,6 @@
       if (browseAll) {
         e.preventDefault();
         handleMobileCategoryNavigation("", "", { season: "All" });
-        return;
-      }
-      const editorialHome = /** @type {HTMLElement | null} */ (e.target.closest("[data-mobile-nav-editorial-home]"));
-      if (editorialHome) {
-        e.preventDefault();
-        closeMobileCategoryPanel();
-        navigateToSiteHome();
         return;
       }
       const row = /** @type {HTMLElement | null} */ (e.target.closest(".site-mobile-nav__row"));
