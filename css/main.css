@@ -8415,12 +8415,14 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   width: 100%;
 }
 
-/* Category-drill switch: gentle fade-up swap of the eyebrow + title cluster.
-   Re-triggered from renderCollectionHeading only when the heading text changes. */
+/* Category-drill switch: editorial fade-up cascade — eyebrow leads, the serif
+   title rises as the hero, the count line trails. Re-triggered from
+   renderCollectionHeading only when the heading text changes.
+   Per-element rise is tuned via --swap-rise so one keyframe covers all three. */
 @keyframes collection-heading-swap {
   from {
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, var(--swap-rise, 10px), 0);
   }
   to {
     opacity: 1;
@@ -8428,16 +8430,25 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   }
 }
 
-.collection-heading.collection-heading--swapping .collection-heading__context,
-.collection-heading.collection-heading--swapping .collection-heading__title-row,
-.collection-heading.collection-heading--swapping .collection-heading__title-cluster {
-  animation: collection-heading-swap 0.42s var(--ease-luxe) backwards;
+.collection-heading.collection-heading--swapping .collection-heading__context {
+  --swap-rise: 6px;
+  animation: collection-heading-swap 0.46s var(--ease-luxe) backwards;
+}
+.collection-heading.collection-heading--swapping .collection-heading__title,
+.collection-heading.collection-heading--swapping .items-toolbar__page-title {
+  --swap-rise: 14px;
+  animation: collection-heading-swap 0.62s var(--ease-luxe) 0.06s backwards;
+}
+.collection-heading.collection-heading--swapping .collection-heading__title-cluster .items-toolbar__count-line {
+  --swap-rise: 8px;
+  animation: collection-heading-swap 0.54s var(--ease-luxe) 0.15s backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .collection-heading.collection-heading--swapping .collection-heading__context,
-  .collection-heading.collection-heading--swapping .collection-heading__title-row,
-  .collection-heading.collection-heading--swapping .collection-heading__title-cluster {
+  .collection-heading.collection-heading--swapping .collection-heading__title,
+  .collection-heading.collection-heading--swapping .items-toolbar__page-title,
+  .collection-heading.collection-heading--swapping .collection-heading__title-cluster .items-toolbar__count-line {
     animation: none;
   }
 }
