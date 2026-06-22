@@ -9779,7 +9779,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip {
     gap: 0.55rem;
-    padding: 0.2rem var(--styling-board-scroll-inline) 0.15rem var(--styling-board-scroll-inline);
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
   }
@@ -9788,7 +9788,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     gap: 0.55rem;
     width: 100%;
     max-width: 100%;
-    padding: 0.2rem var(--styling-board-scroll-inline) 0.15rem var(--styling-board-scroll-inline);
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
     overflow-x: auto;
     overflow-y: auto;
     scroll-snap-type: none;
@@ -10383,7 +10383,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   justify-content: safe center;
   gap: 0.5rem;
   min-height: 0;
-  padding: 0.35rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-right, 0px)) 0.2rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
+  padding: 0.35rem env(safe-area-inset-right, 0px) 0.2rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
   overflow-x: auto;
   overflow-y: auto;
   scroll-snap-type: none;
@@ -11015,7 +11015,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior-x: contain;
-  padding: 0.4rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-right, 0px)) 0.35rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
+  padding: 0.4rem env(safe-area-inset-right, 0px) 0.35rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
   scroll-snap-type: none;
   scroll-padding-inline-start: var(--styling-board-scroll-inline, 0.85rem);
   scroll-padding-inline-end: 0;
@@ -11063,7 +11063,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     padding-top: 0.4rem;
     padding-bottom: 0.55rem;
     padding-left: var(--styling-board-scroll-inline);
-    padding-right: var(--styling-board-scroll-inline);
+    padding-right: env(safe-area-inset-right, 0px);
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
     scrollbar-width: thin;
@@ -11313,7 +11313,7 @@ body.tw-outfit-drag-active * {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-right: var(--styling-board-scroll-inline);
+    padding-right: env(safe-area-inset-right, 0px);
     scroll-snap-type: none;
     scroll-snap-stop: normal;
     scroll-padding-inline: max(1rem, env(safe-area-inset-left, 0px))
@@ -22227,21 +22227,21 @@ video.ed-lp__hero-layer-video {
 }
 
 .ed-lp__btn--solid {
-  background: #ffffff;
+  background: var(--tw-brand-page);
   color: #1a1814;
-  border-color: #ffffff;
+  border-color: var(--tw-brand-page);
 }
 
 .ed-lp__btn--solid:hover,
 .ed-lp__btn--solid:focus-visible {
-  background: color-mix(in srgb, #ffffff 88%, #c4b8a8);
-  border-color: color-mix(in srgb, #ffffff 88%, #c4b8a8);
+  background: color-mix(in srgb, var(--tw-brand-page) 88%, #c4b8a8);
+  border-color: color-mix(in srgb, var(--tw-brand-page) 88%, #c4b8a8);
 }
 
 .ed-lp__btn--ghost {
   background: transparent;
-  color: #ffffff;
-  border-color: color-mix(in srgb, #ffffff 55%, transparent);
+  color: var(--tw-brand-page);
+  border-color: color-mix(in srgb, var(--tw-brand-page) 55%, transparent);
 }
 
 .ed-lp__btn--ghost:hover,
