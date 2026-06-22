@@ -23113,7 +23113,8 @@
     document.body.style.left = "";
     document.body.style.right = "";
     document.body.style.width = "";
-    globalThis.scrollTo(0, y);
+    globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
+    document.documentElement.style.scrollBehavior = "";
   }
 
   function syncStylingBoardUi() {
