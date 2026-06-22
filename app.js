@@ -12647,7 +12647,8 @@
       if (document.body.classList.contains("collection-ui--styling-board")) return true;
       if (document.body.classList.contains("collection-ui--mobile-nav-open")) return true;
       if (!hero) return true;
-      return hero.getBoundingClientRect().bottom <= siteHeader.offsetHeight + 4;
+      const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      return scrollY >= hero.offsetHeight / 2;
     };
 
     const update = () => {
@@ -12655,28 +12656,7 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      if (!solid && hero) {
-        const heroH = hero.offsetHeight;
-        const headerH = siteHeader.offsetHeight;
-        const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-        const flipAt = heroH - headerH - 4;
-        const fadeStart = heroH * 0.4;
-        const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (flipAt - fadeStart)));
-        const bgOpacity = t * t * t;
-        // Stay white until background is ~42% filled (t=0.75), then rapidly shift dark.
-        // Quadratic ease-in over the remaining 0.25 of t minimises the unreadable grey midpoint.
-        const fgLinear = Math.min(1, Math.max(0, (t - 0.75) / 0.25));
-        const overlayPct = Math.round((1 - fgLinear * fgLinear) * 100);
-        siteHeader.classList.add("site-header--scroll-driven");
-        siteHeader.style.setProperty("--tw-header-bg-opacity", bgOpacity.toFixed(3));
-        siteHeader.style.setProperty("--tw-header-bg", "var(--tw-brand-ivory)");
-        siteHeader.style.setProperty("--tw-header-fg",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-wordmark))`);
-        siteHeader.style.setProperty("--tw-header-fg-muted",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--ink-muted))`);
-        siteHeader.style.setProperty("--tw-header-monogram",
-          `color-mix(in srgb, var(--tw-brand-overlay-ink) ${overlayPct}%, var(--tw-brand-monogram-green))`);
-      } else {
+      if (solid) {
         clearScrollDriven();
       }
       if (heroInner) {
