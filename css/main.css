@@ -25023,7 +25023,78 @@ body.editorial-page #editorial-root {
 /* ── Account Overview ─────────────────────────────────────────────────────── */
 
 .account-overview {
-  max-width: 56rem;
+  max-width: 86rem;
+}
+
+/* two-column body below the full-width sections */
+.account-overview__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+@media (min-width: 1024px) {
+  .account-overview__body {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.account-overview__col {
+  min-width: 0;
+}
+
+/* stat percentage sub-line */
+.account-overview__stat-sub {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  opacity: 0.6;
+  margin-top: 0.1rem;
+}
+
+/* distribution bar rows (categories + brands) */
+.account-overview__dist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.account-overview__dist-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-sans);
+}
+
+.account-overview__dist-label {
+  font-size: 0.75rem;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-overview__dist-bar-wrap {
+  height: 4px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.account-overview__dist-bar {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 2px;
+  min-width: 2px;
+}
+
+.account-overview__dist-count {
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .account-overview__stats {
@@ -25735,14 +25806,29 @@ body.editorial-page #editorial-root {
   color: var(--ink-muted);
 }
 
-.account-notes-v2-status {
+.account-notes-v2-wordcount {
   margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+.account-notes-v2-wordcount[data-empty="true"] {
+  color: #8b4a1a;
+  opacity: 0.7;
+}
+
+.account-notes-v2-status {
   font-size: 0.68rem;
   color: var(--ink-muted);
   opacity: 0.55;
   white-space: nowrap;
   flex-shrink: 0;
   transition: opacity 0.2s;
+  margin-left: 0.5rem;
 }
 
 .account-notes-v2-status[data-state="saved"] {
