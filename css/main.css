@@ -22397,12 +22397,12 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
   flex: 0 0 clamp(170px, 20vw, 256px);
 }
 
-/* Desktop: keep the scroll indicator contained instead of bleeding to the
-   viewport edge — symmetric inset + a cap so it never runs absurdly long. */
+/* Desktop: equal left/right inset on the scroll indicator so it sits within
+   the page gutters instead of bleeding to the right viewport edge. Rail cards
+   are untouched. */
 @media (min-width: 768px) {
   body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
     margin-right: var(--ed-lp-division-rail-pad-left);
-    max-width: clamp(20rem, 42vw, 34rem);
   }
 }
 
