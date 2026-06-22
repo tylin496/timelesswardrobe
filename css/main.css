@@ -8453,8 +8453,7 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 .collection-heading.collection-heading--swapping .collection-heading__title,
 .collection-heading.collection-heading--swapping .items-toolbar__page-title {
-  --swap-rise: 14px;
-  animation: collection-heading-swap 0.62s var(--ease-luxe) 0.06s backwards;
+  animation: tlw-fade-in 0.5s ease 0.05s backwards;
 }
 .collection-heading.collection-heading--swapping .collection-heading__title-cluster .items-toolbar__count-line {
   --swap-rise: 8px;
