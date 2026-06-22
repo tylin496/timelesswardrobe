@@ -12656,7 +12656,15 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      if (solid) {
+      if (!solid && hero) {
+        const heroH = hero.offsetHeight;
+        const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+        const fadeStart = heroH * 0.2;
+        const fadeEnd = heroH * 0.5;
+        const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
+        siteHeader.classList.add("site-header--scroll-driven");
+        siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
+      } else {
         clearScrollDriven();
       }
       if (heroInner) {
