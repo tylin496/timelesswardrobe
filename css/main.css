@@ -193,12 +193,12 @@
   /* Photographic plate behind product imagery while photos load. */
   --tw-image-plate-bg: url("/images/background.jpg");
   --collection-grid-media-bg: var(--tw-image-plate-bg);
-  /* Contact shadow scaled for large product PNGs: a tight near-touch layer
-     grounds the piece on the photographic plate, a moderate diffuse layer adds
-     editorial weight — no airy 32px float that reads as a sticker lift. */
+  /* Product-display lift on the photographic plate — deliberately more present
+     than the Saved Outfits flatlay contact shadow: this surface is merchandising,
+     not a flatlay collage, so it keeps its own editorial presence. */
   --collection-cutout-shadow:
-    drop-shadow(0 2px 3px rgba(20, 19, 18, 0.10))
-    drop-shadow(0 11px 22px rgba(20, 19, 18, 0.05));
+    drop-shadow(0 4px 10px rgba(20, 19, 18, 0.1))
+    drop-shadow(0 14px 32px rgba(20, 19, 18, 0.08));
   /* Dismiss × — thin line arms (search, drawers, chips; not stretched font glyphs). */
   --tw-dismiss-glyph-size: 1.35rem;
   --tw-dismiss-glyph-weight: 300;
@@ -10884,8 +10884,9 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   /* Cutout floats on the backdrop — contain, never crop or letterbox a plate. */
   object-fit: contain;
   object-position: center bottom;
-  /* Contact shadow on the beige plate — same family as the Saved Outfits
-     flatlay, not the old heavy 0.24 single drop that sat too dark. */
+  /* The old single 0.24 drop sat too dark on the beige plate; split into a
+     lighter near-touch + diffuse pair so the selected piece reads grounded,
+     not heavy. (Tuned for this surface; not shared with other cutouts.) */
   filter:
     drop-shadow(0 1px 2px rgba(20, 19, 18, 0.12))
     drop-shadow(0 4px 8px rgba(20, 19, 18, 0.07));
@@ -18693,10 +18694,7 @@ a.item-detail__breadcrumb-current {
   object-fit: contain;
   object-position: center bottom;
   display: block;
-  /* Contact shadow family — tight near-touch + faint diffuse, no single float. */
-  filter:
-    drop-shadow(0 1px 1px rgb(0 0 0 / 0.08))
-    drop-shadow(0 3px 6px rgb(0 0 0 / 0.05));
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.08));
   transition: transform 0.25s ease;
 }
 

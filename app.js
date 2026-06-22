@@ -22152,11 +22152,19 @@
     });
   }
 
+  // Tracks the crumb labels that were visible on the previous breadcrumb render so
+  // we can detect which ones are newly added and animate only those.
+  let lastBreadcrumbLabels = /** @type {string[]} */ ([]);
+
   function renderCollectionHeadingBreadcrumb(host, { searchActive = false } = {}) {
     if (!host) return;
 
     const cat = String(categoryNavFilter ?? "").trim();
     const season = normalizeSeasonNavToken(seasonNavFilter);
+
+    // Snapshot labels from the *previous* render before we wipe the DOM.
+    const prevLabels = new Set(lastBreadcrumbLabels);
+    const nextLabels = /** @type {string[]} */ ([]);
 
     host.hidden = false;
     host.classList.remove("collection-heading__context--reserved");
@@ -22166,27 +22174,35 @@
     nav.className = "collection-heading__breadcrumb";
     nav.setAttribute("aria-label", "Collection breadcrumb");
 
-    function appendSep() {
+    // Separator: entering only when the crumb after it is new.
+    let pendingSepEntering = false;
+    function appendSep({ entering = false } = {}) {
       const sep = document.createElement("span");
       sep.className = "collection-heading__crumb-sep";
+      if (entering) sep.classList.add("collection-heading__crumb-sep--entering");
       sep.setAttribute("aria-hidden", "true");
       sep.textContent = " / ";
       nav.appendChild(sep);
+      pendingSepEntering = entering;
     }
 
     function appendCrumb(label, { onClick = null, isCurrent = false } = {}) {
+      const isNew = !prevLabels.has(label);
+      nextLabels.push(label);
       if (isCurrent || !onClick) {
-        const el = document.createElement("span");
-        el.className = "collection-heading__crumb collection-heading__crumb--current";
+        const el = document.createElement(“span”);
+        el.className = “collection-heading__crumb collection-heading__crumb--current”;
+        if (isNew) el.classList.add(“collection-heading__crumb--entering”);
         el.textContent = label;
         nav.appendChild(el);
         return;
       }
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "collection-heading__crumb collection-heading__crumb--link";
+      const btn = document.createElement(“button”);
+      btn.type = “button”;
+      btn.className = “collection-heading__crumb collection-heading__crumb--link”;
+      if (isNew) btn.classList.add(“collection-heading__crumb--entering”);
       btn.textContent = label;
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener(“click”, (e) => {
         e.preventDefault();
         onClick();
       });
@@ -22195,15 +22211,16 @@
 
     /* Collection hub + season-only PLP (e.g. S/S Collection) — HOME / (title carries “Collection”). */
     if (collectionHeadingUsesHomeCrumb(searchActive)) {
-      appendCrumb("HOME", { onClick: navigateToSiteHome });
+      appendCrumb(“HOME”, { onClick: navigateToSiteHome });
       appendSep();
       host.appendChild(nav);
+      lastBreadcrumbLabels = nextLabels;
       return;
     }
 
     const collectionRootLabel = season
       ? `${collectionHeadingSeasonShortLabel()} COLLECTION`
-      : "COLLECTION";
+      : “COLLECTION”;
     const subDrilled = subcategoryFilters.size > 0;
 
     appendCrumb(collectionRootLabel, {
@@ -22221,21 +22238,24 @@
     });
 
     if (searchActive) {
-      appendSep();
-      appendCrumb("SEARCH", { isCurrent: true });
+      appendSep({ entering: !prevLabels.has(“SEARCH”) });
+      appendCrumb(“SEARCH”, { isCurrent: true });
     } else if (cat && subDrilled) {
-      appendSep();
-      appendCrumb(categoryDisplayLabel(cat), {
+      const catLabel = categoryDisplayLabel(cat);
+      const catIsNew = !prevLabels.has(catLabel);
+      appendSep({ entering: catIsNew });
+      appendCrumb(catLabel, {
         onClick: navigateCollectionDivisionRoot,
         isCurrent: false,
       });
-      appendSep();
+      appendSep({ entering: catIsNew }); // trailing slash enters only when catLabel is new
     } else if (cat) {
       /* Division label is the H2 — keep trail slash, omit duplicate crumb text. */
-      appendSep();
+      appendSep({ entering: !prevLabels.has(categoryDisplayLabel(cat)) });
     }
 
     host.appendChild(nav);
+    lastBreadcrumbLabels = nextLabels;
   }
 
   /** Line 2 — active type drill label, division name, or “S/S Collection” when season-only. */
