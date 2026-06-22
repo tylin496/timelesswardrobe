@@ -21295,6 +21295,11 @@ body.home-page .ed-lp__hero .ed-lp__btn {
   max-height: none;
   display: block;
   box-sizing: border-box;
+  /* Browser keeps vertical scroll; horizontal pans belong to the swipe JS.
+     Without this, default `auto` lets iOS Safari claim the rightward swipe as a
+     history back-gesture, so the carousel can advance (swipe-left) but never go
+     back (swipe-right). pan-y hands both directions to our pointer handler. */
+  touch-action: pan-y;
   background: #1a1814;
   color: #f7f3eb;
   overflow: hidden;
