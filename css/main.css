@@ -22056,17 +22056,6 @@ video.ed-lp__hero-layer-video {
     font-size: 9.9px;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid {
-    background: transparent;
-    color: var(--tw-brand-page);
-    border-color: color-mix(in srgb, var(--tw-brand-page) 60%, transparent);
-  }
-
-  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
-  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
-    background: color-mix(in srgb, var(--tw-brand-page) 10%, transparent);
-    border-color: var(--tw-brand-page);
-  }
 }
 
 /* Hero-adjacent S/S · A/W duo — full-bleed lifestyle stills (Ralph Lauren–style split). */
@@ -23449,12 +23438,12 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--ghost {
+  .ed-lp__hero-cta .ed-lp__btn--solid {
     display: none;
   }
 
   /* RL mobile hero — underlined text link only (no filled button). */
-  .ed-lp__hero-cta .ed-lp__btn--solid {
+  .ed-lp__hero-cta .ed-lp__btn--ghost {
     flex: 0 1 auto;
     width: auto;
     min-height: 0;
@@ -23474,8 +23463,8 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
-  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
+  .ed-lp__hero-cta .ed-lp__btn--ghost:hover,
+  .ed-lp__hero-cta .ed-lp__btn--ghost:focus-visible {
     background: transparent;
     border: none;
     color: #ffffff;
