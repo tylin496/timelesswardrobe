@@ -14285,6 +14285,15 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
   outline-offset: 2px;
 }
 
+/* Grid cover images fade in on load; --loaded is added by wireCoverImageWithFallbacks. */
+#grid .card .card__media-img {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#grid .card .card__media-img.card__media-img--loaded {
+  opacity: 1;
+}
+
 .card__media-img.card__media-img--cover,
 .card__media-img:not(.card__gallery-frame-img) {
   flex: 1 1 auto;

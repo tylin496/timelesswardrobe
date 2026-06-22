@@ -16431,6 +16431,7 @@
       const url = img.currentSrc || img.src;
       const ck = cacheKeyForItem();
       if (ck) coverResolutionCache.set(ck, url);
+      img.classList.add("card__media-img--loaded");
       onResolved?.(url);
     }
     function tryNext() {
