@@ -22639,6 +22639,15 @@ video.ed-lp__hero-layer-video {
   transition: none;
 }
 
+@media (max-width: 900px) {
+  /* Beefier progress thumb on touch — the 2px hairline bar reads too thin on
+     phones. (Styling-board outfit bar keeps 2px via its higher-specificity rule.) */
+  .ed-lp__division-rail-progress-bar,
+  .ed-lp__rail-progress-bar {
+    height: 3px;
+  }
+}
+
 /* Recently viewed — title left, horizontal product rail (Ralph Lauren). */
 .ed-lp__viewed-rail {
   width: 100%;
