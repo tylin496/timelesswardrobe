@@ -14606,7 +14606,7 @@ body.item-page:has(.item-detail__root--edit) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  width: 4.35rem;
+  width: 6rem;
   flex-shrink: 0;
   align-self: start;
   min-width: 0;
