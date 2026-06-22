@@ -23547,7 +23547,7 @@
       body.className = "saved-card__body";
       const info = document.createElement("div");
       info.className = "saved-card__info";
-      info.append(title, meta, dateLine);
+      info.append(nameRow, meta, dateLine);
       body.append(info, act);
       card.append(body, flatlay);
       li.appendChild(card);
