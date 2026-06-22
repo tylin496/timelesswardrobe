@@ -26938,17 +26938,19 @@
         list.appendChild(a);
       }
 
-      const scrollPage = (dir) => {
+      let page = 0;
+      const goPage = (dir) => {
         const card = list.querySelector(".item-detail__related-card");
         if (!card) return;
         const gap = 12;
         const cardW = card.offsetWidth + gap;
-        // +gap in numerator: last card needs no trailing gap, so n cards = n*(cardW+gap)-gap
         const perPage = Math.max(1, Math.floor((list.clientWidth + gap) / cardW));
-        list.scrollBy({ left: dir * cardW * perPage, behavior: "smooth" });
+        const totalPages = Math.ceil(peers.length / perPage);
+        page = Math.max(0, Math.min(page + dir, totalPages - 1));
+        list.scrollTo({ left: page * cardW * perPage, behavior: "smooth" });
       };
-      btnPrev.addEventListener("click", () => scrollPage(-1));
-      btnNext.addEventListener("click", () => scrollPage(1));
+      btnPrev.addEventListener("click", () => goPage(-1));
+      btnNext.addEventListener("click", () => goPage(1));
 
       group.appendChild(list);
       return group;
