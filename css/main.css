@@ -10841,6 +10841,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   gap: 0.04rem;
   /* Scrim keeps the white title legible over any cutout/backdrop. */
@@ -10869,8 +10870,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 .styling-board-drawer .outfit-slot__name {
   width: 100%;
-  /* Extra bottom padding lifts the title slightly off the card edge. */
-  padding-bottom: 0.22rem;
   color: #fff;
   text-shadow: 0 1px 3px rgba(15, 14, 13, 0.5);
   font-size: 0.6rem;
@@ -11601,6 +11600,7 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__body {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -11653,13 +11653,24 @@ body.tw-outfit-drag-active * {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* Don't reserve inline space for the hover-only actions — that left an empty
+     block right of the date. Float them over the top-right corner instead, and
+     swap the date out for the actions on hover so they don't overlap. */
   .styling-board-drawer .saved-card__actions {
+    position: absolute;
+    top: 0.34rem;
+    right: 0.72rem;
     opacity: 0;
     transition: opacity 0.18s var(--ease-out);
   }
   .styling-board-drawer .saved-card:hover .saved-card__actions,
   .styling-board-drawer .saved-card:focus-within .saved-card__actions {
     opacity: 1;
+  }
+  .styling-board-drawer .saved-card:hover .saved-card__date,
+  .styling-board-drawer .saved-card:focus-within .saved-card__date {
+    opacity: 0;
+    transition: opacity 0.18s var(--ease-out);
   }
 }
 
