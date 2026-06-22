@@ -19195,7 +19195,7 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__board-cta:disabled {
-  opacity: 0.42;
+  opacity: 1;
   cursor: default;
 }
 
