@@ -10371,7 +10371,9 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  justify-content: flex-start;
+  /* Centre when the cards fit; fall back to start (scrollable right) on overflow
+     so no card is pushed off the unreachable left edge. */
+  justify-content: safe center;
   gap: 0.5rem;
   min-height: 0;
   padding: 0.35rem max(0.85rem, env(safe-area-inset-right, 0px)) 0.2rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
@@ -10980,7 +10982,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  justify-content: flex-start;
+  /* Centre when cards fit; start (scrollable right) on overflow. */
+  justify-content: safe center;
   gap: 0.5rem;
   width: 100%;
   max-width: 100%;
