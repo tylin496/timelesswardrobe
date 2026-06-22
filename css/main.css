@@ -22521,7 +22521,9 @@ video.ed-lp__hero-layer-video {
 
 .ed-lp__division-rail-progress,
 .ed-lp__rail-progress {
-  @apply mt-[clamp(1rem,2vw,1.35rem)] ml-[var(--ed-lp-division-rail-pad-left)] mr-[var(--ed-lp-division-rail-pad-left)];
+  margin-top: clamp(1rem, 2vw, 1.35rem);
+  margin-left: var(--ed-lp-division-rail-pad-left);
+  margin-right: var(--ed-lp-division-rail-pad-left);
   position: relative;
   padding: 14px 0;
   box-sizing: border-box;
