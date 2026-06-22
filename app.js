@@ -4105,6 +4105,16 @@
     const wrapper = document.createElement("div");
     wrapper.className = "account-showcase-layout";
 
+    const summaryEl = document.createElement("div");
+    summaryEl.className = "account-showcase-summary";
+    const summaryLabel = document.createElement("span");
+    summaryLabel.className = "account-showcase-summary__label";
+    summaryLabel.textContent = "Current Showcase";
+    const summaryMeta = document.createElement("span");
+    summaryMeta.className = "account-showcase-summary__meta";
+    summaryEl.append(summaryLabel, summaryMeta);
+    wrapper.appendChild(summaryEl);
+
     const hint = document.createElement("p");
     hint.className = "account-showcase-hint";
     wrapper.appendChild(hint);
@@ -4129,9 +4139,24 @@
     function renderPlaylist() {
       list.replaceChildren();
       const showcaseItems = getShowcaseItems();
-      hint.textContent = showcaseItems.length
-        ? `${showcaseItems.length} piece${showcaseItems.length === 1 ? "" : "s"} · Drag to reorder · changes save immediately`
-        : "Drag to reorder · changes save immediately";
+      hint.textContent = showcaseItems.length ? "Drag to reorder · changes save immediately" : "";
+
+      // Summary meta: "4 pieces · Last modified 2d ago"
+      if (showcaseItems.length) {
+        const lastMs = showcaseItems.reduce((best, it) => {
+          const t = it.updatedAt ? Date.parse(it.updatedAt) : 0;
+          return t > best ? t : best;
+        }, 0);
+        const diffMs = lastMs ? Date.now() - lastMs : 0;
+        const diffDays = Math.floor(diffMs / 86400000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffMin = Math.floor(diffMs / 60000);
+        const ago = diffDays > 1 ? `${diffDays}d ago` : diffDays === 1 ? "1d ago" : diffHours > 0 ? `${diffHours}h ago` : diffMin > 0 ? `${diffMin}m ago` : "just now";
+        summaryMeta.textContent = `${showcaseItems.length} piece${showcaseItems.length === 1 ? "" : "s"} · Last modified ${ago}`;
+      } else {
+        summaryMeta.textContent = "No pieces";
+      }
+
       if (!showcaseItems.length) {
         const empty = document.createElement("div");
         empty.style.cssText = "padding:1.25rem 0.4rem;font-size:0.82rem;color:var(--ink-muted);font-style:italic;";

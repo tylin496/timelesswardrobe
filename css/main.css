@@ -26024,6 +26024,30 @@ body.editorial-page #editorial-root {
   max-width: 42rem;
 }
 
+.account-showcase-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.account-showcase-summary__label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.55;
+}
+
+.account-showcase-summary__meta {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--ink);
+  font-weight: 400;
+}
+
 .account-showcase-hint {
   font-size: 0.8rem;
   color: var(--ink-muted);
