@@ -11811,6 +11811,18 @@ body.tw-outfit-drag-active * {
   cursor: pointer;
 }
 
+.styling-board-drawer .saved-card__tool-glyph {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  /* House glyph language — square caps + miter joins, hairline that stays crisp. */
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
 .styling-board-drawer .saved-card__icon-btn {
   display: inline-flex;
   align-items: center;

@@ -5,11 +5,30 @@
   const OUTFITS_UI_NAME = "Outfits";
 
   // Minimal SVG icons for outfit card actions (stroke-based, matches site language).
+  /**
+   * Saved-outfit card tools — drawn to the house glyph language (square caps,
+   * miter joins, non-scaling hairline) rather than the soft round-cap default,
+   * so they read as fine engraved marks instead of generic UI icons.
+   */
+  const outfitToolGlyph = (inner) =>
+    '<svg class="saved-card__tool-glyph" viewBox="0 0 16 16" fill="none" aria-hidden="true">' + inner + "</svg>";
   const OUTFIT_CARD_ICON = {
-    share: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3.5L12.5 7 9 10.5"/><path d="M12.5 7H5.5A2.5 2.5 0 003 9.5v.5"/></svg>',
-    edit: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10.5L9.5 3.5l2 2-7 7-2.5.5.5-2.5z"/></svg>',
-    delete: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h9M5.5 4.5V3h4v1.5M6 7v4M9 7v4M4 4.5l.5 7a1 1 0 001 .5h4a1 1 0 001-.5l.5-7"/></svg>',
-    duplicate: '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="7.5" height="7.5" rx="1.2"/><path d="M9.5 5V3.5a1 1 0 00-1-1h-5a1 1 0 00-1 1v5a1 1 0 001 1H5"/></svg>',
+    // Copy link — share arrow rising from an open tray.
+    share: outfitToolGlyph(
+      '<path d="M4 8.6V12.4H12V8.6"/><path d="M8 10.2V3.1"/><path d="M5.4 5.5L8 2.9L10.6 5.5"/>'
+    ),
+    // Edit — fine drafting pencil.
+    edit: outfitToolGlyph(
+      '<path d="M10.2 3.3L12.7 5.8L5.6 12.9L3.1 13.5L3.7 11Z"/><path d="M9 4.5L11.5 7"/>'
+    ),
+    // Delete — slim archive bin.
+    delete: outfitToolGlyph(
+      '<path d="M3.6 4.7H12.4"/><path d="M6.3 4.7V3.4H9.7V4.7"/><path d="M4.7 4.7L5.3 12.5H10.7L11.3 4.7"/><path d="M7 6.8V10.4"/><path d="M9 6.8V10.4"/>'
+    ),
+    // Duplicate — two offset frames.
+    duplicate: outfitToolGlyph(
+      '<path d="M6 6H12V12H6Z"/><path d="M4 9.4V4H9.4"/>'
+    ),
   };
 
   const STYLING_BOARD_DRAFT_KEY = "timeless-wardrobe-styling-board-draft-v1";
