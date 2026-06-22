@@ -8455,10 +8455,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 .collection-heading.collection-heading--swapping .items-toolbar__page-title {
   animation: tlw-fade-in 0.5s ease 0.05s backwards;
 }
-.collection-heading.collection-heading--swapping .collection-heading__title-cluster .items-toolbar__count-line {
-  --swap-rise: 8px;
-  animation: collection-heading-swap 0.54s var(--ease-luxe) 0.15s backwards;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .collection-heading.collection-heading--swapping .collection-heading__context,
