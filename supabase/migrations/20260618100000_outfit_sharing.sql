@@ -13,8 +13,11 @@ grant select (id, name, notes, slug, is_public, created_at)
   on public.outfits to anon, authenticated;
 
 -- 3. Rebuild RLS on outfits to split read/write permissions.
-drop policy if exists outfits_all_anon    on public.outfits;
-drop policy if exists outfits_all_service on public.outfits;
+drop policy if exists outfits_all_anon       on public.outfits;
+drop policy if exists outfits_all_service    on public.outfits;
+drop policy if exists "outfits_select_public" on public.outfits;
+drop policy if exists "outfits_insert_anon"  on public.outfits;
+drop policy if exists "outfits_all_editor"   on public.outfits;
 
 -- Anon / authenticated may read (column-level grant above limits which columns).
 create policy "outfits_select_public"
@@ -38,8 +41,11 @@ create policy "outfits_all_editor"
 -- Service role is exempt from RLS by default; no policy needed.
 
 -- 4. Rebuild RLS on outfit_items.
-drop policy if exists outfit_items_all_anon    on public.outfit_items;
-drop policy if exists outfit_items_all_service on public.outfit_items;
+drop policy if exists outfit_items_all_anon          on public.outfit_items;
+drop policy if exists outfit_items_all_service       on public.outfit_items;
+drop policy if exists "outfit_items_select_public"   on public.outfit_items;
+drop policy if exists "outfit_items_insert_anon"     on public.outfit_items;
+drop policy if exists "outfit_items_all_editor"      on public.outfit_items;
 
 create policy "outfit_items_select_public"
   on public.outfit_items for select
