@@ -19001,6 +19001,16 @@ a.item-detail__breadcrumb-current {
   .item-detail__related-grid {
     margin-inline: calc(-1 * max(var(--content-inline), env(safe-area-inset-right, 0px)));
     padding-left: max(var(--content-inline), env(safe-area-inset-left, 0px));
+    scroll-padding-left: max(var(--content-inline), env(safe-area-inset-left, 0px));
+  }
+}
+
+/* ≤720px: item-page-main switches to --space-page-inline; match it for the bleed */
+@media (max-width: 720px) {
+  .item-detail__related-grid {
+    margin-inline: calc(-1 * var(--space-page-inline));
+    padding-left: var(--space-page-inline);
+    scroll-padding-left: var(--space-page-inline);
   }
 }
 
@@ -19065,7 +19075,6 @@ a.item-detail__breadcrumb-current {
     flex-direction: row;
     gap: 3rem;
     align-items: start;
-    padding-inline: 1.5rem;
   }
   .item-detail__related-group {
     flex: 1;
