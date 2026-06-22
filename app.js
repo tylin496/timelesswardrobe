@@ -4096,19 +4096,22 @@
   // ── Tab: Notes ───────────────────────────────────────────────────────────────
   let _accountNotesFilter = "all";
   let _accountNotesSearch = "";
+  let _accountNotesSort = "name";
+  let _accountNotesSelectedId = null;
 
   function renderAccountTab_Notes(el) {
     const wrapper = document.createElement("div");
+    wrapper.className = "account-notes-wrapper";
 
+    // ── Toolbar ─────────────────────────────────────────────────────────────────
     const toolbar = document.createElement("div");
     toolbar.className = "account-notes-toolbar";
 
-    const filterDefs = [
-      { key: "all",        label: "All"        },
+    for (const fd of [
+      { key: "all", label: "All" },
       { key: "with-notes", label: "With notes" },
       { key: "no-notes",   label: "No notes"   },
-    ];
-    for (const fd of filterDefs) {
+    ]) {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "account-filter-chip";
@@ -4116,9 +4119,9 @@
       chip.textContent = fd.label;
       chip.addEventListener("click", () => {
         _accountNotesFilter = fd.key;
-        for (const c of toolbar.querySelectorAll(".account-filter-chip")) {
+        toolbar.querySelectorAll(".account-filter-chip").forEach((c) => {
           c.setAttribute("aria-pressed", c === chip ? "true" : "false");
-        }
+        });
         refreshNotesList();
       });
       toolbar.appendChild(chip);
@@ -4127,214 +4130,293 @@
     const search = document.createElement("input");
     search.type = "search";
     search.className = "account-collection-search";
-    search.style.maxWidth = "14rem";
-    search.placeholder = "Filter…";
+    search.style.cssText = "max-width:14rem;flex-shrink:0;";
+    search.placeholder = "Search notes…";
     search.value = _accountNotesSearch;
-    search.addEventListener("input", () => {
-      _accountNotesSearch = search.value;
-      refreshNotesList();
-    });
+    search.addEventListener("input", () => { _accountNotesSearch = search.value; refreshNotesList(); });
     toolbar.appendChild(search);
+
+    const sortSel = document.createElement("select");
+    sortSel.className = "account-filter-select";
+    sortSel.style.cssText = "max-width:11rem;";
+    for (const [v, lbl] of [["name", "A – Z"], ["longest", "Longest first"]]) {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = lbl;
+      sortSel.appendChild(opt);
+    }
+    sortSel.value = _accountNotesSort;
+    sortSel.addEventListener("change", () => { _accountNotesSort = sortSel.value; refreshNotesList(); });
+    toolbar.appendChild(sortSel);
+
     wrapper.appendChild(toolbar);
 
-    // ── Recent Notes panel (top 5 by purchaseDate desc, with notes) ────────────
-    const recentNotes = items
-      .filter((it) => !isFuturePiece(it) && String(it?.notes ?? "").trim())
-      .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
-      .slice(0, 5);
+    // ── Body: list pane + editor pane ────────────────────────────────────────────
+    const body = document.createElement("div");
+    body.className = "account-notes-body";
 
-    if (recentNotes.length && !_accountNotesSearch && _accountNotesFilter === "all") {
-      const recentSection = document.createElement("div");
-      recentSection.className = "account-notes-recent";
+    const listPane = document.createElement("div");
+    listPane.className = "account-notes-list-pane";
 
-      const recentHeading = document.createElement("div");
-      recentHeading.className = "account-overview__section-title";
-      recentHeading.textContent = "Recent Notes";
-      recentSection.appendChild(recentHeading);
+    const editorPane = document.createElement("div");
+    editorPane.className = "account-notes-editor-pane";
 
-      for (const it of recentNotes) {
-        const row = document.createElement("div");
-        row.className = "account-notes-recent__row";
+    body.append(listPane, editorPane);
+    wrapper.appendChild(body);
 
-        const thumb = document.createElement("img");
-        thumb.className = "account-notes-recent__thumb";
-        thumb.src = String(it?.image ?? "");
-        thumb.alt = "";
-        thumb.loading = "lazy";
-        thumb.decoding = "async";
-
-        const body = document.createElement("div");
-        body.className = "account-notes-recent__body";
-
-        const name = document.createElement("div");
-        name.className = "account-notes-recent__name";
-        name.textContent = String(it?.name ?? it?.id ?? "");
-
-        const preview = document.createElement("div");
-        preview.className = "account-notes-recent__preview";
-        const note = String(it?.notes ?? "").trim();
-        preview.textContent = note.length > 140 ? note.slice(0, 140) + "…" : note;
-
-        body.append(name, preview);
-        row.append(thumb, body);
-        recentSection.appendChild(row);
-      }
-      wrapper.appendChild(recentSection);
-    }
-
-    const notesList = document.createElement("div");
-    notesList.className = "account-notes-v2-list";
-    wrapper.appendChild(notesList);
-
+    // ── Filtered + sorted items ──────────────────────────────────────────────────
     function getFilteredItems() {
       const q = _accountNotesSearch.trim().toLowerCase();
-      return items
-        .filter((it) => {
-          if (isFuturePiece(it)) return false;
-          const hasNote = Boolean(String(it?.notes ?? "").trim());
-          if (_accountNotesFilter === "with-notes" && !hasNote) return false;
-          if (_accountNotesFilter === "no-notes" && hasNote) return false;
-          if (q) {
-            const hay = [it?.name, it?.brand, it?.category, it?.notes].map((x) => String(x ?? "").toLowerCase()).join(" ");
-            if (!hay.includes(q)) return false;
-          }
-          return true;
-        })
-        .sort((a, b) => {
-          const an = Boolean(String(a?.notes ?? "").trim());
-          const bn = Boolean(String(b?.notes ?? "").trim());
-          if (an !== bn) return an ? -1 : 1;
-          return String(a?.name ?? "").localeCompare(String(b?.name ?? ""), undefined, { sensitivity: "base" });
-        });
+      const filtered = items.filter((it) => {
+        if (isFuturePiece(it)) return false;
+        const hasNote = Boolean(String(it?.notes ?? "").trim());
+        if (_accountNotesFilter === "with-notes" && !hasNote) return false;
+        if (_accountNotesFilter === "no-notes"   && hasNote)  return false;
+        if (q) {
+          const hay = [it?.name, it?.brand, it?.category, it?.notes]
+            .map((x) => String(x ?? "").toLowerCase()).join(" ");
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+      return filtered.sort((a, b) => {
+        if (_accountNotesSort === "longest") {
+          const aw = String(a?.notes ?? "").trim().split(/\s+/).filter(Boolean).length;
+          const bw = String(b?.notes ?? "").trim().split(/\s+/).filter(Boolean).length;
+          if (aw !== bw) return bw - aw;
+        }
+        const an = Boolean(String(a?.notes ?? "").trim());
+        const bn = Boolean(String(b?.notes ?? "").trim());
+        if (an !== bn) return an ? -1 : 1;
+        return String(a?.name ?? "").localeCompare(String(b?.name ?? ""), undefined, { sensitivity: "base" });
+      });
     }
 
+    // ── Note save helper (shared by desktop + mobile) ────────────────────────────
+    function makeNotesSaver(it, textarea, onStatus) {
+      let notesDebounce = 0;
+      const doSave = async () => {
+        clearTimeout(notesDebounce);
+        const newVal = textarea.value.trim();
+        const oldVal = String(it?.notes ?? "").trim();
+        if (newVal === oldVal) return;
+        onStatus("saving", "Saving…");
+        try {
+          const patch = { ...it, notes: newVal };
+          const saved = await saveWardrobeItemToCloud(patch);
+          upsertWardrobeBaseRowInMemory(saved);
+          it.notes = newVal;
+          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
+            try {
+              const allOv = loadCollectionOverrides();
+              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), notes: newVal };
+              await saveCollectionOverrides(allOv);
+            } catch { /* non-fatal */ }
+          }
+          mergeWardrobeFromSources();
+          onStatus("saved", "Saved");
+          // reflect updated word count in list row
+          const listRow = listPane.querySelector(`[data-item-id="${CSS.escape(String(it.id))}"]`);
+          if (listRow) {
+            const wcEl = listRow.querySelector(".account-notes-v2-wordcount");
+            if (wcEl) {
+              const wc = newVal.split(/\s+/).filter(Boolean).length;
+              wcEl.textContent = wc ? `${wc}w` : "No notes";
+              wcEl.dataset.empty = wc ? "false" : "true";
+            }
+          }
+        } catch (err) {
+          console.warn("[account] notes save failed:", err);
+          onStatus("error", "Save failed");
+        }
+      };
+      textarea.addEventListener("blur", doSave);
+      textarea.addEventListener("input", () => {
+        onStatus("saving", "Saving…");
+        clearTimeout(notesDebounce);
+        notesDebounce = setTimeout(doSave, 1400);
+      });
+    }
+
+    // ── Desktop: right pane editor ───────────────────────────────────────────────
+    function renderEditorPane(it) {
+      editorPane.replaceChildren();
+      if (!it) {
+        const msg = document.createElement("div");
+        msg.className = "account-notes-editor__empty";
+        msg.textContent = "Select a piece to view or edit its notes.";
+        editorPane.appendChild(msg);
+        return;
+      }
+
+      // Item header
+      const header = document.createElement("div");
+      header.className = "account-notes-editor__header";
+
+      const thumb = document.createElement("img");
+      thumb.className = "account-notes-editor__thumb";
+      thumb.src = String(it?.image ?? "");
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      thumb.decoding = "async";
+
+      const hInfo = document.createElement("div");
+      hInfo.className = "account-notes-editor__header-info";
+      const hName = document.createElement("div");
+      hName.className = "account-notes-editor__header-name";
+      hName.textContent = String(it?.name ?? it?.id ?? "");
+      const hMeta = document.createElement("div");
+      hMeta.className = "account-notes-editor__header-meta";
+      hMeta.textContent = [String(it?.brand ?? "").trim(), String(it?.category ?? "").trim(), String(it?.season ?? "").trim()]
+        .filter(Boolean).join(" · ");
+      hInfo.append(hName, hMeta);
+      header.append(thumb, hInfo);
+      editorPane.appendChild(header);
+
+      // Textarea
+      const textarea = document.createElement("textarea");
+      textarea.className = "account-notes-editor__textarea";
+      textarea.value = String(it?.notes ?? "").trim();
+      textarea.placeholder = "Write notes about this piece…";
+
+      const statusEl = document.createElement("span");
+      statusEl.className = "account-notes-v2-status";
+      let saveTimer = 0;
+      makeNotesSaver(it, textarea, (state, msg) => {
+        statusEl.textContent = msg;
+        statusEl.dataset.state = state;
+        if (state === "saved") {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => { statusEl.textContent = ""; statusEl.dataset.state = ""; }, 2200);
+        }
+      });
+
+      const wordCountEl = document.createElement("span");
+      wordCountEl.className = "account-notes-editor__wordcount";
+      const updateWC = () => {
+        const wc = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+        wordCountEl.textContent = wc ? `${wc} words` : "";
+      };
+      updateWC();
+      textarea.addEventListener("input", updateWC);
+
+      const footer = document.createElement("div");
+      footer.className = "account-notes-editor__footer";
+      footer.append(wordCountEl, statusEl);
+
+      editorPane.append(textarea, footer);
+    }
+
+    // ── List rows ────────────────────────────────────────────────────────────────
     let expandedIds = new Set();
 
-    function refreshNotesList() {
-      notesList.replaceChildren();
-      for (const it of getFilteredItems()) {
-        notesList.appendChild(buildNotesRow(it));
-      }
-    }
-
-    function buildNotesRow(it) {
+    function buildListRow(it) {
       const row = document.createElement("div");
-      row.className = "account-notes-v2-row";
+      row.className = "account-notes-list-row";
+      row.dataset.itemId = String(it.id);
+      row.setAttribute("role", "button");
+      row.setAttribute("tabindex", "0");
 
-      const head = document.createElement("div");
-      head.className = "account-notes-v2-head";
-      head.setAttribute("role", "button");
-      head.setAttribute("tabindex", "0");
+      const thumb = document.createElement("img");
+      thumb.className = "account-notes-list-row__thumb";
+      thumb.src = String(it?.image ?? "");
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      thumb.decoding = "async";
 
-      const nameEl = document.createElement("span");
+      const info = document.createElement("div");
+      info.className = "account-notes-list-row__info";
+      const nameEl = document.createElement("div");
       nameEl.className = "account-notes-v2-name";
       nameEl.textContent = String(it?.name ?? it?.id ?? "");
-
-      const brandEl = document.createElement("span");
+      const brandEl = document.createElement("div");
       brandEl.className = "account-notes-v2-brand";
       brandEl.textContent = String(it?.brand ?? "").trim();
+      info.append(nameEl, brandEl);
 
       const noteText = String(it?.notes ?? "").trim();
-      const wordCount = noteText ? noteText.split(/\s+/).filter(Boolean).length : 0;
-      const wordCountEl = document.createElement("span");
-      wordCountEl.className = "account-notes-v2-wordcount";
-      wordCountEl.textContent = wordCount ? `${wordCount}w` : "No notes";
-      wordCountEl.dataset.empty = wordCount ? "false" : "true";
+      const wc = noteText ? noteText.split(/\s+/).filter(Boolean).length : 0;
+      const wcEl = document.createElement("span");
+      wcEl.className = "account-notes-v2-wordcount";
+      wcEl.textContent = wc ? `${wc}w` : "No notes";
+      wcEl.dataset.empty = wc ? "false" : "true";
 
-      const status = document.createElement("span");
-      status.className = "account-notes-v2-status";
+      row.append(thumb, info, wcEl);
 
-      head.append(nameEl, brandEl, wordCountEl, status);
-      row.appendChild(head);
+      // Mobile expand-in-place body (hidden on desktop)
+      const mobileBody = document.createElement("div");
+      mobileBody.className = "account-notes-list-row__mobile-body";
+      mobileBody.hidden = true;
+      row.appendChild(mobileBody);
 
-      const body = document.createElement("div");
-      body.className = "account-notes-v2-body";
-      const hasNote = Boolean(String(it?.notes ?? "").trim());
-      const isExpanded = expandedIds.has(String(it.id));
-
-      if (isExpanded) {
-        const textarea = document.createElement("textarea");
-        textarea.className = "account-notes-v2-textarea";
-        textarea.value = String(it?.notes ?? "").trim();
-        textarea.placeholder = "No notes yet…";
-
-        let saveTimer = 0;
-        const setStatus = (state, msg) => {
-          status.textContent = msg;
-          status.dataset.state = state;
-          if (state === "saved") {
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(() => { status.textContent = ""; status.dataset.state = ""; }, 2200);
-          }
-        };
-
-        let notesDebounce = 0;
-        const doNotesSave = async () => {
-          clearTimeout(notesDebounce);
-          const newVal = textarea.value.trim();
-          const oldVal = String(it?.notes ?? "").trim();
-          if (newVal === oldVal) return;
-          setStatus("saving", "Saving…");
-          try {
-            const patch = { ...it, notes: newVal };
-            const saved = await saveWardrobeItemToCloud(patch);
-            upsertWardrobeBaseRowInMemory(saved);
-            it.notes = newVal;
-            if (isLocalCatalogueItemId(String(it.id ?? ""))) {
-              try {
-                const allOv = loadCollectionOverrides();
-                allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), notes: newVal };
-                await saveCollectionOverrides(allOv);
-              } catch { /* non-fatal */ }
-            }
-            mergeWardrobeFromSources();
-            setStatus("saved", "Saved");
-          } catch (err) {
-            console.warn("[account] notes save failed:", err);
-            setStatus("error", "Save failed");
-          }
-        };
-        textarea.addEventListener("blur", doNotesSave);
-        textarea.addEventListener("input", () => {
-          setStatus("saving", "Saving…");
-          clearTimeout(notesDebounce);
-          notesDebounce = setTimeout(doNotesSave, 1400);
-        });
-
-        requestAnimationFrame(() => {
-          textarea.style.height = "auto";
-          textarea.style.height = `${textarea.scrollHeight}px`;
-          textarea.focus();
-        });
-        body.appendChild(textarea);
-      } else if (hasNote) {
-        const preview = document.createElement("div");
-        preview.className = "account-notes-v2-preview";
-        const text = String(it?.notes ?? "").trim();
-        preview.textContent = text.length > 120 ? text.slice(0, 120) + "…" : text;
-        body.appendChild(preview);
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "account-notes-v2-empty";
-        empty.textContent = "Click to add a note";
-        body.appendChild(empty);
-      }
-      row.appendChild(body);
-
-      function toggle() {
-        if (expandedIds.has(String(it.id))) {
-          expandedIds.delete(String(it.id));
+      row.addEventListener("click", () => {
+        if (window.matchMedia("(min-width: 1024px)").matches) {
+          _accountNotesSelectedId = String(it.id);
+          listPane.querySelectorAll(".account-notes-list-row").forEach((r) => {
+            r.setAttribute("aria-selected", String(r.dataset.itemId === _accountNotesSelectedId));
+          });
+          renderEditorPane(it);
         } else {
-          expandedIds.add(String(it.id));
+          // mobile: expand-in-place
+          if (expandedIds.has(String(it.id))) {
+            expandedIds.delete(String(it.id));
+            mobileBody.replaceChildren();
+            mobileBody.hidden = true;
+          } else {
+            expandedIds.add(String(it.id));
+            mobileBody.hidden = false;
+            const statusEl = document.createElement("span");
+            statusEl.className = "account-notes-v2-status";
+            let saveTimer = 0;
+            const textarea = document.createElement("textarea");
+            textarea.className = "account-notes-v2-textarea";
+            textarea.value = noteText;
+            textarea.placeholder = "No notes yet…";
+            makeNotesSaver(it, textarea, (state, msg) => {
+              statusEl.textContent = msg;
+              statusEl.dataset.state = state;
+              if (state === "saved") {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => { statusEl.textContent = ""; statusEl.dataset.state = ""; }, 2200);
+              }
+            });
+            requestAnimationFrame(() => {
+              textarea.style.height = "auto";
+              textarea.style.height = `${textarea.scrollHeight}px`;
+              textarea.focus();
+            });
+            mobileBody.append(statusEl, textarea);
+          }
         }
-        const updated = buildNotesRow(it);
-        row.replaceWith(updated);
-      }
-
-      head.addEventListener("click", toggle);
-      head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      });
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); row.click(); }
+      });
 
       return row;
+    }
+
+    // ── Refresh ──────────────────────────────────────────────────────────────────
+    function refreshNotesList() {
+      listPane.replaceChildren();
+      const filtered = getFilteredItems();
+      for (const it of filtered) {
+        listPane.appendChild(buildListRow(it));
+      }
+      // Desktop: auto-select and render editor
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const existing = _accountNotesSelectedId
+          ? filtered.find((it) => String(it.id) === _accountNotesSelectedId)
+          : null;
+        const target = existing
+          ?? filtered.find((it) => String(it?.notes ?? "").trim())
+          ?? filtered[0]
+          ?? null;
+        if (target) _accountNotesSelectedId = String(target.id);
+        renderEditorPane(target);
+        listPane.querySelectorAll(".account-notes-list-row").forEach((r) => {
+          r.setAttribute("aria-selected", String(r.dataset.itemId === _accountNotesSelectedId));
+        });
+      }
     }
 
     refreshNotesList();
