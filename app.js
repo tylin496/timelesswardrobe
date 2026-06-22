@@ -3710,8 +3710,38 @@
     const countLabel = document.createElement("span");
     countLabel.className = "account-collection-count";
 
-    toolbar.append(search, brandSel, catSel, seasonSel, statusSel, clearBtn, countLabel, addBtn);
+    // Mobile filter toggle button (hidden on desktop via CSS)
+    const filterToggleBtn = document.createElement("button");
+    filterToggleBtn.type = "button";
+    filterToggleBtn.className = "account-filters-toggle";
+    const filterBadge = document.createElement("span");
+    filterBadge.className = "account-filters-toggle-badge";
+    filterToggleBtn.append("Filters", filterBadge);
+
+    function updateFilterBadge() {
+      const n = [_accountCollectionBrand, _accountCollectionCategory, _accountCollectionSeason, _accountCollectionStatus].filter(Boolean).length;
+      filterBadge.textContent = n > 0 ? ` ${n}` : "";
+      filterBadge.hidden = n === 0;
+      // Auto-open panel when a filter is active on mobile
+      if (n > 0) filtersGroup.dataset.open = "true";
+    }
+
+    filterToggleBtn.addEventListener("click", () => {
+      const open = filtersGroup.dataset.open === "true";
+      filtersGroup.dataset.open = open ? "false" : "true";
+    });
+
+    // Wrap the 4 selects + clear in a group (collapsible on mobile, contents on desktop)
+    const filtersGroup = document.createElement("div");
+    filtersGroup.className = "account-collection-filters-group";
+    filtersGroup.dataset.open = "false";
+    filtersGroup.append(brandSel, catSel, seasonSel, statusSel, clearBtn);
+
+    toolbar.append(search, filterToggleBtn, filtersGroup, countLabel, addBtn);
     wrapper.appendChild(toolbar);
+
+    // Sync badge on initial render
+    updateFilterBadge();
 
     // Layout: list + drawer
     const layout = document.createElement("div");
@@ -3806,14 +3836,15 @@
     }
 
     search.addEventListener("input", () => { _accountCollectionSearch = search.value; refreshList(); });
-    brandSel.addEventListener("change",  () => { _accountCollectionBrand    = brandSel.value;  refreshList(); });
-    catSel.addEventListener("change",    () => { _accountCollectionCategory = catSel.value;    refreshList(); });
-    seasonSel.addEventListener("change", () => { _accountCollectionSeason   = seasonSel.value; refreshList(); });
-    statusSel.addEventListener("change", () => { _accountCollectionStatus   = statusSel.value; refreshList(); });
+    brandSel.addEventListener("change",  () => { _accountCollectionBrand    = brandSel.value;  updateFilterBadge(); refreshList(); });
+    catSel.addEventListener("change",    () => { _accountCollectionCategory = catSel.value;    updateFilterBadge(); refreshList(); });
+    seasonSel.addEventListener("change", () => { _accountCollectionSeason   = seasonSel.value; updateFilterBadge(); refreshList(); });
+    statusSel.addEventListener("change", () => { _accountCollectionStatus   = statusSel.value; updateFilterBadge(); refreshList(); });
     clearBtn.addEventListener("click",   () => {
       _accountCollectionSearch = _accountCollectionBrand = _accountCollectionCategory = _accountCollectionSeason = _accountCollectionStatus = "";
       search.value = "";
       brandSel.value = catSel.value = seasonSel.value = statusSel.value = "";
+      updateFilterBadge();
       refreshList();
     });
 
