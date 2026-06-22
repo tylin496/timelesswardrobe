@@ -11007,6 +11007,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
 }
 
+/* While bled, inset the strip's leading edge by the same gutter so at rest
+   (scrollLeft 0) the first card still lines up with the heading; cards bleed
+   past the drawer edge only once you start scrolling. Only when scrollable —
+   the non-bled state already sits at the content edge. */
+.styling-board-drawer .styling-board__current.is-rail-scrollable #outfit-strip,
+.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__pieces.outfit-strip {
+  padding-inline-start: calc(env(safe-area-inset-left, 0px) + var(--styling-board-scroll-inline));
+}
+
 .styling-board-drawer .styling-board__board-stack {
   position: relative;
   display: block;
