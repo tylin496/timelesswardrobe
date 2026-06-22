@@ -25053,6 +25053,79 @@ body.editorial-page #editorial-root {
   margin-top: 0.1rem;
 }
 
+/* activity feed rows (recently added / recent notes) */
+.account-overview__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.account-overview__activity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.3rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.1s;
+}
+
+.account-overview__activity-row--note {
+  cursor: pointer;
+  align-items: flex-start;
+}
+
+.account-overview__activity-row:hover {
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+.account-overview__activity-thumb {
+  width: 32px;
+  height: 42px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.account-overview__activity-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-overview__activity-name {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.account-overview__activity-meta {
+  font-size: 0.69rem;
+  color: var(--ink-muted);
+  margin-top: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-overview__activity-preview {
+  font-size: 0.69rem;
+  color: var(--ink-muted);
+  margin-top: 0.15rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* distribution bar rows (categories + brands) */
 .account-overview__dist {
   display: flex;

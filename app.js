@@ -3208,18 +3208,64 @@
     }).length;
     const noBrandCount = ownedItems.filter((it) => !String(it?.brand ?? "").trim()).length;
 
+    // helper: create a section title element
+    function mkTitle(text, mt) {
+      const t = document.createElement("div");
+      t.className = "account-overview__section-title";
+      if (mt) t.style.marginTop = mt;
+      t.textContent = text;
+      return t;
+    }
+
+    // helper: build a 2-col row container
+    function mkRow() {
+      const r = document.createElement("div");
+      r.className = "account-overview__body";
+      const l = document.createElement("div");
+      l.className = "account-overview__col";
+      const ri = document.createElement("div");
+      ri.className = "account-overview__col";
+      r.append(l, ri);
+      return { row: r, left: l, right: ri };
+    }
+
+    // helper: build a proportional bar-chart distribution list
+    function mkDist(entries /* [[label, count]] */) {
+      const max = entries.length ? entries[0][1] : 1;
+      const list = document.createElement("div");
+      list.className = "account-overview__dist";
+      for (const [lbl, cnt] of entries) {
+        const row = document.createElement("div");
+        row.className = "account-overview__dist-row";
+        const lblEl = document.createElement("span");
+        lblEl.className = "account-overview__dist-label";
+        lblEl.textContent = lbl;
+        const barWrap = document.createElement("div");
+        barWrap.className = "account-overview__dist-bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = "account-overview__dist-bar";
+        bar.style.width = `${Math.round((cnt / max) * 100)}%`;
+        barWrap.appendChild(bar);
+        const cntEl = document.createElement("span");
+        cntEl.className = "account-overview__dist-count";
+        cntEl.textContent = String(cnt);
+        row.append(lblEl, barWrap, cntEl);
+        list.appendChild(row);
+      }
+      return list;
+    }
+
     // ── Stats grid (full width) ─────────────────────────────────────────────────
+    const notesPct    = ownedItems.length ? Math.round((notesCount    / ownedItems.length) * 100) : 0;
+    const showcasePct = ownedItems.length ? Math.round((showcaseCount / ownedItems.length) * 100) : 0;
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
-    const notesPct = ownedItems.length ? Math.round((notesCount / ownedItems.length) * 100) : 0;
-    const showcasePct = ownedItems.length ? Math.round((showcaseCount / ownedItems.length) * 100) : 0;
-    const stats = [
+    for (const s of [
       { n: ownedItems.length, label: "Pieces"                            },
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
       { n: futureCount,       label: "Wishlist"                          },
-    ];
-    for (const s of stats) {
+    ]) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
       const n = document.createElement("div");
@@ -3239,209 +3285,199 @@
     }
     wrapper.appendChild(statsGrid);
 
-    // ── Recently Added (full width) ─────────────────────────────────────────────
-    const recentlyAdded = ownedItems
-      .filter((it) => String(it?.purchaseDate ?? "").trim())
-      .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
-      .slice(0, 12);
+    // ── Row 1: Collection Health | Acquisition Timeline ─────────────────────────
+    {
+      const { row, left, right } = mkRow();
 
-    if (recentlyAdded.length) {
-      const recentTitle = document.createElement("div");
-      recentTitle.className = "account-overview__section-title";
-      recentTitle.textContent = "Recently Added";
-      wrapper.appendChild(recentTitle);
-
-      const recentRow = document.createElement("div");
-      recentRow.className = "account-recently-added";
-      for (const it of recentlyAdded) {
-        const card = document.createElement("a");
-        card.className = "account-recently-added__card";
-        card.href = `/item/${encodeURIComponent(String(it?.id ?? ""))}`;
-
-        const thumb = document.createElement("img");
-        thumb.className = "account-recently-added__thumb";
-        thumb.src = String(it?.image ?? "");
-        thumb.alt = "";
-        thumb.loading = "lazy";
-        thumb.decoding = "async";
-
-        const name = document.createElement("div");
-        name.className = "account-recently-added__name";
-        name.textContent = String(it?.name ?? it?.id ?? "");
-
-        const meta = document.createElement("div");
-        meta.className = "account-recently-added__meta";
-        const brand = String(it?.brand ?? "").trim();
-        const year = it?.purchaseDate ? new Date(it.purchaseDate).getFullYear() : "";
-        meta.textContent = [brand, year].filter(Boolean).join(" · ");
-
-        card.append(thumb, name, meta);
-        recentRow.appendChild(card);
+      // Health
+      const healthDefs = [
+        { label: "Missing Notes", count: noNotesCount, filter: "no-notes" },
+        { label: "Missing Price", count: noPriceCount, filter: "no-price" },
+        { label: "Missing Brand", count: noBrandCount, filter: "no-brand" },
+      ];
+      const healthList = document.createElement("div");
+      healthList.className = "account-health-list";
+      for (const h of healthDefs) {
+        const row2 = document.createElement("a");
+        row2.className = "account-health-row";
+        row2.href = "#collection";
+        row2.addEventListener("click", () => setTimeout(() => applyAccountCollectionFilter(h.filter), 50));
+        const dot = document.createElement("span");
+        dot.className = "account-health-dot" + (h.count === 0 ? " account-health-dot--ok" : " account-health-dot--warn");
+        const label = document.createElement("span");
+        label.className = "account-health-label";
+        label.textContent = h.label;
+        const count = document.createElement("span");
+        count.className = "account-health-count";
+        count.textContent = `${h.count} piece${h.count === 1 ? "" : "s"}`;
+        const arrow = document.createElement("span");
+        arrow.className = "account-health-arrow";
+        arrow.textContent = "→";
+        row2.append(dot, label, count, arrow);
+        healthList.appendChild(row2);
       }
-      wrapper.appendChild(recentRow);
-    }
+      left.append(mkTitle("Collection Health"), healthList);
 
-    // ── Two-column body (Health/Categories left · Timeline/Brands right) ────────
-    const body = document.createElement("div");
-    body.className = "account-overview__body";
-
-    const leftCol = document.createElement("div");
-    leftCol.className = "account-overview__col";
-
-    const rightCol = document.createElement("div");
-    rightCol.className = "account-overview__col";
-
-    // ── Left: Collection Health ─────────────────────────────────────────────────
-    const healthTitle = document.createElement("div");
-    healthTitle.className = "account-overview__section-title";
-    healthTitle.textContent = "Collection Health";
-
-    const healthDefs = [
-      { label: "No notes",      count: noNotesCount, filter: "no-notes" },
-      { label: "No price",      count: noPriceCount, filter: "no-price" },
-      { label: "Missing brand", count: noBrandCount, filter: "no-brand" },
-    ];
-    const healthList = document.createElement("div");
-    healthList.className = "account-health-list";
-    for (const h of healthDefs) {
-      const row = document.createElement("a");
-      row.className = "account-health-row";
-      row.href = "#collection";
-      row.addEventListener("click", () => setTimeout(() => applyAccountCollectionFilter(h.filter), 50));
-      const dot = document.createElement("span");
-      dot.className = "account-health-dot" + (h.count === 0 ? " account-health-dot--ok" : " account-health-dot--warn");
-      const label = document.createElement("span");
-      label.className = "account-health-label";
-      label.textContent = h.label;
-      const count = document.createElement("span");
-      count.className = "account-health-count";
-      count.textContent = `${h.count} piece${h.count === 1 ? "" : "s"}`;
-      const arrow = document.createElement("span");
-      arrow.className = "account-health-arrow";
-      arrow.textContent = "→";
-      row.append(dot, label, count, arrow);
-      healthList.appendChild(row);
-    }
-    leftCol.append(healthTitle, healthList);
-
-    // ── Left: Category Distribution ─────────────────────────────────────────────
-    const catCounts = new Map();
-    for (const it of ownedItems) {
-      const c = String(it?.category ?? "").trim();
-      if (c) catCounts.set(c, (catCounts.get(c) || 0) + 1);
-    }
-    const topCats = [...catCounts.entries()].sort((a, b) => b[1] - a[1]);
-    if (topCats.length) {
-      const catTitle = document.createElement("div");
-      catTitle.className = "account-overview__section-title";
-      catTitle.style.marginTop = "clamp(1.5rem, 3vw, 2rem)";
-      catTitle.textContent = "By Category";
-
-      const maxCat = topCats[0][1];
-      const catList = document.createElement("div");
-      catList.className = "account-overview__dist";
-      for (const [cat, cnt] of topCats) {
-        const row = document.createElement("div");
-        row.className = "account-overview__dist-row";
-
-        const catLbl = document.createElement("span");
-        catLbl.className = "account-overview__dist-label";
-        catLbl.textContent = cat;
-
-        const barWrap = document.createElement("div");
-        barWrap.className = "account-overview__dist-bar-wrap";
-        const bar = document.createElement("div");
-        bar.className = "account-overview__dist-bar";
-        bar.style.width = `${Math.round((cnt / maxCat) * 100)}%`;
-        barWrap.appendChild(bar);
-
-        const cntLbl = document.createElement("span");
-        cntLbl.className = "account-overview__dist-count";
-        cntLbl.textContent = String(cnt);
-
-        row.append(catLbl, barWrap, cntLbl);
-        catList.appendChild(row);
+      // Timeline
+      const yearCounts = new Map();
+      for (const it of ownedItems) {
+        const pd = String(it?.purchaseDate ?? "").trim();
+        if (!pd) continue;
+        const yr = new Date(pd).getFullYear();
+        if (yr && yr > 2000 && yr <= new Date().getFullYear()) {
+          yearCounts.set(yr, (yearCounts.get(yr) || 0) + 1);
+        }
       }
-      leftCol.append(catTitle, catList);
-    }
-
-    // ── Right: Collection Timeline ──────────────────────────────────────────────
-    const yearCounts = new Map();
-    for (const it of ownedItems) {
-      const pd = String(it?.purchaseDate ?? "").trim();
-      if (!pd) continue;
-      const yr = new Date(pd).getFullYear();
-      if (yr && yr > 2000 && yr <= new Date().getFullYear()) {
-        yearCounts.set(yr, (yearCounts.get(yr) || 0) + 1);
+      if (yearCounts.size >= 2) {
+        const timeline = document.createElement("div");
+        timeline.className = "account-timeline";
+        const maxCnt = Math.max(...yearCounts.values());
+        for (const yr of [...yearCounts.keys()].sort((a, b) => a - b)) {
+          const cnt = yearCounts.get(yr);
+          const trow = document.createElement("div");
+          trow.className = "account-timeline__row";
+          const yearLbl = document.createElement("span");
+          yearLbl.className = "account-timeline__year";
+          yearLbl.textContent = String(yr);
+          const barWrap = document.createElement("div");
+          barWrap.className = "account-timeline__bar-wrap";
+          const bar = document.createElement("div");
+          bar.className = "account-timeline__bar";
+          bar.style.width = `${Math.round((cnt / maxCnt) * 100)}%`;
+          barWrap.appendChild(bar);
+          const cntLbl = document.createElement("span");
+          cntLbl.className = "account-timeline__count";
+          cntLbl.textContent = String(cnt);
+          trow.append(yearLbl, barWrap, cntLbl);
+          timeline.appendChild(trow);
+        }
+        right.append(mkTitle("Acquisition Timeline"), timeline);
       }
-    }
-    if (yearCounts.size >= 2) {
-      const timelineTitle = document.createElement("div");
-      timelineTitle.className = "account-overview__section-title";
-      timelineTitle.textContent = "Acquisition Timeline";
 
-      const timeline = document.createElement("div");
-      timeline.className = "account-timeline";
-      const maxCount = Math.max(...yearCounts.values());
-      const years = [...yearCounts.keys()].sort((a, b) => a - b);
-      for (const yr of years) {
-        const cnt = yearCounts.get(yr);
-        const row = document.createElement("div");
-        row.className = "account-timeline__row";
-        const yearLbl = document.createElement("span");
-        yearLbl.className = "account-timeline__year";
-        yearLbl.textContent = String(yr);
-        const barWrap = document.createElement("div");
-        barWrap.className = "account-timeline__bar-wrap";
-        const bar = document.createElement("div");
-        bar.className = "account-timeline__bar";
-        bar.style.width = `${Math.round((cnt / maxCount) * 100)}%`;
-        barWrap.appendChild(bar);
-        const countLbl = document.createElement("span");
-        countLbl.className = "account-timeline__count";
-        countLbl.textContent = String(cnt);
-        row.append(yearLbl, barWrap, countLbl);
-        timeline.appendChild(row);
+      wrapper.appendChild(row);
+    }
+
+    // ── Row 2: By Category (all) | Top Brands (top 10) ─────────────────────────
+    {
+      const { row, left, right } = mkRow();
+      row.style.marginTop = "clamp(1.75rem, 3vw, 2.5rem)";
+
+      // Categories
+      const catCounts = new Map();
+      for (const it of ownedItems) {
+        const c = String(it?.category ?? "").trim();
+        if (c) catCounts.set(c, (catCounts.get(c) || 0) + 1);
       }
-      rightCol.append(timelineTitle, timeline);
-    }
-
-    // ── Right: Top Brands ───────────────────────────────────────────────────────
-    const topBrands = twDistinctBrandCounts()
-      .filter((b) => !b.name.toLowerCase().includes("future"))
-      .slice(0, 10);
-    if (topBrands.length) {
-      const brandsTitle = document.createElement("div");
-      brandsTitle.className = "account-overview__section-title";
-      brandsTitle.style.marginTop = "clamp(1.5rem, 3vw, 2rem)";
-      brandsTitle.textContent = "Top Brands";
-
-      const maxBrand = topBrands[0].count;
-      const brandsList = document.createElement("div");
-      brandsList.className = "account-overview__dist";
-      for (const { name: bName, count: bCnt } of topBrands) {
-        const row = document.createElement("div");
-        row.className = "account-overview__dist-row";
-        const lbl = document.createElement("span");
-        lbl.className = "account-overview__dist-label";
-        lbl.textContent = bName;
-        const barWrap = document.createElement("div");
-        barWrap.className = "account-overview__dist-bar-wrap";
-        const bar = document.createElement("div");
-        bar.className = "account-overview__dist-bar";
-        bar.style.width = `${Math.round((bCnt / maxBrand) * 100)}%`;
-        barWrap.appendChild(bar);
-        const cntLbl = document.createElement("span");
-        cntLbl.className = "account-overview__dist-count";
-        cntLbl.textContent = String(bCnt);
-        row.append(lbl, barWrap, cntLbl);
-        brandsList.appendChild(row);
+      const allCats = [...catCounts.entries()].sort((a, b) => b[1] - a[1]);
+      if (allCats.length) {
+        left.append(mkTitle("By Category"), mkDist(allCats));
       }
-      rightCol.append(brandsTitle, brandsList);
+
+      // Top Brands
+      const topBrands = twDistinctBrandCounts()
+        .filter((b) => !b.name.toLowerCase().startsWith("future"))
+        .slice(0, 10)
+        .map(({ name: n, count: c }) => [n, c]);
+      if (topBrands.length) {
+        right.append(mkTitle("Top Brands"), mkDist(topBrands));
+      }
+
+      wrapper.appendChild(row);
     }
 
-    body.append(leftCol, rightCol);
-    wrapper.appendChild(body);
+    // ── Row 3: Recently Added | Recently Updated Notes ──────────────────────────
+    {
+      const { row, left, right } = mkRow();
+      row.style.marginTop = "clamp(1.75rem, 3vw, 2.5rem)";
+
+      // Recently Added — compact vertical list
+      const recentlyAdded = ownedItems
+        .filter((it) => String(it?.purchaseDate ?? "").trim())
+        .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
+        .slice(0, 8);
+      if (recentlyAdded.length) {
+        const addedList = document.createElement("div");
+        addedList.className = "account-overview__activity";
+        for (const it of recentlyAdded) {
+          const entry = document.createElement("a");
+          entry.className = "account-overview__activity-row";
+          entry.href = `/item/${encodeURIComponent(String(it?.id ?? ""))}`;
+
+          const thumb = document.createElement("img");
+          thumb.className = "account-overview__activity-thumb";
+          thumb.src = String(it?.image ?? "");
+          thumb.alt = "";
+          thumb.loading = "lazy";
+          thumb.decoding = "async";
+
+          const info = document.createElement("div");
+          info.className = "account-overview__activity-info";
+
+          const name = document.createElement("div");
+          name.className = "account-overview__activity-name";
+          name.textContent = String(it?.name ?? it?.id ?? "");
+
+          const meta = document.createElement("div");
+          meta.className = "account-overview__activity-meta";
+          const brand = String(it?.brand ?? "").trim();
+          const year = it?.purchaseDate ? new Date(it.purchaseDate).getFullYear() : "";
+          meta.textContent = [brand, year].filter(Boolean).join(" · ");
+
+          info.append(name, meta);
+          entry.append(thumb, info);
+          addedList.appendChild(entry);
+        }
+        left.append(mkTitle("Recently Added"), addedList);
+      }
+
+      // Recently Updated Notes — items with notes, sorted by purchaseDate desc
+      const recentNotes = ownedItems
+        .filter((it) => String(it?.notes ?? "").trim())
+        .sort((a, b) => String(b?.purchaseDate ?? "").localeCompare(String(a?.purchaseDate ?? "")))
+        .slice(0, 8);
+      if (recentNotes.length) {
+        const notesList = document.createElement("div");
+        notesList.className = "account-overview__activity";
+        for (const it of recentNotes) {
+          const entry = document.createElement("div");
+          entry.className = "account-overview__activity-row account-overview__activity-row--note";
+          entry.setAttribute("role", "button");
+          entry.setAttribute("tabindex", "0");
+          entry.addEventListener("click", () => {
+            history.pushState(null, "", "/account#notes");
+            _accountCurrentTab = "notes";
+            const contentEl = document.querySelector(".account-tab-content");
+            if (contentEl) renderAccountActiveTab(contentEl);
+          });
+
+          const thumb = document.createElement("img");
+          thumb.className = "account-overview__activity-thumb";
+          thumb.src = String(it?.image ?? "");
+          thumb.alt = "";
+          thumb.loading = "lazy";
+          thumb.decoding = "async";
+
+          const info = document.createElement("div");
+          info.className = "account-overview__activity-info";
+
+          const name = document.createElement("div");
+          name.className = "account-overview__activity-name";
+          name.textContent = String(it?.name ?? it?.id ?? "");
+
+          const preview = document.createElement("div");
+          preview.className = "account-overview__activity-preview";
+          const note = String(it?.notes ?? "").trim();
+          preview.textContent = note.length > 90 ? note.slice(0, 90) + "…" : note;
+
+          info.append(name, preview);
+          entry.append(thumb, info);
+          notesList.appendChild(entry);
+        }
+        right.append(mkTitle("Recent Notes"), notesList);
+      }
+
+      wrapper.appendChild(row);
+    }
 
     el.appendChild(wrapper);
   }
