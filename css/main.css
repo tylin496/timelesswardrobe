@@ -21658,6 +21658,47 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
+/* Hero entrance — a single, near-imperceptible settle, eyebrow → title → line → CTA.
+   This is the home page's one "chapter opening". The content below (Collection
+   Highlights, Category) stays deliberately static, with motion living only in card
+   hover — the register of a permanent catalogue / lookbook (The Armoury, Drake's,
+   Anderson & Sheppard), not a brand campaign. So: tiny 6px drift, the eye should
+   register the copy as having arrived, not as having animated.
+   Hero-local keyframe so the shared tlw-fade-up (16px, used by #grid cards) is untouched.
+   backwards fill (never both/forwards) per the tlw-fade-up contract: holds the
+   pre-start hide through the delay, then reverts to the base transform: none. */
+@keyframes tlw-hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body.home-page .ed-lp__hero-eyebrow,
+  body.home-page .ed-lp__hero-title,
+  body.home-page .ed-lp__hero-line,
+  body.home-page .ed-lp__hero-cta {
+    animation: tlw-hero-rise 0.95s cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  }
+  body.home-page .ed-lp__hero-eyebrow {
+    animation-delay: 0.14s;
+  }
+  body.home-page .ed-lp__hero-title {
+    animation-delay: 0.28s;
+  }
+  body.home-page .ed-lp__hero-line {
+    animation-delay: 0.42s;
+  }
+  body.home-page .ed-lp__hero-cta {
+    animation-delay: 0.56s;
+  }
+}
+
 /* Desktop hero — eyebrow, body copy, CTA all 110% of shared base (mobile ≤767px unchanged). */
 @media (min-width: 768px) {
   .ed-lp__hero-inner {
