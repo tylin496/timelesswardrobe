@@ -11264,7 +11264,12 @@
     function syncUi() {
       const el = getScrollEl();
       const max = scrollMax();
-      const canScroll = max > 4;
+      // Outfit strip: only surface the rail once there's meaningful overflow
+      // (~half a card). When the cards nearly fit, a near-full bar with a
+      // permanent right gap just reads as confusing dead space — hide it instead.
+      // The strip can still be nudge-scrolled natively; it just shows no rail.
+      const minScroll = isOutfitStripRailScroller(scroller) ? 56 : 4;
+      const canScroll = max > minScroll;
       const atStart = el.scrollLeft <= 2;
       const atEnd = canScroll && el.scrollLeft >= max - 2;
       if (track instanceof HTMLElement) {
