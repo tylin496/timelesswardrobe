@@ -9906,7 +9906,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
     --outfit-stagger-y: 0px;
-    --outfit-slot-h: 10.5rem;
+    --outfit-slot-h: 9.25rem;
     flex: 0 0 6.5rem;
     width: 6.5rem;
     min-width: 6.5rem;
@@ -10854,12 +10854,12 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 @media (min-width: 901px) {
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
-    --outfit-slot-h: 8.85rem;
+    --outfit-slot-h: 7.8rem;
   }
 
   .styling-board-drawer .outfit-slot {
-    --outfit-slot-h: 8.85rem;
-    --outfit-thumb-h: 5.85rem;
+    --outfit-slot-h: 7.8rem;
+    --outfit-thumb-h: 5.15rem;
   }
 
   .outfit-slot--drag-avatar {
@@ -11580,6 +11580,19 @@ body.tw-outfit-drag-active * {
   line-height: 1.3;
   letter-spacing: 0.02em;
   color: color-mix(in srgb, var(--sb-ink-muted) 92%, transparent);
+}
+
+.styling-board-drawer .saved-card__date {
+  margin: 0.04rem 0 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.56rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--sb-ink-muted) 72%, transparent);
 }
 
 .styling-board-drawer .saved-card__actions {

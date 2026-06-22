@@ -23443,7 +23443,12 @@
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
       const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
-      meta.textContent = [notesSnip, `${n} piece${n === 1 ? "" : "s"}`, dateStr].filter(Boolean).join(" · ");
+      // Date drops to its own line so the cutout flatlay stays the focus and the
+      // header reads name → pieces → date rather than one heavy meta string.
+      meta.textContent = [notesSnip, `${n} piece${n === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
+      const dateLine = document.createElement("p");
+      dateLine.className = "saved-card__date";
+      dateLine.textContent = dateStr;
 
       const flatlay = document.createElement("div");
       flatlay.className = "saved-card__flatlay";
@@ -23535,7 +23540,7 @@
       body.className = "saved-card__body";
       const info = document.createElement("div");
       info.className = "saved-card__info";
-      info.append(title, meta);
+      info.append(title, meta, dateLine);
       body.append(info, act);
       card.append(body, flatlay);
       li.appendChild(card);
