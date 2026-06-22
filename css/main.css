@@ -22569,6 +22569,7 @@ video.ed-lp__hero-layer-video {
   top: 50%;
   height: 2px;
   min-width: 4.5rem;
+  max-width: 30%;
   width: 28%;
   background: var(--ink);
   transform: translateY(-50%);
