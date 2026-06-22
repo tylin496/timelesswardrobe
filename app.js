@@ -13205,12 +13205,18 @@
     };
 
     const onEnter = (ev) => {
+      if (ev.target.closest(".item-detail__gallery-nav")) return;
       cursor?.show();
       cursor?.position(ev.clientX, ev.clientY);
     };
 
     const onMove = (ev) => {
       cursor?.position(ev.clientX, ev.clientY);
+      if (ev.target.closest(".item-detail__gallery-nav")) {
+        cursor?.hide();
+      } else if (!media.classList.contains("item-detail__media--zoomed")) {
+        cursor?.show();
+      }
       if (media.classList.contains("item-detail__media--zoomed")) {
         setPanOrigin(ev.clientX, ev.clientY);
       }
