@@ -15365,6 +15365,51 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   color: var(--sb-danger, #8b4545);
 }
 
+/* ── Account page: user-controlled dark mode ─────────────────────────────── */
+/* html.tw-account-dark is set before paint by tw-page-theme-boot.js from   */
+/* localStorage("tw:account-theme"). Overrides theme-catalogue forced-light. */
+html.tw-account-dark {
+  color-scheme: dark;
+}
+html.tw-account-dark body.account-page {
+  color-scheme: dark;
+  --bg: #141312;
+  --bg-elevated: #1c1b19;
+  --ink: #f4f1ea;
+  --ink-muted: #a8a39a;
+  --ink-faint: #847f78;
+  --line: #353330;
+  --line-strong: #454340;
+  --accent: #6eb592;
+  --accent-brand: #6eb592;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --error: #e08080;
+  --error-soft: rgba(224, 128, 128, 0.12);
+  --tint-strong: rgba(36, 34, 31, 0.96);
+  --tint-mid: rgba(36, 34, 31, 0.82);
+  --tint-soft: rgba(36, 34, 31, 0.5);
+  --tint-empty: rgba(36, 34, 31, 0.75);
+  --thumb-placeholder: #2a2826;
+  --swatch-empty: #3a3834;
+  --frost-bg: rgba(36, 34, 31, 0.92);
+  --frost-bg-strong: rgba(36, 34, 31, 0.95);
+  --frost-border: rgba(255, 255, 255, 0.1);
+  --frost-border-strong: rgba(255, 255, 255, 0.14);
+  --frost-shadow: rgba(0, 0, 0, 0.32);
+  --frost-shadow-hover: rgba(0, 0, 0, 0.42);
+  --gallery-strip-bg: rgba(255, 255, 255, 0.055);
+  --card-shadow: rgba(0, 0, 0, 0.32);
+  --card-shadow-hover: rgba(0, 0, 0, 0.48);
+  --fold-shadow: rgba(0, 0, 0, 0.32);
+  --header-line-shadow: rgba(0, 0, 0, 0.22);
+  --swatch-inset: rgba(0, 0, 0, 0.32);
+  --tw-brand-wordmark: var(--ink);
+  --tw-brand-monogram-green: #6eb592;
+  --tw-header-fg: var(--ink);
+  --tw-header-fg-muted: var(--ink-muted);
+  --tw-brand-utility-bar: #141312;
+}
+
 @media (min-width: 1360px) {
   .account-brand-list {
     grid-template-columns: repeat(4, minmax(14rem, 1fr));
@@ -18621,6 +18666,115 @@ a.item-detail__breadcrumb-current {
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.25;
+}
+
+/* ── Collection Note (essay mode) ──────────────────────────────────────────── */
+.item-detail__notes-section--essay {
+  margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+  padding-top: 1.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 66%, transparent);
+}
+
+.item-detail__notes-section--essay .item-detail__notes-h {
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.5;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
+}
+
+.item-detail__notes-section--essay .item-detail__notes-text {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.78;
+  color: var(--ink);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* ── Related Pieces ─────────────────────────────────────────────────────────── */
+.item-detail__related {
+  grid-column: 1 / -1;
+  padding-top: 2.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.item-detail__related-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.item-detail__related-heading {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  opacity: 0.5;
+  margin: 0 0 1rem;
+}
+
+.item-detail__related-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem 0.75rem;
+}
+
+.item-detail__related-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.item-detail__related-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center top;
+  background: var(--bg-elevated);
+  display: block;
+  transition: opacity 0.2s;
+}
+
+.item-detail__related-card:hover .item-detail__related-img {
+  opacity: 0.82;
+}
+
+.item-detail__related-name {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0.45rem 0 0;
+}
+
+/* Mobile: cards become a horizontal scroll strip */
+@media (max-width: 599px) {
+  .item-detail__related-grid {
+    grid-template-columns: repeat(4, 120px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+  .item-detail__related-grid::-webkit-scrollbar { display: none; }
+}
+
+/* Desktop: groups side by side */
+@media (min-width: 900px) {
+  .item-detail__related-inner {
+    flex-direction: row;
+    gap: 2rem 3rem;
+  }
+  .item-detail__related-group {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* Programmatic focus on load uses :focus — avoid a persistent “box” on the title.
@@ -25018,6 +25172,38 @@ body.editorial-page #editorial-root {
   font-weight: 700;
   border-bottom-color: var(--ink);
   border-bottom-width: 2.5px;
+}
+
+/* ── Account theme toggle ─────────────────────────────────────────────────── */
+.account-theme-toggle {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.85rem 0.5rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  background: var(--bg, #faf8f4);
+  border: none;
+  cursor: pointer;
+  transition: color 0.14s ease;
+  position: sticky;
+  right: 0;
+  white-space: nowrap;
+}
+.account-theme-toggle:hover,
+.account-theme-toggle:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+.account-theme-toggle__icon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
 }
 
 /* ── Account Overview ─────────────────────────────────────────────────────── */

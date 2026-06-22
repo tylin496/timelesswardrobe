@@ -6,6 +6,13 @@
  * `html.tw-preview-mobile` so narrow-layout CSS matches real phones in IDE previews.
  */
 (function twPageThemeBoot() {
+  // Account dark mode — apply before paint to prevent FOUC.
+  try {
+    if (localStorage.getItem("tw:account-theme") === "dark") {
+      document.documentElement.classList.add("tw-account-dark");
+    }
+  } catch (_) {}
+
   const params = new URLSearchParams(String(globalThis.location?.search ?? ""));
   const forceMobilePreview =
     params.get("mobile") === "1" || params.get("viewport") === "mobile";

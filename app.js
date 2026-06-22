@@ -3112,6 +3112,30 @@
       });
       nav.appendChild(a);
     }
+
+    // Theme toggle — sun/moon, persisted to localStorage
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.id = "account-theme-toggle";
+    toggle.className = "account-theme-toggle";
+    const sunSVG = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="8" cy="8" r="2.75" stroke="currentColor" stroke-width="1.3"/><line x1="8" y1="1.5" x2="8" y2="0.25" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="15.75" x2="8" y2="14.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="1.5" y1="8" x2="0.25" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="15.75" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="3.4" y1="3.4" x2="2.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="13.5" y1="13.5" x2="12.6" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="12.6" y1="3.4" x2="13.5" y2="2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="2.5" y1="13.5" x2="3.4" y2="12.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+    const moonSVG = `<svg class="account-theme-toggle__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.2 10.8C11.8 11.6 10.1 11.9 8.3 11.4C5.3 10.5 3.5 7.6 3.8 4.5C4 3.1 4.6 1.9 5.4 0.9C3 1.6 1 3.4 0.3 5.9C-0.7 9.6 1.5 13.5 5.2 14.6C8.5 15.6 11.9 13.8 13.2 10.8Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    function applyToggleState(isDark) {
+      toggle.innerHTML = isDark ? sunSVG : moonSVG;
+      toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+      toggle.setAttribute("title", isDark ? "Light" : "Dark");
+    }
+
+    applyToggleState(document.documentElement.classList.contains("tw-account-dark"));
+
+    toggle.addEventListener("click", () => {
+      const nowDark = document.documentElement.classList.toggle("tw-account-dark");
+      try { localStorage.setItem("tw:account-theme", nowDark ? "dark" : "light"); } catch (_) {}
+      applyToggleState(nowDark);
+    });
+
+    nav.appendChild(toggle);
     return nav;
   }
 
@@ -6430,6 +6454,15 @@
       toggle.hidden = true;
       textEl.appendChild(toggle);
       return { h, textEl };
+    }
+
+    if (opts.essayMode) {
+      sec.classList.add("item-detail__notes-section--essay");
+      const { h, textEl } = buildNotes("Collection Note");
+      sec.appendChild(h);
+      sec.appendChild(textEl);
+      host.appendChild(sec);
+      return sec;
     }
 
     if (pdpAccordion) {
@@ -26575,6 +26608,7 @@
       dl.appendChild(dd);
     }
 
+    if (isItemPageView && item.category) addRow("Category", item.category);
     addRow("Season", seasonUiLabel(item.season));
     addRow("Size", item.size);
     {
@@ -26586,7 +26620,7 @@
       if (pl) addRow("Price", pl);
     }
     const specLine = specParts(item).join(" · ");
-    if (specLine) addRow("Details", specLine);
+    if (specLine) addRow(isItemPageView ? "Material" : "Details", specLine);
 
     if (dl.children.length) body.appendChild(dl);
 
@@ -26605,7 +26639,7 @@
     }
 
     if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true });
+      mountItemDetailNotesSection(body, notesDisplay, { essayMode: true });
     }
 
     if (isItemPageView) {
@@ -26617,6 +26651,7 @@
     }
 
     root.appendChild(body);
+    if (isItemPageView) appendItemDetailRelated(root, item);
     afterItemDetailPageRender(root, false);
   }
 
@@ -26657,6 +26692,59 @@
     if (prev) nav.appendChild(buildNavLink(prev, true));
     if (next) nav.appendChild(buildNavLink(next, false));
     body.appendChild(nav);
+  }
+
+  function appendItemDetailRelated(root, item) {
+    const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
+    const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 4);
+    const brandIds = new Set(byBrand.map((it) => it.id));
+    const byCat   = owned.filter((it) => it.category === item.category && !brandIds.has(it.id)).slice(0, 4);
+    if (!byBrand.length && !byCat.length) return;
+
+    const sec = document.createElement("section");
+    sec.className = "item-detail__related";
+    sec.setAttribute("aria-label", "Related pieces");
+
+    const inner = document.createElement("div");
+    inner.className = "item-detail__related-inner";
+
+    function buildGroup(peers, label) {
+      if (!peers.length) return null;
+      const group = document.createElement("div");
+      group.className = "item-detail__related-group";
+      const h = document.createElement("h3");
+      h.className = "item-detail__related-heading";
+      h.textContent = label;
+      group.appendChild(h);
+      const grid = document.createElement("div");
+      grid.className = "item-detail__related-grid";
+      for (const peer of peers) {
+        const a = document.createElement("a");
+        a.href = buildItemPageUrl(peer.id).toString();
+        a.className = "item-detail__related-card";
+        const img = document.createElement("img");
+        img.className = "item-detail__related-img";
+        img.src = withSupabaseWardrobeImageRenderSize(peer.image, 1001, 1251, { item: peer }) || peer.image || "";
+        img.alt = displayNameWithoutLeadingColour(peer);
+        img.loading = "lazy";
+        img.decoding = "async";
+        const name = document.createElement("p");
+        name.className = "item-detail__related-name";
+        name.textContent = displayNameWithoutLeadingColour(peer);
+        a.appendChild(img);
+        a.appendChild(name);
+        grid.appendChild(a);
+      }
+      group.appendChild(grid);
+      return group;
+    }
+
+    const brandGroup = buildGroup(byBrand, `Other ${item.brand}`);
+    const catGroup   = buildGroup(byCat,   `Other ${item.category}`);
+    if (brandGroup) inner.appendChild(brandGroup);
+    if (catGroup)   inner.appendChild(catGroup);
+    sec.appendChild(inner);
+    root.appendChild(sec);
   }
 
   function replaceItemPageUrl(id, withEdit) {
