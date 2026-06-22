@@ -15444,7 +15444,10 @@
   let lastCategoryDrillStructureKey = "";
 
   function categoryDrillStructureKey(slot, typeEntries) {
-    return [slot, subcategoryFiltersKey(), ...typeEntries.map((e) => `${e.raw}\t${e.label}`)].join("\0");
+    // Structure = which pills exist (slot + the type set), NOT which is active.
+    // Excluding the active filter lets a same-set active change hit the reuse
+    // branch, so the accent thumb glides instead of the grid rebuilding (jump).
+    return [slot, ...typeEntries.map((e) => `${e.raw}\t${e.label}`)].join("\0");
   }
 
   function syncCategoryDrillActiveStates(grid) {
