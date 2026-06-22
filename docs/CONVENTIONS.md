@@ -114,3 +114,57 @@ Use a named `--z-*` token, never a raw number. Current ladder (low → high):
 ```
 
 New overlays slot into a gap in this range with a new `--z-*` token.
+
+## Rails (horizontal card scrollers)
+
+Every horizontal card rail follows **one contract** — Collection Highlights
+(`.ed-lp__rail` / `.ed-lp__division-rail`), the item page Related rail
+(`.item-detail__related-grid`), and the styling-board Current Outfit strip
+(`#outfit-strip`). These break constantly when edited piecemeal; treat the rules
+below as fixed.
+
+**1. The first card rests aligned with the rail's heading.** At `scrollLeft: 0`
+the first card's left edge lines up with the section heading/eyebrow and the body
+gutter — never floating left of it.
+
+**2. Full-bleed mobile pattern — the three properties move together.** When a rail
+bleeds to the viewport edge (so the next card peeks past the gutter), set all three
+on the scroller, all keyed to the **same gutter token**:
+
+```css
+margin-inline:               calc(-1 * <gutter>);  /* bleed to the edge */
+padding-inline-start:        <gutter>;             /* re-inset first card to the heading */
+scroll-padding-inline-start: <gutter>;             /* snap rests on the inset, not the bled edge */
+```
+
+Omitting `scroll-padding-inline-start` is the **#1 recurring bug**: with
+`scroll-snap-align: start` the snap cancels the padding inset and the first card
+rests ~one gutter left of the heading. If the first card looks shifted left, this
+is why.
+
+**3. Left rests aligned, right bleeds.** The trailing card runs past the panel edge
+to signal scrollability — do **not** add right padding/margin that leaves dead
+space, and do **not** "fix" it into a symmetric or no-bleed rail. (The Current
+Outfit strip adds the bleed only on real overflow, gated by `.is-rail-scrollable`;
+when cards fit, no bleed — both edges at the content gutter.)
+
+**4. Progress track** (`.ed-lp__rail-progress`, `.styling-board__outfit-rail-progress`):
+- `position: relative` — the bar inside is `position: absolute`. If the track is
+  `static`/`height:0`, the bar escapes to the nearest positioned ancestor and
+  floats a line across the cards (this was a real desktop bug).
+- Sits **below** the cards, the bar centred on a 1px hairline (`::before`).
+- **Symmetric gutters**: `margin-left` and `margin-right` both equal the rail's
+  content gutter token.
+- Bar length is tuned via `min-width` (e.g. `40%` of the track); JS sets the inline
+  `width`, and `min-width`/`max-width` (%) override it while the scroller still
+  positions by `offsetWidth`, so travel stays correct.
+- Put track + bar rules at **base (all widths)** or mirror them across breakpoints
+  — rail CSS that lives in only one `@media` block leaves the other breakpoint
+  broken (e.g. progress styled for mobile only → bar floats on desktop).
+
+**5. Gutters come from tokens**, never raw px: `--content-inline`,
+`--ed-lp-division-rail-pad-left`, `--styling-board-scroll-inline`.
+
+Verify after any rail change: at rest the first card aligns with the heading
+(`firstCard.left === heading.left`), the right bleeds, and the progress bar sits
+below the cards on **both** mobile and desktop.
