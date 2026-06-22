@@ -15379,12 +15379,12 @@ html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark
 html.tw-account-dark body.account-page {
   color-scheme: dark;
   --bg: #141312;
-  --bg-elevated: #1c1b19;
+  --bg-elevated: #222019;
   --ink: #f4f1ea;
-  --ink-muted: #a8a39a;
-  --ink-faint: #847f78;
-  --line: #353330;
-  --line-strong: #454340;
+  --ink-muted: #c4bfb8;
+  --ink-faint: #a8a39a;
+  --line: #3a3734;
+  --line-strong: #4e4b48;
   --accent: #6eb592;
   --accent-brand: #6eb592;
   --shadow: rgba(0, 0, 0, 0.4);
@@ -15396,10 +15396,10 @@ html.tw-account-dark body.account-page {
   --tint-empty: rgba(36, 34, 31, 0.75);
   --thumb-placeholder: #2a2826;
   --swatch-empty: #3a3834;
-  --frost-bg: rgba(36, 34, 31, 0.92);
-  --frost-bg-strong: rgba(36, 34, 31, 0.95);
-  --frost-border: rgba(255, 255, 255, 0.1);
-  --frost-border-strong: rgba(255, 255, 255, 0.14);
+  --frost-bg: rgba(34, 32, 25, 0.94);
+  --frost-bg-strong: rgba(34, 32, 25, 0.97);
+  --frost-border: rgba(255, 255, 255, 0.15);
+  --frost-border-strong: rgba(255, 255, 255, 0.22);
   --frost-shadow: rgba(0, 0, 0, 0.32);
   --frost-shadow-hover: rgba(0, 0, 0, 0.42);
   --gallery-strip-bg: rgba(255, 255, 255, 0.055);
@@ -15413,6 +15413,24 @@ html.tw-account-dark body.account-page {
   --tw-header-fg: #ffffff;
   --tw-header-fg-muted: rgba(255, 255, 255, 0.6);
   --tw-brand-utility-bar: #1b352d;
+}
+
+/* Fix double-dimmed labels (opacity stacked on top of muted color) */
+html.tw-account-dark body.account-page .account-overview__stat-sub,
+html.tw-account-dark body.account-page .account-overview__activity-ts {
+  opacity: 1;
+}
+
+/* Status colors: hardcoded light-mode hex won't read in dark */
+html.tw-account-dark body.account-page .account-drawer-autosave[data-state="saved"],
+html.tw-account-dark body.account-page .account-notes-v2-status[data-state="saved"],
+html.tw-account-dark body.account-page .account-brands-v2-status[data-state="saved"] {
+  color: #6eb592;
+}
+html.tw-account-dark body.account-page .account-drawer-autosave[data-state="error"],
+html.tw-account-dark body.account-page .account-notes-v2-status[data-state="error"],
+html.tw-account-dark body.account-page .account-brands-v2-status[data-state="error"] {
+  color: var(--error);
 }
 
 @media (min-width: 1360px) {
@@ -18705,21 +18723,8 @@ a.item-detail__breadcrumb-current {
 }
 
 @media (min-width: 901px) {
-  .item-detail__notes-section--page-block {
-    display: grid;
-    grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
-    column-gap: clamp(2rem, 3.25vw, 3.5rem);
-    align-items: start;
-  }
-
-  .item-detail__notes-section--page-block .item-detail__notes-h {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
   .item-detail__notes-section--page-block .item-detail__notes-text {
-    grid-column: 1;
-    grid-row: 2;
+    max-width: 68ch;
   }
 }
 
