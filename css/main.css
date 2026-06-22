@@ -15403,11 +15403,11 @@ html.tw-account-dark body.account-page {
   --fold-shadow: rgba(0, 0, 0, 0.32);
   --header-line-shadow: rgba(0, 0, 0, 0.22);
   --swatch-inset: rgba(0, 0, 0, 0.32);
-  --tw-brand-wordmark: var(--ink);
-  --tw-brand-monogram-green: #6eb592;
-  --tw-header-fg: var(--ink);
-  --tw-header-fg-muted: var(--ink-muted);
-  --tw-brand-utility-bar: #141312;
+  --tw-brand-wordmark: #ffffff;
+  --tw-brand-monogram-green: #ffffff;
+  --tw-header-fg: #ffffff;
+  --tw-header-fg-muted: rgba(255, 255, 255, 0.6);
+  --tw-brand-utility-bar: #1b352d;
 }
 
 @media (min-width: 1360px) {
