@@ -921,6 +921,13 @@ body {
   z-index: 1;
 }
 
+/* Dark-ink masthead clone exists only during the mobile nav slide (built/removed in JS).
+   Hidden everywhere by default — its positioning + clip reveal live in the ≤1024px block —
+   so it can never render as a duplicate header row (e.g. on a desktop-width resize). */
+.site-header__ink-clone {
+  display: none;
+}
+
 /* Run once on load — re-applying `animation` after search close caused a visible header jump. */
 .site-header:not(.site-header--entered) {
   animation: tlw-fade-up 0.58s var(--ease-luxe) backwards;
@@ -6723,9 +6730,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     flex-direction: column;
     position: fixed;
     z-index: calc(var(--z-site-header-chrome) - 1);
-    /* Cover the masthead row too: start just below the brand-signature bar, so the drawer
-       (with its own header bar) slides in over the site header as one block. */
-    top: var(--site-mobile-drill-cover-top, var(--brand-signature-bar-height, 36px));
+    top: var(--site-mobile-shell-top, var(--site-header-chrome-bottom, 5.5rem));
     right: 0;
     left: auto;
     width: 100%;
@@ -6749,8 +6754,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: var(--z-styling-board-drawer, 1300);
   }
 
-  /* Drill chrome (back/close) is layered over the main bar by `--submenu`; the main bar
-     (logo + tools) shows in both states so the drawer always has its own masthead. */
+  .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
+    display: none;
+  }
 
   .site-mobile-shell.is-open {
     visibility: visible;
@@ -6777,10 +6783,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-mobile-shell__chrome {
     flex: 0 0 auto;
     position: relative;
-    /* Match the live masthead-row height so the drawer body starts exactly at the header bottom. */
-    min-height: var(--site-mobile-drill-head-height, var(--site-header-mobile-row-height, 44px));
-    height: var(--site-mobile-drill-head-height, var(--site-header-mobile-row-height, 44px));
+    min-height: var(--site-header-mobile-row-height, 44px);
+    height: var(--site-header-mobile-row-height, 44px);
     background: var(--tw-mobile-nav-surface, var(--tw-brand-ivory, #f7f4ed));
+    border-bottom: 1px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 10%, transparent);
   }
 
   .site-mobile-shell__bar {
@@ -7515,12 +7521,58 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav open: the real masthead is NOT recoloured. The drawer (`.site-mobile-shell`)
-   * extends up over the header row and carries its own ivory header bar (logo + tools), so the
-   * whole drawer — header area included — slides in from the right as one solid block. The site
-   * header simply stays in its overlay state underneath and is covered; nothing wipes across it,
-   * so the logo never sits dark-on-hero mid-animation.
+   * Mobile nav open — masthead ink follows the surface edge, in place.
+   *
+   * The logo + tools never move. Two things slide in from the right in lock-step with the drawer:
+   *   1. `.site-header::after` — the ivory surface (the drawer's background entering the header row).
+   *   2. `#site-header-ink-clone` — a non-interactive dark-ink copy of the masthead content, revealed
+   *      by a `clip-path` whose left edge tracks the same right→left boundary as the ivory.
+   * Result: every glyph stays put and flips white→dark exactly where the ivory edge passes it — no
+   * dark-on-hero, no white-on-ivory, no moving logo. The real header underneath stays overlay (white)
+   * and interactive; the clone is purely visual.
    */
+  .site-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--tw-mobile-nav-surface, #f7f4ed);
+    /* Parked off the right edge (header is `overflow-x: clip`, so it never shows at rest). */
+    transform: translate3d(100%, 0, 0);
+    transition: transform var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  }
+
+  .site-header__ink-clone {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    /* Force solid masthead ink regardless of the live overlay/solid state underneath. */
+    --tw-header-fg: var(--tw-brand-wordmark);
+    --tw-header-fg-muted: var(--ink-muted);
+    --tw-header-monogram: var(--tw-brand-monogram-green);
+    color: var(--tw-brand-wordmark);
+    /* Default (and closing) = clipped off the right edge; left edge tracks the ivory boundary. */
+    clip-path: inset(0 0 0 100%);
+    transition: clip-path var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  }
+
+  .site-header__ink-clone .site-header__tool-glyph,
+  .site-header__ink-clone .styling-board-glyph__grid {
+    stroke: currentColor;
+    stroke-opacity: 1;
+    color: currentColor;
+  }
+
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header::after {
+    transform: translate3d(0, 0, 0);
+  }
+
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header__ink-clone {
+    clip-path: inset(0 0 0 0);
+  }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
     border-top: 1px solid color-mix(in srgb, var(--line) 38%, transparent);
@@ -7718,6 +7770,8 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
     .site-mobile-shell__bar,
     .site-mobile-nav__level,
     .site-mobile-nav-drill-portal,
+    .site-header::after,
+    .site-header__ink-clone,
     .site-header__search-wrap {
       transition-duration: 0.01ms;
     }
@@ -14495,16 +14549,22 @@ body.item-page .site-header {
     z-index: var(--z-mega-menu);
   }
 
+  /* Share the PLP's centered chrome box + tier-3 inset exactly (same model as
+     `.collection-container`): one container caps at --chrome-content-max, centers,
+     and pads by the tier-3 inset. The product column then fills it — no second
+     centering/cap, which previously left the PDP edge inset differently from the PLP. */
   body.item-page .item-page-main {
-    max-width: none;
+    max-width: var(--chrome-content-max);
     width: 100%;
-    padding-left: max(var(--collection-x), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--collection-x), env(safe-area-inset-right, 0px));
+    margin-inline: auto;
+    padding-left: max(var(--collection-plp-tier3-inner), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--collection-plp-tier3-inner), env(safe-area-inset-right, 0px));
     padding-top: clamp(2rem, 4vw, 3rem);
   }
 
-  /* Edit PDP — match mobile breathing room; collection-x is too tight on the form edge. */
+  /* Edit PDP — match mobile breathing room; tier-3 inset is too tight on the form edge. */
   body.item-page:has(.item-detail__root--edit) .item-page-main {
+    max-width: 80rem;
     padding-left: max(var(--space-page-inline), env(safe-area-inset-left, 0px));
     padding-right: max(var(--space-page-inline), env(safe-area-inset-right, 0px));
   }
@@ -14530,11 +14590,10 @@ body.item-page .site-header {
     column-gap: clamp(2rem, 3.25vw, 3.5rem);
     row-gap: 1rem;
     align-items: start;
-    /* Share the PLP's centered chrome box (`.collection-container` → --chrome-content-max)
-       so the product column keeps the same relationship to the full-bleed header as the
-       collection grid. Previously capped at 88rem, which pulled the column further inboard
-       than the PLP at wide viewports. */
-    max-width: min(var(--chrome-content-max), 100%);
+    /* The container (`.item-page-main`) already owns the PLP chrome box + inset, so the
+       product column just fills it — a second cap/centre here is what offset the PDP edge
+       from the PLP grid. */
+    max-width: none;
     width: 100%;
   }
 
@@ -18628,10 +18687,10 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__colour-swatch-inline {
-  flex: 0 0 1rem;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 3px;
+  flex: 0 0 1.6rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 5px;
   border: 1px solid rgba(0,0,0,0.15);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38);
 }
@@ -18705,44 +18764,48 @@ a.item-detail__breadcrumb-current {
 
 /* ── Collection Note (essay mode) ──────────────────────────────────────────── */
 /* ── Acquisition block ──────────────────────────────────────────────────────── */
+.item-detail__brand-sep {
+  display: none;
+}
+
+.item-detail__brand-date {
+  margin-left: 0.5rem;
+  font-size: 0.78em;
+  opacity: 0.55;
+}
+
+.item-detail__price-secondary {
+  margin-left: 0.45rem;
+  font-size: 0.85em;
+  opacity: 0.45;
+}
+
 .item-detail__acquired {
+  @apply mb-5;
   display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-  margin-top: clamp(1.25rem, 2.5vw, 1.75rem);
-  padding-top: 1.1rem;
-  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
-}
-
-.item-detail__acquired-label {
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
   font-family: var(--font-sans);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-size: 0.82rem;
   color: var(--ink-muted);
-  opacity: 0.5;
-}
-
-.item-detail__acquired-date {
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  color: var(--ink);
   line-height: 1.3;
 }
 
+.item-detail__acquired-date {
+  color: var(--ink);
+}
+
+.item-detail__acquired-sep {
+  opacity: 0.5;
+}
+
 .item-detail__acquired-price {
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
   color: var(--ink-muted);
-  margin-top: 0.1rem;
 }
 
 .item-detail__acquired-twd {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  color: var(--ink-muted);
-  opacity: 0.6;
+  opacity: 0.65;
 }
 
 /* ── Showcase context strip ─────────────────────────────────────────────────── */
@@ -19054,8 +19117,8 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__root--page .item-detail__brand {
   @apply mb-5;
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.005em;
   text-transform: none;
@@ -19115,6 +19178,11 @@ a.item-detail__breadcrumb-current {
   padding-bottom: 1rem;
 }
 
+/* Solo colour: tighten label → swatch gap (the reference sits the swatch close). */
+.item-detail__root--page .item-detail__colour-picker--solo .item-detail__colour-label {
+  margin-bottom: 0.5rem;
+}
+
 .item-detail__colour-label {
   @apply mb-3;
   font-size: 0.72rem;
@@ -19132,6 +19200,9 @@ a.item-detail__breadcrumb-current {
   font-family: var(--font-sans);
   font-size: 11px;
   letter-spacing: 0.12em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
 }
 
 .item-detail__root--page .item-detail__colour-label-k {
@@ -19145,8 +19216,8 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__colour-label-v {
-  font-family: var(--font-serif);
-  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   letter-spacing: 0.01em;
 }
 
@@ -19348,7 +19419,8 @@ a.item-detail__breadcrumb-current {
   @apply m-0;
   font-family: var(--font-sans);
   font-size: 0.875rem;
-  line-height: 1.6;
+  font-weight: 450;
+  line-height: 1.45;
   color: var(--ink);
   white-space: pre-wrap;
 }
