@@ -10515,10 +10515,6 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 @media (min-width: 901px) {
-  .styling-board__outfit-rail-progress {
-    display: none !important;
-  }
-
   .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
     --outfit-slot-h: 8.85rem;
@@ -22058,6 +22054,18 @@ video.ed-lp__hero-layer-video {
     padding-block: 0.65rem;
     padding-inline: 1.15rem;
     font-size: 9.9px;
+  }
+
+  .ed-lp__hero-cta .ed-lp__btn--solid {
+    background: transparent;
+    color: var(--tw-brand-page);
+    border-color: color-mix(in srgb, var(--tw-brand-page) 60%, transparent);
+  }
+
+  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
+  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
+    background: color-mix(in srgb, var(--tw-brand-page) 10%, transparent);
+    border-color: var(--tw-brand-page);
   }
 }
 
