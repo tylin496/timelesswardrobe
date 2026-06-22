@@ -23326,6 +23326,11 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 
 /* Mobile: side-by-side season duo, shorter banner, swipe + dots only */
 @media (max-width: 767px) {
+  /* Collection Highlights: show 1.5 cards so the peek signals scrollability. */
+  body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
+    flex: 0 0 calc((100vw - var(--ed-lp-division-rail-pad-left) - 10px) / 1.5);
+  }
+
   /* Collection Highlights slider: tie it to the cards (less detached gap) + longer thumb. */
   body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
     margin-top: 0;
