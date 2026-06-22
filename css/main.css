@@ -12178,9 +12178,11 @@ body.tw-outfit-drag-active * {
   opacity: 0;
   z-index: 0;
   will-change: transform, width;
+  /* Quiet glide: a soft, evenly-eased curve (no fast-start/hard-stop of
+     --ease-luxe) so the thumb drifts rather than snaps. */
   transition:
-    transform 0.4s var(--ease-luxe),
-    width 0.4s var(--ease-luxe),
+    transform 0.52s cubic-bezier(0.45, 0, 0.25, 1),
+    width 0.52s cubic-bezier(0.45, 0, 0.25, 1),
     opacity 0.2s ease;
 }
 
@@ -12195,8 +12197,8 @@ body.tw-outfit-drag-active * {
   z-index: 1;
   background: transparent;
   transition:
-    color 0.4s var(--ease-luxe),
-    border-color 0.3s var(--ease-luxe);
+    color 0.52s cubic-bezier(0.45, 0, 0.25, 1),
+    border-color 0.3s ease;
 }
 
 .category-drill__grid.has-thumb .category-drill__choice.is-active,
@@ -21542,9 +21544,9 @@ video.ed-lp__hero-layer-video {
     ),
     linear-gradient(
       to top,
-      rgba(var(--hero-scrim-ink), 0.74) 0%,
-      rgba(var(--hero-scrim-ink), 0.46) 26%,
-      rgba(var(--hero-scrim-ink), 0.18) 48%,
+      rgba(var(--hero-scrim-ink), 0.52) 0%,
+      rgba(var(--hero-scrim-ink), 0.3) 26%,
+      rgba(var(--hero-scrim-ink), 0.1) 48%,
       rgba(var(--hero-scrim-ink), 0) 70%
     ),
     radial-gradient(
@@ -21558,6 +21560,41 @@ video.ed-lp__hero-layer-video {
       rgba(var(--hero-scrim-ink), 0) 44%,
       rgba(var(--hero-scrim-ink), 0.2) 100%
     );
+}
+
+/* Mobile: the narrow viewport makes the bottom ink pool occupy a larger share of
+   the frame, so it reads heavier than on desktop at the same height. Same density —
+   only compress the bottom-ink layer's reach (70% → 58%) so it sits as a bottom band,
+   not a half-frame wash. Mist / copy-radial / vignette layers stay identical to desktop. */
+@media (max-width: 767px) {
+  .ed-lp__hero-scrim {
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(var(--hero-scrim-mist), 0.42) 0%,
+        rgba(var(--hero-scrim-mist), 0.16) 16%,
+        rgba(var(--hero-scrim-mist), 0.04) 34%,
+        rgba(var(--hero-scrim-mist), 0) 52%
+      ),
+      linear-gradient(
+        to top,
+        rgba(var(--hero-scrim-ink), 0.52) 0%,
+        rgba(var(--hero-scrim-ink), 0.3) 22%,
+        rgba(var(--hero-scrim-ink), 0.1) 40%,
+        rgba(var(--hero-scrim-ink), 0) 58%
+      ),
+      radial-gradient(
+        ellipse 90% 68% at 14% 94%,
+        rgba(var(--hero-scrim-ink), 0.52) 0%,
+        rgba(var(--hero-scrim-ink), 0.24) 44%,
+        rgba(var(--hero-scrim-ink), 0) 72%
+      ),
+      radial-gradient(
+        ellipse 118% 105% at 50% 52%,
+        rgba(var(--hero-scrim-ink), 0) 44%,
+        rgba(var(--hero-scrim-ink), 0.2) 100%
+      );
+  }
 }
 
 .ed-lp__hero-inner {
@@ -21694,8 +21731,15 @@ video.ed-lp__hero-layer-video {
   body.home-page .ed-lp__hero-line {
     animation-delay: 0.42s;
   }
+  /* CTA is an action, not copy — the three text lines (0.14/0.28/0.42s) read as one
+     sentence; the button holds a short beat after, so it lands as a deliberate
+     invitation ("…now, enter"), not a fourth line of text. Same keyframe / 6px rise
+     as everything else — only the timing differs (a pause is perceptible where a
+     drift-distance change is not; one animation vocabulary, no second keyframe).
+     0.70s is the beat that reads as "content → (pause) → action" without the ~0.43s
+     gap of 0.85s feeling like a wait on this restrained, non-cinematic editorial hero. */
   body.home-page .ed-lp__hero-cta {
-    animation-delay: 0.56s;
+    animation-delay: 0.7s;
   }
 }
 
