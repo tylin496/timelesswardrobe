@@ -14528,7 +14528,11 @@ body.item-page .site-header {
     column-gap: clamp(2rem, 3.25vw, 3.5rem);
     row-gap: 1rem;
     align-items: start;
-    max-width: min(88rem, 100%);
+    /* Share the PLP's centered chrome box (`.collection-container` → --chrome-content-max)
+       so the product column keeps the same relationship to the full-bleed header as the
+       collection grid. Previously capped at 88rem, which pulled the column further inboard
+       than the PLP at wide viewports. */
+    max-width: min(var(--chrome-content-max), 100%);
     width: 100%;
   }
 
