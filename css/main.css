@@ -10385,11 +10385,21 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   touch-action: pan-x;
 }
 
-/* While the strip can still scroll right, dissolve the clipped trailing card
-   into the backdrop instead of a hard cut. Removed once scrolled to the end. */
-.styling-board-drawer .styling-board__current.is-rail-scrollable:not(.is-rail-at-end) #outfit-strip {
+/* Dissolve a clipped card into the backdrop instead of a hard cut. Faded only on
+   the side(s) that can still scroll, so end cards stay crisp at the extremes. */
+.styling-board-drawer .styling-board__current.is-rail-scrollable.is-rail-at-start:not(.is-rail-at-end) #outfit-strip {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.85rem), transparent 100%);
   mask-image: linear-gradient(to right, #000 calc(100% - 1.85rem), transparent 100%);
+}
+
+.styling-board-drawer .styling-board__current.is-rail-scrollable.is-rail-at-end:not(.is-rail-at-start) #outfit-strip {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.85rem);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.85rem);
+}
+
+.styling-board-drawer .styling-board__current.is-rail-scrollable:not(.is-rail-at-start):not(.is-rail-at-end) #outfit-strip {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.85rem, #000 calc(100% - 1.85rem), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.85rem, #000 calc(100% - 1.85rem), transparent 100%);
 }
 
 .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar:vertical,
@@ -10441,6 +10451,18 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(.outfit-slot--dismissing),
 .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(.outfit-slot--dismissing) {
   z-index: 2;
+}
+
+/* Faint overlap — Current Outfit reads as a look being assembled on a table,
+   distinct from the flat Saved Outfit archive cards. ~9% of card width; the
+   dismiss button sits inside this so it stays tappable. */
+.styling-board-drawer #outfit-strip {
+  gap: 0 !important;
+}
+
+.styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:not(:first-child),
+.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:not(:first-child) {
+  margin-left: -10px !important;
 }
 
 .styling-board-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
