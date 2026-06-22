@@ -26865,10 +26865,12 @@
     const brandIds = new Set(byBrand.map((it) => it.id));
     const byCatExact = owned.filter((it) => it.category === item.category && !brandIds.has(it.id));
     const slot = itemSlot(item);
-    const byCat = byCatExact.length
-      ? byCatExact.slice(0, 6)
-      : owned.filter((it) => itemSlot(it) === slot && !brandIds.has(it.id)).slice(0, 6);
-    const catLabel = byCatExact.length ? `Other ${item.category}` : `Other ${slot}`;
+    const needsSupplement = byCatExact.length < 3;
+    const slotExtras = needsSupplement
+      ? owned.filter((it) => itemSlot(it) === slot && it.category !== item.category && !brandIds.has(it.id))
+      : [];
+    const byCat = [...byCatExact, ...slotExtras].slice(0, 6);
+    const catLabel = needsSupplement ? `Other ${slot}` : `Other ${item.category}`;
     if (!byBrand.length && !byCat.length) return;
 
     const sec = document.createElement("section");
