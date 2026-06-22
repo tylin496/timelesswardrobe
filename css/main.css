@@ -9876,9 +9876,9 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     right: 0;
     bottom: 0;
     top: auto;
-    height: 1.5px;
+    height: 1px;
     transform: none;
-    background: color-mix(in srgb, var(--sb-ink) 9%, var(--sb-line));
+    background: color-mix(in srgb, var(--sb-ink) 7%, var(--sb-line));
     pointer-events: none;
   }
 
@@ -9887,19 +9887,26 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     left: 0;
     bottom: 0;
     top: auto;
-    height: 2px;
+    height: 1.5px;
     min-width: 2.75rem;
     width: 28%;
-    background: color-mix(in srgb, var(--sb-ink) 45%, var(--sb-ink-muted));
+    /* Quiet at rest — the rail should hint at scroll, not out-shout the outfit.
+       Darkens only on interaction. */
+    background: color-mix(in srgb, var(--sb-ink) 20%, var(--sb-ink-muted));
     transform: translate3d(0, 0, 0);
-    transition: none;
+    transition: background 160ms var(--ease-out, ease);
     will-change: transform, width;
     cursor: grab;
+  }
+
+  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress:hover .ed-lp__rail-progress-bar {
+    background: color-mix(in srgb, var(--sb-ink) 34%, var(--sb-ink-muted));
   }
 
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress.is-dragging .ed-lp__rail-progress-bar,
   .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar.is-dragging {
     cursor: grabbing;
+    background: color-mix(in srgb, var(--sb-ink) 45%, var(--sb-ink-muted));
     transition: none;
   }
 
@@ -9985,15 +9992,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 
   .styling-board-drawer .saved-card__piece:not(:first-child) {
-    margin-left: -0.41rem;
+    margin-left: -0.53rem;
   }
 
   .styling-board-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
-    margin-left: -0.34rem;
+    margin-left: -0.56rem;
   }
 
   .styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
-    margin-left: -0.29rem;
+    margin-left: -0.62rem;
   }
 
   .styling-board-drawer .saved-card__meta {
@@ -10453,16 +10460,17 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   z-index: 2;
 }
 
-/* Faint overlap — Current Outfit reads as a look being assembled on a table,
-   distinct from the flat Saved Outfit archive cards. ~9% of card width; the
-   dismiss button sits inside this so it stays tappable. */
-.styling-board-drawer #outfit-strip {
-  gap: 0 !important;
-}
-
-.styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:not(:first-child),
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:not(:first-child) {
-  margin-left: -10px !important;
+/* Current Outfit cards are full product cards (image + name + dismiss + plate),
+   so they sit side by side with a small gap — continuity without overlap, which
+   would crowd the dismiss button and clip names. The first card is nudged a hair
+   larger since the look builds from the first piece. */
+.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:first-child,
+.styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:first-child {
+  /* The look builds from the first piece — give it a hair more presence without a
+     transform (that would fight the stagger/drag transforms). */
+  filter: brightness(1.05) saturate(1.04);
+  box-shadow: 0 2px 6px rgba(20, 19, 18, 0.1);
+  z-index: 1;
 }
 
 .styling-board-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
@@ -11562,15 +11570,15 @@ body.tw-outfit-drag-active * {
 }
 
 .styling-board-drawer .saved-card__piece:not(:first-child) {
-  margin-left: -0.62rem;
+  margin-left: -0.85rem;
 }
 
 .styling-board-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
-  margin-left: -0.54rem;
+  margin-left: -0.9rem;
 }
 
 .styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
-  margin-left: -1.0rem;
+  margin-left: -1.7rem;
 }
 
 .styling-board-drawer .saved-card__piece:nth-child(n) {
