@@ -7514,8 +7514,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav open: masthead must stay opaque (homepage overlay header is otherwise transparent over hero).
-   * Header row pins above the sliding shell so chrome + nav read as one drawer.
+   * Mobile nav open: chrome itself stays transparent — the opaque ivory is painted by the
+   * sliding `.site-header::after` surface below, so the masthead background wipes in from the
+   * right in step with the drawer panel instead of snapping solid over the hero.
    */
   body.collection-ui--mobile-nav-open .site-header-shell,
   body.collection-ui--mobile-nav-open .site-header,
@@ -7525,7 +7526,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   body.collection-ui--mobile-nav-open .site-header__inner,
   body.collection-ui--mobile-nav-open .site-header__container,
   body.collection-ui--mobile-nav-open .site-header__brand-nav {
-    background-color: var(--tw-mobile-nav-surface, #f7f4ed);
+    background-color: transparent;
     background-image: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -7533,9 +7534,32 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Drawer open: masthead is opaque — use solid ink immediately (not only on :hover).
+   * Solid masthead surface: slides in from the right in lock-step with the drawer panel
+   * (same duration/easing/transform), then slides back out on close. Sits above `::before`
+   * (header bg) and below the chrome content (z-index 1), so logo + tools stay legible on top.
    */
-  body.collection-ui--mobile-nav-open .site-header.site-header--overlay,
+  .site-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--tw-mobile-nav-surface, #f7f4ed);
+    /* Parked off the right edge (header is `overflow-x: clip`, so it never shows at rest). */
+    transform: translate3d(100%, 0, 0);
+    transition: transform var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  }
+
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header::after {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /*
+   * Drawer open: masthead reads as opaque, so use solid ink immediately (not only on :hover).
+   * Drop back to overlay (white) the moment the close starts, so the ink fades back as the
+   * surface slides away rather than snapping at the end of the animation.
+   */
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header.site-header--overlay,
   body.collection-ui--mobile-nav-drill .site-header.site-header--overlay {
     --tw-header-fg: var(--tw-brand-wordmark);
     --tw-header-fg-muted: var(--ink-muted);
@@ -22088,38 +22112,27 @@ video.ed-lp__hero-layer-video {
   }
 }
 
-/* Desktop hero — RL editorial register (mobile ≤767px already carries this look).
-   Hierarchy flips toward the reference: the all-caps label recedes to a quiet
-   eyebrow, the serif sentence becomes the display moment, and the CTA drops the
-   filled boxes for a thin underlined text-link (same treatment mobile uses). */
+/* Desktop hero — original typographic proportions (eyebrow leads, serif as
+   mid-size supporting copy). The one refinement kept from the reference is the
+   CTA: filled boxes → thin underlined text-link (same treatment mobile uses). */
 @media (min-width: 768px) {
   .ed-lp__hero-inner {
-    --hero-body-copy-max: min(25.5rem, 92%);
-    --hero-eyebrow-part-gap: clamp(0.85rem, 2.4vh, 1.05rem);
-    --hero-body-line-gap: clamp(0.45rem, 1.4vh, 0.7rem);
-    --hero-cta-part-gap: clamp(1.25rem, 3.4vh, 1.7rem);
+    --hero-body-copy-max: min(20.9rem, 90%);
+    --hero-eyebrow-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
+    --hero-body-line-gap: 0.18rem;
+    --hero-cta-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
   }
 
-  /* Quiet label — recedes so the serif leads (was bold 700 / 0.42em / ~1.12rem). */
   .ed-lp__hero-eyebrow {
-    font-size: clamp(0.72rem, 1.55vw, 0.84rem);
-    font-weight: 600;
-    letter-spacing: 0.38em;
-    opacity: 0.92;
+    font-size: clamp(0.88rem, 3.135vw, 1.122rem);
   }
 
-  /* The display moment — large serif pull-line (was ~1.078rem body copy). */
   .ed-lp__hero-title {
-    max-width: var(--hero-body-copy-max, min(25.5rem, 92%));
-    font-size: clamp(1.55rem, 0.95rem + 1.85vw, 2.15rem);
-    font-weight: 500;
-    line-height: 1.12;
-    letter-spacing: 0.005em;
+    font-size: clamp(0.924rem, 2.805vw, 1.078rem);
   }
 
   .ed-lp__hero-line {
-    font-size: clamp(0.92rem, 2.585vw, 1.08rem);
-    opacity: 0.9;
+    font-size: clamp(0.88rem, 2.585vw, 1.034rem);
   }
 
   /* Underlined text-link CTA — no boxes. */
