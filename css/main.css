@@ -9779,7 +9779,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip {
     gap: 0.55rem;
-    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem env(safe-area-inset-left, 0px);
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
   }
@@ -9788,7 +9788,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     gap: 0.55rem;
     width: 100%;
     max-width: 100%;
-    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem var(--styling-board-scroll-inline);
+    padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem env(safe-area-inset-left, 0px);
     overflow-x: auto;
     overflow-y: auto;
     scroll-snap-type: none;
@@ -10383,7 +10383,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   justify-content: safe center;
   gap: 0.5rem;
   min-height: 0;
-  padding: 0.35rem env(safe-area-inset-right, 0px) 0.2rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
+  padding: 0.35rem env(safe-area-inset-right, 0px) 0.2rem env(safe-area-inset-left, 0px);
   overflow-x: auto;
   overflow-y: auto;
   scroll-snap-type: none;
@@ -11015,7 +11015,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior-x: contain;
-  padding: 0.4rem env(safe-area-inset-right, 0px) 0.35rem max(var(--styling-board-scroll-inline, 0.85rem), env(safe-area-inset-left, 0px));
+  padding: 0.4rem env(safe-area-inset-right, 0px) 0.35rem env(safe-area-inset-left, 0px);
   scroll-snap-type: none;
   scroll-padding-inline-start: var(--styling-board-scroll-inline, 0.85rem);
   scroll-padding-inline-end: 0;
@@ -11062,7 +11062,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     --outfit-strip-end-pad: max(0px, calc(100% - var(--outfit-strip-card-w)));
     padding-top: 0.4rem;
     padding-bottom: 0.55rem;
-    padding-left: var(--styling-board-scroll-inline);
+    padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
