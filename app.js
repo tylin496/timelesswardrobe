@@ -23433,19 +23433,26 @@
       card.className = "saved-card saved-card--enter";
       card.style.setProperty("--saved-card-stagger", String(savedIndex));
 
-      const title = document.createElement("p");
-      title.className = "saved-card__name";
-      title.textContent = outfit.name;
-      const meta = document.createElement("p");
-      meta.className = "saved-card__meta";
       const slots = outfitSlotsFromRecord(outfit);
       const n = slots.filter((s) => itemById.has(s.itemId)).length;
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
       const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
-      // Date drops to its own line so the cutout flatlay stays the focus and the
-      // header reads name → pieces → date rather than one heavy meta string.
-      meta.textContent = [notesSnip, `${n} piece${n === 1 ? "" : "s"}`].filter(Boolean).join(" · ");
+      // Name row carries a light piece-count beside the title so the header reads
+      // name·count → notes → date; the cutout flatlay stays the focus.
+      const nameRow = document.createElement("div");
+      nameRow.className = "saved-card__name-row";
+      const title = document.createElement("p");
+      title.className = "saved-card__name";
+      title.textContent = outfit.name;
+      const count = document.createElement("span");
+      count.className = "saved-card__count";
+      count.textContent = `${n} piece${n === 1 ? "" : "s"}`;
+      nameRow.append(title, count);
+      const meta = document.createElement("p");
+      meta.className = "saved-card__meta";
+      meta.textContent = notesSnip;
+      meta.hidden = !notesSnip;
       const dateLine = document.createElement("p");
       dateLine.className = "saved-card__date";
       dateLine.textContent = dateStr;
@@ -27390,8 +27397,8 @@
     }
   }
 
-  /** Desktop (wider than 900px): scroll direction toggles `collection-ui--nav-folded` (hides branding shell). Search stays in the expanded header with filters — no floating magnifier while folded. */
-  const ENABLE_COLLECTION_NAV_SCROLL_FOLD = true;
+  /** Desktop (wider than 900px): scroll direction toggles `collection-ui--nav-folded` (hides branding shell). Search stays in the expanded header with filters — no floating magnifier while folded. Disabled: desktop PLP keeps a fixed, full-height header on scroll (no fold/shrink). */
+  const ENABLE_COLLECTION_NAV_SCROLL_FOLD = false;
 
   let collectionNavScrollFoldLastY = 0;
   let collectionNavScrollFoldTicking = false;
