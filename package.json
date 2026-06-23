@@ -18,7 +18,6 @@
     "gallery:sync": "node scripts/sync-wardrobe-gallery.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
-    "text:export": "node scripts/export-wardrobe-text.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
