@@ -3131,8 +3131,10 @@
       });
       nav.appendChild(a);
     }
+    return nav;
+  }
 
-    // Theme toggle — 3-state: system (OS auto) → dark → light → system
+  function buildAccountThemeToggle() {
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.id = "account-theme-toggle";
@@ -3189,8 +3191,7 @@
       applyTheme(next);
     });
 
-    nav.appendChild(toggle);
-    return nav;
+    return toggle;
   }
 
   function renderAccountActiveTab(contentEl) {
@@ -3234,15 +3235,24 @@
       }
       document.body.appendChild(t);
     }
-    const title = document.querySelector(".account-page-main .login-page-main__title");
-    if (title) title.textContent = `Welcome back, ${twAccountGreetingName()}`;
     updateTwAccountStatus("", "success", { hidden: true });
 
     body.replaceChildren();
     body.hidden = false;
 
-    const tabNav = buildAccountTabNav();
-    body.appendChild(tabNav);
+    // Tab nav goes into the header as a second bar
+    const header = document.querySelector(".site-header");
+    if (header && !header.querySelector(".account-tab-nav")) {
+      const tabNav = buildAccountTabNav();
+      header.appendChild(tabNav);
+    }
+
+    // Theme toggle goes into header tools, replacing any existing instance
+    const tools = document.querySelector(".site-header__tools");
+    if (tools && !document.getElementById("account-theme-toggle")) {
+      const toggle = buildAccountThemeToggle();
+      tools.appendChild(toggle);
+    }
 
     const contentEl = document.createElement("div");
     contentEl.className = "account-tab-content";
@@ -3384,8 +3394,21 @@
       for (const h of healthDefs) {
         const row2 = document.createElement("a");
         row2.className = "account-health-row";
-        row2.href = "#collection";
-        row2.addEventListener("click", () => setTimeout(() => applyAccountCollectionFilter(h.filter), 50));
+        row2.href = "/account#collection";
+        row2.addEventListener("click", (e) => {
+          e.preventDefault();
+          _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
+          history.pushState(null, "", "/account#collection");
+          _accountCurrentTab = "collection";
+          const contentEl = document.querySelector(".account-tab-content");
+          if (contentEl) {
+            renderAccountActiveTab(contentEl);
+            requestAnimationFrame(() => {
+              window.scrollTo({ top: 0, behavior: "instant" });
+              setTimeout(() => applyAccountCollectionFilter(h.filter), 50);
+            });
+          }
+        });
         const dot = document.createElement("span");
         dot.className = "account-health-dot" + (h.count === 0 ? " account-health-dot--ok" : " account-health-dot--warn");
         const label = document.createElement("span");
@@ -3489,7 +3512,7 @@
 
           const thumb = document.createElement("img");
           thumb.className = "account-overview__activity-thumb";
-          thumb.src = String(it?.image ?? "");
+          thumb.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || String(it?.image ?? "");
           thumb.alt = "";
           thumb.loading = "lazy";
           thumb.decoding = "async";
@@ -3780,10 +3803,16 @@
     clearBtn.className = "account-filter-clear";
     clearBtn.textContent = "Clear";
 
-    const addBtn = document.createElement("a");
-    addBtn.href = "/collection?additem=1";
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
     addBtn.className = "account-collection-add-btn";
     addBtn.textContent = "+ Add piece";
+    addBtn.addEventListener("click", () => {
+      const dlg = document.getElementById("add-item-dialog");
+      if (dlg) {
+        try { dlg.showModal(); } catch { /* already open */ }
+      }
+    });
 
     const countLabel = document.createElement("span");
     countLabel.className = "account-collection-count";
@@ -3947,7 +3976,7 @@
 
     const img = document.createElement("img");
     img.className = "account-cat-thumb";
-    img.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    img.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     img.alt = "";
     img.loading = "lazy";
     img.decoding = "async";
@@ -4313,7 +4342,7 @@
 
     const thumb = document.createElement("img");
     thumb.className = "account-playlist-thumb";
-    thumb.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    thumb.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     thumb.alt = "";
     thumb.loading = "lazy";
     thumb.decoding = "async";
@@ -12658,12 +12687,6 @@
       } else {
         clearScrollDriven();
       }
-      if (heroInner) {
-        const copyBottom = heroInner.getBoundingClientRect().bottom;
-        const shellH = shell.offsetHeight;
-        const copyOpacity = Math.min(1, Math.max(0.08, (copyBottom - shellH) / 140));
-        heroInner.style.opacity = copyOpacity < 1 ? copyOpacity.toFixed(3) : "";
-      }
     };
 
     if (initHomeHeroHeader._wired) {
@@ -12697,8 +12720,21 @@
       siteHeader.style.removeProperty("--tw-header-monogram");
     };
     // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
-    const onHeaderEnter = () => clearScrollDriven();
-    const onHeaderLeave = () => update();
+    // On leave: set target opacity without scroll-driven so the CSS transition (400ms) fires,
+    // then hand off to scroll-driven after it completes.
+    let _leaveTimer = null;
+    const onHeaderEnter = () => { clearTimeout(_leaveTimer); clearScrollDriven(); };
+    const onHeaderLeave = () => {
+      clearTimeout(_leaveTimer);
+      if (!hero || shouldUseSolidHeader()) { update(); return; }
+      const heroH = hero.offsetHeight;
+      const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      const fadeStart = heroH * 0.2;
+      const fadeEnd = heroH * 0.5;
+      const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
+      siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
+      _leaveTimer = globalThis.setTimeout(update, 420);
+    };
     siteHeader.addEventListener("mouseenter", onHeaderEnter);
     siteHeader.addEventListener("mouseleave", onHeaderLeave);
     initHomeHeroHeader._teardown = () => {
@@ -12711,7 +12747,6 @@
       clearScrollDriven();
       siteHeader.classList.remove("site-header--overlay");
       siteHeader.classList.add("site-header--solid");
-      if (heroInner) heroInner.style.opacity = "";
       document.body.style.removeProperty("--home-header-nav-height");
       document.body.style.removeProperty("--home-header-shell-height");
     };

@@ -7538,16 +7538,30 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav open — masthead ink follows the surface edge, in place.
+   * Mobile nav open — single-DOM two-tone ink (no clone, nothing moves).
    *
-   * The logo + tools never move. Two things slide in from the right in lock-step with the drawer:
-   *   1. `.site-header::after` — the ivory surface (the drawer's background entering the header row).
-   *   2. `#site-header-ink-clone` — a non-interactive dark-ink copy of the masthead content, revealed
-   *      by a `clip-path` whose left edge tracks the same right→left boundary as the ivory.
-   * Result: every glyph stays put and flips white→dark exactly where the ivory edge passes it — no
-   * dark-on-hero, no white-on-ivory, no moving logo. The real header underneath stays overlay (white)
-   * and interactive; the clone is purely visual.
+   * `--tw-nav-ink-edge` (1 = closed/right → 0 = open/left) is the ONE animated source. It drives:
+   *   • the ivory `::after` clip (covered region = right of the boundary), and
+   *   • a hard two-tone gradient that paints the real wordmark + monogram in place.
+   * `--tw-header-w` (header width) and each painted element's `--tw-el-x` (its left within the header)
+   * are written once per layout by JS — reading the one DOM, not duplicating it — so the boundary in
+   * any element's own box is `edge·headerWidth − elementLeft`: the same physical line everywhere, hence
+   * no drift (no dark-on-hero, no white-on-ivory). Icons are narrow + covered first, so they step.
    */
+  .site-header {
+    --tw-nav-ink-edge-px: calc(var(--tw-nav-ink-edge) * var(--tw-header-w, 100vw));
+  }
+
+  body.collection-ui--mobile-nav-open .site-header,
+  body.collection-ui--mobile-nav-closing .site-header {
+    transition: --tw-nav-ink-edge var(--tw-mobile-nav-duration, 320ms)
+      var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  }
+
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header {
+    --tw-nav-ink-edge: 0;
+  }
+
   .site-header::after {
     content: "";
     position: absolute;
@@ -7555,40 +7569,42 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: 0;
     pointer-events: none;
     background-color: var(--tw-mobile-nav-surface, #f7f4ed);
-    /* Parked off the right edge (header is `overflow-x: clip`, so it never shows at rest). */
-    transform: translate3d(100%, 0, 0);
-    transition: transform var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+    /* Covered region = right of the boundary; at edge:1 the inset is 100% → nothing shows. */
+    clip-path: inset(0 0 0 calc(var(--tw-nav-ink-edge) * 100%));
   }
 
-  .site-header__ink-clone {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    /* Force solid masthead ink regardless of the live overlay/solid state underneath. */
-    --tw-header-fg: var(--tw-brand-wordmark);
-    --tw-header-fg-muted: var(--ink-muted);
-    --tw-header-monogram: var(--tw-brand-monogram-green);
-    color: var(--tw-brand-wordmark);
-    /* Default (and closing) = clipped off the right edge; left edge tracks the ivory boundary. */
-    clip-path: inset(0 0 0 100%);
-    transition: clip-path var(--tw-mobile-nav-duration, 320ms) var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  /* Wordmark: transparent text filled by a hard two-tone gradient split at the boundary. */
+  body.collection-ui--mobile-nav-open .site-title__wordmark-line,
+  body.collection-ui--mobile-nav-closing .site-title__wordmark-line {
+    color: transparent;
+    background-image: linear-gradient(
+      90deg,
+      var(--tw-brand-wordmark) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
+      var(--tw-brand-overlay-ink, #fff) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 
-  .site-header__ink-clone .site-header__tool-glyph,
-  .site-header__ink-clone .styling-board-glyph__grid {
-    stroke: currentColor;
-    stroke-opacity: 1;
-    color: currentColor;
+  /* Monogram: already mask-painted, so swap its solid background-color for the same gradient. */
+  body.collection-ui--mobile-nav-open .site-title__mark,
+  body.collection-ui--mobile-nav-closing .site-title__mark {
+    background-color: transparent;
+    background-image: linear-gradient(
+      90deg,
+      var(--tw-brand-monogram-green) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
+      var(--tw-brand-overlay-ink, #fff) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)) 100%
+    );
   }
 
-  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header::after {
-    transform: translate3d(0, 0, 0);
-  }
-
-  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header__ink-clone {
-    clip-path: inset(0 0 0 0);
+  /* Icons are narrow + the first thing the ivory covers → step their colour with the edge. */
+  body.collection-ui--mobile-nav-open .site-header__tools,
+  body.collection-ui--mobile-nav-closing .site-header__tools {
+    color: color-mix(
+      in srgb,
+      var(--tw-brand-overlay-ink, #fff),
+      var(--tw-brand-wordmark) calc(clamp(0, (0.82 - var(--tw-nav-ink-edge)) * 1000, 1) * 100%)
+    );
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
@@ -7787,8 +7803,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
     .site-mobile-shell__bar,
     .site-mobile-nav__level,
     .site-mobile-nav-drill-portal,
-    .site-header::after,
-    .site-header__ink-clone,
+    .site-header,
     .site-header__search-wrap {
       transition-duration: 0.01ms;
     }
@@ -25647,9 +25662,9 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   width: 32px;
   height: 42px;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--media-cutout-canvas, #e6e7e9);
 }
 
 .account-overview__activity-info {
