@@ -12583,19 +12583,14 @@
     scroller.addEventListener(
       "wheel",
       (e) => {
-        const isDesktop = globalThis.matchMedia?.("(min-width: 901px)")?.matches ?? false;
-        const isPageRail =
-          scroller.id === "home-hero-division-rail" ||
-          scroller.classList.contains("home-hero__division-rail-scroller") ||
-          scroller.classList.contains("home-hero__horizontal-rail-scroller");
-        if (isDesktop && isPageRail) return;
         if (trackDragActive || scrollerDragActive) return;
         const max = scrollMax();
         if (max <= 4) return;
         const absX = Math.abs(e.deltaX);
         const absY = Math.abs(e.deltaY);
-        if (isOutfitStripRailScroller(scroller) && absY > absX) return;
-        const horizontalDelta = absX > absY ? e.deltaX : e.deltaY;
+        /* Never hijack vertical scroll for a horizontal rail — on any breakpoint or rail type. */
+        if (absY > absX) return;
+        const horizontalDelta = e.deltaX;
         if (Math.abs(horizontalDelta) < 1) return;
         const el = getScrollEl();
         const prev = el.scrollLeft;
