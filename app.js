@@ -3407,11 +3407,17 @@
     const noBrandCount = ownedItems.filter((it) => !String(it?.brand ?? "").trim()).length;
 
     // helper: create a section title element
-    function mkTitle(text, mt) {
+    function mkTitle(text, mt, sub) {
       const t = document.createElement("div");
       t.className = "account-overview__section-title";
       if (mt) t.style.marginTop = mt;
       t.textContent = text;
+      if (sub) {
+        const s = document.createElement("span");
+        s.className = "account-overview__section-title-sub";
+        s.textContent = sub;
+        t.appendChild(s);
+      }
       return t;
     }
 
@@ -3837,7 +3843,7 @@
         rowEl.append(lbl, barWrap, num);
         monthDist.appendChild(rowEl);
       }
-      right.append(mkTitle("Acquisitions by Month"), monthDist);
+      right.append(mkTitle("Purchase Seasonality", null, "All years combined"), monthDist);
 
       wrapper.appendChild(row);
     }
@@ -3852,6 +3858,8 @@
   let _accountCollectionSeason = "";
   let _accountCollectionStatus = "";   // "" | "showcase" | "wishlist" | "has-notes" | "no-notes" | "no-price"
   let _accountCollectionDrawerItemId = null;
+  let _accountCollectionSortKey = "";  // "" | "name" | "brand" | "category" | "season" | "year" | "price"
+  let _accountCollectionSortDir = 1;   // 1 = asc, -1 = desc
 
   function applyAccountCollectionFilter(f) {
     _accountCollectionBrand = "";
@@ -4020,15 +4028,61 @@
         ? `${filtered.length} of ${items.length} pieces`
         : `${items.length} pieces`;
 
-      // Desktop column header
+      // Desktop column header (sortable)
       const hdr = document.createElement("div");
       hdr.className = "account-cat-list__header";
-      ["", "NAME", "BRAND", "CATEGORY", "SEASON", "YEAR", "PRICE", ""].forEach((t) => {
+      const COL_KEYS = ["", "name", "brand", "category", "season", "year", "price", ""];
+      COL_KEYS.forEach((key, i) => {
+        const label = ["", "NAME", "BRAND", "CATEGORY", "SEASON", "YEAR", "PRICE", ""][i];
         const s = document.createElement("span");
-        s.textContent = t;
+        if (key) {
+          s.className = "account-cat-list__header-col";
+          s.dataset.sortKey = key;
+          if (key === _accountCollectionSortKey) {
+            s.dataset.sortDir = _accountCollectionSortDir === 1 ? "asc" : "desc";
+          }
+          const arrow = document.createElement("span");
+          arrow.className = "account-cat-list__sort-arrow";
+          s.append(label, arrow);
+          s.addEventListener("click", () => {
+            if (_accountCollectionSortKey === key) {
+              _accountCollectionSortDir *= -1;
+            } else {
+              _accountCollectionSortKey = key;
+              _accountCollectionSortDir = 1;
+            }
+            refreshList();
+          });
+        } else {
+          s.textContent = label;
+        }
         hdr.appendChild(s);
       });
       listPane.appendChild(hdr);
+
+      // Apply column sort
+      if (_accountCollectionSortKey) {
+        const key = _accountCollectionSortKey;
+        const dir = _accountCollectionSortDir;
+        filtered.sort((a, b) => {
+          let av, bv;
+          if (key === "name")     { av = String(a?.name     ?? ""); bv = String(b?.name     ?? ""); }
+          else if (key === "brand")    { av = String(a?.brand    ?? ""); bv = String(b?.brand    ?? ""); }
+          else if (key === "category") { av = String(a?.category ?? ""); bv = String(b?.category ?? ""); }
+          else if (key === "season")   { av = String(a?.season   ?? ""); bv = String(b?.season   ?? ""); }
+          else if (key === "year")     {
+            av = a?.purchaseDate ? new Date(a.purchaseDate).getFullYear() : 0;
+            bv = b?.purchaseDate ? new Date(b.purchaseDate).getFullYear() : 0;
+            return dir * (av - bv);
+          }
+          else if (key === "price") {
+            av = Number.isFinite(Number(a?.price)) ? Number(a.price) : -Infinity;
+            bv = Number.isFinite(Number(b?.price)) ? Number(b.price) : -Infinity;
+            return dir * (av - bv);
+          }
+          return dir * av.localeCompare(bv, undefined, { sensitivity: "base" });
+        });
+      }
 
       if (!filtered.length) {
         const empty = document.createElement("div");
