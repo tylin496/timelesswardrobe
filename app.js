@@ -3091,7 +3091,6 @@
     { key: "collection",  label: "Collection"  },
     { key: "showcase",    label: "Showcase"    },
     { key: "notes",       label: "Notes"       },
-    { key: "wishlist",    label: "Wishlist"    },
     { key: "brands",      label: "Brands"      },
   ];
 
