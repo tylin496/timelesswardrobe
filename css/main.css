@@ -26549,7 +26549,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   /* Column header row */
   .account-cat-list__header {
-    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem auto;
+    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
     margin-bottom: 0;
@@ -26557,6 +26557,9 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   /* Restore all 8 header spans */
   .account-cat-list__header span:nth-child(n+5) { display: unset; }
+
+  /* PRICE header right-aligns to match data cell */
+  .account-cat-list__header span:nth-child(7) { text-align: right; }
 
   /* Flags: compact single-column on desktop */
   .account-cat-flags {
