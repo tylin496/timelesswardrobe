@@ -26996,7 +26996,11 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   white-space: nowrap;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-  opacity: 0.55;
+  opacity: 0.7;
+}
+
+html.tw-account-dark body.account-page .account-notes-v2-wordcount {
+  opacity: 1;
 }
 
 .account-notes-v2-wordcount[data-empty="true"] {
