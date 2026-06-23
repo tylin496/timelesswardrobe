@@ -3147,6 +3147,9 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     min-width: 0;
     overflow: hidden;
   }
+  body.account-page .site-header__tools {
+    grid-column: 3;
+  }
 }
 
 @media (max-width: 1024px) {
