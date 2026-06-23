@@ -29996,6 +29996,7 @@
       document.body.classList.remove("collection-ui--mobile-nav-closing", "collection-ui--mobile-nav-shown");
       if (mobileShellShowTimer) { clearTimeout(mobileShellShowTimer); mobileShellShowTimer = null; }
       document.body.classList.add("collection-ui--mobile-nav-open");
+      setMastheadSweepGeometry();
       setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");
       headerMenuBtn?.setAttribute("aria-label", "Close categories menu");
@@ -30009,20 +30010,27 @@
       if (twPrefersReducedMotion()) {
         mobileShell.classList.add("is-open");
         syncMobileShellTop();
-        document.body.classList.add("collection-ui--mobile-nav-shown");
         return;
       }
 
       void mobileShell.offsetWidth;
       requestAnimationFrame(revealPanel);
-      // Once the surface finishes sliding, swap the blend for solid brand-green ink (the blend can only
-      // render a near-black over the ivory). Guarded against a close that interrupts the slide.
-      mobileShellShowTimer = globalThis.setTimeout(() => {
-        mobileShellShowTimer = null;
-        if (document.body.classList.contains("collection-ui--mobile-nav-open")) {
-          document.body.classList.add("collection-ui--mobile-nav-shown");
-        }
-      }, MOBILE_NAV_MOTION_MS);
+    }
+
+    // Geometry for the white→green wordmark gradient: header width + each masthead element's left offset
+    // within the header, so the gradient (sized to the header) lines up and its white|green stop sits at
+    // the same header-x for every piece. Layout is stable during the slide, so set once per open.
+    function setMastheadSweepGeometry() {
+      const header = document.querySelector(".site-header");
+      if (!header) return;
+      const hRect = header.getBoundingClientRect();
+      header.style.setProperty("--nav-header-w", `${hRect.width}px`);
+      header
+        .querySelectorAll(".site-title__wordmark-line, .site-title__mark")
+        .forEach((el) => {
+          const r = el.getBoundingClientRect();
+          el.style.setProperty("--el-left", `${r.left - hRect.left}px`);
+        });
     }
 
     function openMobileHeaderSearch() {
