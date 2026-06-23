@@ -1131,7 +1131,6 @@ body.editorial-page .site-header.site-header--overlay .site-title__wordmark-line
   color: var(--tw-brand-overlay-ink);
 }
 
-body.editorial-page .site-header.site-header--overlay:hover,
 body.editorial-page .site-header.site-header--overlay:focus-within {
   --tw-header-fg: var(--ink);
   --tw-header-fg-muted: var(--ink-muted);
@@ -1146,9 +1145,29 @@ body.editorial-page .site-header.site-header--overlay:focus-within {
   --tw-header-badge-opacity: 1;
 }
 
-body.editorial-page .site-header.site-header--overlay:hover .site-title__wordmark-line,
 body.editorial-page .site-header.site-header--overlay:focus-within .site-title__wordmark-line {
   color: var(--tw-brand-green);
+}
+
+/* Pointer hover — desktop only (see note above). */
+@media (hover: hover) {
+  body.editorial-page .site-header.site-header--overlay:hover {
+    --tw-header-fg: var(--ink);
+    --tw-header-fg-muted: var(--ink-muted);
+    --tw-header-monogram: var(--tw-brand-monogram-green);
+    --tw-header-bg: var(--bg);
+    --tw-header-bg-opacity: 0.92;
+    --tw-header-border: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+    --tw-header-shadow: 0 4px 14px rgba(20, 19, 18, 0.06);
+    --tw-header-backdrop: blur(3px);
+    --tw-header-badge-bg: var(--tw-brand-green);
+    --tw-header-badge-fg: var(--tw-brand-ivory);
+    --tw-header-badge-opacity: 1;
+  }
+
+  body.editorial-page .site-header.site-header--overlay:hover .site-title__wordmark-line {
+    color: var(--tw-brand-green);
+  }
 }
 
 body.theme-catalogue .site-header--solid .site-title__primary,
@@ -1187,7 +1206,8 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
   --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
 }
 
-.site-header--overlay:hover,
+/* Keyboard focus recolours on every device; pointer hover is desktop-only (a touch tap leaves a
+   sticky :hover that flips the overlay header solid and never reverts). */
 .site-header--overlay:focus-within {
   --tw-header-fg: var(--tw-brand-wordmark);
   --tw-header-fg-muted: var(--ink-muted);
@@ -1198,6 +1218,20 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
   --tw-header-badge-bg: var(--tw-brand-green);
   --tw-header-badge-fg: var(--tw-header-surface);
   --tw-header-badge-opacity: 1;
+}
+
+@media (hover: hover) {
+  .site-header--overlay:hover {
+    --tw-header-fg: var(--tw-brand-wordmark);
+    --tw-header-fg-muted: var(--ink-muted);
+    --tw-header-monogram: var(--tw-brand-monogram-green);
+    --tw-header-surface: var(--bg-elevated);
+    --tw-header-bg: var(--bg-elevated);
+    --tw-header-bg-opacity: 1;
+    --tw-header-badge-bg: var(--tw-brand-green);
+    --tw-header-badge-fg: var(--tw-header-surface);
+    --tw-header-badge-opacity: 1;
+  }
 }
 
 .site-header--solid,
@@ -3126,9 +3160,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     display: inline-flex;
   }
 
-  body.account-page .site-header__brand-nav .site-header__tools {
-    margin-left: auto;
-  }
 }
 
 @media (min-width: 1025px) {
@@ -25535,12 +25566,13 @@ body.editorial-page #editorial-root {
   justify-content: center;
   gap: 5px;
   width: 36px;
-  height: 100%;
+  height: 36px;
   padding: 0 6px;
   border: none;
   background: none;
   cursor: pointer;
   color: var(--tw-header-fg, #163229);
+  align-self: center;
 }
 .account-mobile-menu-btn__bar {
   display: block;

@@ -46,6 +46,18 @@
             </p>
             <div id="account-header-nav" class="account-header-nav"></div>
             <div class="site-header__tools">
+              <button
+                type="button"
+                id="account-mobile-menu-btn"
+                class="account-mobile-menu-btn"
+                aria-label="Open account menu"
+                aria-expanded="false"
+                aria-controls="account-tab-drawer"
+              >
+                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
+                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
+                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
+              </button>
               <div id="tw-editor-auth" class="site-header__editor-auth" hidden></div>
               <a class="site-header__account-link" href="/account" aria-label="Open account" title="Account">
                 <span class="site-header__account-icon" aria-hidden="true">
@@ -328,6 +340,19 @@
             Continue Browsing
           </button>
         </footer>
+      </div>
+    </div>
+
+    <div id="account-tab-drawer" class="account-tab-drawer" hidden aria-hidden="true">
+      <button
+        type="button"
+        class="account-tab-drawer__backdrop"
+        id="account-tab-drawer-backdrop"
+        tabindex="-1"
+        aria-label="Close menu"
+      ></button>
+      <div class="account-tab-drawer__sheet" role="dialog" aria-modal="true" aria-label="Account sections">
+        <div class="account-tab-drawer__nav" id="account-tab-drawer-nav"></div>
       </div>
     </div>
 

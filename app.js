@@ -3194,6 +3194,80 @@
     return toggle;
   }
 
+  function wireAccountTabDrawer() {
+    const drawer = document.getElementById("account-tab-drawer");
+    const backdrop = document.getElementById("account-tab-drawer-backdrop");
+    const navEl = document.getElementById("account-tab-drawer-nav");
+    const menuBtn = document.getElementById("account-mobile-menu-btn");
+    if (!drawer || !menuBtn || drawer.dataset.wired) return;
+    drawer.dataset.wired = "1";
+
+    function openDrawer() {
+      // Populate tabs fresh so aria-current reflects the active tab
+      if (navEl) {
+        navEl.replaceChildren();
+        for (const tab of ACCOUNT_TABS) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "account-tab-drawer__item";
+          btn.textContent = tab.label;
+          if (tab.key === _accountCurrentTab) btn.setAttribute("aria-current", "page");
+          btn.addEventListener("click", () => {
+            closeDrawer();
+            if (tab.key === _accountCurrentTab) return;
+            _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
+            history.pushState(null, "", `/account#${tab.key}`);
+            _accountCurrentTab = tab.key;
+            const contentEl = document.querySelector(".account-tab-content");
+            if (contentEl) {
+              renderAccountActiveTab(contentEl);
+              requestAnimationFrame(() => {
+                window.scrollTo({ top: _accountTabScrollPositions[tab.key] ?? 0, behavior: "instant" });
+              });
+            }
+            // Update desktop tab nav aria-current
+            document.querySelectorAll(".account-tab-nav__item").forEach((a) => {
+              a.toggleAttribute("aria-current", a.getAttribute("href") === `/account#${tab.key}`);
+            });
+          });
+          navEl.appendChild(btn);
+        }
+      }
+      drawer.hidden = false;
+      drawer.setAttribute("aria-hidden", "false");
+      void drawer.offsetWidth;
+      drawer.classList.add("account-tab-drawer--visible");
+      menuBtn.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove("account-tab-drawer--visible");
+      menuBtn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+      const onEnd = () => {
+        drawer.hidden = true;
+        drawer.setAttribute("aria-hidden", "true");
+        drawer.removeEventListener("transitionend", onEnd);
+      };
+      drawer.addEventListener("transitionend", onEnd);
+    }
+
+    menuBtn.addEventListener("click", () => {
+      if (drawer.hidden || !drawer.classList.contains("account-tab-drawer--visible")) {
+        openDrawer();
+      } else {
+        closeDrawer();
+      }
+    });
+
+    backdrop?.addEventListener("click", closeDrawer);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !drawer.hidden) closeDrawer();
+    });
+  }
+
   function renderAccountActiveTab(contentEl) {
     if (!contentEl) return;
     const tab = getAccountActiveTab();
@@ -3246,6 +3320,9 @@
       const tabNav = buildAccountTabNav();
       navSlot.appendChild(tabNav);
     }
+
+    // Wire mobile hamburger → account tab drawer (idempotent)
+    wireAccountTabDrawer();
 
     // Theme toggle goes into header tools, replacing any existing instance
     const tools = document.querySelector(".site-header__tools");
@@ -12735,8 +12812,12 @@
       siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
       _leaveTimer = globalThis.setTimeout(update, 420);
     };
-    siteHeader.addEventListener("mouseenter", onHeaderEnter);
-    siteHeader.addEventListener("mouseleave", onHeaderLeave);
+    // Hover recolour is desktop-only: on touch, `mouseenter` fires on tap and can stick (there's no
+    // reliable `mouseleave`), flipping the header into its hovered state and never reverting.
+    if (globalThis.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches) {
+      siteHeader.addEventListener("mouseenter", onHeaderEnter);
+      siteHeader.addEventListener("mouseleave", onHeaderLeave);
+    }
     initHomeHeroHeader._teardown = () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
