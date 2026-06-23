@@ -7598,45 +7598,47 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Ink carried by the surface — SPATIAL, not temporal. During the nav the masthead stays in its WHITE
-   * overlay state (the home pin below keeps it white); the content layer blends with the sliding ivory
-   * `::after` via `mix-blend-mode: difference`. Per pixel: white where the hero still shows (the backdrop
-   * inside the header is transparent ⇒ difference leaves the source white) and dark where the ivory has
-   * arrived (white ⊖ ivory ≈ near-black). The boundary IS the surface edge, so the recolor travels
-   * right→left purely from the surface `transform` — no recolor timing, no per-element/per-char stagger,
-   * no mask, no gradient, no clone, no second masthead. `isolation: isolate` on `.site-header` confines
-   * the blend to the header's own ::before/::after layers, so it never reacts to the hero photo behind.
-   * Home only: catalogue/account mastheads are already dark on a light bar and need no blend.
+   * White→GREEN spatial reveal — no black. `background-clip: text` paints the wordmark from a hard-stop
+   * gradient (white | brand-green) whose stop tracks the surface edge: stop = (1 − --nav-progress) ·
+   * header-width = exactly where the ivory edge is. Left of it (hero) = white; right (ivory arrived) =
+   * #163229. The gradient is sized to the header and offset per element (`--el-left`, set in JS) so the
+   * stop lands at the same header-x for every piece. At --nav-progress 1 the stop is at 0 ⇒ all green; at
+   * 0 it's at the far right ⇒ all white. Real colours, single DOM, no clone, no mask, no second masthead.
+   * RISK: the stop is driven by --nav-progress (not a composited transform), so real-time per-frame
+   * repaint is the open question — judged on device. Home only.
    */
-  body.home-page.collection-ui--mobile-nav-open .site-header__container,
-  body.home-page.collection-ui--mobile-nav-closing .site-header__container {
-    mix-blend-mode: difference;
+  body.home-page.collection-ui--mobile-nav-open .site-title__wordmark-line,
+  body.home-page.collection-ui--mobile-nav-closing .site-title__wordmark-line {
+    --nav-edge: calc((1 - var(--nav-progress, 0)) * var(--nav-header-w, 100vw));
+    background-image: linear-gradient(to right,
+      #fff 0 var(--nav-edge), var(--tw-brand-green) var(--nav-edge) 100%);
+    background-size: var(--nav-header-w, 100vw) 100%;
+    background-position: calc(-1 * var(--el-left, 0px)) 0;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
   }
 
-  /* Settled open (`--mobile-nav-shown`, set by JS once the slide finishes): the surface has fully
-     arrived, so drop the blend — which can only yield a near-black over the ivory — and set the whole
-     masthead to solid BRAND GREEN, unified across wordmark, monogram and tool glyphs. `transition: none`
-     so it snaps from the blend's near-black straight to green; a color ease would pass through light
-     tones and flash invisible on the ivory. The blend returns (and the green is dropped) on close. */
-  body.home-page.collection-ui--mobile-nav-shown .site-header__container {
-    mix-blend-mode: normal;
+  /* Monogram crest: same surface-tracking gradient, clipped to the crest by its existing mask. */
+  body.home-page.collection-ui--mobile-nav-open .site-title__mark,
+  body.home-page.collection-ui--mobile-nav-closing .site-title__mark {
+    --nav-edge: calc((1 - var(--nav-progress, 0)) * var(--nav-header-w, 100vw));
+    background-image: linear-gradient(to right,
+      #fff 0 var(--nav-edge), var(--tw-brand-green) var(--nav-edge) 100%);
+    background-size: var(--nav-header-w, 100vw) 100%;
+    background-position: calc(-1 * var(--el-left, 0px)) 0;
+    background-repeat: no-repeat;
   }
-  body.home-page.collection-ui--mobile-nav-shown .site-title__primary,
-  body.home-page.collection-ui--mobile-nav-shown .site-title__wordmark-line {
-    color: var(--tw-brand-green);
-    transition: none;
-  }
-  body.home-page.collection-ui--mobile-nav-shown .site-title__mark {
-    background-color: var(--tw-brand-green);
-    transition: none;
-  }
-  body.home-page.collection-ui--mobile-nav-shown .site-header__tools .site-header__tool-glyph,
-  body.home-page.collection-ui--mobile-nav-shown .site-header__menu-btn .site-header__menu-glyph-line {
+
+  /* Tool glyphs sit far right (the surface reaches them almost immediately) — SVG strokes can't
+     gradient-clip, so just brand green for the duration of the nav. */
+  body.home-page.collection-ui--mobile-nav-open .site-header__tools .site-header__tool-glyph,
+  body.home-page.collection-ui--mobile-nav-closing .site-header__tools .site-header__tool-glyph,
+  body.home-page.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line,
+  body.home-page.collection-ui--mobile-nav-closing .site-header__menu-btn .site-header__menu-glyph-line {
     stroke: var(--tw-brand-green);
-    transition: none;
-  }
-  body.home-page.collection-ui--mobile-nav-shown .site-header__tools {
-    --tw-header-badge-fg: var(--tw-brand-green);
   }
 
   /*
@@ -26139,18 +26141,20 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-family: var(--font-sans);
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--ink);
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  color: var(--ink-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 3px;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
   flex-shrink: 0;
 }
 
 .account-filters-toggle:hover {
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, var(--line));
 }
 
 .account-filters-toggle-badge {
@@ -26211,9 +26215,10 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-family: var(--font-sans);
   font-size: 0.82rem;
   color: var(--ink);
-  background: var(--bg-elevated, #fff);
-  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 3px;
+  transition: border-color 0.12s;
 }
 
 .account-collection-search::placeholder {
@@ -26223,7 +26228,7 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 
 .account-collection-search:focus-visible {
   outline: none;
-  border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 45%, transparent);
 }
 
 .account-collection-filters {
@@ -26240,8 +26245,8 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--ink-muted);
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 20px;
   cursor: pointer;
   transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
@@ -26250,11 +26255,11 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 
 .account-filter-chip:hover {
   color: var(--ink);
-  border-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
 }
 
 .account-filter-chip[aria-pressed="true"] {
-  color: var(--bg, #faf8f4);
+  color: var(--bg);
   background: var(--ink);
   border-color: var(--ink);
 }
@@ -26279,17 +26284,18 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  color: var(--ink-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 3px;
   text-decoration: none;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .account-collection-add-btn:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  border-color: var(--ink);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, var(--line));
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
 }
 
 /* collection + drawer layout */
@@ -27251,9 +27257,9 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   font-family: var(--font-sans);
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--ink);
-  background: var(--bg-elevated, #fff);
-  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  color: var(--ink-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 3px;
   appearance: none;
   -webkit-appearance: none;
@@ -27262,16 +27268,18 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   background-position: right 0.5rem center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.12s ease;
+  transition: border-color 0.12s ease, color 0.12s ease;
 }
 
 .account-filter-select:focus-visible {
   outline: none;
-  border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 45%, transparent);
 }
 
 .account-filter-select:not([value=""]) {
-  border-color: var(--ink);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
   font-weight: 600;
 }
 
@@ -27284,7 +27292,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   letter-spacing: 0.02em;
   color: var(--ink-muted);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border: 1px solid var(--line);
   border-radius: 3px;
   cursor: pointer;
   transition: color 0.12s, border-color 0.12s;
@@ -27292,7 +27300,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
 .account-filter-clear:hover {
   color: var(--ink);
-  border-color: color-mix(in srgb, var(--ink) 35%, transparent);
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
 }
 
 .account-collection-count {
