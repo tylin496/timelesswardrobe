@@ -28521,7 +28521,8 @@
       if (resolvePageTheme() === "home") mountHomePageHero();
     });
     globalThis.addEventListener("pagehide", () => {
-      if (resolvePageTheme() === "home") teardownHomeHeroHeader();
+      // Don't teardown on navigation — removing --home-header-shell-height causes the hero
+      // margin-top to jump visibly while the browser is still showing the current page.
     });
   }
 
@@ -29805,6 +29806,23 @@
 
     /** @type {(() => void) | null} */
     let mobileShellCloseAbort = null;
+
+    /**
+     * Mobile-nav masthead wipe geometry. Writes the single header width and each painted glyph's
+     * left offset (within the header) as CSS vars, so the one `--tw-nav-ink-edge` boundary maps to
+     * the same physical line in every element's own paint box. Reads the live DOM; creates nothing.
+     */
+    function syncHeaderInkGeometry() {
+      const header = document.querySelector(".site-header");
+      if (!header) return;
+      const hb = header.getBoundingClientRect();
+      if (!hb.width) return;
+      header.style.setProperty("--tw-header-w", `${Math.round(hb.width)}px`);
+      header.querySelectorAll(".site-title__wordmark-line, .site-title__mark").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty("--tw-el-x", `${Math.round(r.left - hb.left)}px`);
+      });
+    }
 
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
