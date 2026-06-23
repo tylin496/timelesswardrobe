@@ -5615,16 +5615,16 @@
 
   function expandCollectionFilterDrawerSection(sectionSelector) {
     const section = document.querySelector(sectionSelector);
-    if (!section?.classList.contains("afd-collapsible")) return;
+    if (!section?.classList.contains("filter-section-collapsible")) return;
     section.classList.remove("is-collapsed");
-    const btn = section.querySelector(".afd-section-toggle");
+    const btn = section.querySelector(".filter-section-toggle");
     if (btn) btn.setAttribute("aria-expanded", "true");
   }
 
   function collapseAllCollectionFilterDrawerSections() {
-    document.querySelectorAll("#collection-filter-drawer .afd-collapsible").forEach((section) => {
+    document.querySelectorAll("#collection-filter-drawer .filter-section-collapsible").forEach((section) => {
       section.classList.add("is-collapsed");
-      const btn = section.querySelector(".afd-section-toggle");
+      const btn = section.querySelector(".filter-section-toggle");
       if (btn) btn.setAttribute("aria-expanded", "false");
     });
   }
@@ -28296,9 +28296,9 @@
 
     if (filterDrawer && filterDrawer.dataset.twAccordionWired !== "1") {
       filterDrawer.dataset.twAccordionWired = "1";
-      filterDrawer.querySelectorAll(".afd-collapsible > .afd-section-toggle").forEach((btn) => {
+      filterDrawer.querySelectorAll(".filter-section-collapsible > .filter-section-toggle").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const section = btn.closest(".afd-collapsible");
+          const section = btn.closest(".filter-section-collapsible");
           if (!section) return;
           const collapsed = section.classList.toggle("is-collapsed");
           btn.setAttribute("aria-expanded", String(!collapsed));
