@@ -3097,9 +3097,6 @@
 
   const _accountTabScrollPositions = {};
   let _accountCurrentTab = "collection";
-  let _accountTabPreviewKey = null;
-  let _accountTabPreviewTimer = 0;
-
   function getAccountActiveTab() {
     const hash = String(globalThis.location.hash ?? "").replace(/^#/, "").toLowerCase();
     const valid = ACCOUNT_TABS.map((t) => t.key);
@@ -3119,18 +3116,6 @@
     }
   }
 
-  function clearAccountTabPreview() {
-    window.clearTimeout(_accountTabPreviewTimer);
-    _accountTabPreviewTimer = 0;
-    if (!_accountTabPreviewKey) return;
-    _accountTabPreviewKey = null;
-    const contentEl = document.querySelector(".account-tab-content");
-    if (!contentEl) return;
-    contentEl.classList.remove("is-preview");
-    contentEl.removeAttribute("data-preview-label");
-    renderAccountActiveTab(contentEl);
-  }
-
   function buildAccountTabNav() {
     const nav = document.createElement("nav");
     nav.className = "account-tab-nav";
@@ -3146,13 +3131,7 @@
 
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        window.clearTimeout(_accountTabPreviewTimer);
-        _accountTabPreviewKey = null;
         const contentEl = document.querySelector(".account-tab-content");
-        if (contentEl) {
-          contentEl.classList.remove("is-preview");
-          contentEl.removeAttribute("data-preview-label");
-        }
         if (tab.key === _accountCurrentTab) return;
         _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
         history.pushState(null, "", `/account#${tab.key}`);
@@ -3165,40 +3144,8 @@
         }
       });
 
-      // Desktop hover preview
-      a.addEventListener("mouseenter", () => {
-        if (window.innerWidth < 1025) return;
-        window.clearTimeout(_accountTabPreviewTimer);
-        if (tab.key === _accountCurrentTab) {
-          if (_accountTabPreviewKey) clearAccountTabPreview();
-          return;
-        }
-        _accountTabPreviewTimer = window.setTimeout(() => {
-          const contentEl = document.querySelector(".account-tab-content");
-          if (!contentEl) return;
-          _accountTabPreviewKey = tab.key;
-          contentEl.setAttribute("data-preview-label", tab.label);
-          contentEl.classList.add("is-preview");
-          renderAccountTabForKey(contentEl, tab.key);
-        }, 150);
-      });
-
       nav.appendChild(a);
     }
-
-    // Revert to active tab when mouse leaves the whole nav
-    nav.addEventListener("mouseleave", () => {
-      window.clearTimeout(_accountTabPreviewTimer);
-      _accountTabPreviewTimer = 0;
-      if (!_accountTabPreviewKey) return;
-      // Small delay so moving from nav → content doesn't cancel
-      _accountTabPreviewTimer = window.setTimeout(clearAccountTabPreview, 200);
-    });
-
-    // Cancel revert if mouse re-enters nav
-    nav.addEventListener("mouseenter", () => {
-      window.clearTimeout(_accountTabPreviewTimer);
-    });
 
     return nav;
   }
