@@ -24323,7 +24323,7 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
 /* Hamburger — mobile only; reuses site-header__menu-btn appearance */
 .account-mobile-menu-btn { display: none; order: 99; }
 
-@media (max-width: 1024px) {
+@media (max-width: 640px) {
   .account-mobile-menu-btn { display: inline-flex; }
   body.account-page .account-tab-nav { display: none; }
 }
