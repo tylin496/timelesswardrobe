@@ -25660,25 +25660,26 @@ html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page
   .account-tab-content.is-preview {
     position: relative;
   }
+  /* Badge floats above content — zero layout impact */
   .account-tab-content.is-preview::before {
     content: "Previewing " attr(data-preview-label);
-    position: sticky;
+    position: absolute;
     top: 0;
+    left: 0;
     z-index: 10;
-    display: block;
-    padding: 0.35rem 0.75rem;
-    margin-bottom: 1.25rem;
+    padding: 0.3rem 0.65rem;
     font-family: var(--font-sans);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-muted);
-    background: color-mix(in srgb, var(--line) 18%, var(--bg));
+    background: color-mix(in srgb, var(--line) 22%, var(--bg));
     border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
     border-radius: 4px;
-    width: fit-content;
     pointer-events: none;
+    /* Shift upward so it doesn't overlap the first content element */
+    transform: translateY(calc(-100% - 0.5rem));
   }
 }
 
