@@ -24875,6 +24875,7 @@
       galleryUrls: Array.isArray(data.gallery) ? data.gallery : [],
       maxPhotos: ITEM_EDIT_PHOTO_MAX,
       uploadLabel: "Upload photos",
+      onDirty: () => updateVariantHead(),
     });
 
     const previewLab = document.createElement("label");
@@ -24941,7 +24942,43 @@
     });
 
     rowActions.append(moveUp, moveDown, rm);
-    head.append(legText, rowActions);
+
+    // ── "Work" header: read the variant as a piece (colour identity + media summary),
+    //    not a stack of CMS fields. Swatch + colour title + a live "label · N images" line. ──
+    const headSwatch = document.createElement("span");
+    headSwatch.className =
+      "item-edit-variant-head-swatch item-edit-colour-code-preview item-edit-colour-code-preview--empty";
+    const headText = document.createElement("div");
+    headText.className = "item-edit-variant-head__text";
+    legText.className = "item-edit-variant-head-title";
+    const headMeta = document.createElement("p");
+    headMeta.className = "item-edit-variant-head-meta";
+    headText.append(legText, headMeta);
+    head.append(headSwatch, headText, rowActions);
+
+    function updateVariantHead() {
+      const colourName = colourIn.value.trim();
+      const lab = labelIn.value.trim();
+      const title = colourName || lab || keyIn.value.trim() || "Untitled colour";
+      legText.textContent = title;
+      syncItemEditColourCodePreviewEl(headSwatch, {
+        colourCode: codeIn.value,
+        colour: colourName,
+        label: lab,
+        basicColour: basicSel.value,
+      });
+      const slots = readItemEditPhotoManager(photoHost)?.slots ?? [];
+      const n = slots.length;
+      const bits = [];
+      if (lab && lab !== title) bits.push(lab);
+      bits.push(n ? `${n} image${n === 1 ? "" : "s"}` : "No images");
+      if (n) bits.push("cover set");
+      headMeta.textContent = bits.join(" · ");
+    }
+    for (const inp of [labelIn, colourIn, codeIn]) {
+      inp.addEventListener("input", updateVariantHead);
+    }
+    basicSel.addEventListener("change", updateVariantHead);
 
     const body = document.createElement("div");
     body.className = "item-edit-variant-row__body";
@@ -24962,8 +24999,10 @@
     previewAct.appendChild(rmPrev);
     previewRow.appendChild(previewAct);
 
-    body.append(basics, secondarySlot, broadRow, notesIn, photoHost, previewRow);
+    // Media leads — the variant's photos are the hero, details sit beneath.
+    body.append(photoHost, basics, secondarySlot, broadRow, notesIn, previewRow);
     fs.append(head, keyIn, body);
+    updateVariantHead();
     listEl.appendChild(fs);
     syncVariantRemoveButtons(listEl);
     syncVariantMoveButtons(listEl);
