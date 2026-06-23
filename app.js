@@ -25822,6 +25822,14 @@
   function createItemEditSection(headingText, options = {}) {
     const section = document.createElement("section");
     section.className = "item-edit-section";
+    if (options.pathHeading) {
+      // Identity: standalone section eyebrow above the breadcrumb path line, so the
+      // first block reads as a labelled section like the rest (not just a path crumb).
+      const eyebrow = document.createElement("p");
+      eyebrow.className = "item-edit-section__eyebrow";
+      eyebrow.textContent = headingText || "Identity";
+      section.appendChild(eyebrow);
+    }
     const heading = document.createElement("h3");
     heading.className = "item-edit-section__heading";
     if (options.pathHeading) {
@@ -26157,7 +26165,7 @@
       const formScroll = document.createElement("div");
       formScroll.className = "item-edit-form-scroll";
 
-      const identitySec = createItemEditSection("", { pathHeading: true });
+      const identitySec = createItemEditSection("Identity", { pathHeading: true });
       const identityGrid = identitySec.grid;
       const initialVariants = getItemColourVariants(item);
       const isCustomPiece = String(item.id ?? "").startsWith("custom-");
