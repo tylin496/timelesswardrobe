@@ -15464,6 +15464,12 @@ html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark
   color: #ffffff;
 }
 
+@media (max-width: 1024px) {
+  body.account-page .site-brand-wordmark {
+    display: none;
+  }
+}
+
 html.tw-account-dark body.account-page {
   color-scheme: dark;
   --bg: #141312;
