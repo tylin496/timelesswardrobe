@@ -27024,6 +27024,10 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   min-height: 1.2rem;
 }
 
+.account-notes-copy-all-btn {
+  margin-left: auto;
+}
+
 .account-notes-copy-btn {
   margin-left: auto;
   padding: 0.2rem 0.6rem;
