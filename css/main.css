@@ -8247,7 +8247,7 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   .btn,
   .season-strip__tab,
   .category-nav__tab,
-  .card__board-add,
+  .card__outfit-add,
   .card__quick-outfit,
   .saved-card,
   .category-drill__choice {
@@ -13431,7 +13431,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-.card__board-add,
+.card__outfit-add,
 .card__quick-outfit {
   @apply m-0;
   position: absolute;
@@ -13469,20 +13469,20 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
-  .card:hover .card__board-add,
+  .card:hover .card__outfit-add,
   .card:hover .card__quick-outfit,
-  .card:focus-within .card__board-add,
+  .card:focus-within .card__outfit-add,
   .card:focus-within .card__quick-outfit,
-  .card__board-add:focus-visible,
+  .card__outfit-add:focus-visible,
   .card__quick-outfit:focus-visible {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
   }
 
-  .card:hover .card__board-add:disabled,
+  .card:hover .card__outfit-add:disabled,
   .card:hover .card__quick-outfit:disabled,
-  .card:focus-within .card__board-add:disabled,
+  .card:focus-within .card__outfit-add:disabled,
   .card:focus-within .card__quick-outfit:disabled {
     opacity: 0.5;
     pointer-events: none;
@@ -13490,26 +13490,26 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 @media (hover: none), (pointer: coarse), (max-width: 900px) {
-  .card.card--styling-reveal .card__board-add,
+  .card.card--styling-reveal .card__outfit-add,
   .card.card--styling-reveal .card__quick-outfit {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
   }
 
-  .card.card--styling-reveal .card__board-add:disabled,
+  .card.card--styling-reveal .card__outfit-add:disabled,
   .card.card--styling-reveal .card__quick-outfit:disabled {
     opacity: 0.5;
     pointer-events: none;
   }
 }
 
-.card__board-add:disabled,
+.card__outfit-add:disabled,
 .card__quick-outfit:disabled {
   cursor: default;
 }
 
-.card__board-add:focus-visible,
+.card__outfit-add:focus-visible,
 .card__quick-outfit:focus-visible {
   opacity: 1;
   transform: translateY(0);
@@ -14020,8 +14020,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-#grid .card__board-add--collection-hover,
-#grid .card__quick-outfit.card__board-add--collection-hover {
+#grid .card__outfit-add--collection-hover,
+#grid .card__quick-outfit.card__outfit-add--collection-hover {
   @apply ml-auto;
   position: static;
   right: auto;
@@ -14049,22 +14049,22 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 @media (min-width: 901px) {
-  #grid .card__board-add--collection-hover,
-  #grid .card__quick-outfit.card__board-add--collection-hover {
+  #grid .card__outfit-add--collection-hover,
+  #grid .card__quick-outfit.card__outfit-add--collection-hover {
     font-size: 0.5625rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
   }
 }
 
-#grid .card__board-add--collection-hover:disabled {
+#grid .card__outfit-add--collection-hover:disabled {
   opacity: 0.55;
   color: rgba(255, 255, 255, 0.72);
   background: rgba(48, 48, 48, 0.38);
 }
 
-#grid .card__board-add--collection-hover.card__board-add--on-board,
-#grid .card__quick-outfit.card__board-add--collection-hover.card__board-add--on-board {
+#grid .card__outfit-add--collection-hover.card__outfit-add--on-outfit,
+#grid .card__quick-outfit.card__outfit-add--collection-hover.card__outfit-add--on-outfit {
   width: 1.65rem;
   height: 1.65rem;
   min-width: 1.65rem;
@@ -14078,8 +14078,8 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   background: rgba(48, 48, 48, 0.52);
 }
 
-#grid .card__board-add--collection-hover.card__board-add--on-board::before,
-#grid .card__quick-outfit.card__board-add--collection-hover.card__board-add--on-board::before {
+#grid .card__outfit-add--collection-hover.card__outfit-add--on-outfit::before,
+#grid .card__quick-outfit.card__outfit-add--collection-hover.card__outfit-add--on-outfit::before {
   content: "";
   display: block;
   width: 0.4rem;
@@ -14090,14 +14090,14 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   opacity: 0.95;
 }
 
-#grid .card__board-add--collection-hover.card__board-add--on-board:disabled {
+#grid .card__outfit-add--collection-hover.card__outfit-add--on-outfit:disabled {
   opacity: 0.92;
   pointer-events: none;
 }
 
 @media (min-width: 901px) {
-  #grid .card__board-add--collection-hover.card__board-add--on-board,
-  #grid .card__quick-outfit.card__board-add--collection-hover.card__board-add--on-board {
+  #grid .card__outfit-add--collection-hover.card__outfit-add--on-outfit,
+  #grid .card__quick-outfit.card__outfit-add--collection-hover.card__outfit-add--on-outfit {
     width: 2rem;
     height: 2rem;
     min-width: 2rem;
@@ -14123,24 +14123,24 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
     transform: translateY(0);
   }
 
-  #grid .card .card__board-add--collection-hover,
-  #grid .card .card__quick-outfit.card__board-add--collection-hover {
+  #grid .card .card__outfit-add--collection-hover,
+  #grid .card .card__quick-outfit.card__outfit-add--collection-hover {
     opacity: 1;
     transform: none;
     pointer-events: auto;
   }
 
-  #grid .card:hover .card__board-add--collection-hover,
-  #grid .card:focus-within .card__board-add--collection-hover,
-  #grid .card:hover .card__quick-outfit.card__board-add--collection-hover,
-  #grid .card:focus-within .card__quick-outfit.card__board-add--collection-hover {
+  #grid .card:hover .card__outfit-add--collection-hover,
+  #grid .card:focus-within .card__outfit-add--collection-hover,
+  #grid .card:hover .card__quick-outfit.card__outfit-add--collection-hover,
+  #grid .card:focus-within .card__quick-outfit.card__outfit-add--collection-hover {
     opacity: 1;
     transform: none;
     pointer-events: auto;
   }
 
-  #grid .card:hover .card__board-add--collection-hover:disabled,
-  #grid .card:focus-within .card__board-add--collection-hover:disabled {
+  #grid .card:hover .card__outfit-add--collection-hover:disabled,
+  #grid .card:focus-within .card__outfit-add--collection-hover:disabled {
     opacity: 0.45;
     pointer-events: none;
   }
@@ -14199,8 +14199,8 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
   }
 
   /* Collection PLP mobile: compact “+” circle, bottom-left on the image. */
-  #grid .card__board-add--collection-hover,
-  #grid .card__quick-outfit.card__board-add--collection-hover {
+  #grid .card__outfit-add--collection-hover,
+  #grid .card__quick-outfit.card__outfit-add--collection-hover {
     flex-shrink: 0;
     margin-left: 0;
     margin-right: auto;
@@ -15049,7 +15049,7 @@ body.item-page:has(.item-detail__root--edit) {
 }
 
 .item-detail__root--page .item-detail__media .card__hover-bar--solo,
-.item-detail__root--page .item-detail__media .card__board-add--collection-hover,
+.item-detail__root--page .item-detail__media .card__outfit-add--collection-hover,
 .item-detail__root--page .item-detail__media .card__colour-tray {
   display: none !important;
 }
@@ -15743,7 +15743,7 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   min-width: 0;
 }
 
-.item-detail__root--page .item-detail__media .card__board-add--collection-hover {
+.item-detail__root--page .item-detail__media .card__outfit-add--collection-hover {
   @apply ml-auto;
   position: static;
   flex: 0 0 auto;
@@ -19332,16 +19332,16 @@ a.item-detail__breadcrumb-current {
   color: var(--ink);
 }
 
-.item-detail__root--page .item-detail__board-cta-wrap {  @apply mt-6;
+.item-detail__root--page .item-detail__outfits-cta-wrap {  @apply mt-6;
 
 }
 
-.item-detail__board-cta-wrap {
+.item-detail__outfits-cta-wrap {
   @apply mt-7;
   width: 100%;
 }
 
-.item-detail__board-cta {
+.item-detail__outfits-cta {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19364,16 +19364,16 @@ a.item-detail__breadcrumb-current {
   transition: background 0.2s ease, opacity 0.2s ease;
 }
 
-.item-detail__board-cta:hover:not(:disabled) {
+.item-detail__outfits-cta:hover:not(:disabled) {
   background: color-mix(in srgb, var(--tw-brand-green) 90%, #000);
 }
 
-.item-detail__board-cta:focus-visible {
+.item-detail__outfits-cta:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.item-detail__board-cta:disabled {
+.item-detail__outfits-cta:disabled {
   opacity: 1;
   cursor: default;
 }
@@ -19388,7 +19388,7 @@ a.item-detail__breadcrumb-current {
  * inset longhands keep their physical side (passes npm run lint:insets).
  */
 @media (max-width: 900px) {
-  .item-detail__root--page .item-detail__board-cta-wrap {
+  .item-detail__root--page .item-detail__outfits-cta-wrap {
     position: sticky;
     bottom: 0;
     z-index: 20;
@@ -19403,7 +19403,7 @@ a.item-detail__breadcrumb-current {
     border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
   }
 
-  .item-detail__root--page .item-detail__board-cta {
+  .item-detail__root--page .item-detail__outfits-cta {
     height: 48px;
     min-height: 48px;
   }
@@ -20973,7 +20973,7 @@ body.collection-page .collection-container > .collection-actions {
     padding-top: 0.35rem;
   }
 
-  #grid .card__board-add,
+  #grid .card__outfit-add,
   #grid .card__quick-outfit {
     right: 0.42rem;
     bottom: 0.42rem;
@@ -21137,7 +21137,8 @@ body.collection-page .collection-container > .collection-actions {
     overscroll-behavior-x: contain;
   }
 
-  body.collection-page .category-drill--toolbar .category-drill__grid::-webkit-scrollbar {
+  body.collection-page .category-drill--toolbar .category-drill__grid::-webkit-scrollbar,
+  body.collection-page .category-drill--toolbar #collection-slot-type-strip::-webkit-scrollbar {
     display: none;
   }
 
@@ -23909,11 +23910,11 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
   body.collection-view--compact.collection-page
     #grid.grid--compact
     > .card.card--quick-find
-    .card__board-add--collection-hover:not(.card__board-add--on-board),
+    .card__outfit-add--collection-hover:not(.card__outfit-add--on-outfit),
   body.collection-view--compact.collection-page
     #grid.grid--compact
     > .card.card--quick-find
-    .card__quick-outfit.card__board-add--collection-hover:not(.card__board-add--on-board) {
+    .card__quick-outfit.card__outfit-add--collection-hover:not(.card__outfit-add--on-outfit) {
     width: auto;
     min-width: 0;
     height: auto;
@@ -24115,8 +24116,8 @@ body.collection-view--compact.collection-page #grid.grid--compact > .card.card--
     pointer-events: auto;
   }
 
-  body.collection-view--compact.collection-page #grid.grid--compact > .card.card--quick-find .card__board-add--collection-hover,
-  body.collection-view--compact.collection-page #grid.grid--compact > .card.card--quick-find .card__quick-outfit.card__board-add--collection-hover {
+  body.collection-view--compact.collection-page #grid.grid--compact > .card.card--quick-find .card__outfit-add--collection-hover,
+  body.collection-view--compact.collection-page #grid.grid--compact > .card.card--quick-find .card__quick-outfit.card__outfit-add--collection-hover {
     display: inline-flex !important;
     opacity: 1 !important;
     transform: none !important;

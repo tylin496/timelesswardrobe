@@ -5664,7 +5664,7 @@
   }
 
   /** @param {HTMLElement} media */
-  function collectionCardBoardHoverBarInner(media) {
+  function collectionCardOutfitHoverBarInner(media) {
     let bar = media.querySelector(":scope > .card__hover-bar.card__hover-bar--solo");
     if (!(bar instanceof HTMLElement)) {
       bar = document.createElement("div");
@@ -5684,18 +5684,18 @@
   }
 
   /**
-   * Quick-find hides the colour tray; keep board CTA on the hover bar so desktop “ADD TO OUTFIT” stays visible.
+   * Quick-find hides the colour tray; keep outfit CTA on the hover bar so desktop “ADD TO OUTFIT” stays visible.
    * @param {HTMLElement} article
    * @param {boolean} compact
    */
-  function syncCollectionCardBoardAddPlacement(article, compact) {
+  function syncCollectionCardOutfitAddPlacement(article, compact) {
     const media = article.querySelector(":scope > .card__media");
     if (!(media instanceof HTMLElement)) return;
     const btn =
-      media.querySelector(".card__board-add, .card__quick-outfit") ||
-      article.querySelector(".card__board-add, .card__quick-outfit");
+      media.querySelector(".card__outfit-add, .card__quick-outfit") ||
+      article.querySelector(".card__outfit-add, .card__quick-outfit");
     if (!(btn instanceof HTMLButtonElement)) return;
-    btn.classList.add("card__board-add--collection-hover");
+    btn.classList.add("card__outfit-add--collection-hover");
 
     const trayInner = media.querySelector(".card__colour-tray__inner");
     const mountInColourTray =
@@ -5704,7 +5704,7 @@
       if (btn.parentElement !== trayInner) trayInner.appendChild(btn);
       return;
     }
-    const inner = collectionCardBoardHoverBarInner(media);
+    const inner = collectionCardOutfitHoverBarInner(media);
     if (btn.parentElement !== inner) inner.appendChild(btn);
   }
 
@@ -5730,7 +5730,7 @@
       } else if (body.parentElement === media) {
         media.insertAdjacentElement("afterend", body);
       }
-      syncCollectionCardBoardAddPlacement(article, compact);
+      syncCollectionCardOutfitAddPlacement(article, compact);
       media.dispatchEvent(new CustomEvent("tw-collection-cover-change", { bubbles: true }));
     });
   }
@@ -5758,7 +5758,7 @@
     syncCollectionViewTogglePlacement();
     syncCollectionViewToggleUi();
     syncCollectionQuickFindCardDom();
-    syncCollectionBoardAddButtonLabels();
+    syncCollectionOutfitAddButtonLabels();
     invalidateCollectionGridLayoutAfterViewChange();
   }
 
@@ -12664,7 +12664,7 @@
     wireHorizontalRailScroller(scroller);
   }
 
-  function ensureStylingBoardOutfitRailChrome() {
+  function ensureOutfitsRailChrome() {
     const strip = document.getElementById("outfit-strip");
     if (!(strip instanceof HTMLElement)) return;
     const row = strip.closest(".outfits__board-row");
@@ -12693,7 +12693,7 @@
     wireHorizontalRailScroller(strip, { railRoot: currentSection });
   }
 
-  function refreshStylingBoardOutfitRailScroller() {
+  function refreshOutfitRailScroller() {
     const strip = document.getElementById("outfit-strip");
     if (!(strip instanceof HTMLElement)) return;
     prepareHomeHorizontalRailScroller(strip);
@@ -12705,7 +12705,7 @@
       });
       return;
     }
-    ensureStylingBoardOutfitRailChrome();
+    ensureOutfitsRailChrome();
   }
 
   /** @param {object[]} pool @param {{ excludeItemIds?: Iterable<string> | Set<string> }} [options] */
@@ -15388,7 +15388,7 @@
     syncFilterSearchClearVisibility();
     syncSearchKeywordChip();
     syncCollectionQuickFindCardDom();
-    syncCollectionBoardAddButtonLabels();
+    syncCollectionOutfitAddButtonLabels();
   }
 
   function submitCollectionSearchFromInput() {
@@ -15567,7 +15567,7 @@
     syncCollectionCountLinePlacement();
     syncCollectionViewTogglePlacement();
     syncCollectionQuickFindCardDom();
-    syncCollectionBoardAddButtonLabels();
+    syncCollectionOutfitAddButtonLabels();
   }
 
   function noteCollectionSearchUserChoseMainSlotFilter() {
@@ -18075,8 +18075,8 @@
     mediaEl.appendChild(strip);
   }
 
-  const BOARD_ADDED_TOAST_MS = 2400;
-  const BOARD_ADDED_TOAST_EXIT_MS = 320;
+  const OUTFIT_ADDED_TOAST_MS = 2400;
+  const OUTFIT_ADDED_TOAST_EXIT_MS = 320;
 
   const TOAST_ICON_SVG = {
     success: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>`,
@@ -18262,7 +18262,7 @@
   }
   // ──────────────────────────────────────────────────────────────────────────
 
-  function normalizeStylingBoardDraftSlot(raw) {
+  function normalizeOutfitDraftSlot(raw) {
     if (!raw || typeof raw !== "object") return null;
     const itemId = String(raw.itemId ?? "").trim();
     if (!itemId) return null;
@@ -18270,7 +18270,7 @@
     return ck ? { itemId, colourKey: ck } : { itemId };
   }
 
-  function loadStylingBoardDraft() {
+  function loadOutfitDraft() {
     try {
       const raw = localStorage.getItem(OUTFITS_DRAFT_KEY);
       if (!raw) return null;
@@ -18278,7 +18278,7 @@
       if (!data || !Array.isArray(data.slots)) return null;
       const slots = [];
       for (const s of data.slots) {
-        const n = normalizeStylingBoardDraftSlot(s);
+        const n = normalizeOutfitDraftSlot(s);
         if (n) slots.push(n);
       }
       return {
@@ -18295,7 +18295,7 @@
     }
   }
 
-  function persistStylingBoardDraft() {
+  function persistOutfitDraft() {
     const payload = {
       version: OUTFITS_DRAFT_VERSION,
       slots: currentOutfitSlots.map((s) =>
@@ -18313,7 +18313,7 @@
     }
   }
 
-  function clearStylingBoardDraft() {
+  function clearOutfitDraft() {
     try {
       localStorage.removeItem(OUTFITS_DRAFT_KEY);
     } catch {
@@ -18321,8 +18321,8 @@
     }
   }
 
-  function restoreStylingBoardDraft() {
-    const draft = loadStylingBoardDraft();
+  function restoreOutfitDraft() {
+    const draft = loadOutfitDraft();
     if (!draft) return false;
     currentOutfitSlots = draft.slots.filter((slot) => {
       const it = itemById.get(slot.itemId);
@@ -18335,16 +18335,16 @@
         ? draft.editingSavedOutfitId
         : null;
     syncOutfitSaveButtonLabel();
-    if (editingSavedOutfitId) setStylingBoardSaveFormOpen(true);
-    else setStylingBoardSaveFormOpen(false);
+    if (editingSavedOutfitId) setOutfitSaveFormOpen(true);
+    else setOutfitSaveFormOpen(false);
     return true;
   }
 
-  function initStylingBoardFromStorage() {
-    restoreStylingBoardDraft();
+  function initOutfitFromStorage() {
+    restoreOutfitDraft();
     renderOutfitStrip();
     renderSavedOutfits();
-    syncStylingBoardUi();
+    syncOutfitsUi();
     syncOutfitSaveButtonLabel();
   }
 
@@ -18385,8 +18385,8 @@
     }
     currentOutfitSlots.push(slot);
     onOutfitChange();
-    openStylingBoardDrawer({ fromAdd: true });
-    revealStylingBoardAddedPiece(slot);
+    openOutfitsDrawer({ fromAdd: true });
+    revealOutfitAddedPiece(slot);
   }
 
   function openOutfitVariantPicker(itemId) {
@@ -18470,9 +18470,9 @@
     if (els.outfitNotes) els.outfitNotes.value = "";
     if (els.outfitDate) els.outfitDate.value = "";
     editingSavedOutfitId = null;
-    setStylingBoardSaveFormOpen(false);
-    clearStylingBoardDraft();
-    clearStylingBoardAddedReveal();
+    setOutfitSaveFormOpen(false);
+    clearOutfitDraft();
+    clearOutfitAddedReveal();
     syncOutfitSaveButtonLabel();
     onOutfitChange();
   }
@@ -18482,7 +18482,7 @@
     showToast(`${OUTFITS_UI_NAME} cleared.`, { variant: "success" });
   }
 
-  function clearStylingBoardAddedReveal() {
+  function clearOutfitAddedReveal() {
     outfitsAddedRevealKey = null;
     const root = document.getElementById("outfits-drawer");
     root?.classList.remove("outfits-drawer--added");
@@ -18493,7 +18493,7 @@
     if (heading) heading.hidden = false;
   }
 
-  function revealStylingBoardAddedPiece(slot) {
+  function revealOutfitAddedPiece(slot) {
     const item = itemById.get(slot.itemId);
     if (!item) return;
     outfitsAddedRevealKey = outfitSlotKey(slot);
@@ -18520,12 +18520,12 @@
     renderOutfitStrip();
   }
 
-  function isStylingBoardSaveFormOpen() {
+  function isOutfitSaveFormOpen() {
     const form = document.getElementById("outfits-save-form");
     return form instanceof HTMLElement && !form.hasAttribute("hidden");
   }
 
-  function setStylingBoardSaveFormOpen(open) {
+  function setOutfitSaveFormOpen(open) {
     const form = document.getElementById("outfits-save-form");
     const root = document.getElementById("outfits-drawer");
     if (!(form instanceof HTMLElement)) return;
@@ -18545,8 +18545,8 @@
       showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`, { variant: "error" });
       return;
     }
-    if (!isStylingBoardSaveFormOpen()) {
-      setStylingBoardSaveFormOpen(true);
+    if (!isOutfitSaveFormOpen()) {
+      setOutfitSaveFormOpen(true);
       els.outfitName?.focus();
       return;
     }
@@ -18557,7 +18557,7 @@
     const btn = els.outfitSave || document.getElementById("outfit-save");
     if (!btn) return;
     const n = currentOutfitSlots.length;
-    const naming = isStylingBoardSaveFormOpen();
+    const naming = isOutfitSaveFormOpen();
     const base = editingSavedOutfitId
       ? naming
         ? "Confirm Update"
@@ -18682,7 +18682,7 @@
       return;
     }
     if (!name) {
-      setStylingBoardSaveFormOpen(true);
+      setOutfitSaveFormOpen(true);
       showToast("Please name this outfit.", { variant: "error" });
       els.outfitName?.focus();
       return;
@@ -18778,7 +18778,7 @@
       if (els.outfitName) els.outfitName.value = "";
       if (els.outfitNotes) els.outfitNotes.value = "";
       if (els.outfitDate) els.outfitDate.value = "";
-      setStylingBoardSaveFormOpen(false);
+      setOutfitSaveFormOpen(false);
       renderSavedOutfits();
       resetCurrentOutfitAfterSave();
       showToast(`Updated: “${name}”`, { variant: "success" });
@@ -18830,7 +18830,7 @@
     if (els.outfitName) els.outfitName.value = "";
     if (els.outfitNotes) els.outfitNotes.value = "";
     if (els.outfitDate) els.outfitDate.value = "";
-    setStylingBoardSaveFormOpen(false);
+    setOutfitSaveFormOpen(false);
     renderSavedOutfits();
     resetCurrentOutfitAfterSave();
     showToast(`Saved outfit: “${name}”`, { variant: "success" });
@@ -18941,8 +18941,8 @@
     if (els.outfitDate) els.outfitDate.value = "";
     syncOutfitSaveButtonLabel();
     onOutfitChange();
-    openStylingBoardDrawer();
-    setStylingBoardSaveFormOpen(true);
+    openOutfitsDrawer();
+    setOutfitSaveFormOpen(true);
     showToast("Pieces loaded — name the outfit and save to keep it.");
   }
 
@@ -18967,9 +18967,9 @@
     if (els.outfitDate) els.outfitDate.value = forEdit && found.createdAt ? isoToLocalDateInput(found.createdAt) : "";
     syncOutfitSaveButtonLabel();
     onOutfitChange();
-    openStylingBoardDrawer();
-    if (forEdit) setStylingBoardSaveFormOpen(true);
-    else setStylingBoardSaveFormOpen(false);
+    openOutfitsDrawer();
+    if (forEdit) setOutfitSaveFormOpen(true);
+    else setOutfitSaveFormOpen(false);
     const skipped = before - valid.length;
     if (forEdit) {
       els.outfitName?.focus();
@@ -22649,19 +22649,19 @@
     });
   }
 
-  function mountCollectionCardBoardInHoverChrome(media, boardAddBtn, { hasColourTray = false } = {}) {
-    if (!boardAddBtn) return;
-    boardAddBtn.classList.add("card__board-add--collection-hover");
+  function mountCollectionCardOutfitInHoverChrome(media, outfitAddBtn, { hasColourTray = false } = {}) {
+    if (!outfitAddBtn) return;
+    outfitAddBtn.classList.add("card__outfit-add--collection-hover");
     const compactQuickFind = collectionViewMode === "compact";
     const mountInColourTray = hasColourTray && !isFiltersNarrowViewport() && !compactQuickFind;
     if (mountInColourTray) {
       const trayInner = media.querySelector(".card__colour-tray__inner");
       if (trayInner) {
-        trayInner.appendChild(boardAddBtn);
+        trayInner.appendChild(outfitAddBtn);
         return;
       }
     }
-    collectionCardBoardHoverBarInner(media).appendChild(boardAddBtn);
+    collectionCardOutfitHoverBarInner(media).appendChild(outfitAddBtn);
   }
 
   function outfitsCtaLabel() {
@@ -22669,19 +22669,19 @@
     return isFiltersNarrowViewport() || compactQuickFind ? "+" : `ADD TO ${OUTFITS_UI_NAME.toUpperCase()}`;
   }
 
-  function syncBoardAddButtonPresentation(btn, blocked) {
+  function syncOutfitAddButtonPresentation(btn, blocked) {
     if (!(btn instanceof HTMLButtonElement)) return;
-    btn.classList.toggle("card__board-add--on-board", Boolean(blocked));
+    btn.classList.toggle("card__outfit-add--on-outfit", Boolean(blocked));
     btn.textContent = blocked ? "" : outfitsCtaLabel();
   }
 
-  function syncCollectionBoardAddButtonLabels() {
+  function syncCollectionOutfitAddButtonLabels() {
     if (!els.grid) return;
     els.grid.querySelectorAll(":scope > .card[data-item-id]").forEach((article) => {
       if (!(article instanceof HTMLElement)) return;
       const item = itemById.get(article.dataset.itemId ?? "");
       if (!item) return;
-      const quick = article.querySelector(".card__board-add, .card__quick-outfit");
+      const quick = article.querySelector(".card__outfit-add, .card__quick-outfit");
       if (!(quick instanceof HTMLButtonElement)) return;
       const variants = getItemColourVariants(item);
       const allVariantKeys = variants?.map((v) => v.key) ?? [];
@@ -22692,15 +22692,15 @@
         Boolean(variants?.length) && allVariantKeys.length > 0 && allVariantKeys.every((k) => takenKeys.has(k));
       const singleTaken = !variants?.length && outfitSlotKeySet().has(outfitSlotKey({ itemId: item.id }));
       const blocked = everyVariantTaken || singleTaken;
-      syncBoardAddButtonPresentation(quick, blocked);
+      syncOutfitAddButtonPresentation(quick, blocked);
     });
   }
 
-  function itemDetailBoardCtaLabel(blocked) {
+  function itemDetailOutfitsCtaLabel(blocked) {
     return blocked ? `ON ${OUTFITS_UI_NAME.toUpperCase()}` : `ADD TO ${OUTFITS_UI_NAME.toUpperCase()}`;
   }
 
-  function itemDetailBoardBlockedState(item) {
+  function itemDetailOutfitsBlockedState(item) {
     const variants = getItemColourVariants(item);
     const allVariantKeys = variants?.map((v) => v.key) ?? [];
     const takenKeys = new Set(
@@ -22713,15 +22713,15 @@
     return everyVariantTaken || singleTaken;
   }
 
-  function syncItemDetailBoardCta() {
-    const btn = document.getElementById("item-detail-board-cta");
+  function syncItemDetailOutfitsCta() {
+    const btn = document.getElementById("item-detail-outfits-cta");
     if (!(btn instanceof HTMLButtonElement)) return;
     const item = itemById.get(detailItemId);
     if (!item || !itemEligibleForOutfit(item)) return;
     const variants = getItemColourVariants(item);
-    const blocked = itemDetailBoardBlockedState(item);
+    const blocked = itemDetailOutfitsBlockedState(item);
     btn.disabled = blocked;
-    btn.textContent = itemDetailBoardCtaLabel(blocked);
+    btn.textContent = itemDetailOutfitsCtaLabel(blocked);
     if (variants?.length) {
       btn.title = blocked
         ? `Every colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`
@@ -22730,25 +22730,25 @@
       btn.title = blocked ? `Already on ${OUTFITS_UI_NAME.toLowerCase()}.` : `Add to ${OUTFITS_UI_NAME}`;
     }
     btn.setAttribute("aria-label", btn.title);
-    const mediaBtn = document.querySelector(".item-detail__media .card__board-add[data-outfit-add]");
+    const mediaBtn = document.querySelector(".item-detail__media .card__outfit-add[data-outfit-add]");
     if (mediaBtn instanceof HTMLButtonElement) {
       mediaBtn.disabled = blocked;
-      syncBoardAddButtonPresentation(mediaBtn, blocked);
+      syncOutfitAddButtonPresentation(mediaBtn, blocked);
       mediaBtn.title = btn.title;
       mediaBtn.setAttribute("aria-label", btn.title);
     }
   }
 
-  function appendItemDetailBoardCta(mount, item) {
+  function appendItemDetailOutfitsCta(mount, item) {
     if (!itemEligibleForOutfit(item)) return;
     const variants = getItemColourVariants(item);
-    const blocked = itemDetailBoardBlockedState(item);
+    const blocked = itemDetailOutfitsBlockedState(item);
     const wrap = document.createElement("div");
-    wrap.className = "item-detail__board-cta-wrap";
+    wrap.className = "item-detail__outfits-cta-wrap";
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.id = "item-detail-board-cta";
-    btn.className = "item-detail__board-cta";
+    btn.id = "item-detail-outfits-cta";
+    btn.className = "item-detail__outfits-cta";
     btn.dataset.outfitAdd = String(item.id);
     if (variants?.length) {
       btn.title = blocked
@@ -22758,7 +22758,7 @@
       btn.title = blocked ? `Already on ${OUTFITS_UI_NAME.toLowerCase()}.` : `Add to ${OUTFITS_UI_NAME}`;
     }
     btn.setAttribute("aria-label", btn.title);
-    btn.textContent = itemDetailBoardCtaLabel(blocked);
+    btn.textContent = itemDetailOutfitsCtaLabel(blocked);
     btn.disabled = Boolean(blocked);
     wrap.appendChild(btn);
     mount.appendChild(wrap);
@@ -22844,23 +22844,23 @@
     }
 
     /** @type {HTMLButtonElement | null} */
-    let boardAddBtn = null;
+    let outfitAddBtn = null;
     if (itemEligibleForOutfit(item)) {
-      boardAddBtn = document.createElement("button");
-      boardAddBtn.type = "button";
-      boardAddBtn.className = "card__board-add";
-      boardAddBtn.dataset.outfitAdd = item.id;
+      outfitAddBtn = document.createElement("button");
+      outfitAddBtn.type = "button";
+      outfitAddBtn.className = "card__outfit-add";
+      outfitAddBtn.dataset.outfitAdd = item.id;
       const blocked = everyVariantTaken || singleTaken;
       if (variants?.length) {
-        boardAddBtn.title = everyVariantTaken
+        outfitAddBtn.title = everyVariantTaken
           ? `Every colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`
           : `Add a colour to ${OUTFITS_UI_NAME}`;
       } else {
-        boardAddBtn.title = blocked ? `Already on ${OUTFITS_UI_NAME.toLowerCase()}.` : `Add to ${OUTFITS_UI_NAME}`;
+        outfitAddBtn.title = blocked ? `Already on ${OUTFITS_UI_NAME.toLowerCase()}.` : `Add to ${OUTFITS_UI_NAME}`;
       }
-      boardAddBtn.setAttribute("aria-label", boardAddBtn.title);
-      boardAddBtn.disabled = Boolean(blocked);
-      syncBoardAddButtonPresentation(boardAddBtn, blocked);
+      outfitAddBtn.setAttribute("aria-label", outfitAddBtn.title);
+      outfitAddBtn.disabled = Boolean(blocked);
+      syncOutfitAddButtonPresentation(outfitAddBtn, blocked);
     }
 
     const openHint = "Open piece";
@@ -22871,7 +22871,7 @@
     article.addEventListener("click", (ev) => {
       if (!(ev.target instanceof Element)) return;
       if (!ev.target.closest(".card__media.card__media--opens-detail")) return;
-      if (ev.target.closest(".card__board-add, .card__quick-outfit")) return;
+      if (ev.target.closest(".card__outfit-add, .card__quick-outfit")) return;
       if (ev.target.closest(".card__swatch--pick")) return;
       if (ev.target.closest(".card__colour-tray")) return;
       if (ev.target.closest(".card__gallery-thumb")) return;
@@ -22882,8 +22882,8 @@
       if (
         isCollectionCardCoarsePointer() &&
         !isCollectionGridCardContext() &&
-        boardAddBtn &&
-        !boardAddBtn.disabled
+        outfitAddBtn &&
+        !outfitAddBtn.disabled
       ) {
         if (!article.classList.contains("card--styling-reveal")) {
           dismissCollectionCardStylingReveal(article);
@@ -22944,7 +22944,7 @@
         heroInitialColourKey: variantKeyForHero || undefined,
       });
     }
-    mountCollectionCardBoardInHoverChrome(media, boardAddBtn, { hasColourTray });
+    mountCollectionCardOutfitInHoverChrome(media, outfitAddBtn, { hasColourTray });
 
     const resolveCoverItemForHover = () => {
       const active = media.querySelector(".card__swatch.is-active");
@@ -23047,7 +23047,7 @@
       const outfitHighlight = inOutfit && itemEligibleForOutfit(item);
       article.classList.toggle("card--in-outfit", Boolean(outfitHighlight));
 
-      const quick = article.querySelector(".card__board-add, .card__quick-outfit");
+      const quick = article.querySelector(".card__outfit-add, .card__quick-outfit");
       if (!quick) continue;
 
       const variants = getItemColourVariants(item);
@@ -23061,7 +23061,7 @@
 
       const blocked = everyVariantTaken || singleTaken;
       /** @type {HTMLButtonElement} */ (quick).disabled = Boolean(blocked);
-      syncBoardAddButtonPresentation(/** @type {HTMLButtonElement} */ (quick), blocked);
+      syncOutfitAddButtonPresentation(/** @type {HTMLButtonElement} */ (quick), blocked);
       if (variants?.length) {
         quick.title = everyVariantTaken
           ? `Every colour is already on your ${OUTFITS_UI_NAME.toLowerCase()}.`
@@ -24304,7 +24304,7 @@
     document.documentElement.style.scrollBehavior = "";
   }
 
-  function syncStylingBoardUi() {
+  function syncOutfitsUi() {
     const n = currentOutfitSlots.length;
     const currentSection = document.querySelector(".outfits-drawer .outfits__current");
     if (currentSection instanceof HTMLElement) {
@@ -24329,7 +24329,7 @@
     }
   }
 
-  function syncStylingBoardDrawerLayout() {
+  function syncOutfitsDrawerLayout() {
     syncBrandSignatureBarHeight();
     try {
       const chromeBottom = measureHeaderChromeBottom();
@@ -24349,7 +24349,7 @@
   }
 
   /** Mobile drawer: faint scrollbar thumb only while the main panel is scrolling. */
-  function wireStylingBoardDrawerScrollChrome() {
+  function wireOutfitsDrawerScrollChrome() {
     const scroll = document.querySelector(".outfits-drawer__scroll");
     if (!(scroll instanceof HTMLElement) || scroll.dataset.scrollChromeWired === "1") return;
     scroll.dataset.scrollChromeWired = "1";
@@ -24368,15 +24368,15 @@
     );
   }
 
-  function openStylingBoardDrawer(options = {}) {
+  function openOutfitsDrawer(options = {}) {
     const root = document.getElementById("outfits-drawer");
     if (!root) return;
     closeMobileNavShellIfOpen();
     dismissHeaderSubmenuDom();
     forceCloseHeaderSearchOverlay();
-    if (!options.fromAdd) clearStylingBoardAddedReveal();
+    if (!options.fromAdd) clearOutfitAddedReveal();
     outfitStripEntranceOnNextRender = true;
-    syncStylingBoardDrawerLayout();
+    syncOutfitsDrawerLayout();
     outfitsDrawerOpen = true;
     if (root.hasAttribute("hidden")) {
       if (outfitsDrawerOpenRaf) {
@@ -24402,7 +24402,7 @@
           const scroll = root.querySelector(".outfits-drawer__scroll");
           if (scroll instanceof HTMLElement) scroll.scrollTop = 0;
         }
-        syncStylingBoardUi();
+        syncOutfitsUi();
         renderOutfitStrip();
         document.getElementById("outfits-drawer-close")?.focus({ preventScroll: true });
       };
@@ -24421,12 +24421,12 @@
         });
       }
     } else {
-      syncStylingBoardUi();
+      syncOutfitsUi();
       renderOutfitStrip();
     }
   }
 
-  function closeStylingBoardDrawer() {
+  function closeOutfitsDrawer() {
     const root = document.getElementById("outfits-drawer");
     if (!root) return;
     outfitsDrawerOpen = false;
@@ -24437,7 +24437,7 @@
     if (root.hasAttribute("hidden")) {
       document.body.classList.remove("collection-ui--outfits");
       unlockCollectionPageScroll();
-      syncStylingBoardUi();
+      syncOutfitsUi();
       return;
     }
     root.classList.remove("outfits-drawer--visible");
@@ -24448,10 +24448,10 @@
     outfitsDrawerFocusReturn = null;
     const finish = () => {
       if (outfitsDrawerOpen) return;
-      clearStylingBoardAddedReveal();
-      setStylingBoardSaveFormOpen(false);
+      clearOutfitAddedReveal();
+      setOutfitSaveFormOpen(false);
       root.setAttribute("hidden", "");
-      syncStylingBoardUi();
+      syncOutfitsUi();
       if (returnFocus instanceof HTMLElement && document.contains(returnFocus)) {
         returnFocus.focus();
       }
@@ -24471,14 +24471,14 @@
     }
   }
 
-  function toggleStylingBoardDrawer() {
-    if (outfitsDrawerOpen) closeStylingBoardDrawer();
-    else openStylingBoardDrawer();
+  function toggleOutfitsDrawer() {
+    if (outfitsDrawerOpen) closeOutfitsDrawer();
+    else openOutfitsDrawer();
   }
 
   /** @deprecated alias */
   function syncOutfitBuilderPanel() {
-    syncStylingBoardUi();
+    syncOutfitsUi();
   }
 
   function renderOutfitStrip() {
@@ -24613,7 +24613,7 @@
     });
     playOutfitStripFlipAnimation();
     syncOutfitBuilderPanel();
-    refreshStylingBoardOutfitRailScroller();
+    refreshOutfitRailScroller();
   }
 
   function formatSavedDate(iso) {
@@ -24756,10 +24756,10 @@
 
   function onOutfitChange() {
     sanitizeCurrentOutfit();
-    persistStylingBoardDraft();
+    persistOutfitDraft();
     renderGrid();
     renderOutfitStrip();
-    syncItemDetailBoardCta();
+    syncItemDetailOutfitsCta();
   }
 
   function newEditorVariantKey() {
@@ -27089,7 +27089,7 @@
       body.appendChild(ctx);
     }
 
-    appendItemDetailBoardCta(body, item);
+    appendItemDetailOutfitsCta(body, item);
 
     const notesDisplay = itemNotesDisplayText(item.notes);
     if (notesDisplay && !isItemPageView) {
@@ -28317,7 +28317,7 @@
         if (!document.getElementById("grid")) return;
         syncCollectionCountLinePlacement();
         syncCollectionQuickFindCardDom();
-        syncCollectionBoardAddButtonLabels();
+        syncCollectionOutfitAddButtonLabels();
       });
     }
 
@@ -28733,7 +28733,7 @@
 
     forceCloseHeaderSearchOverlay();
     dismissHeaderSubmenuDom();
-    closeStylingBoardDrawer();
+    closeOutfitsDrawer();
 
     const mobileShell = document.getElementById("site-mobile-shell");
     if (mobileShell) {
@@ -30553,7 +30553,7 @@
         syncSearchKeywordChip();
         hideHeaderSubmenu();
         closeMobileCategoryPanel();
-        closeStylingBoardDrawer();
+        closeOutfitsDrawer();
         document.body.classList.remove("collection-ui--nav-folded", "collection-ui--header-search-closing");
         syncHeaderSearchFeaturedSubcategoryCards();
         syncHeaderSearchRecentNav();
@@ -30910,31 +30910,31 @@
         mobileShell.classList.contains("is-open");
       if (mobileNavOpen) {
         closeMobileCategoryPanel();
-        if (!outfitsDrawerOpen) openStylingBoardDrawer();
+        if (!outfitsDrawerOpen) openOutfitsDrawer();
         return;
       }
-      toggleStylingBoardDrawer();
+      toggleOutfitsDrawer();
     });
     document.getElementById("outfits-drawer-backdrop")?.addEventListener("click", () => {
-      closeStylingBoardDrawer();
+      closeOutfitsDrawer();
     });
     document.getElementById("outfits-drawer-close")?.addEventListener("click", () => {
-      closeStylingBoardDrawer();
+      closeOutfitsDrawer();
     });
     document.getElementById("outfits-continue")?.addEventListener("click", () => {
-      closeStylingBoardDrawer();
+      closeOutfitsDrawer();
     });
 
     const outfitsSheet = /** @type {HTMLElement | null} */ (
       document.querySelector("#outfits-drawer .outfits-drawer__sheet")
     );
-    wireMobileSheetSwipeDismiss(outfitsSheet, () => closeStylingBoardDrawer(), {
+    wireMobileSheetSwipeDismiss(outfitsSheet, () => closeOutfitsDrawer(), {
       handleSelector: ".outfits-drawer__header",
       shouldHandle: () => isHeaderCompactLayout() && outfitsDrawerOpen,
       axis: "down",
     });
-    wireStylingBoardDrawerScrollChrome();
-    ensureStylingBoardOutfitRailChrome();
+    wireOutfitsDrawerScrollChrome();
+    ensureOutfitsRailChrome();
 
     const mobileSearchSheet = /** @type {HTMLElement | null} */ (
       headerSearchWrap?.querySelector(".desktop-search-flyout-inner, .site-header__search-megamenu-inner")
@@ -30951,13 +30951,13 @@
         !mobileShell?.classList.contains("is-closing"),
       axis: "right",
     });
-    if (document.body.dataset.twStylingBoardEscapeWired !== "1") {
-      document.body.dataset.twStylingBoardEscapeWired = "1";
+    if (document.body.dataset.twOutfitsEscapeWired !== "1") {
+      document.body.dataset.twOutfitsEscapeWired = "1";
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
         const root = document.getElementById("outfits-drawer");
         if (!root || root.hasAttribute("hidden")) return;
-        closeStylingBoardDrawer();
+        closeOutfitsDrawer();
       });
     }
 
@@ -31021,7 +31021,7 @@
         if (!isCollectionCardCoarsePointer()) return;
         const t = e.target;
         if (!(t instanceof Element)) return;
-        if (t.closest(".card--styling-reveal .card__board-add, .card--styling-reveal .card__quick-outfit")) {
+        if (t.closest(".card--styling-reveal .card__outfit-add, .card--styling-reveal .card__quick-outfit")) {
           return;
         }
         if (t.closest(".card--styling-reveal .card__media")) return;
@@ -31041,11 +31041,11 @@
       handleOutfitSaveClick();
     });
 
-    const persistDraftFromFields = () => persistStylingBoardDraft();
+    const persistDraftFromFields = () => persistOutfitDraft();
     els.outfitName?.addEventListener("input", persistDraftFromFields);
     els.outfitNotes?.addEventListener("input", persistDraftFromFields);
 
-    const runClearStylingBoard = () => {
+    const runClearOutfit = () => {
       if (!currentOutfitSlots.length && !els.outfitName?.value.trim() && !els.outfitNotes?.value.trim()) {
         showToast("Nothing to clear.");
         return;
@@ -31063,7 +31063,7 @@
     };
 
     if (els.outfitClear) {
-      els.outfitClear.addEventListener("click", runClearStylingBoard);
+      els.outfitClear.addEventListener("click", runClearOutfit);
     }
 
     if (els.savedList) {
@@ -31231,7 +31231,7 @@
       globalThis.matchMedia?.("(max-width: 900px)")?.addEventListener?.("change", () => {
         syncFiltersMenuForViewport();
         renderCategoryDrill();
-        syncCollectionBoardAddButtonLabels();
+        syncCollectionOutfitAddButtonLabels();
       });
     }
 
@@ -32080,13 +32080,13 @@
       }
     }
 
-    const hasStylingBoardUi = Boolean(
+    const hasOutfitsUi = Boolean(
       document.getElementById("outfit-strip") || document.getElementById("outfits-drawer")
     );
 
     mergeWardrobeFromSources();
-    if (hasStylingBoardUi) {
-      initStylingBoardFromStorage();
+    if (hasOutfitsUi) {
+      initOutfitFromStorage();
     }
     if (!items.length) {
       console.warn("No wardrobe items loaded.");
@@ -32140,7 +32140,7 @@
       initAddItemForm();
       openRequestedAddItemDialog();
       renderGrid();
-      if (!hasStylingBoardUi) {
+      if (!hasOutfitsUi) {
         renderOutfitStrip();
         renderSavedOutfits();
         syncOutfitBuilderPanel();
