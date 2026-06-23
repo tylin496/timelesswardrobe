@@ -27828,9 +27828,9 @@
     return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
   }
 
-  /** Header hamburger + mobile shell; mega menu desktop nav off (`max-width: 900px` in CSS). */
-  const HEADER_COMPACT_MQ = "(max-width: 900px)";
-  const HEADER_DESKTOP_MQ = "(min-width: 901px)";
+  /** Header hamburger + mobile shell; mega menu desktop nav off (`max-width: 1024px` in CSS). */
+  const HEADER_COMPACT_MQ = "(max-width: 1024px)";
+  const HEADER_DESKTOP_MQ = "(min-width: 1025px)";
 
   function isHeaderCompactViewport() {
     return globalThis.matchMedia?.(HEADER_COMPACT_MQ)?.matches ?? false;
