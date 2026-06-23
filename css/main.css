@@ -7641,6 +7641,15 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     stroke: var(--tw-brand-green);
   }
 
+  /* Count badge: the overlay hollow-white numeral vanishes on the ivory, so switch it to a solid green
+     knockout (green pill, ivory numeral) for the duration of the nav — matches the green glyphs. */
+  body.home-page.collection-ui--mobile-nav-open .site-header__tools,
+  body.home-page.collection-ui--mobile-nav-closing .site-header__tools {
+    --tw-header-badge-bg: var(--tw-brand-green);
+    --tw-header-badge-fg: var(--tw-brand-ivory);
+    --tw-header-badge-opacity: 1;
+  }
+
   /*
    * Home masthead on mobile: always overlay (white ink, transparent bg) regardless of which class
    * the scroll observer last set. body.home-page .site-header (0,2,0) beats .site-header--solid/
@@ -15538,8 +15547,8 @@ html.tw-account-dark body.account-page .site-header--overlay .site-title__wordma
 html.tw-account-dark body.account-page {
   color-scheme: dark;
   /* Private archive palette — warm charcoal, aged paper, old walnut. Not OLED black. */
-  --bg: #16140f;
-  --bg-elevated: #211e18;
+  --bg: #191611;
+  --bg-elevated: #231f18;
   --ink: #d9d0c2;
   --ink-muted: #9e9688;
   --ink-faint: #6e6860;
@@ -15573,6 +15582,22 @@ html.tw-account-dark body.account-page {
   --tw-header-fg: #d9d0c2;
   --tw-header-fg-muted: rgba(217, 208, 194, 0.55);
   --tw-brand-utility-bar: #1a2e22;
+}
+
+/* Filter chips + search field: soften borders so they recede into the surface */
+html.tw-account-dark body.account-page .account-filter-chip,
+html.tw-account-dark body.account-page .account-filters-toggle,
+html.tw-account-dark body.account-page .account-collection-search,
+html.tw-account-dark body.account-page .account-collection-add-btn {
+  border-color: rgba(217, 208, 194, 0.1);
+}
+html.tw-account-dark body.account-page .account-filter-chip:hover,
+html.tw-account-dark body.account-page .account-filters-toggle:hover,
+html.tw-account-dark body.account-page .account-collection-add-btn:hover {
+  border-color: rgba(217, 208, 194, 0.2);
+}
+html.tw-account-dark body.account-page .account-filter-chip[aria-pressed="true"] {
+  border-color: var(--ink);
 }
 
 /* Fix double-dimmed labels (opacity stacked on top of muted color) */
@@ -26108,7 +26133,7 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 }
 
 .account-health-dot--ok {
-  background: #4a8c5c;
+  background: #5e7f5c;
 }
 
 .account-health-label {
