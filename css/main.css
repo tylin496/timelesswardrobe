@@ -925,14 +925,13 @@ body {
   z-index: 1;
 }
 
-/* Single source of truth for the mobile-nav masthead wipe: the ivory/ink boundary position,
-   1 = parked at the right (closed), 0 = swept fully left (open). Registered so it interpolates.
-   The ivory `::after` clip AND the two-tone ink gradients all read this one number, so they
-   can never drift apart. (See the ≤1024px `Mobile nav open — single-DOM two-tone ink` block.) */
-@property --tw-nav-ink-edge {
+/* Single source of truth for the mobile-nav open/close motion: 0 = closed, 1 = open. Registered so
+   it interpolates; the drawer slide (transform) and the header fade (bg opacity + ink) are both
+   computed from this one value, so they share one timeline. */
+@property --nav-progress {
   syntax: "<number>";
   inherits: true;
-  initial-value: 1;
+  initial-value: 0;
 }
 
 /* Run once on load — re-applying `animation` after search close caused a visible header jump. */
@@ -1149,8 +1148,9 @@ body.editorial-page .site-header.site-header--overlay:focus-within .site-title__
   color: var(--tw-brand-green);
 }
 
-/* Pointer hover — desktop only (see note above). */
-@media (hover: hover) {
+/* Pointer hover — desktop layout only (≥1025px). Below that is the mobile/hamburger layout, where
+   we never want hover recolour even on a hover-capable device (e.g. desktop responsive preview). */
+@media (hover: hover) and (min-width: 1025px) {
   body.editorial-page .site-header.site-header--overlay:hover {
     --tw-header-fg: var(--ink);
     --tw-header-fg-muted: var(--ink-muted);
@@ -1188,8 +1188,8 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
   --tw-header-bg-opacity: 1;
 }
 
-/* Pointer hover — desktop only (see note above). */
-@media (hover: hover) {
+/* Pointer hover — desktop layout only (≥1025px); see note above. */
+@media (hover: hover) and (min-width: 1025px) {
   body.theme-catalogue .site-header.site-header--solid:hover,
   body.theme-catalogue .site-header.site-header--overlay:hover {
     --tw-header-fg: var(--ink);
@@ -1230,7 +1230,7 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
   --tw-header-badge-opacity: 1;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (min-width: 1025px) {
   .site-header--overlay:hover {
     --tw-header-fg: var(--tw-brand-wordmark);
     --tw-header-fg-muted: var(--ink-muted);
@@ -6802,10 +6802,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     visibility: hidden;
     pointer-events: none;
     box-shadow: -12px 0 40px rgba(20, 19, 18, 0.08);
-    transform: translate3d(100%, 0, 0);
-    transition:
-      transform var(--tw-mobile-nav-duration) var(--tw-mobile-nav-ease),
-      visibility 0s linear var(--tw-mobile-nav-duration);
+    /* Position is the shared `--nav-progress` (see header block) — same source/timeline as the header
+       fade. 0 = parked off the right, 1 = fully in. No transform transition here: the progress var is
+       the single animation. */
+    transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
+    transition: visibility 0s linear var(--tw-mobile-nav-duration);
     touch-action: pan-x;
   }
 
@@ -6818,22 +6819,17 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     display: none;
   }
 
+  /* is-open / is-closing now only gate visibility + pointer-events; the slide itself is `--nav-progress`. */
   .site-mobile-shell.is-open {
     visibility: visible;
     pointer-events: auto;
-    transform: translate3d(0, 0, 0);
-    transition:
-      transform var(--tw-mobile-nav-duration) var(--tw-mobile-nav-ease),
-      visibility 0s linear 0s;
+    transition: visibility 0s linear 0s;
   }
 
   .site-mobile-shell.is-closing {
     visibility: visible;
     pointer-events: none;
-    transform: translate3d(100%, 0, 0);
-    transition:
-      transform var(--tw-mobile-nav-duration) var(--tw-mobile-nav-ease),
-      visibility 0s linear var(--tw-mobile-nav-duration);
+    transition: visibility 0s linear var(--tw-mobile-nav-duration);
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell:not(.is-open):not(.is-closing) {
@@ -7581,78 +7577,20 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav open — single-DOM two-tone ink (no clone, nothing moves).
-   *
-   * `--tw-nav-ink-edge` (1 = closed/right → 0 = open/left) is the ONE animated source. It drives:
-   *   • the ivory `::after` clip (covered region = right of the boundary), and
-   *   • a hard two-tone gradient that paints the real wordmark + monogram in place.
-   * `--tw-header-w` (header width) and each painted element's `--tw-el-x` (its left within the header)
-   * are written once per layout by JS — reading the one DOM, not duplicating it — so the boundary in
-   * any element's own box is `edge·headerWidth − elementLeft`: the same physical line everywhere, hence
-   * no drift (no dark-on-hero, no white-on-ivory). Icons are narrow + covered first, so they step.
+   * Mobile nav — `--nav-progress` (0 = closed, 1 = open) drives the DRAWER slide. It animates on the
+   * body class so the slide starts the instant the menu opens. The masthead is deliberately NOT
+   * recoloured here: on mobile the header stays in its overlay (white-ink) state the whole time — the
+   * home hero observer keeps it overlay during the nav (see `update()` guard), and hover recolour is
+   * gated to `@media (hover: hover)`. So nothing turns the header dark on touch.
    */
-  .site-header {
-    --tw-nav-ink-edge-px: calc(var(--tw-nav-ink-edge) * var(--tw-header-w, 100vw));
-    /* Soft trailing fade: ink ramps white→dark over this band *behind* the ivory edge, so the
-       colour change reads as a slide-fade in step with the drawer (not a hard wipe), while the
-       hero-side text stays crisp white (the fade lives on the ivory side — no dark-on-hero). */
-    --tw-nav-ink-fade: 2.25rem;
-  }
-
-  body.collection-ui--mobile-nav-open .site-header,
-  body.collection-ui--mobile-nav-closing .site-header {
-    transition: --tw-nav-ink-edge var(--tw-mobile-nav-duration, 320ms)
+  body.collection-ui--mobile-nav-open,
+  body.collection-ui--mobile-nav-closing {
+    transition: --nav-progress var(--tw-mobile-nav-duration, 320ms)
       var(--tw-mobile-nav-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
   }
 
-  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header {
-    --tw-nav-ink-edge: 0;
-  }
-
-  .site-header::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-color: var(--tw-mobile-nav-surface, #f7f4ed);
-    /* Covered region = right of the boundary; at edge:1 the inset is 100% → nothing shows. */
-    clip-path: inset(0 0 0 calc(var(--tw-nav-ink-edge) * 100%));
-  }
-
-  /* Wordmark: transparent text filled by a hard two-tone gradient split at the boundary. */
-  body.collection-ui--mobile-nav-open .site-title__wordmark-line,
-  body.collection-ui--mobile-nav-closing .site-title__wordmark-line {
-    color: transparent;
-    background-image: linear-gradient(
-      90deg,
-      var(--tw-brand-overlay-ink, #fff) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
-      var(--tw-brand-wordmark) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px) + var(--tw-nav-ink-fade, 2.25rem)) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
-
-  /* Monogram: already mask-painted, so swap its solid background-color for the same gradient. */
-  body.collection-ui--mobile-nav-open .site-title__mark,
-  body.collection-ui--mobile-nav-closing .site-title__mark {
-    background-color: transparent;
-    background-image: linear-gradient(
-      90deg,
-      var(--tw-brand-overlay-ink, #fff) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
-      var(--tw-brand-monogram-green) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px) + var(--tw-nav-ink-fade, 2.25rem)) 100%
-    );
-  }
-
-  /* Icons are narrow + the first thing the ivory covers → fade their colour as the edge sweeps the
-     tool band (a gentle ramp, not a hard step, to match the wordmark's slide-fade). */
-  body.collection-ui--mobile-nav-open .site-header__tools,
-  body.collection-ui--mobile-nav-closing .site-header__tools {
-    color: color-mix(
-      in srgb,
-      var(--tw-brand-overlay-ink, #fff),
-      var(--tw-brand-wordmark) calc(clamp(0, (0.9 - var(--tw-nav-ink-edge)) * 6, 1) * 100%)
-    );
+  body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) {
+    --nav-progress: 1;
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
@@ -7847,6 +7785,8 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
   }
 
   @media (max-width: 1024px) {
+    body.collection-ui--mobile-nav-open,
+    body.collection-ui--mobile-nav-closing,
     .site-mobile-shell,
     .site-mobile-shell__bar,
     .site-mobile-nav__level,
@@ -25712,6 +25652,34 @@ html.tw-account-dark body.account-page .account-tab-nav__item:hover {
 html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page"] {
   color: #ffffff;
   text-decoration-color: #ffffff;
+}
+
+/* ── Account tab preview (desktop hover) ────────────────────────────────── */
+
+@media (min-width: 1025px) {
+  .account-tab-content.is-preview {
+    position: relative;
+  }
+  .account-tab-content.is-preview::before {
+    content: "Previewing " attr(data-preview-label);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: block;
+    padding: 0.35rem 0.75rem;
+    margin-bottom: 1.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: color-mix(in srgb, var(--line) 18%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+    border-radius: 4px;
+    width: fit-content;
+    pointer-events: none;
+  }
 }
 
 /* ── Account theme toggle ─────────────────────────────────────────────────── */

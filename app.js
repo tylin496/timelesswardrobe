@@ -3097,6 +3097,8 @@
 
   const _accountTabScrollPositions = {};
   let _accountCurrentTab = "collection";
+  let _accountTabPreviewKey = null;
+  let _accountTabPreviewTimer = 0;
 
   function getAccountActiveTab() {
     const hash = String(globalThis.location.hash ?? "").replace(/^#/, "").toLowerCase();
@@ -3104,24 +3106,57 @@
     return valid.includes(hash) ? hash : "collection";
   }
 
+  function renderAccountTabForKey(contentEl, tabKey) {
+    contentEl.replaceChildren();
+    switch (tabKey) {
+      case "overview":   renderAccountTab_Overview(contentEl); break;
+      case "collection": renderAccountTab_Collection(contentEl); break;
+      case "showcase":   renderAccountTab_Showcase(contentEl); break;
+      case "notes":      renderAccountTab_Notes(contentEl); break;
+      case "wishlist":   renderAccountTab_Wishlist(contentEl); break;
+      case "brands":     renderAccountTab_Brands(contentEl); break;
+      default:           renderAccountTab_Collection(contentEl); break;
+    }
+  }
+
+  function clearAccountTabPreview() {
+    window.clearTimeout(_accountTabPreviewTimer);
+    _accountTabPreviewTimer = 0;
+    if (!_accountTabPreviewKey) return;
+    _accountTabPreviewKey = null;
+    const contentEl = document.querySelector(".account-tab-content");
+    if (!contentEl) return;
+    contentEl.classList.remove("is-preview");
+    contentEl.removeAttribute("data-preview-label");
+    renderAccountActiveTab(contentEl);
+  }
+
   function buildAccountTabNav() {
     const nav = document.createElement("nav");
     nav.className = "account-tab-nav";
     nav.setAttribute("aria-label", "Account sections");
     const active = getAccountActiveTab();
+
     for (const tab of ACCOUNT_TABS) {
       const a = document.createElement("a");
       a.className = "account-tab-nav__item";
       a.href = `/account#${tab.key}`;
       a.textContent = tab.label;
       if (tab.key === active) a.setAttribute("aria-current", "page");
+
       a.addEventListener("click", (e) => {
         e.preventDefault();
+        window.clearTimeout(_accountTabPreviewTimer);
+        _accountTabPreviewKey = null;
+        const contentEl = document.querySelector(".account-tab-content");
+        if (contentEl) {
+          contentEl.classList.remove("is-preview");
+          contentEl.removeAttribute("data-preview-label");
+        }
         if (tab.key === _accountCurrentTab) return;
         _accountTabScrollPositions[_accountCurrentTab] = window.scrollY;
         history.pushState(null, "", `/account#${tab.key}`);
         _accountCurrentTab = tab.key;
-        const contentEl = document.querySelector(".account-tab-content");
         if (contentEl) {
           renderAccountActiveTab(contentEl);
           requestAnimationFrame(() => {
@@ -3129,8 +3164,42 @@
           });
         }
       });
+
+      // Desktop hover preview
+      a.addEventListener("mouseenter", () => {
+        if (window.innerWidth < 1025) return;
+        window.clearTimeout(_accountTabPreviewTimer);
+        if (tab.key === _accountCurrentTab) {
+          if (_accountTabPreviewKey) clearAccountTabPreview();
+          return;
+        }
+        _accountTabPreviewTimer = window.setTimeout(() => {
+          const contentEl = document.querySelector(".account-tab-content");
+          if (!contentEl) return;
+          _accountTabPreviewKey = tab.key;
+          contentEl.setAttribute("data-preview-label", tab.label);
+          contentEl.classList.add("is-preview");
+          renderAccountTabForKey(contentEl, tab.key);
+        }, 150);
+      });
+
       nav.appendChild(a);
     }
+
+    // Revert to active tab when mouse leaves the whole nav
+    nav.addEventListener("mouseleave", () => {
+      window.clearTimeout(_accountTabPreviewTimer);
+      _accountTabPreviewTimer = 0;
+      if (!_accountTabPreviewKey) return;
+      // Small delay so moving from nav → content doesn't cancel
+      _accountTabPreviewTimer = window.setTimeout(clearAccountTabPreview, 200);
+    });
+
+    // Cancel revert if mouse re-enters nav
+    nav.addEventListener("mouseenter", () => {
+      window.clearTimeout(_accountTabPreviewTimer);
+    });
+
     return nav;
   }
 
@@ -12757,6 +12826,16 @@
 
     const update = () => {
       syncHeights();
+      // During the mobile nav, the masthead look is driven entirely by CSS — it crossfades to solid
+      // on open and back to overlay on close, in step with the drawer. Bail out of scroll-driving so
+      // the inline `--tw-header-bg-opacity` never overrides that fade (it would pin the bg transparent
+      // at the top of the hero, leaving dark ink on the photo).
+      if (document.body.classList.contains("collection-ui--mobile-nav-open")) {
+        clearScrollDriven();
+        siteHeader.classList.add("site-header--overlay");
+        siteHeader.classList.remove("site-header--solid");
+        return;
+      }
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
@@ -12795,14 +12874,15 @@
     window.addEventListener("resize", update, { passive: true });
     const mo = new MutationObserver(update);
     mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    const clearScrollDriven = () => {
+    // Function declaration (hoisted) so `update()` above can call it safely regardless of order.
+    function clearScrollDriven() {
       siteHeader.classList.remove("site-header--scroll-driven");
       siteHeader.style.removeProperty("--tw-header-bg-opacity");
       siteHeader.style.removeProperty("--tw-header-bg");
       siteHeader.style.removeProperty("--tw-header-fg");
       siteHeader.style.removeProperty("--tw-header-fg-muted");
       siteHeader.style.removeProperty("--tw-header-monogram");
-    };
+    }
     // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
     // On leave: set target opacity without scroll-driven so the CSS transition (400ms) fires,
     // then hand off to scroll-driven after it completes.
@@ -12819,9 +12899,10 @@
       siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
       _leaveTimer = globalThis.setTimeout(update, 420);
     };
-    // Hover recolour is desktop-only: on touch, `mouseenter` fires on tap and can stick (there's no
-    // reliable `mouseleave`), flipping the header into its hovered state and never reverting.
-    if (globalThis.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches) {
+    // Hover recolour is the DESKTOP LAYOUT only (≥1025px). Gating by width (not just hover capability)
+    // means a desktop responsive-preview at mobile width — which still reports hover:hover — won't
+    // recolour the header on mouse-over. On touch there's no mouseenter anyway.
+    if (globalThis.matchMedia?.("(hover: hover) and (pointer: fine) and (min-width: 1025px)")?.matches) {
       siteHeader.addEventListener("mouseenter", onHeaderEnter);
       siteHeader.addEventListener("mouseleave", onHeaderLeave);
     }
@@ -29895,23 +29976,6 @@
     /** @type {(() => void) | null} */
     let mobileShellCloseAbort = null;
 
-    /**
-     * Mobile-nav masthead wipe geometry. Writes the single header width and each painted glyph's
-     * left offset (within the header) as CSS vars, so the one `--tw-nav-ink-edge` boundary maps to
-     * the same physical line in every element's own paint box. Reads the live DOM; creates nothing.
-     */
-    function syncHeaderInkGeometry() {
-      const header = document.querySelector(".site-header");
-      if (!header) return;
-      const hb = header.getBoundingClientRect();
-      if (!hb.width) return;
-      header.style.setProperty("--tw-header-w", `${Math.round(hb.width)}px`);
-      header.querySelectorAll(".site-title__wordmark-line, .site-title__mark").forEach((el) => {
-        const r = el.getBoundingClientRect();
-        el.style.setProperty("--tw-el-x", `${Math.round(r.left - hb.left)}px`);
-      });
-    }
-
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
       if (mobileShell.hidden && !mobileShell.classList.contains("is-open")) return;
@@ -29963,8 +30027,6 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
-      // Measure masthead geometry before the edge animates, so the two-tone gradient lands aligned.
-      syncHeaderInkGeometry();
       document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
