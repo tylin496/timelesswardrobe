@@ -31,10 +31,10 @@
     ),
   };
 
-  const STYLING_BOARD_DRAFT_KEY = "timeless-wardrobe-outfits-draft-v1";
+  const OUTFITS_DRAFT_KEY = "timeless-wardrobe-outfits-draft-v1";
   const MAX_OUTFIT_ITEMS = 16;
   const OUTFIT_STORAGE_VERSION = 2;
-  const STYLING_BOARD_DRAFT_VERSION = 1;
+  const OUTFITS_DRAFT_VERSION = 1;
 
   /** Header / mobile nav — editorial moodboard grid (single-stroke layout, 15×15). */
   const HEADER_SEARCH_GLYPH_SVG =
@@ -48,7 +48,7 @@
     '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.2" y1="5.65" x2="13.8" y2="5.65"/>' +
     '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.2" y1="10.35" x2="13.8" y2="10.35"/>' +
     "</g></svg>";
-  const STYLING_BOARD_GLYPH_SVG =
+  const OUTFITS_GLYPH_SVG =
     '<svg class="outfits-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
     '<g class="outfits-glyph__fills" aria-hidden="true">' +
     '<rect class="outfits-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />' +
@@ -18201,7 +18201,7 @@
 
   function loadStylingBoardDraft() {
     try {
-      const raw = localStorage.getItem(STYLING_BOARD_DRAFT_KEY);
+      const raw = localStorage.getItem(OUTFITS_DRAFT_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw);
       if (!data || !Array.isArray(data.slots)) return null;
@@ -18226,7 +18226,7 @@
 
   function persistStylingBoardDraft() {
     const payload = {
-      version: STYLING_BOARD_DRAFT_VERSION,
+      version: OUTFITS_DRAFT_VERSION,
       slots: currentOutfitSlots.map((s) =>
         s.colourKey ? { itemId: s.itemId, colourKey: s.colourKey } : { itemId: s.itemId }
       ),
@@ -18236,7 +18236,7 @@
       updatedAt: new Date().toISOString(),
     };
     try {
-      localStorage.setItem(STYLING_BOARD_DRAFT_KEY, JSON.stringify(payload));
+      localStorage.setItem(OUTFITS_DRAFT_KEY, JSON.stringify(payload));
     } catch {
       /* ignore */
     }
@@ -18244,7 +18244,7 @@
 
   function clearStylingBoardDraft() {
     try {
-      localStorage.removeItem(STYLING_BOARD_DRAFT_KEY);
+      localStorage.removeItem(OUTFITS_DRAFT_KEY);
     } catch {
       /* ignore */
     }
@@ -28928,7 +28928,7 @@
 
     /** Full-screen mobile nav shell (below utility bar); replaces legacy slide-in panel. */
     const outfitsIconHtml =
-      '<span class="site-header__outfits-icon" aria-hidden="true">' + STYLING_BOARD_GLYPH_SVG + "</span>";
+      '<span class="site-header__outfits-icon" aria-hidden="true">' + OUTFITS_GLYPH_SVG + "</span>";
 
     const MOBILE_NAV_DRILL_PORTAL_ID = "site-mobile-nav-drill-portal";
 
