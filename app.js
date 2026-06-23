@@ -11030,18 +11030,18 @@
         : [...heroItems.slice(1).reverse(), heroItems[0]];
     ordered.forEach((it, i) => {
       const layer = document.createElement("div");
-      layer.className = "ed-lp__hero-layer";
+      layer.className = "home-hero__hero-layer";
       const isBackStack = i < ordered.length - 1;
       if (isBackStack) layer.dataset.edHeroStack = String(i + 1);
       const img = document.createElement("img");
-      img.className = "ed-lp__hero-layer-img";
+      img.className = "home-hero__hero-layer-img";
       img.alt = "";
       img.decoding = "async";
       img.loading = i === ordered.length - 1 ? "eager" : "lazy";
       layer.appendChild(img);
       wireCoverImageWithFallbacks(img, it, {
         host: layer,
-        missingClass: "ed-lp__hero-layer--missing",
+        missingClass: "home-hero__hero-layer--missing",
         coverRenderWidth: 1536,
         coverRenderHeight: 1024,
         coverRenderQuality: 86,
@@ -11085,7 +11085,7 @@
     const url = homeHeroMediaUrl(src);
     if (isHomeHeroVideoPath(src)) {
       const video = document.createElement("video");
-      video.className = "ed-lp__hero-layer-img ed-lp__hero-layer-video";
+      video.className = "home-hero__hero-layer-img home-hero__hero-layer-video";
       video.muted = true;
       video.defaultMuted = true;
       video.loop = false;
@@ -11104,7 +11104,7 @@
       return video;
     }
     const img = document.createElement("img");
-    img.className = "ed-lp__hero-layer-img";
+    img.className = "home-hero__hero-layer-img";
     img.alt = "";
     img.src = url;
     scheduleDevLocalImageCacheBust(img, src);
@@ -11128,7 +11128,7 @@
 
   function syncHomeHeroSlideMedia(slides, activeIndex) {
     slides.forEach((slide, i) => {
-      const video = slide.querySelector("video.ed-lp__hero-layer-video");
+      const video = slide.querySelector("video.home-hero__hero-layer-video");
       if (!video) return;
       if (i === activeIndex) playHomeHeroVideo(video);
       else {
@@ -11184,7 +11184,7 @@
     const isInteractiveTarget = (/** @type {EventTarget | null} */ target) => {
       if (!(target instanceof Element)) return false;
       return Boolean(
-        target.closest("a, button, input, textarea, select, label, [role='tab'], .ed-lp__hero-dot")
+        target.closest("a, button, input, textarea, select, label, [role='tab'], .home-hero__hero-dot")
       );
     };
 
@@ -11352,7 +11352,7 @@
   /** Click hero imagery (desktop + mobile) → collection PLP; CTAs/carousel chrome stay separate. */
   function wireHomeHeroCollectionTap() {
     const hero =
-      document.querySelector("body.home-page .ed-lp__hero") || document.querySelector(".ed-lp__hero");
+      document.querySelector("body.home-page .home-hero__hero") || document.querySelector(".home-hero__hero");
     if (!(hero instanceof HTMLElement)) return;
     if (hero.dataset.twHeroCollectionTapWired === "1") return;
     hero.dataset.twHeroCollectionTapWired = "1";
@@ -11363,7 +11363,7 @@
       if (!(target instanceof Element)) return false;
       return Boolean(
         target.closest(
-          "a, button, input, textarea, select, label, [role='tab'], .ed-lp__hero-dot, .ed-lp__hero-arrow, .ed-lp__hero-carousel"
+          "a, button, input, textarea, select, label, [role='tab'], .home-hero__hero-dot, .home-hero__hero-arrow, .home-hero__hero-carousel"
         )
       );
     };
@@ -11378,12 +11378,12 @@
   }
 
   function initEditorialHomeHeroCarousel(slideCount) {
-    const carouselUi = document.getElementById("ed-lp-hero-carousel");
-    const heroHost = document.getElementById("ed-lp-hero-layers");
-    const dotsHost = document.getElementById("ed-lp-hero-dots");
+    const carouselUi = document.getElementById("home-hero-hero-carousel");
+    const heroHost = document.getElementById("home-hero-hero-layers");
+    const dotsHost = document.getElementById("home-hero-hero-dots");
     if (!heroHost || slideCount < 1) return;
 
-    const slides = [...heroHost.querySelectorAll(".ed-lp__hero-slide")];
+    const slides = [...heroHost.querySelectorAll(".home-hero__hero-slide")];
     const n = slides.length;
     if (n < 1) return;
 
@@ -11421,12 +11421,12 @@
         const on = i === index;
         slide.setAttribute("aria-hidden", on ? "false" : "true");
       });
-      const counterEl = dotsHost?.querySelector(".ed-lp__hero-counter");
+      const counterEl = dotsHost?.querySelector(".home-hero__hero-counter");
       if (counterEl) {
         counterEl.textContent = `${index + 1} / ${n}`;
         counterEl.setAttribute("aria-label", `Photograph ${index + 1} of ${n}`);
       }
-      dotsHost?.querySelectorAll(".ed-lp__hero-dot").forEach((dot, i) => {
+      dotsHost?.querySelectorAll(".home-hero__hero-dot").forEach((dot, i) => {
         const on = i === index;
         dot.classList.toggle("is-active", on);
         dot.setAttribute("aria-selected", on ? "true" : "false");
@@ -11532,7 +11532,7 @@
     const scheduleAutoplay = () => {
       clearAutoplay();
       if (reduceMotion || n < 2) return;
-      const activeVideo = slides[index]?.querySelector("video.ed-lp__hero-layer-video");
+      const activeVideo = slides[index]?.querySelector("video.home-hero__hero-layer-video");
       if (activeVideo instanceof HTMLVideoElement) {
         if (!Number.isFinite(activeVideo.duration) || activeVideo.duration <= 0) {
           const resume = () => scheduleAutoplay();
@@ -11569,7 +11569,7 @@
         for (let i = 0; i < n; i += 1) {
           const dot = document.createElement("button");
           dot.type = "button";
-          dot.className = "ed-lp__hero-dot";
+          dot.className = "home-hero__hero-dot";
           dot.setAttribute("role", "tab");
           dot.setAttribute("aria-label", `View photograph ${i + 1} of ${n}`);
           dot.addEventListener("click", () => {
@@ -11581,12 +11581,12 @@
       }
     }
 
-    const carouselUiHost = document.getElementById("ed-lp-hero-carousel");
+    const carouselUiHost = document.getElementById("home-hero-hero-carousel");
     if (carouselUiHost && carouselUiHost.dataset.twHeroArrowsMounted !== "1") {
       carouselUiHost.dataset.twHeroArrowsMounted = "1";
       const prevBtn = document.createElement("button");
       prevBtn.type = "button";
-      prevBtn.className = "ed-lp__hero-arrow ed-lp__hero-arrow--prev";
+      prevBtn.className = "home-hero__hero-arrow home-hero__hero-arrow--prev";
       prevBtn.setAttribute("aria-label", "Previous hero image");
       prevBtn.innerHTML =
         '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M9.9 2.9 4.8 8l5.1 5.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -11594,7 +11594,7 @@
 
       const nextBtn = document.createElement("button");
       nextBtn.type = "button";
-      nextBtn.className = "ed-lp__hero-arrow ed-lp__hero-arrow--next";
+      nextBtn.className = "home-hero__hero-arrow home-hero__hero-arrow--next";
       nextBtn.setAttribute("aria-label", "Next hero image");
       nextBtn.innerHTML =
         '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.1 2.9 11.2 8l-5.1 5.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -11604,7 +11604,7 @@
       carouselUiHost.appendChild(nextBtn);
     }
 
-    const heroSwipeSurface = document.querySelector(".ed-lp__hero") || heroHost;
+    const heroSwipeSurface = document.querySelector(".home-hero__hero") || heroHost;
     wireEditorialHomeHeroSwipe(heroSwipeSurface, (dir) => step(dir, { manual: true }));
     if (heroSwipeSurface instanceof HTMLElement && heroSwipeSurface.dataset.twHeroDesktopInputWired !== "1") {
       heroSwipeSurface.dataset.twHeroDesktopInputWired = "1";
@@ -11640,7 +11640,7 @@
 
     usablePaths.forEach((src, i) => {
       const slide = document.createElement("div");
-      slide.className = "ed-lp__hero-slide" + (i === 0 ? " is-active" : "");
+      slide.className = "home-hero__hero-slide" + (i === 0 ? " is-active" : "");
       slide.dataset.heroSlide = String(i);
       slide.dataset.heroSrc = src;
       slide.setAttribute("aria-hidden", i === 0 ? "false" : "true");
@@ -11661,7 +11661,7 @@
           return;
         }
         mountEditorialHomeHeroCatalogFallback(heroHost);
-        const carouselUi = document.getElementById("ed-lp-hero-carousel");
+        const carouselUi = document.getElementById("home-hero-hero-carousel");
         if (carouselUi) carouselUi.hidden = true;
       };
 
@@ -11679,7 +11679,7 @@
 
     heroHost.dataset.twHeroCarouselMounted = "1";
     initEditorialHomeHeroCarousel(usablePaths.length);
-    syncHomeHeroSlideMedia([...heroHost.querySelectorAll(".ed-lp__hero-slide")], 0);
+    syncHomeHeroSlideMedia([...heroHost.querySelectorAll(".home-hero__hero-slide")], 0);
   }
 
   function pickEditorialHeroBackdropItems(pool, maxN) {
@@ -11964,7 +11964,7 @@
   /** @param {HTMLElement | null} host @param {"cover" | "gallery"} mode */
   function syncHomeEditorialProductGridLayout(host, mode) {
     if (!host) return;
-    host.classList.toggle("ed-lp__product-grid--gallery", mode === "gallery");
+    host.classList.toggle("home-hero__product-grid--gallery", mode === "gallery");
     host.dataset.displayMode = mode;
   }
 
@@ -12080,7 +12080,7 @@
     const a = document.createElement("a");
     a.href = buildItemDetailHrefFromId(item.id);
     a.draggable = false;
-    a.className = "ed-lp__division-rail-card";
+    a.className = "home-hero__division-rail-card";
     a.setAttribute("role", "listitem");
     a.setAttribute(
       "aria-label",
@@ -12088,9 +12088,9 @@
     );
 
     const media = document.createElement("div");
-    media.className = "ed-lp__division-rail-media";
+    media.className = "home-hero__division-rail-media";
     const img = document.createElement("img");
-    img.className = "ed-lp__division-rail-img";
+    img.className = "home-hero__division-rail-img";
     img.alt = imageAltForItem(item);
     img.loading = "lazy";
     img.decoding = "async";
@@ -12098,7 +12098,7 @@
     media.appendChild(img);
     wireHomeEditorialCardImage(img, item, displaySrc, {
       host: media,
-      missingClass: "ed-lp__division-rail-media--missing",
+      missingClass: "home-hero__division-rail-media--missing",
       coverRenderWidth: HOME_DIVISION_RAIL_RENDER.width,
       coverRenderHeight: HOME_DIVISION_RAIL_RENDER.height,
       coverRenderQuality: HOME_DIVISION_RAIL_RENDER.quality,
@@ -12106,7 +12106,7 @@
     });
 
     const cap = document.createElement("span");
-    cap.className = "ed-lp__division-rail-label";
+    cap.className = "home-hero__division-rail-label";
     cap.textContent = String(label).trim().toUpperCase();
 
     a.appendChild(media);
@@ -12128,10 +12128,10 @@
   function resolveHomeHorizontalRailScrollEl(scroller) {
     if (!(scroller instanceof HTMLElement)) return scroller;
     const isDivisionRail =
-      scroller.id === "ed-lp-division-rail" || scroller.classList.contains("ed-lp__division-rail-scroller");
+      scroller.id === "home-hero-division-rail" || scroller.classList.contains("home-hero__division-rail-scroller");
     if (!isDivisionRail) return scroller;
     const wrap = scroller.parentElement;
-    if (!(wrap instanceof HTMLElement) || !wrap.classList.contains("ed-lp__division-rail-scroller-wrap")) {
+    if (!(wrap instanceof HTMLElement) || !wrap.classList.contains("home-hero__division-rail-scroller-wrap")) {
       return scroller;
     }
     if (globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false) return wrap;
@@ -12149,7 +12149,7 @@
     const wrap = scroller.parentElement;
     if (
       wrap instanceof HTMLElement &&
-      wrap.classList.contains("ed-lp__division-rail-scroller-wrap") &&
+      wrap.classList.contains("home-hero__division-rail-scroller-wrap") &&
       wrap !== scroller
     ) {
       return [scroller, wrap];
@@ -12176,12 +12176,12 @@
     prepareHomeHorizontalRailScroller(scroller);
     const section =
       options.railRoot ??
-      scroller.closest("[data-ed-lp-horizontal-rail], [data-outfits-outfit-rail]");
+      scroller.closest("[data-home-hero-horizontal-rail], [data-outfits-outfit-rail]");
     const track = section?.querySelector(
-      ".outfits__outfit-rail-progress, .ed-lp__rail-progress, .ed-lp__division-rail-progress"
+      ".outfits__outfit-rail-progress, .home-hero__rail-progress, .home-hero__division-rail-progress"
     );
     const thumb = section?.querySelector(
-      ".ed-lp__rail-progress-bar, .ed-lp__division-rail-progress-bar"
+      ".home-hero__rail-progress-bar, .home-hero__division-rail-progress-bar"
     );
     if (scroller.dataset.horizontalRailWired === "1") {
       refreshHomeHorizontalRailScroller(scroller);
@@ -12431,9 +12431,9 @@
       (e) => {
         const isDesktop = globalThis.matchMedia?.("(min-width: 901px)")?.matches ?? false;
         const isPageRail =
-          scroller.id === "ed-lp-division-rail" ||
-          scroller.classList.contains("ed-lp__division-rail-scroller") ||
-          scroller.classList.contains("ed-lp__horizontal-rail-scroller");
+          scroller.id === "home-hero-division-rail" ||
+          scroller.classList.contains("home-hero__division-rail-scroller") ||
+          scroller.classList.contains("home-hero__horizontal-rail-scroller");
         if (isDesktop && isPageRail) return;
         if (trackDragActive || scrollerDragActive) return;
         const max = scrollMax();
@@ -12534,7 +12534,7 @@
       track.setAttribute("aria-valuetext", "0%");
       track.hidden = true;
       const thumb = document.createElement("span");
-      thumb.className = "ed-lp__rail-progress-bar";
+      thumb.className = "home-hero__rail-progress-bar";
       thumb.setAttribute("aria-hidden", "true");
       track.appendChild(thumb);
     }
@@ -12561,7 +12561,7 @@
 
   /** @param {object[]} pool @param {{ excludeItemIds?: Iterable<string> | Set<string> }} [options] */
   function mountHomeDivisionRail(pool, options = {}) {
-    const scroller = document.getElementById("ed-lp-division-rail");
+    const scroller = document.getElementById("home-hero-division-rail");
     if (!scroller) return;
     const plans = pickHomeDivisionRailPlans(pool, options);
     scroller.replaceChildren();
@@ -12580,14 +12580,14 @@
     const a = document.createElement("a");
     a.href = buildItemDetailHrefFromId(item.id);
     a.draggable = false;
-    a.className = "ed-lp__viewed-card";
+    a.className = "home-hero__viewed-card";
     a.setAttribute("role", "listitem");
     a.setAttribute("aria-label", `${String(item.brand ?? "").trim() || "—"} — ${displayNameWithoutLeadingColour(item)}`);
 
     const media = document.createElement("div");
-    media.className = "ed-lp__viewed-card-media";
+    media.className = "home-hero__viewed-card-media";
     const img = document.createElement("img");
-    img.className = "ed-lp__viewed-card-img";
+    img.className = "home-hero__viewed-card-img";
     img.alt = imageAltForItem(item);
     img.loading = "lazy";
     img.decoding = "async";
@@ -12595,7 +12595,7 @@
     media.appendChild(img);
     wireHomeEditorialCardImage(img, item, homeEditorialCoverSrc(item), {
       host: media,
-      missingClass: "ed-lp__viewed-card-media--missing",
+      missingClass: "home-hero__viewed-card-media--missing",
       coverRenderWidth: HOME_RECENTLY_VIEWED_RENDER.width,
       coverRenderHeight: HOME_RECENTLY_VIEWED_RENDER.height,
       coverRenderQuality: HOME_RECENTLY_VIEWED_RENDER.quality,
@@ -12603,15 +12603,15 @@
     });
 
     const body = document.createElement("div");
-    body.className = "ed-lp__viewed-card-body";
+    body.className = "home-hero__viewed-card-body";
     const brand = document.createElement("p");
-    brand.className = "ed-lp__viewed-card-brand";
+    brand.className = "home-hero__viewed-card-brand";
     brand.textContent = String(item.brand ?? "").trim() || "—";
     const title = document.createElement("p");
-    title.className = "ed-lp__viewed-card-title";
+    title.className = "home-hero__viewed-card-title";
     title.textContent = displayNameWithoutLeadingColour(item);
     const price = document.createElement("p");
-    price.className = "ed-lp__viewed-card-price";
+    price.className = "home-hero__viewed-card-price";
     const priceLine = formattedCollectionPriceLine(item, { brief: true });
     if (priceLine) price.textContent = priceLine;
     else price.hidden = true;
@@ -12626,8 +12626,8 @@
 
   /** @param {object[]} pool */
   function mountHomeRecentlyViewedRail(pool) {
-    const section = document.getElementById("ed-lp-viewed-rail");
-    const scroller = document.getElementById("ed-lp-recently-viewed");
+    const section = document.getElementById("home-hero-viewed-rail");
+    const scroller = document.getElementById("home-hero-recently-viewed");
     if (!section || !scroller) return;
 
     const list = resolveHomeRecentlyViewedItems(pool, 10).filter((it) => buildCoverCandidates(it).length > 0);
@@ -12673,12 +12673,12 @@
     const frame = isGallery ? HOME_EDITORIAL_CARD_RENDER.gallery : HOME_EDITORIAL_CARD_RENDER.cover;
     const a = document.createElement("a");
     a.href = buildItemDetailHrefFromId(item.id);
-    a.className = `ed-lp__pcard ed-lp__pcard--${isGallery ? "gallery" : "cover"}`;
+    a.className = `home-hero__pcard home-hero__pcard--${isGallery ? "gallery" : "cover"}`;
     a.setAttribute("role", "listitem");
     const media = document.createElement("div");
-    media.className = "ed-lp__pcard-media";
+    media.className = "home-hero__pcard-media";
     const img = document.createElement("img");
-    img.className = "ed-lp__pcard-img";
+    img.className = "home-hero__pcard-img";
     img.alt = imageAltForItem(item);
     img.loading = cardIndex < 2 ? "eager" : "lazy";
     img.decoding = "async";
@@ -12687,22 +12687,22 @@
     media.appendChild(img);
     wireHomeEditorialCardImage(img, item, displaySrc || homeEditorialCoverSrc(item), {
       host: media,
-      missingClass: "ed-lp__pcard-media--missing",
+      missingClass: "home-hero__pcard-media--missing",
       coverRenderWidth: frame.width,
       coverRenderHeight: frame.height,
       coverRenderQuality: frame.quality,
       coverRenderResize: frame.resize,
     });
     const body = document.createElement("div");
-    body.className = "ed-lp__pcard-body";
+    body.className = "home-hero__pcard-body";
     const brand = document.createElement("p");
-    brand.className = "ed-lp__pcard-brand";
+    brand.className = "home-hero__pcard-brand";
     brand.textContent = String(item.brand ?? "").trim() || "—";
     const title = document.createElement("h3");
-    title.className = "ed-lp__pcard-title";
+    title.className = "home-hero__pcard-title";
     title.textContent = displayNameWithoutLeadingColour(item);
     const meta = document.createElement("p");
-    meta.className = "ed-lp__pcard-meta";
+    meta.className = "home-hero__pcard-meta";
     const fr = friendlyRecordCategory(recKey) || recKey;
     meta.textContent = `${fr} · ${categoryDisplayLabel(slot)}`;
     body.appendChild(brand);
@@ -12749,8 +12749,8 @@
     const shell = document.querySelector(".site-header-shell");
     if (!siteHeader || !shell) return;
 
-    const hero = document.querySelector(".ed-lp__hero");
-    const heroInner = hero?.querySelector(".ed-lp__hero-inner") ?? null;
+    const hero = document.querySelector(".home-hero__hero");
+    const heroInner = hero?.querySelector(".home-hero__hero-inner") ?? null;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -12872,7 +12872,7 @@
 
   function mountHomePageHero() {
     if (!document.body.classList.contains("home-page")) return;
-    const heroHost = document.getElementById("ed-lp-hero-layers");
+    const heroHost = document.getElementById("home-hero-hero-layers");
     if (!heroHost) return;
     mountEditorialHomeHeroLayers(heroHost);
     initHomeHeroHeader();
@@ -12910,9 +12910,9 @@
     wireHomeCollectionEntryLinks();
     wireEditorialQuoteReveal();
     const root = document.getElementById("main");
-    if (!root?.classList.contains("ed-lp")) return;
+    if (!root?.classList.contains("home-hero")) return;
 
-    const highHost = document.getElementById("ed-lp-highlights");
+    const highHost = document.getElementById("home-hero-highlights");
     const pool = items.filter((it) => buildCoverCandidates(it).length > 0);
     const hlPool = pool.length ? pool : items.slice();
     const highlightItems = pickHomeCuratedSelection(hlPool, { min: 12, max: 16, target: 14 });
@@ -12938,7 +12938,7 @@
 
   function wireEditorialLandingPageCollectionLinks() {
     const main = document.getElementById("main");
-    if (!main?.classList.contains("ed-lp") || main.dataset.edCollectionWired === "1") return;
+    if (!main?.classList.contains("home-hero") || main.dataset.edCollectionWired === "1") return;
     main.dataset.edCollectionWired = "1";
     main.addEventListener("click", (e) => {
       const link = /** @type {HTMLElement | null} */ (e.target.closest("a[data-ed-collection='1']"));
@@ -12946,7 +12946,7 @@
       e.preventDefault();
 
       const isSeasonalEntry =
-        link.dataset.edSeasonalEntry === "1" || link.classList.contains("ed-lp__season-tile");
+        link.dataset.edSeasonalEntry === "1" || link.classList.contains("home-hero__season-tile");
       const seasonOnly = String(link.getAttribute("data-season-filter") ?? "").trim();
       if (isSeasonalEntry && (seasonOnly === "A/W" || seasonOnly === "S/S")) {
         if (!document.getElementById("grid")) {
@@ -23614,7 +23614,7 @@
 
   /** @param {HTMLElement} scroller */
   function isDivisionRailScroller(scroller) {
-    return scroller.id === "ed-lp-division-rail" || scroller.classList.contains("ed-lp__division-rail-scroller");
+    return scroller.id === "home-hero-division-rail" || scroller.classList.contains("home-hero__division-rail-scroller");
   }
 
   function outfitDragLayoutFlipMs() {

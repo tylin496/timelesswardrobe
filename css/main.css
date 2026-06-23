@@ -3434,8 +3434,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 /* Popular Categories scroll hint — reuses the homepage rail-progress look, scoped to the search overlay. */
-/* Combine both classes so these beat the base `.ed-lp__rail-progress` rules that sit later in the file. */
-.ed-lp__rail-progress.site-header__search-category-progress {
+/* Combine both classes so these beat the base `.home-hero__rail-progress` rules that sit later in the file. */
+.home-hero__rail-progress.site-header__search-category-progress {
   /* Pull the track up closer to the cards and inset both ends so it sits narrower than the rail. */
   margin-top: -0.5rem;
   margin-left: 0.25rem;
@@ -3445,7 +3445,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 /* Slimmer progress bar than the homepage rail. */
-.site-header__search-category-progress .ed-lp__rail-progress-bar {
+.site-header__search-category-progress .home-hero__rail-progress-bar {
   height: 1px;
 }
 
@@ -4461,9 +4461,9 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   }
 
   /* Homepage: hero layers stay decorative; header chrome + flyouts stay interactive above dim. */
-  body.home-page .ed-lp__hero-layers,
-  body.home-page .ed-lp__hero-slide,
-  body.home-page .ed-lp__hero-scrim {
+  body.home-page .home-hero__hero-layers,
+  body.home-page .home-hero__hero-slide,
+  body.home-page .home-hero__hero-scrim {
     pointer-events: none;
   }
 
@@ -10070,7 +10070,7 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
     pointer-events: none;
   }
 
-  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .home-hero__rail-progress-bar {
     position: absolute;
     left: 0;
     top: calc(50% - 1px);
@@ -10086,8 +10086,8 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
     cursor: grab;
   }
 
-  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress.is-dragging .ed-lp__rail-progress-bar,
-  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar.is-dragging {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress.is-dragging .home-hero__rail-progress-bar,
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .home-hero__rail-progress-bar.is-dragging {
     cursor: grabbing;
     transition: none;
   }
@@ -11192,7 +11192,7 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 
 /* Outfit rail progress track + thumb — base (ALL widths). The matching rules in
    the max-width:900 block only cover mobile; without this the track stays
-   position:static/height:0 on desktop and the bar falls back to the .ed-lp
+   position:static/height:0 on desktop and the bar falls back to the .home-hero
    landing-page positioning, floating a dark line across the card middles. The
    track must be relative so the absolutely-positioned bar sits inside it (below
    the strip), centred on its hairline. */
@@ -11227,7 +11227,7 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
   pointer-events: none;
 }
 
-.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar {
+.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .home-hero__rail-progress-bar {
   position: absolute;
   left: 0;
   top: calc(50% - 1px);
@@ -21606,7 +21606,7 @@ body.collection-page .collection-container > .collection-actions {
 }
 
 /* ---------------------------------------------------------------------------
-   Editorial homepage (`index.html` — `body.home-page`, `#main.ed-lp`)
+   Editorial homepage (`index.html` — `body.home-page`, `#main.home-hero`)
    --------------------------------------------------------------------------- */
 
 body.home-page {
@@ -21621,17 +21621,17 @@ body.home-page {
   /* Direct clamp fallback — `--catalogue-plp-inline-x` resolves invalid on
      home page (calc(var * var) parser quirk), so without this the rails and
      bands collapsed to padding 0 and ran flush with the viewport edge. */
-  --ed-lp-section-inline: max(
+  --home-hero-section-inline: max(
     var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
   /* Global homepage vertical rhythm — one token for all inter-section gaps. */
   --section-space: clamp(5rem, 9vw, 8rem);
-  --ed-lp-section-pad-y: var(--section-space);
+  --home-hero-section-pad-y: var(--section-space);
   /* External gap: Browse rail → quote box ↔ quote box → Collection Highlights (symmetric). */
-  --ed-lp-philosophy-block-gap: clamp(3rem, 6vw, 5rem);
-  --ed-lp-philosophy-pad-y: clamp(4rem, 9vw, 6.5rem);
-  --ed-lp-section-title-gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  --home-hero-philosophy-block-gap: clamp(3rem, 6vw, 5rem);
+  --home-hero-philosophy-pad-y: clamp(4rem, 9vw, 6.5rem);
+  --home-hero-section-title-gap: clamp(1.25rem, 2.5vw, 1.75rem);
   /* Align homepage typography tokens with collection chrome (brand green system). */
   --bg: var(--tw-brand-page);
   --bg-elevated: var(--tw-brand-ivory);
@@ -21645,14 +21645,14 @@ body.home-page {
   background-image: none;
 }
 
-body.home-page #main.ed-lp {
+body.home-page #main.home-hero {
   @apply m-0;
   display: block;
   padding: 0;
   max-width: none;
 }
 
-body.home-page .ed-lp__band-inner {
+body.home-page .home-hero__band-inner {
   @apply m-0;
   max-width: none;
   /* Match the header logo column so all home sections share one left edge. */
@@ -21660,59 +21660,59 @@ body.home-page .ed-lp__band-inner {
   padding-right: max(var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-right, 0px));
 }
 
-body.home-page .ed-lp__division-rail {
-  --ed-lp-division-rail-pad-left: max(
+body.home-page .home-hero__division-rail {
+  --home-hero-division-rail-pad-left: max(
     var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
 }
 
-body.home-page .ed-lp__viewed-rail {
-  --ed-lp-viewed-rail-pad-left: max(
+body.home-page .home-hero__viewed-rail {
+  --home-hero-viewed-rail-pad-left: max(
     var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
 }
 
-body.home-page .ed-lp__hero-inner {
+body.home-page .home-hero__hero-inner {
   max-width: none;
-  padding-left: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
-  padding-right: var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
+  padding-left: var(--home-hero-hero-copy-x, clamp(2rem, 7vw, 7rem));
+  padding-right: var(--home-hero-hero-copy-x, clamp(2rem, 7vw, 7rem));
 }
 
-body.home-page .ed-lp__season-grid {
+body.home-page .home-hero__season-grid {
   max-width: none;
   padding-left: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-left, 0px));
   padding-right: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-right, 0px));
 }
 
-body.home-page .ed-lp__division-rail {
-  --ed-lp-browse-to-highlights-gap: clamp(0.75rem, 2.3vw, 1.35rem);
+body.home-page .home-hero__division-rail {
+  --home-hero-browse-to-highlights-gap: clamp(0.75rem, 2.3vw, 1.35rem);
   padding-top: clamp(1.25rem, 2vw, 2rem);
   padding-bottom: 0;
 }
 
-body.home-page #main.ed-lp .ed-lp__band {
+body.home-page #main.home-hero .home-hero__band {
   padding-top: clamp(2rem, 3.5vw, 3rem);
   padding-bottom: clamp(2rem, 3.5vw, 3rem);
 }
 
-body.home-page .ed-lp__h2 {
+body.home-page .home-hero__h2 {
   font-size: clamp(1.75rem, 0.8rem + 1.5vw, 2.35rem);
 }
 
 
 @media (max-width: 900px) {
-  body.home-page .site-home-stage .ed-lp__division-rail {
+  body.home-page .site-home-stage .home-hero__division-rail {
     padding-bottom: 0;
   }
 }
 
-body.home-page .ed-lp__division-rail-title {  @apply mb-[var(--ed-lp-section-title-gap)];
+body.home-page .home-hero__division-rail-title {  @apply mb-[var(--home-hero-section-title-gap)];
 
 }
 
-body.home-page .ed-lp__band-head {  @apply mb-[var(--ed-lp-section-title-gap)];
+body.home-page .home-hero__band-head {  @apply mb-[var(--home-hero-section-title-gap)];
 
 }
 
@@ -21737,7 +21737,7 @@ body.home-page .ed-lp__band-head {  @apply mb-[var(--ed-lp-section-title-gap)];
     color: var(--ink);
   }
 
-  body.home-page #main.ed-lp {
+  body.home-page #main.home-hero {
     background-color: transparent;
     color: var(--ink);
   }
@@ -21748,11 +21748,11 @@ body.home-page .ed-lp__band-head {  @apply mb-[var(--ed-lp-section-title-gap)];
   position: relative;
   display: block;
   /* RL FY25 homepage rhythm — narrow duo gutter, portrait tiles. */
-  --ed-lp-season-duo-gutter: 0px;
-  --ed-lp-season-duo-aspect: 4 / 5;
-  --ed-lp-season-duo-copy-x: 9%;
-  --ed-lp-season-duo-copy-b: 11%;
-  --ed-lp-hero-height: clamp(26rem, 72svh, 38.5rem);
+  --home-hero-season-duo-gutter: 0px;
+  --home-hero-season-duo-aspect: 4 / 5;
+  --home-hero-season-duo-copy-x: 9%;
+  --home-hero-season-duo-copy-b: 11%;
+  --home-hero-hero-height: clamp(26rem, 72svh, 38.5rem);
 }
 
 body.home-page .site-home-stage {
@@ -21761,7 +21761,7 @@ body.home-page .site-home-stage {
   border-top: 0;
 }
 
-.ed-lp__hero.is-hero-dragging {
+.home-hero__hero.is-hero-dragging {
   cursor: grabbing;
   user-select: none;
   -webkit-user-select: none;
@@ -21777,30 +21777,30 @@ body.home-page .site-home-stage {
     transition-duration: 0.01ms;
   }
 
-  .ed-lp__season-duo-card:hover .ed-lp__season-duo-img,
-  .ed-lp__season-duo-card:focus-visible .ed-lp__season-duo-img {
+  .home-hero__season-duo-card:hover .home-hero__season-duo-img,
+  .home-hero__season-duo-card:focus-visible .home-hero__season-duo-img {
     transform: none;
   }
 
-  .ed-lp__season-duo-img {
+  .home-hero__season-duo-img {
     transition: none;
   }
 }
 
-body.home-page .ed-lp__hero {
+body.home-page .home-hero__hero {
   cursor: pointer;
   /* Pull hero up so it starts behind the full sticky shell (utility bar + nav), enabling the transparent overlay effect. */
   margin-top: calc(-1 * var(--home-header-shell-height, var(--home-header-nav-height, var(--site-header-mobile-row-height))));
   z-index: 0;
 }
 
-body.home-page .ed-lp__hero .ed-lp__hero-dot,
-body.home-page .ed-lp__hero .ed-lp__hero-arrow,
-body.home-page .ed-lp__hero .ed-lp__btn {
+body.home-page .home-hero__hero .home-hero__hero-dot,
+body.home-page .home-hero__hero .home-hero__hero-arrow,
+body.home-page .home-hero__hero .home-hero__btn {
   cursor: pointer;
 }
 
-.ed-lp__hero {
+.home-hero__hero {
   /* Full-bleed width: cover crops left/right; vertical focal point via --hero-img-position */
   --hero-scrim-ink: 18, 14, 10;
   --hero-scrim-mist: 22, 18, 14;
@@ -21812,7 +21812,7 @@ body.home-page .ed-lp__hero .ed-lp__btn {
   position: relative;
   z-index: 0;
   width: 100%;
-  height: var(--ed-lp-hero-height, clamp(26rem, 72svh, 38.5rem));
+  height: var(--home-hero-hero-height, clamp(26rem, 72svh, 38.5rem));
   min-height: 0;
   max-height: none;
   display: block;
@@ -21828,12 +21828,12 @@ body.home-page .ed-lp__hero .ed-lp__btn {
 }
 
 /* Editorial carousel — slide + fade */
-.ed-lp__hero-layers,
-.ed-lp__hero-scrim {
+.home-hero__hero-layers,
+.home-hero__hero-scrim {
   cursor: pointer;
 }
 
-.ed-lp__hero-layers {
+.home-hero__hero-layers {
   --hero-slide-duration: 0.78s;
   --hero-slide-ease: cubic-bezier(0.42, 0.02, 0.24, 1);
   --hero-slide-offset: 3.25%;
@@ -21842,7 +21842,7 @@ body.home-page .ed-lp__hero .ed-lp__btn {
   z-index: 0;
 }
 
-.ed-lp__hero-slide {
+.home-hero__hero-slide {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -21856,48 +21856,48 @@ body.home-page .ed-lp__hero .ed-lp__btn {
   will-change: opacity, transform;
 }
 
-.ed-lp__hero-slide.is-no-transition {
+.home-hero__hero-slide.is-no-transition {
   transition: none !important;
 }
 
-.ed-lp__hero-slide.is-active {
+.home-hero__hero-slide.is-active {
   opacity: 1;
   transform: translate3d(0, 0, 0);
   z-index: 2;
 }
 
-.ed-lp__hero-slide.is-prep-enter-next {
+.home-hero__hero-slide.is-prep-enter-next {
   opacity: 0;
   transform: translate3d(var(--hero-slide-offset), 0, 0);
   z-index: 2;
 }
 
-.ed-lp__hero-slide.is-prep-enter-prev {
+.home-hero__hero-slide.is-prep-enter-prev {
   opacity: 0;
   transform: translate3d(calc(var(--hero-slide-offset) * -1), 0, 0);
   z-index: 2;
 }
 
-.ed-lp__hero-slide.is-exit-next {
+.home-hero__hero-slide.is-exit-next {
   opacity: 0;
   transform: translate3d(calc(var(--hero-slide-offset) * -1), 0, 0);
   z-index: 1;
 }
 
-.ed-lp__hero-slide.is-exit-prev {
+.home-hero__hero-slide.is-exit-prev {
   opacity: 0;
   transform: translate3d(var(--hero-slide-offset), 0, 0);
   z-index: 1;
 }
 
-.ed-lp__hero-carousel {
+.home-hero__hero-carousel {
   position: absolute;
   inset: 0;
   z-index: 5;
   pointer-events: none;
 }
 
-.ed-lp__hero-dots {
+.home-hero__hero-dots {
   position: absolute;
   left: 50%;
   bottom: calc(var(--hero-dots-bottom, 1.5rem) + env(safe-area-inset-bottom, 0px));
@@ -21909,17 +21909,17 @@ body.home-page .ed-lp__hero .ed-lp__btn {
   pointer-events: auto;
 }
 
-.ed-lp__hero-dots:empty,
-.ed-lp__hero-dots:has(.ed-lp__hero-counter) {
+.home-hero__hero-dots:empty,
+.home-hero__hero-dots:has(.home-hero__hero-counter) {
   display: none !important;
   pointer-events: none;
 }
 
-.ed-lp__hero-counter {
+.home-hero__hero-counter {
   display: none !important;
 }
 
-.ed-lp__hero-arrow {
+.home-hero__hero-arrow {
   position: absolute;
   top: 44%;
   z-index: 7;
@@ -21944,37 +21944,37 @@ body.home-page .ed-lp__hero .ed-lp__btn {
     background-color 180ms var(--ease-out);
 }
 
-.ed-lp__hero:hover .ed-lp__hero-arrow,
-.ed-lp__hero:focus-within .ed-lp__hero-arrow {
+.home-hero__hero:hover .home-hero__hero-arrow,
+.home-hero__hero:focus-within .home-hero__hero-arrow {
   opacity: 1;
   pointer-events: auto;
 }
 
-.ed-lp__hero-arrow:hover,
-.ed-lp__hero-arrow:focus-visible {
+.home-hero__hero-arrow:hover,
+.home-hero__hero-arrow:focus-visible {
   background: rgba(84, 84, 84, 0.48);
 }
 
-.ed-lp__hero-arrow:focus-visible {
+.home-hero__hero-arrow:focus-visible {
   outline: 1px solid rgba(255, 255, 255, 0.88);
   outline-offset: 2px;
 }
 
-.ed-lp__hero-arrow svg {
+.home-hero__hero-arrow svg {
   width: 1rem;
   height: 1rem;
   display: block;
 }
 
-.ed-lp__hero-arrow--prev {
+.home-hero__hero-arrow--prev {
   left: clamp(0.35rem, 1.1vw, 0.85rem);
 }
 
-.ed-lp__hero-arrow--next {
+.home-hero__hero-arrow--next {
   right: clamp(0.35rem, 1.1vw, 0.85rem);
 }
 
-.ed-lp__hero-dot {
+.home-hero__hero-dot {
   @apply m-0;
   appearance: none;
   width: 5px;
@@ -21989,44 +21989,44 @@ body.home-page .ed-lp__hero .ed-lp__btn {
     transform 0.22s var(--ease-out);
 }
 
-.ed-lp__hero-dot:hover {
+.home-hero__hero-dot:hover {
   background: rgba(255, 255, 255, 0.62);
 }
 
-.ed-lp__hero-dot.is-active {
+.home-hero__hero-dot.is-active {
   background: #fff;
   transform: scale(1.15);
 }
 
-.ed-lp__hero-dot:focus-visible {
+.home-hero__hero-dot:focus-visible {
   outline: 1px solid rgba(255, 255, 255, 0.75);
   outline-offset: 3px;
 }
 
-.ed-lp__hero-layer {
+.home-hero__hero-layer {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
-.ed-lp__hero-layer:not([data-ed-hero-stack]) {
+.home-hero__hero-layer:not([data-ed-hero-stack]) {
   z-index: 3;
 }
 
-.ed-lp__hero-layer[data-ed-hero-stack="1"] {
+.home-hero__hero-layer[data-ed-hero-stack="1"] {
   z-index: 1;
   opacity: 0.38;
   mix-blend-mode: soft-light;
 }
 
-.ed-lp__hero-layer[data-ed-hero-stack="2"] {
+.home-hero__hero-layer[data-ed-hero-stack="2"] {
   z-index: 2;
   opacity: 0.28;
   mix-blend-mode: luminosity;
 }
 
-.ed-lp__hero-layer-img,
-video.ed-lp__hero-layer-video {
+.home-hero__hero-layer-img,
+video.home-hero__hero-layer-video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -22037,19 +22037,19 @@ video.ed-lp__hero-layer-video {
   transform: none;
 }
 
-video.ed-lp__hero-layer-video {
+video.home-hero__hero-layer-video {
   pointer-events: none;
 }
 
-.ed-lp__hero-layer--fixed .ed-lp__hero-layer-img {
+.home-hero__hero-layer--fixed .home-hero__hero-layer-img {
   transform: none;
 }
 
-.ed-lp__hero-layer--missing {
+.home-hero__hero-layer--missing {
   background: linear-gradient(135deg, #2a2620, #1a1814);
 }
 
-.ed-lp__hero-scrim {
+.home-hero__hero-scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -22094,7 +22094,7 @@ video.ed-lp__hero-layer-video {
    only compress the bottom-ink layer's reach (70% → 58%) so it sits as a bottom band,
    not a half-frame wash. Mist / copy-radial / vignette layers stay identical to desktop. */
 @media (max-width: 767px) {
-  .ed-lp__hero-scrim {
+  .home-hero__hero-scrim {
     background-image:
       linear-gradient(
         180deg,
@@ -22124,7 +22124,7 @@ video.ed-lp__hero-layer-video {
   }
 }
 
-.ed-lp__hero-inner {
+.home-hero__hero-inner {
   @apply m-0;
   position: absolute;
   left: 0;
@@ -22138,7 +22138,7 @@ video.ed-lp__hero-layer-video {
   isolation: isolate;
   width: 100%;
   max-width: none;
-  padding: 0 var(--ed-lp-hero-copy-x, clamp(2rem, 7vw, 7rem));
+  padding: 0 var(--home-hero-hero-copy-x, clamp(2rem, 7vw, 7rem));
   box-sizing: border-box;
   text-align: left;
   pointer-events: none;
@@ -22148,13 +22148,13 @@ video.ed-lp__hero-layer-video {
   --hero-cta-part-gap: clamp(0.9rem, 2.8vh, 1.1rem);
 }
 
-.ed-lp__hero-inner .ed-lp__hero-cta,
-.ed-lp__hero-inner .ed-lp__btn {
+.home-hero__hero-inner .home-hero__hero-cta,
+.home-hero__hero-inner .home-hero__btn {
   pointer-events: auto;
 }
 
 /* Hero copy — shared typography (desktop left-aligned; centered at ≤767px). */
-.ed-lp__hero-eyebrow {
+.home-hero__hero-eyebrow {
   display: block;
   width: max-content;
   max-width: none;
@@ -22170,7 +22170,7 @@ video.ed-lp__hero-layer-video {
   opacity: 1;
 }
 
-.ed-lp__hero-title {
+.home-hero__hero-title {
   margin: 0 0 var(--hero-body-line-gap);
   max-width: var(--hero-body-copy-max, min(19rem, 90%));
   font-family: "Cormorant Garamond", Georgia, serif;
@@ -22184,7 +22184,7 @@ video.ed-lp__hero-layer-video {
   opacity: 1;
 }
 
-.ed-lp__hero-line {
+.home-hero__hero-line {
   display: block;
   margin: 0 0 var(--hero-cta-part-gap);
   max-width: var(--hero-body-copy-max, min(19rem, 90%));
@@ -22199,7 +22199,7 @@ video.ed-lp__hero-layer-video {
   opacity: 1;
 }
 
-.ed-lp__hero-cta {
+.home-hero__hero-cta {
   display: flex;
   flex-wrap: nowrap;
   gap: 0.4rem;
@@ -22209,7 +22209,7 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
-.ed-lp__hero-cta .ed-lp__btn {
+.home-hero__hero-cta .home-hero__btn {
   flex: 0 1 auto;
   width: auto;
   min-width: 0;
@@ -22243,19 +22243,19 @@ video.ed-lp__hero-layer-video {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  body.home-page .ed-lp__hero-eyebrow,
-  body.home-page .ed-lp__hero-title,
-  body.home-page .ed-lp__hero-line,
-  body.home-page .ed-lp__hero-cta {
+  body.home-page .home-hero__hero-eyebrow,
+  body.home-page .home-hero__hero-title,
+  body.home-page .home-hero__hero-line,
+  body.home-page .home-hero__hero-cta {
     animation: tlw-hero-rise 0.95s cubic-bezier(0.23, 1, 0.32, 1) backwards;
   }
-  body.home-page .ed-lp__hero-eyebrow {
+  body.home-page .home-hero__hero-eyebrow {
     animation-delay: 0.14s;
   }
-  body.home-page .ed-lp__hero-title {
+  body.home-page .home-hero__hero-title {
     animation-delay: 0.28s;
   }
-  body.home-page .ed-lp__hero-line {
+  body.home-page .home-hero__hero-line {
     animation-delay: 0.42s;
   }
   /* CTA is an action, not copy — the three text lines (0.14/0.28/0.42s) read as one
@@ -22265,38 +22265,38 @@ video.ed-lp__hero-layer-video {
      drift-distance change is not; one animation vocabulary, no second keyframe).
      0.70s is the beat that reads as "content → (pause) → action" without the ~0.43s
      gap of 0.85s feeling like a wait on this restrained, non-cinematic editorial hero. */
-  body.home-page .ed-lp__hero-cta {
+  body.home-page .home-hero__hero-cta {
     animation-delay: 0.7s;
   }
 }
 
 /* Desktop hero — eyebrow, body copy, CTA all 110% of shared base (mobile ≤767px unchanged). */
 @media (min-width: 768px) {
-  .ed-lp__hero-inner {
+  .home-hero__hero-inner {
     --hero-body-copy-max: min(20.9rem, 90%);
     --hero-eyebrow-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
     --hero-body-line-gap: 0.18rem;
     --hero-cta-part-gap: clamp(0.99rem, 3.08vh, 1.21rem);
   }
 
-  .ed-lp__hero-eyebrow {
+  .home-hero__hero-eyebrow {
     font-size: clamp(0.88rem, 3.135vw, 1.122rem);
   }
 
-  .ed-lp__hero-title {
+  .home-hero__hero-title {
     font-size: clamp(0.924rem, 2.805vw, 1.078rem);
   }
 
-  .ed-lp__hero-line {
+  .home-hero__hero-line {
     font-size: clamp(0.88rem, 2.585vw, 1.034rem);
   }
 
-  .ed-lp__hero-cta {
+  .home-hero__hero-cta {
     gap: 0.55rem;
     max-width: calc(var(--hero-body-copy-max, 20.9rem) - 0.385rem);
   }
 
-  .ed-lp__hero-cta .ed-lp__btn {
+  .home-hero__hero-cta .home-hero__btn {
     min-height: 44px;
     padding-block: 0.65rem;
     padding-inline: 1.15rem;
@@ -22306,7 +22306,7 @@ video.ed-lp__hero-layer-video {
 }
 
 /* Hero-adjacent S/S · A/W duo — full-bleed lifestyle stills (Ralph Lauren–style split). */
-.ed-lp__season-duo {
+.home-hero__season-duo {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -22317,17 +22317,17 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
-.ed-lp__season-duo-grid {
+.home-hero__season-duo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ed-lp-season-duo-gutter, 12px);
+  gap: var(--home-hero-season-duo-gutter, 12px);
   width: 100%;
 }
 
-.ed-lp__season-duo-card {
+.home-hero__season-duo-card {
   position: relative;
   display: block;
-  aspect-ratio: var(--ed-lp-season-duo-aspect, 4 / 5);
+  aspect-ratio: var(--home-hero-season-duo-aspect, 4 / 5);
   min-height: 0;
   overflow: hidden;
   text-decoration: none;
@@ -22335,23 +22335,23 @@ video.ed-lp__hero-layer-video {
   background: #2a2119;
 }
 
-.ed-lp__season-duo-card:focus-visible {
+.home-hero__season-duo-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
   z-index: 2;
 }
 
-.ed-lp__season-duo-card:hover .ed-lp__season-duo-img,
-.ed-lp__season-duo-card:focus-visible .ed-lp__season-duo-img {
+.home-hero__season-duo-card:hover .home-hero__season-duo-img,
+.home-hero__season-duo-card:focus-visible .home-hero__season-duo-img {
   transform: scale(1.02);
 }
 
-.ed-lp__season-duo-media {
+.home-hero__season-duo-media {
   position: absolute;
   inset: 0;
 }
 
-.ed-lp__season-duo-img {
+.home-hero__season-duo-img {
   display: block;
   width: 100%;
   height: 100%;
@@ -22361,7 +22361,7 @@ video.ed-lp__hero-layer-video {
   transition: transform 0.55s var(--ease-out);
 }
 
-.ed-lp__season-duo-scrim {
+.home-hero__season-duo-scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -22373,11 +22373,11 @@ video.ed-lp__hero-layer-video {
   );
 }
 
-.ed-lp__season-duo-copy {
+.home-hero__season-duo-copy {
   position: absolute;
-  left: var(--ed-lp-season-duo-copy-x, 9%);
+  left: var(--home-hero-season-duo-copy-x, 9%);
   right: auto;
-  bottom: var(--ed-lp-season-duo-copy-b, 11%);
+  bottom: var(--home-hero-season-duo-copy-b, 11%);
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -22388,7 +22388,7 @@ video.ed-lp__hero-layer-video {
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.42);
 }
 
-.ed-lp__season-duo-eyebrow {
+.home-hero__season-duo-eyebrow {
   margin: 0 0 0.5rem;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 11px;
@@ -22399,7 +22399,7 @@ video.ed-lp__hero-layer-video {
   color: rgba(255, 255, 255, 0.92);
 }
 
-.ed-lp__season-duo-title {
+.home-hero__season-duo-title {
   margin: 0 0 0.875rem;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(2.35rem, 1.5rem + 3.2vw, 3.75rem);
@@ -22409,7 +22409,7 @@ video.ed-lp__hero-layer-video {
   color: #ffffff;
 }
 
-.ed-lp__season-duo-desc {
+.home-hero__season-duo-desc {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1rem, 0.9rem + 0.35vw, 1.2rem);
@@ -22422,7 +22422,7 @@ video.ed-lp__hero-layer-video {
 }
 
 /* Division rail — horizontal gallery picks (Ralph Lauren shop-by-category). */
-.ed-lp__division-rail {
+.home-hero__division-rail {
   box-sizing: border-box;
   width: 100%;
   padding-left: var(--catalogue-plp-inline-x);
@@ -22431,7 +22431,7 @@ video.ed-lp__hero-layer-video {
   margin-right: auto;
 }
 
-.ed-lp__division-rail-inner {
+.home-hero__division-rail-inner {
   @apply m-0;
   width: 100%;
   max-width: none;
@@ -22439,20 +22439,20 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
-.ed-lp__division-rail-philosophy {
+.home-hero__division-rail-philosophy {
   margin: 0;
   box-sizing: border-box;
 }
 
-.ed-lp__division-rail-head {
-  padding-left: var(--ed-lp-division-rail-pad-left);
+.home-hero__division-rail-head {
+  padding-left: var(--home-hero-division-rail-pad-left);
   padding-right: 0;
   box-sizing: border-box;
 }
 
-.ed-lp__division-rail-title {
+.home-hero__division-rail-title {
   @apply m-0 mb-[clamp(1.75rem,3vw,2.5rem)];
-  margin-top: var(--ed-lp-philosophy-to-title-gap, clamp(1.2rem, 2.5vw, 1.85rem));
+  margin-top: var(--home-hero-philosophy-to-title-gap, clamp(1.2rem, 2.5vw, 1.85rem));
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.6rem, 1.2rem + 1vw, 2.35rem);
   font-weight: 500;
@@ -22461,12 +22461,12 @@ video.ed-lp__hero-layer-video {
   color: var(--ink);
 }
 
-.ed-lp__division-rail-scroller-wrap {
+.home-hero__division-rail-scroller-wrap {
   position: relative;
   margin-left: 0;
   margin-right: 0;
   /* Pad inside 100% width — margin-left + width:100% caused ~18px page overflow on mobile. */
-  padding-left: var(--ed-lp-division-rail-pad-left);
+  padding-left: var(--home-hero-division-rail-pad-left);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -22475,9 +22475,9 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
-.ed-lp__division-rail-scroller,
-.ed-lp__viewed-rail-scroller,
-.ed-lp__horizontal-rail-scroller {
+.home-hero__division-rail-scroller,
+.home-hero__viewed-rail-scroller,
+.home-hero__horizontal-rail-scroller {
   display: flex;
   flex-wrap: nowrap;
   gap: clamp(10px, 1.4vw, 16px);
@@ -22501,71 +22501,71 @@ video.ed-lp__hero-layer-video {
 }
 
 /* Browse by Category: free scrolling (no snap breakpoints). */
-.ed-lp__division-rail-scroller {
+.home-hero__division-rail-scroller {
   scroll-snap-type: none;
 }
 
 @media (min-width: 901px) {
   /* Desktop: 4 category tiles. Pad-left aligns with the header logo column so
      the section heading sits in the same column as the rest of the page. */
-  .ed-lp__division-rail,
-  body.home-page .ed-lp__division-rail {
-    --ed-lp-division-rail-card-gap: clamp(8px, 0.6vw, 10px);
-    --ed-lp-division-rail-cards-visible: 4.18;
-    --ed-lp-division-rail-pad-left: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
+  .home-hero__division-rail,
+  body.home-page .home-hero__division-rail {
+    --home-hero-division-rail-card-gap: clamp(8px, 0.6vw, 10px);
+    --home-hero-division-rail-cards-visible: 4.18;
+    --home-hero-division-rail-pad-left: var(--chrome-inline-x, clamp(2rem, 4vw, 5rem));
   }
 
   /* Desktop hard lock: wheel cannot natively move this rail; drag logic still scrolls via JS scrollLeft. */
-  .ed-lp__division-rail-scroller {
+  .home-hero__division-rail-scroller {
     overflow-x: hidden;
-    gap: var(--ed-lp-division-rail-card-gap);
+    gap: var(--home-hero-division-rail-card-gap);
   }
 
-  .ed-lp__division-rail-card,
-  .ed-lp__division-rail-scroller > .ed-lp__division-rail-card {
+  .home-hero__division-rail-card,
+  .home-hero__division-rail-scroller > .home-hero__division-rail-card {
     flex: 0 0 calc(
       (
-        100vw - var(--ed-lp-division-rail-pad-left) - env(safe-area-inset-right, 0px) -
-          (var(--ed-lp-division-rail-cards-visible) - 1) * var(--ed-lp-division-rail-card-gap)
-      ) / var(--ed-lp-division-rail-cards-visible)
+        100vw - var(--home-hero-division-rail-pad-left) - env(safe-area-inset-right, 0px) -
+          (var(--home-hero-division-rail-cards-visible) - 1) * var(--home-hero-division-rail-card-gap)
+      ) / var(--home-hero-division-rail-cards-visible)
     );
     width: calc(
       (
-        100vw - var(--ed-lp-division-rail-pad-left) - env(safe-area-inset-right, 0px) -
-          (var(--ed-lp-division-rail-cards-visible) - 1) * var(--ed-lp-division-rail-card-gap)
-      ) / var(--ed-lp-division-rail-cards-visible)
+        100vw - var(--home-hero-division-rail-pad-left) - env(safe-area-inset-right, 0px) -
+          (var(--home-hero-division-rail-cards-visible) - 1) * var(--home-hero-division-rail-card-gap)
+      ) / var(--home-hero-division-rail-cards-visible)
     );
     max-width: none;
   }
 
-  .ed-lp__division-rail-label {
+  .home-hero__division-rail-label {
     margin-top: 0.65rem;
     font-size: 10px;
     letter-spacing: 0.13em;
   }
 }
 
-.ed-lp__division-rail-scroller.is-dragging,
-.ed-lp__viewed-rail-scroller.is-dragging,
-.ed-lp__horizontal-rail-scroller.is-dragging {
+.home-hero__division-rail-scroller.is-dragging,
+.home-hero__viewed-rail-scroller.is-dragging,
+.home-hero__horizontal-rail-scroller.is-dragging {
   cursor: grabbing;
   scroll-snap-type: none;
 }
 
-.ed-lp__division-rail-scroller-wrap.is-dragging {
+.home-hero__division-rail-scroller-wrap.is-dragging {
   scroll-snap-type: none;
 }
 
-.ed-lp__division-rail-scroller::-webkit-scrollbar,
-.ed-lp__viewed-rail-scroller::-webkit-scrollbar,
-.ed-lp__horizontal-rail-scroller::-webkit-scrollbar {
+.home-hero__division-rail-scroller::-webkit-scrollbar,
+.home-hero__viewed-rail-scroller::-webkit-scrollbar,
+.home-hero__horizontal-rail-scroller::-webkit-scrollbar {
   display: none;
 }
 
 /* Horizontal rail edge feedback ("到底" tactile bump — home rails). */
-.ed-lp__horizontal-rail-scroller,
-.ed-lp__viewed-rail-scroller,
-.ed-lp__division-rail-scroller {
+.home-hero__horizontal-rail-scroller,
+.home-hero__viewed-rail-scroller,
+.home-hero__division-rail-scroller {
   /* Snappy push-out, soft settle back — reads as a physical wall hit. */
   transition:
     transform 280ms cubic-bezier(0.22, 1.2, 0.36, 1),
@@ -22573,29 +22573,29 @@ video.ed-lp__hero-layer-video {
   will-change: transform, filter;
 }
 
-.ed-lp__horizontal-rail-scroller.is-edge-bump-right,
-.ed-lp__viewed-rail-scroller.is-edge-bump-right,
-.ed-lp__division-rail-scroller.is-edge-bump-right {
+.home-hero__horizontal-rail-scroller.is-edge-bump-right,
+.home-hero__viewed-rail-scroller.is-edge-bump-right,
+.home-hero__division-rail-scroller.is-edge-bump-right {
   transform: translateX(-7px);
   filter: saturate(1.05) brightness(0.99);
 }
 
-.ed-lp__horizontal-rail-scroller.is-edge-bump-left,
-.ed-lp__viewed-rail-scroller.is-edge-bump-left,
-.ed-lp__division-rail-scroller.is-edge-bump-left {
+.home-hero__horizontal-rail-scroller.is-edge-bump-left,
+.home-hero__viewed-rail-scroller.is-edge-bump-left,
+.home-hero__division-rail-scroller.is-edge-bump-left {
   transform: translateX(7px);
   filter: saturate(1.05) brightness(0.99);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ed-lp__horizontal-rail-scroller,
-  .ed-lp__viewed-rail-scroller,
-  .ed-lp__division-rail-scroller {
+  .home-hero__horizontal-rail-scroller,
+  .home-hero__viewed-rail-scroller,
+  .home-hero__division-rail-scroller {
     transition: none;
   }
 }
 
-.ed-lp__division-rail-card {
+.home-hero__division-rail-card {
   flex: 0 0 clamp(160px, 30.4vw, 512px);
   width: clamp(160px, 30.4vw, 512px);
   min-width: 0;
@@ -22605,27 +22605,27 @@ video.ed-lp__hero-layer-video {
   -webkit-user-drag: none;
 }
 
-.ed-lp__division-rail-scroller > .ed-lp__division-rail-card {
+.home-hero__division-rail-scroller > .home-hero__division-rail-card {
   scroll-snap-align: none;
 }
 
 @media (max-width: 900px) {
-  .ed-lp__division-rail-scroller-wrap {
+  .home-hero__division-rail-scroller-wrap {
     overflow-x: auto;
     overflow-y: hidden;
     /* Free momentum scroll (was mandatory) — smoother slide, no per-tile catch. */
     scroll-snap-type: none;
-    scroll-padding-left: var(--ed-lp-division-rail-pad-left);
+    scroll-padding-left: var(--home-hero-division-rail-pad-left);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
   }
 
-  .ed-lp__division-rail-scroller-wrap::-webkit-scrollbar {
+  .home-hero__division-rail-scroller-wrap::-webkit-scrollbar {
     display: none;
   }
 
-  .ed-lp__division-rail-scroller {
+  .home-hero__division-rail-scroller {
     display: flex;
     gap: 12px;
     width: max-content;
@@ -22637,32 +22637,32 @@ video.ed-lp__hero-layer-video {
     touch-action: pan-x pan-y;
   }
 
-  .ed-lp__viewed-rail-scroller,
-  .ed-lp__horizontal-rail-scroller {
+  .home-hero__viewed-rail-scroller,
+  .home-hero__horizontal-rail-scroller {
     touch-action: pan-x pan-y;
   }
 
-  .ed-lp__division-rail-card,
-  .ed-lp__division-rail-scroller > .ed-lp__division-rail-card {
+  .home-hero__division-rail-card,
+  .home-hero__division-rail-scroller > .home-hero__division-rail-card {
     flex: 0 0 clamp(200px, 62vw, 280px);
     width: clamp(200px, 62vw, 280px);
     max-width: 280px;
     scroll-snap-align: start;
   }
 
-  .ed-lp__division-rail-label {
+  .home-hero__division-rail-label {
     margin-top: 0.55rem;
     font-size: 10px;
     letter-spacing: 0.12em;
   }
 }
 
-.ed-lp__division-rail-card:focus-visible {
+.home-hero__division-rail-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.ed-lp__division-rail-media {
+.home-hero__division-rail-media {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -22673,7 +22673,7 @@ video.ed-lp__hero-layer-video {
   background-repeat: no-repeat;
 }
 
-.ed-lp__division-rail-img {
+.home-hero__division-rail-img {
   display: block;
   width: 100%;
   height: 100%;
@@ -22688,16 +22688,16 @@ video.ed-lp__hero-layer-video {
     transform 0.55s var(--ease-out);
 }
 
-.ed-lp__division-rail-img.is-loaded {
+.home-hero__division-rail-img.is-loaded {
   opacity: 1;
 }
 
-.ed-lp__division-rail-scroller:not(.is-dragging) .ed-lp__division-rail-card:hover .ed-lp__division-rail-img,
-.ed-lp__division-rail-scroller:not(.is-dragging) .ed-lp__division-rail-card:focus-visible .ed-lp__division-rail-img {
+.home-hero__division-rail-scroller:not(.is-dragging) .home-hero__division-rail-card:hover .home-hero__division-rail-img,
+.home-hero__division-rail-scroller:not(.is-dragging) .home-hero__division-rail-card:focus-visible .home-hero__division-rail-img {
   transform: scale(1.03);
 }
 
-.ed-lp__division-rail-media--missing {
+.home-hero__division-rail-media--missing {
   background-color: var(--media-cutout-canvas);
   background-image: var(--collection-grid-media-bg);
   background-size: cover;
@@ -22705,7 +22705,7 @@ video.ed-lp__hero-layer-video {
   background-repeat: no-repeat;
 }
 
-.ed-lp__division-rail-label {
+.home-hero__division-rail-label {
   @apply mt-3;
   display: block;
   font-family: "DM Sans", system-ui, sans-serif;
@@ -22718,32 +22718,32 @@ video.ed-lp__hero-layer-video {
 }
 
 /* Division rail progress — RL-style bar under cards (mobile + desktop). */
-.ed-lp__division-rail-inner > .ed-lp__division-rail-progress,
-.ed-lp__division-rail-inner > .ed-lp__rail-progress {
+.home-hero__division-rail-inner > .home-hero__division-rail-progress,
+.home-hero__division-rail-inner > .home-hero__rail-progress {
   display: block;
   width: auto;
   max-width: none;
 }
 
-.ed-lp__division-rail-inner > .ed-lp__division-rail-progress[hidden],
-.ed-lp__division-rail-inner > .ed-lp__rail-progress[hidden] {
+.home-hero__division-rail-inner > .home-hero__division-rail-progress[hidden],
+.home-hero__division-rail-inner > .home-hero__rail-progress[hidden] {
   display: none !important;
 }
 
-.ed-lp__division-rail-inner > .ed-lp__rail-progress::before {
+.home-hero__division-rail-inner > .home-hero__rail-progress::before {
   height: 1px;
   background: color-mix(in srgb, var(--line) 62%, var(--tw-brand-page));
 }
 
-.ed-lp__division-rail-inner > .ed-lp__rail-progress .ed-lp__rail-progress-bar {
+.home-hero__division-rail-inner > .home-hero__rail-progress .home-hero__rail-progress-bar {
   height: 2px;
   min-width: 4.5rem;
   background: var(--ink);
 }
 
 @media (max-width: 900px) {
-  .ed-lp__division-rail-inner > .ed-lp__division-rail-progress,
-  .ed-lp__division-rail-inner > .ed-lp__rail-progress {
+  .home-hero__division-rail-inner > .home-hero__division-rail-progress,
+  .home-hero__division-rail-inner > .home-hero__rail-progress {
     margin-top: 0.55rem;
     margin-right: max(1.25rem, env(safe-area-inset-right, 0px));
     padding: 10px 0 6px;
@@ -22751,18 +22751,18 @@ video.ed-lp__hero-layer-video {
 }
 
 @media (min-width: 901px) {
-  .ed-lp__division-rail-inner > .ed-lp__division-rail-progress,
-  .ed-lp__division-rail-inner > .ed-lp__rail-progress {
+  .home-hero__division-rail-inner > .home-hero__division-rail-progress,
+  .home-hero__division-rail-inner > .home-hero__rail-progress {
     margin-top: clamp(0.75rem, 1.25vw, 1rem);
-    margin-right: max(var(--ed-lp-division-rail-pad-left), env(safe-area-inset-right, 0px));
+    margin-right: max(var(--home-hero-division-rail-pad-left), env(safe-area-inset-right, 0px));
     padding: 12px 0 8px;
   }
 }
 
-.ed-lp__division-rail-progress,
-.ed-lp__rail-progress {
+.home-hero__division-rail-progress,
+.home-hero__rail-progress {
   margin-top: clamp(1rem, 2vw, 1.35rem);
-  margin-left: var(--ed-lp-division-rail-pad-left);
+  margin-left: var(--home-hero-division-rail-pad-left);
   margin-right: max(1rem, env(safe-area-inset-right, 0px));
   position: relative;
   padding: 14px 0;
@@ -22773,8 +22773,8 @@ video.ed-lp__hero-layer-video {
   background: transparent;
 }
 
-.ed-lp__division-rail-progress::before,
-.ed-lp__rail-progress::before {
+.home-hero__division-rail-progress::before,
+.home-hero__rail-progress::before {
   content: "";
   position: absolute;
   left: 0;
@@ -22786,18 +22786,18 @@ video.ed-lp__hero-layer-video {
   pointer-events: none;
 }
 
-.ed-lp__division-rail-progress:focus-visible,
-.ed-lp__rail-progress:focus-visible {
+.home-hero__division-rail-progress:focus-visible,
+.home-hero__rail-progress:focus-visible {
   outline: none;
 }
 
-.ed-lp__division-rail-progress:focus-visible::before,
-.ed-lp__rail-progress:focus-visible::before {
+.home-hero__division-rail-progress:focus-visible::before,
+.home-hero__rail-progress:focus-visible::before {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
-.ed-lp__division-rail-progress-bar,
-.ed-lp__rail-progress-bar {
+.home-hero__division-rail-progress-bar,
+.home-hero__rail-progress-bar {
   position: absolute;
   left: 0;
   top: 50%;
@@ -22813,34 +22813,34 @@ video.ed-lp__hero-layer-video {
   cursor: grab;
 }
 
-.ed-lp__division-rail-progress.is-dragging .ed-lp__division-rail-progress-bar,
-.ed-lp__division-rail-progress.is-dragging .ed-lp__rail-progress-bar,
-.ed-lp__rail-progress.is-dragging .ed-lp__rail-progress-bar,
-.ed-lp__division-rail-progress-bar.is-dragging,
-.ed-lp__rail-progress-bar.is-dragging {
+.home-hero__division-rail-progress.is-dragging .home-hero__division-rail-progress-bar,
+.home-hero__division-rail-progress.is-dragging .home-hero__rail-progress-bar,
+.home-hero__rail-progress.is-dragging .home-hero__rail-progress-bar,
+.home-hero__division-rail-progress-bar.is-dragging,
+.home-hero__rail-progress-bar.is-dragging {
   cursor: grabbing;
   transition: none;
 }
 
 /* Recently viewed — title left, horizontal product rail (Ralph Lauren). */
-.ed-lp__viewed-rail {
+.home-hero__viewed-rail {
   width: 100%;
   padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(2.25rem, 4vw, 3.25rem);
   background-color: var(--tw-brand-page);
   background-image: none;
-  --ed-lp-viewed-rail-pad-left: max(var(--space-page-inline), env(safe-area-inset-left, 0px));
+  --home-hero-viewed-rail-pad-left: max(var(--space-page-inline), env(safe-area-inset-left, 0px));
 }
 
-.ed-lp__viewed-rail-layout {
+.home-hero__viewed-rail-layout {
   display: grid;
   grid-template-columns: minmax(5.5rem, 8.5rem) minmax(0, 1fr);
   gap: clamp(1.25rem, 3.5vw, 2.75rem);
   align-items: start;
-  padding-left: var(--ed-lp-viewed-rail-pad-left);
+  padding-left: var(--home-hero-viewed-rail-pad-left);
   box-sizing: border-box;
 }
 
-.ed-lp__viewed-rail-title {
+.home-hero__viewed-rail-title {
   @apply m-0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.85rem, 1.4rem + 1.6vw, 2.65rem);
@@ -22850,15 +22850,15 @@ video.ed-lp__hero-layer-video {
   color: var(--ink);
 }
 
-.ed-lp__viewed-rail-title-line {
+.home-hero__viewed-rail-title-line {
   display: block;
 }
 
-.ed-lp__viewed-rail-main {
+.home-hero__viewed-rail-main {
   min-width: 0;
 }
 
-.ed-lp__viewed-rail-scroller-wrap {
+.home-hero__viewed-rail-scroller-wrap {
   @apply mr-0;
   position: relative;
   width: 100%;
@@ -22868,11 +22868,11 @@ video.ed-lp__hero-layer-video {
   box-sizing: border-box;
 }
 
-.ed-lp__viewed-rail-progress {  @apply ml-0;
+.home-hero__viewed-rail-progress {  @apply ml-0;
 
 }
 
-.ed-lp__viewed-card {
+.home-hero__viewed-card {
   flex: 0 0 clamp(200px, 17vw, 280px);
   width: clamp(200px, 17vw, 280px);
   min-width: 0;
@@ -22882,12 +22882,12 @@ video.ed-lp__hero-layer-video {
   -webkit-user-drag: none;
 }
 
-.ed-lp__viewed-card:focus-visible {
+.home-hero__viewed-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.ed-lp__viewed-card-media {
+.home-hero__viewed-card-media {
   position: relative;
   aspect-ratio: 3 / 4;
   display: flex;
@@ -22901,7 +22901,7 @@ video.ed-lp__hero-layer-video {
   background-repeat: no-repeat;
 }
 
-.ed-lp__viewed-card-img {
+.home-hero__viewed-card-img {
   display: block;
   width: 100%;
   height: 100%;
@@ -22914,11 +22914,11 @@ video.ed-lp__hero-layer-video {
   transition: opacity 0.35s ease;
 }
 
-.ed-lp__viewed-card-img.is-loaded {
+.home-hero__viewed-card-img.is-loaded {
   opacity: 1;
 }
 
-.ed-lp__viewed-card-media--missing {
+.home-hero__viewed-card-media--missing {
   background-color: var(--media-cutout-canvas);
   background-image: var(--collection-grid-media-bg);
   background-size: cover;
@@ -22926,11 +22926,11 @@ video.ed-lp__hero-layer-video {
   background-repeat: no-repeat;
 }
 
-.ed-lp__viewed-card-body {
+.home-hero__viewed-card-body {
   padding-top: 0.75rem;
 }
 
-.ed-lp__viewed-card-brand {
+.home-hero__viewed-card-brand {
   @apply mb-1.5;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 11px;
@@ -22940,7 +22940,7 @@ video.ed-lp__hero-layer-video {
   color: color-mix(in srgb, var(--ink) 62%, transparent);
 }
 
-.ed-lp__viewed-card-title {
+.home-hero__viewed-card-title {
   @apply mb-1.5;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.05rem, 0.95rem + 0.35vw, 1.25rem);
@@ -22950,7 +22950,7 @@ video.ed-lp__hero-layer-video {
   color: var(--ink);
 }
 
-.ed-lp__viewed-card-price {
+.home-hero__viewed-card-price {
   @apply m-0;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 12px;
@@ -22961,24 +22961,24 @@ video.ed-lp__hero-layer-video {
 }
 
 @media (min-width: 901px) {
-  .ed-lp__viewed-rail {
-    --ed-lp-viewed-rail-pad-left: max(var(--desktop-layout-inline-pad), env(safe-area-inset-left, 0px));
+  .home-hero__viewed-rail {
+    --home-hero-viewed-rail-pad-left: max(var(--desktop-layout-inline-pad), env(safe-area-inset-left, 0px));
   }
 }
 
 @media (max-width: 767px) {
-  .ed-lp__viewed-rail-layout {
+  .home-hero__viewed-rail-layout {
     grid-template-columns: minmax(4.5rem, 6rem) minmax(0, 1fr);
     gap: 1rem;
   }
 
-  .ed-lp__viewed-card {
+  .home-hero__viewed-card {
     flex: 0 0 clamp(168px, 44vw, 220px);
     width: clamp(168px, 44vw, 220px);
   }
 }
 
-.ed-lp__btn {
+.home-hero__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22998,45 +22998,45 @@ video.ed-lp__hero-layer-video {
     border-color 0.2s var(--ease-out);
 }
 
-.ed-lp__btn--solid {
+.home-hero__btn--solid {
   background: var(--tw-brand-page);
   color: #1a1814;
   border-color: var(--tw-brand-page);
 }
 
-.ed-lp__btn--solid:hover,
-.ed-lp__btn--solid:focus-visible {
+.home-hero__btn--solid:hover,
+.home-hero__btn--solid:focus-visible {
   background: color-mix(in srgb, var(--tw-brand-page) 88%, #c4b8a8);
   border-color: color-mix(in srgb, var(--tw-brand-page) 88%, #c4b8a8);
 }
 
-.ed-lp__btn--ghost {
+.home-hero__btn--ghost {
   background: transparent;
   color: var(--tw-brand-page);
   border-color: color-mix(in srgb, var(--tw-brand-page) 55%, transparent);
 }
 
-.ed-lp__btn--ghost:hover,
-.ed-lp__btn--ghost:focus-visible {
+.home-hero__btn--ghost:hover,
+.home-hero__btn--ghost:focus-visible {
   border-color: #f7f3eb;
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
-.ed-lp__band {
+.home-hero__band {
   padding: clamp(2.75rem, 6vw, 4.5rem) 0;
 }
 
-.ed-lp__band--muted {
+.home-hero__band--muted {
   background: color-mix(in srgb, var(--line) 22%, var(--bg));
 }
 
-body.home-page .ed-lp__band--muted {
+body.home-page .home-hero__band--muted {
   background-color: var(--tw-brand-page);
   background-image: none;
   box-shadow: none;
 }
 
-.ed-lp__band-inner {
+.home-hero__band-inner {
   @apply mx-auto;
   width: 100%;
   max-width: 1320px;
@@ -23044,11 +23044,11 @@ body.home-page .ed-lp__band--muted {
   box-sizing: border-box;
 }
 
-.ed-lp__band-head {  @apply mb-[clamp(1.5rem,3vw,2.25rem)];
+.home-hero__band-head {  @apply mb-[clamp(1.5rem,3vw,2.25rem)];
 
 }
 
-.ed-lp__h2 {
+.home-hero__h2 {
   @apply m-0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.6rem, 1.2rem + 1vw, 2.35rem);
@@ -23058,22 +23058,22 @@ body.home-page .ed-lp__band--muted {
   color: var(--ink);
 }
 
-.ed-lp__product-grid {
+.home-hero__product-grid {
   display: grid;
   gap: clamp(1rem, 2.2vw, 1.35rem);
 }
 
-.ed-lp__product-grid--8 {
+.home-hero__product-grid--8 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* Lifestyle gallery mode — two large editorial frames per row (no cutout/gallery mix). */
-.ed-lp__product-grid--gallery {
+.home-hero__product-grid--gallery {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(1rem, 1.6vw, 1.75rem);
 }
 
-.ed-lp__pcard {
+.home-hero__pcard {
   display: flex;
   flex-direction: column;
   text-decoration: none;
@@ -23082,17 +23082,17 @@ body.home-page .ed-lp__band--muted {
   transition: opacity 0.2s var(--ease-out);
 }
 
-.ed-lp__pcard:hover,
-.ed-lp__pcard:focus-visible {
+.home-hero__pcard:hover,
+.home-hero__pcard:focus-visible {
   opacity: 0.92;
 }
 
-.ed-lp__pcard:focus-visible {
+.home-hero__pcard:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.ed-lp__pcard-media {
+.home-hero__pcard-media {
   position: relative;
   display: block;
   aspect-ratio: var(--media-frame-ratio);
@@ -23104,7 +23104,7 @@ body.home-page .ed-lp__band--muted {
   background-repeat: no-repeat;
 }
 
-.ed-lp__pcard-img {
+.home-hero__pcard-img {
   position: absolute;
   inset: 0;
   display: block;
@@ -23118,15 +23118,15 @@ body.home-page .ed-lp__band--muted {
   transition: opacity 0.35s ease;
 }
 
-.ed-lp__pcard-img.is-loaded {
+.home-hero__pcard-img.is-loaded {
   opacity: 1;
 }
 
-.ed-lp__pcard--cover .ed-lp__pcard-media {
+.home-hero__pcard--cover .home-hero__pcard-media {
   aspect-ratio: var(--media-frame-ratio);
 }
 
-.ed-lp__pcard--cover .ed-lp__pcard-img {
+.home-hero__pcard--cover .home-hero__pcard-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -23136,7 +23136,7 @@ body.home-page .ed-lp__band--muted {
   object-position: center center;
 }
 
-.ed-lp__pcard--gallery .ed-lp__pcard-media {
+.home-hero__pcard--gallery .home-hero__pcard-media {
   aspect-ratio: 4 / 5;
   min-height: clamp(220px, 28vw, 340px);
   background-color: var(--media-cutout-canvas);
@@ -23147,25 +23147,25 @@ body.home-page .ed-lp__band--muted {
 }
 
 /* Collection Highlights only: taller frames + lower focal crop. */
-#ed-lp-highlights .ed-lp__pcard-media {
+#home-hero-highlights .home-hero__pcard-media {
   aspect-ratio: 3 / 4;
   min-height: 0;
 }
 
 /* Rail layout: fixed card width, progress bar token, no right padding. */
-body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] {
-  --ed-lp-division-rail-pad-left: max(
+body.home-page .home-hero__band[data-home-hero-horizontal-rail] {
+  --home-hero-division-rail-pad-left: max(
     var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
     env(safe-area-inset-left, 0px)
   );
 }
 
-body.home-page .ed-lp__highlights-rail-wrap,
-body.home-page .ed-lp__horizontal-rail-scroller#ed-lp-highlights {
+body.home-page .home-hero__highlights-rail-wrap,
+body.home-page .home-hero__horizontal-rail-scroller#home-hero-highlights {
   padding-right: 0;
 }
 
-body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
+body.home-page #home-hero-highlights.home-hero__horizontal-rail-scroller .home-hero__pcard {
   flex: 0 0 clamp(170px, 20vw, 256px);
 }
 
@@ -23173,23 +23173,23 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
    the page gutters instead of bleeding to the right viewport edge. Rail cards
    are untouched. */
 @media (min-width: 768px) {
-  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
-    margin-right: var(--ed-lp-division-rail-pad-left);
+  body.home-page .home-hero__band[data-home-hero-horizontal-rail] .home-hero__rail-progress {
+    margin-right: var(--home-hero-division-rail-pad-left);
   }
 
   /* Cap the dark thumb so it reads as a slim indicator rather than spanning
      most of the track. max-width overrides the inline JS width, and the
      scroller positions by the rendered offsetWidth so travel stays correct. */
-  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
+  body.home-page .home-hero__band[data-home-hero-horizontal-rail] .home-hero__rail-progress-bar {
     max-width: 34%;
   }
 }
 
-#ed-lp-highlights .ed-lp__pcard-img {
+#home-hero-highlights .home-hero__pcard-img {
   object-position: center 82%;
 }
 
-.ed-lp__pcard--gallery .ed-lp__pcard-img {
+.home-hero__pcard--gallery .home-hero__pcard-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -23199,15 +23199,15 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
   object-position: center center;
 }
 
-.ed-lp__pcard--gallery .ed-lp__pcard-body {
+.home-hero__pcard--gallery .home-hero__pcard-body {
   padding-top: 1rem;
 }
 
-.ed-lp__pcard--gallery .ed-lp__pcard-title {
+.home-hero__pcard--gallery .home-hero__pcard-title {
   font-size: clamp(1.2rem, 1rem + 0.45vw, 1.45rem);
 }
 
-.ed-lp__pcard-media--missing {
+.home-hero__pcard-media--missing {
   background-color: var(--media-cutout-canvas);
   background-image: var(--collection-grid-media-bg);
   background-size: cover;
@@ -23215,11 +23215,11 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
   background-repeat: no-repeat;
 }
 
-.ed-lp__pcard-body {
+.home-hero__pcard-body {
   padding-top: 1.4rem;
 }
 
-.ed-lp__pcard-brand {
+.home-hero__pcard-brand {
   @apply mb-1;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 11px;
@@ -23229,7 +23229,7 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
   color: var(--ink-muted);
 }
 
-.ed-lp__pcard-title {
+.home-hero__pcard-title {
   @apply mb-1.5;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.15rem;
@@ -23238,15 +23238,15 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
   color: var(--ink);
 }
 
-.ed-lp__pcard-meta {
+.home-hero__pcard-meta {
   @apply m-0;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 12px;
   color: color-mix(in srgb, var(--ink-muted) 88%, var(--ink));
 }
 
-/* Homepage rail quote spacing: `body.home-page #main.ed-lp .ed-lp__division-rail-philosophy` (not this block). */
-.editorial-quote:not(.ed-lp__division-rail-philosophy) {
+/* Homepage rail quote spacing: `body.home-page #main.home-hero .home-hero__division-rail-philosophy` (not this block). */
+.editorial-quote:not(.home-hero__division-rail-philosophy) {
   padding: 72px 24px 84px;
   text-align: center;
   background: rgba(255, 255, 255, 0.22);
@@ -23280,7 +23280,7 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
 }
 
 @media (max-width: 768px) {
-  .editorial-quote:not(.ed-lp__division-rail-philosophy) {
+  .editorial-quote:not(.home-hero__division-rail-philosophy) {
     padding: 56px 20px 68px;
   }
 
@@ -23300,45 +23300,45 @@ body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
 }
 
 @media (max-width: 900px) {
-  .ed-lp__hero-arrow {
+  .home-hero__hero-arrow {
     display: none;
   }
 }
 
-body.home-page #main.ed-lp .ed-lp__band--season {
+body.home-page #main.home-hero .home-hero__band--season {
   background-color: var(--tw-brand-page);
   background-image: none;
   padding-top: clamp(1.25rem, 2.5vw, 2rem);
   padding-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
 }
 
-.ed-lp__band--season {
+.home-hero__band--season {
   padding-top: clamp(1.5rem, 3.5vw, 2.5rem);
   padding-bottom: clamp(2rem, 4.5vw, 3.25rem);
 }
 
 @media (max-width: 767px) {
-  body.home-page #main.ed-lp .ed-lp__band--season {
+  body.home-page #main.home-hero .home-hero__band--season {
     background-color: var(--tw-brand-page);
     background-image: none;
   }
 }
 
-.ed-lp__season-grid {
+.home-hero__season-grid {
   @apply mx-auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--ed-lp-season-duo-gutter, clamp(10px, 0.85vw, 12px));
+  gap: var(--home-hero-season-duo-gutter, clamp(10px, 0.85vw, 12px));
   width: 100%;
   max-width: 1320px;
   padding: 0 clamp(1.25rem, 5vw, 3rem);
   box-sizing: border-box;
 }
 
-.ed-lp__season-tile {
+.home-hero__season-tile {
   position: relative;
   display: block;
-  aspect-ratio: var(--ed-lp-season-duo-aspect, 4 / 5);
+  aspect-ratio: var(--home-hero-season-duo-aspect, 4 / 5);
   min-height: 0;
   overflow: hidden;
   text-decoration: none;
@@ -23351,19 +23351,19 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     0 18px 48px var(--ed-paper-shadow, rgba(38, 32, 24, 0.12));
 }
 
-.ed-lp__season-tile:focus-visible {
+.home-hero__season-tile:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.ed-lp__season-media {
+.home-hero__season-media {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
 /* Museum spotlight — separates dark garments from the warm ground */
-.ed-lp__season-media::after {
+.home-hero__season-media::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -23380,7 +23380,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 }
 
 /* Seasonal still-life — overlapping cutout pieces (2–4 per card) */
-.ed-lp__season-still {
+.home-hero__season-still {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -23395,14 +23395,14 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   background-repeat: no-repeat;
 }
 
-.ed-lp__season-still-inner {
+.home-hero__season-still-inner {
   position: relative;
   width: min(86%, 28rem);
   height: min(82%, 34rem);
   flex-shrink: 0;
 }
 
-.ed-lp__season-piece {
+.home-hero__season-piece {
   position: absolute;
   left: var(--piece-x, 50%);
   top: var(--piece-y, 44%);
@@ -23416,7 +23416,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   pointer-events: none;
 }
 
-.ed-lp__season-piece-img {
+.home-hero__season-piece-img {
   display: block;
   width: 100%;
   height: auto;
@@ -23430,22 +23430,22 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     filter 0.55s var(--ease-luxe);
 }
 
-.ed-lp__season-piece-img.is-loaded {
+.home-hero__season-piece-img.is-loaded {
   opacity: 1;
 }
 
-.ed-lp__season-tile:hover .ed-lp__season-piece-img,
-.ed-lp__season-tile:focus-visible .ed-lp__season-piece-img {
+.home-hero__season-tile:hover .home-hero__season-piece-img,
+.home-hero__season-tile:focus-visible .home-hero__season-piece-img {
   filter: brightness(0.98) contrast(0.98);
 }
 
-.ed-lp__season-media--missing {
+.home-hero__season-media--missing {
   background:
     radial-gradient(ellipse 65% 55% at 50% 38%, #6b5040 0%, transparent 60%),
     linear-gradient(155deg, #453528 0%, #2a2018 55%, #16120f 100%);
 }
 
-.ed-lp__season-scrim {
+.home-hero__season-scrim {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -23461,11 +23461,11 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     radial-gradient(ellipse 95% 85% at 50% 48%, transparent 0%, rgba(10, 6, 4, 0.22) 100%);
 }
 
-.ed-lp__season-copy {
+.home-hero__season-copy {
   position: absolute;
-  left: var(--ed-lp-season-duo-copy-x, 9%);
+  left: var(--home-hero-season-duo-copy-x, 9%);
   right: auto;
-  bottom: var(--ed-lp-season-duo-copy-b, 11%);
+  bottom: var(--home-hero-season-duo-copy-b, 11%);
   z-index: 3;
   width: min(22rem, 84%);
   padding: 0;
@@ -23474,7 +23474,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   gap: 0;
 }
 
-.ed-lp__season-kicker {
+.home-hero__season-kicker {
   margin: 0 0 0.5rem;
   font-family: "DM Sans", system-ui, sans-serif;
   font-size: 11px;
@@ -23485,7 +23485,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
   opacity: 1;
 }
 
-.ed-lp__season-title {
+.home-hero__season-title {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.65rem);
@@ -23497,7 +23497,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ed-lp__hero-slide {
+  .home-hero__hero-slide {
     transition-duration: 0.01ms;
     transform: none !important;
   }
@@ -23506,17 +23506,17 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 /* Tablet+: editorial banner height (duo sits flush below — no viewport peek). */
 @media (min-width: 768px) {
   .site-home-stage {
-    --ed-lp-hero-height: clamp(28rem, 74svh, 40rem);
+    --home-hero-hero-height: clamp(28rem, 74svh, 40rem);
   }
 }
 
 /* Desktop (Tailwind lg): hero stage height — capped at 50rem but respects viewport height. */
 @media (min-width: 64rem) {
   .site-home-stage {
-    --ed-lp-hero-height: clamp(28rem, 90svh, 50rem);
+    --home-hero-hero-height: clamp(28rem, 90svh, 50rem);
   }
 
-  .ed-lp__hero {
+  .home-hero__hero {
     width: 100%;
     height: clamp(28rem, 90svh, 50rem);
     max-height: none;
@@ -23528,47 +23528,47 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 
 @media (max-width: 900px) {
   .site-home-stage {
-    --ed-lp-season-duo-copy-x: clamp(1rem, 8vw, 1.75rem);
-    --ed-lp-season-duo-copy-b: clamp(1rem, 10vw, 2rem);
+    --home-hero-season-duo-copy-x: clamp(1rem, 8vw, 1.75rem);
+    --home-hero-season-duo-copy-b: clamp(1rem, 10vw, 2rem);
   }
 
-  .ed-lp__season-duo-title {
+  .home-hero__season-duo-title {
     font-size: clamp(1.5rem, 1rem + 2.5vw, 2rem);
   }
 
-  .ed-lp__season-duo-desc {
+  .home-hero__season-duo-desc {
     font-size: 0.95rem;
     max-width: 18rem;
   }
 
-  .ed-lp__hero-layer[data-ed-hero-stack] {
+  .home-hero__hero-layer[data-ed-hero-stack] {
     display: none;
   }
 
-  .ed-lp__product-grid--8 {
+  .home-hero__product-grid--8 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ed-lp__product-grid--gallery {
+  .home-hero__product-grid--gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
   }
 
-  .ed-lp__pcard--gallery .ed-lp__pcard-media {
+  .home-hero__pcard--gallery .home-hero__pcard-media {
     aspect-ratio: 4 / 5;
     min-height: 0;
   }
 
-  #ed-lp-highlights .ed-lp__pcard-media {
+  #home-hero-highlights .home-hero__pcard-media {
     aspect-ratio: 3 / 4;
     min-height: 0;
   }
 
-  #ed-lp-highlights .ed-lp__pcard-img {
+  #home-hero-highlights .home-hero__pcard-img {
     object-position: center 86%;
   }
 
-  .ed-lp__season-grid {
+  .home-hero__season-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -23576,60 +23576,60 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 /* Mobile: side-by-side season duo, shorter banner, swipe + dots only */
 @media (max-width: 767px) {
   /* Collection Highlights: show 1.5 cards so the peek signals scrollability. */
-  body.home-page #ed-lp-highlights.ed-lp__horizontal-rail-scroller .ed-lp__pcard {
-    flex: 0 0 calc((100vw - var(--ed-lp-division-rail-pad-left) - 10px) / 1.5);
+  body.home-page #home-hero-highlights.home-hero__horizontal-rail-scroller .home-hero__pcard {
+    flex: 0 0 calc((100vw - var(--home-hero-division-rail-pad-left) - 10px) / 1.5);
   }
 
   /* Collection Highlights slider: tie it to the cards (less detached gap) + longer thumb. */
-  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress {
+  body.home-page .home-hero__band[data-home-hero-horizontal-rail] .home-hero__rail-progress {
     margin-top: 0;
     padding: 9px 0;
     /* Match the left gutter so the track is inset equally both sides (base rule
        leaves the right at 1rem, which looked lopsided vs the 32px left). */
-    margin-right: var(--ed-lp-division-rail-pad-left);
+    margin-right: var(--home-hero-division-rail-pad-left);
   }
 
   /* Longer thumb on mobile — ~40% of the track. % resolves against the track, so
      it overrides the JS-set inline width; the scroller positions by offsetWidth
      so travel stays correct. */
-  body.home-page .ed-lp__band[data-ed-lp-horizontal-rail] .ed-lp__rail-progress-bar {
+  body.home-page .home-hero__band[data-home-hero-horizontal-rail] .home-hero__rail-progress-bar {
     min-width: 40%;
   }
 
   .site-home-stage {
-    --ed-lp-season-duo-gutter: 8px;
-    --ed-lp-season-duo-aspect: 4 / 5;
-    --ed-lp-hero-height: clamp(22rem, 58vh, 30rem);
-    --ed-lp-season-duo-copy-x: clamp(0.65rem, 4vw, 1rem);
-    --ed-lp-season-duo-copy-b: clamp(0.75rem, 6vw, 1.25rem);
+    --home-hero-season-duo-gutter: 8px;
+    --home-hero-season-duo-aspect: 4 / 5;
+    --home-hero-hero-height: clamp(22rem, 58vh, 30rem);
+    --home-hero-season-duo-copy-x: clamp(0.65rem, 4vw, 1rem);
+    --home-hero-season-duo-copy-b: clamp(0.75rem, 6vw, 1.25rem);
   }
 
-  .ed-lp__season-duo-grid {
+  .home-hero__season-duo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ed-lp__season-duo-title {
+  .home-hero__season-duo-title {
     margin-bottom: 0;
     font-size: clamp(1.2rem, 0.85rem + 2.4vw, 1.5rem);
     letter-spacing: 0.03em;
   }
 
-  .ed-lp__season-duo-desc {
+  .home-hero__season-duo-desc {
     display: none;
   }
 
-  .ed-lp__season-duo-eyebrow {
+  .home-hero__season-duo-eyebrow {
     margin-bottom: 0.35rem;
     font-size: 9px;
     letter-spacing: 0.14em;
   }
 
-  .ed-lp__season-duo-copy {
+  .home-hero__season-duo-copy {
     width: min(100%, 92%);
   }
 
   /* Mobile: centered copy — bottom pool + light top veil (no heavy side band). */
-  .ed-lp__hero-scrim {
+  .home-hero__hero-scrim {
     background-image:
       linear-gradient(
         180deg,
@@ -23652,13 +23652,13 @@ body.home-page #main.ed-lp .ed-lp__band--season {
       );
   }
 
-  .ed-lp__hero {
+  .home-hero__hero {
     --hero-img-position: center 38%;
     --hero-content-bottom: clamp(2.35rem, 6.5vh, 3.35rem);
     --hero-dots-bottom: clamp(0.85rem, 3vh, 1.35rem);
   }
 
-  body.home-page .ed-lp__hero-inner {
+  body.home-page .home-hero__hero-inner {
     /* No env(safe-area-inset-bottom) — see base rule. This home-page override is
        more specific and was re-adding the inset, so the copy still slid up on iOS
        scroll. --hero-content-bottom (min 2.35rem) already clears the home indicator. */
@@ -23670,22 +23670,22 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     text-align: center;
   }
 
-  .ed-lp__hero-eyebrow {
+  .home-hero__hero-eyebrow {
     margin-left: auto;
     margin-right: auto;
   }
 
-  .ed-lp__hero-title {
+  .home-hero__hero-title {
     margin-left: auto;
     margin-right: auto;
   }
 
-  .ed-lp__hero-line {
+  .home-hero__hero-line {
     margin-left: auto;
     margin-right: auto;
   }
 
-  .ed-lp__hero-cta {
+  .home-hero__hero-cta {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
@@ -23698,7 +23698,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--ghost {
+  .home-hero__hero-cta .home-hero__btn--ghost {
     display: none;
   }
 
@@ -23707,7 +23707,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
      rule set apart reads as deliberate (the reference "SHOP NOW" pattern).
      So: drop text-decoration, draw the rule as a ::after the copy controls —
      short fixed width, centered, with the gap as margin (not underline-offset). */
-  .ed-lp__hero-cta .ed-lp__btn--solid {
+  .home-hero__hero-cta .home-hero__btn--solid {
     display: inline-block;
     flex: 0 1 auto;
     width: auto;
@@ -23726,7 +23726,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     box-sizing: border-box;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid::after {
+  .home-hero__hero-cta .home-hero__btn--solid::after {
     content: "";
     display: block;
     width: 100%;
@@ -23739,16 +23739,16 @@ body.home-page #main.ed-lp .ed-lp__band--season {
       transform 0.25s var(--ease-out);
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid:hover,
-  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible {
+  .home-hero__hero-cta .home-hero__btn--solid:hover,
+  .home-hero__hero-cta .home-hero__btn--solid:focus-visible {
     background: transparent;
     border: none;
     color: #ffffff;
     opacity: 0.92;
   }
 
-  .ed-lp__hero-cta .ed-lp__btn--solid:hover::after,
-  .ed-lp__hero-cta .ed-lp__btn--solid:focus-visible::after {
+  .home-hero__hero-cta .home-hero__btn--solid:hover::after,
+  .home-hero__hero-cta .home-hero__btn--solid:focus-visible::after {
     background: #ffffff;
     transform: translateY(0);
   }
@@ -23757,7 +23757,7 @@ body.home-page #main.ed-lp .ed-lp__band--season {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .ed-lp__season-piece {
+  .home-hero__season-piece {
     transform: translate(-50%, -50%) rotate(var(--piece-rot, 0deg)) scale(var(--piece-scale, 1));
   }
 }
@@ -24990,7 +24990,7 @@ body.editorial-page #editorial-root {
 }
 
 /* ── Homepage editorial entry ─────────────────────────────────────── */
-.ed-lp__editorial-entry {
+.home-hero__editorial-entry {
   position: relative;
   width: 100%;
   background:
@@ -25002,7 +25002,7 @@ body.editorial-page #editorial-root {
   padding-top: 0;
 }
 
-.ed-lp__editorial-entry-edit-btn {
+.home-hero__editorial-entry-edit-btn {
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -25021,15 +25021,15 @@ body.editorial-page #editorial-root {
   transition: background 0.2s, opacity 0.2s;
   z-index: 10;
 }
-.ed-lp__editorial-entry-edit-btn:hover {
+.home-hero__editorial-entry-edit-btn:hover {
   background: rgba(0, 0, 0, 0.65);
 }
-.ed-lp__editorial-entry-edit-btn:disabled {
+.home-hero__editorial-entry-edit-btn:disabled {
   opacity: 0.55;
   cursor: default;
 }
 
-.ed-lp__editorial-entry-link {
+.home-hero__editorial-entry-link {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25042,7 +25042,7 @@ body.editorial-page #editorial-root {
   box-sizing: border-box;
 }
 
-.ed-lp__editorial-entry-body {
+.home-hero__editorial-entry-body {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -25057,7 +25057,7 @@ body.editorial-page #editorial-root {
   transform: translate(-50%, -50%);
 }
 
-.ed-lp__editorial-entry-eyebrow {
+.home-hero__editorial-entry-eyebrow {
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(0.8rem, 2.85vw, 1.02rem);
   font-weight: 700;
@@ -25068,7 +25068,7 @@ body.editorial-page #editorial-root {
   margin: 0 0 clamp(1rem, 2.7vh, 1.25rem);
 }
 
-.ed-lp__editorial-entry-title {
+.home-hero__editorial-entry-title {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(3.35rem, 7vw, 5.8rem);
   font-weight: 400;
@@ -25079,12 +25079,12 @@ body.editorial-page #editorial-root {
   transition: opacity 0.3s ease;
 }
 
-.ed-lp__editorial-entry-link:hover .ed-lp__editorial-entry-title,
-.ed-lp__editorial-entry-link:focus-visible .ed-lp__editorial-entry-title {
+.home-hero__editorial-entry-link:hover .home-hero__editorial-entry-title,
+.home-hero__editorial-entry-link:focus-visible .home-hero__editorial-entry-title {
   opacity: 0.75;
 }
 
-.ed-lp__editorial-entry-desc {
+.home-hero__editorial-entry-desc {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(0.9rem, 1.6vw, 1.08rem);
   font-weight: 400;
@@ -25094,7 +25094,7 @@ body.editorial-page #editorial-root {
   letter-spacing: 0.045em;
 }
 
-.ed-lp__editorial-entry-cta {
+.home-hero__editorial-entry-cta {
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(0.58rem, 0.92vw, 0.68rem);
   font-weight: 600;
@@ -25106,8 +25106,8 @@ body.editorial-page #editorial-root {
   transition: border-color 0.25s ease;
 }
 
-.ed-lp__editorial-entry-link:hover .ed-lp__editorial-entry-cta,
-.ed-lp__editorial-entry-link:focus-visible .ed-lp__editorial-entry-cta {
+.home-hero__editorial-entry-link:hover .home-hero__editorial-entry-cta,
+.home-hero__editorial-entry-link:focus-visible .home-hero__editorial-entry-cta {
   border-color: rgba(244, 241, 234, 0.8);
 }
 
@@ -27787,7 +27787,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   .collection-drawer-sort-chip,
   .collection-filter-drawer__clear-all,
   .collection-filter-drawer__close,
-  .ed-lp__hero-dot {
+  .home-hero__hero-dot {
     -webkit-touch-callout: none;
   }
 
@@ -27824,7 +27824,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     transition-duration: 0.08s;
   }
 
-  .ed-lp__hero-dot:active {
+  .home-hero__hero-dot:active {
     transform: scale(0.78);
     transition-duration: 0.08s;
   }
