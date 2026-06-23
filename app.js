@@ -3638,7 +3638,10 @@
 
           const thumb = document.createElement("img");
           thumb.className = "account-overview__activity-thumb";
-          thumb.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || String(it?.image ?? "");
+          const _actCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
+            || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+          thumb.src = _actCutout || String(it?.image ?? "");
+          if (_actCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = String(it?.image ?? ""); };
           thumb.alt = "";
           thumb.loading = "lazy";
           thumb.decoding = "async";
@@ -3689,7 +3692,7 @@
 
           const thumb = document.createElement("img");
           thumb.className = "account-overview__activity-thumb";
-          thumb.src = String(it?.image ?? "");
+          wireItemThumbWithSeedFallback(thumb, it);
           thumb.alt = "";
           thumb.loading = "lazy";
           thumb.decoding = "async";
@@ -4025,6 +4028,7 @@
     }
 
     function refreshList() {
+      if (drawer.parentElement === listPane) layout.appendChild(drawer);
       listPane.replaceChildren();
       clearBtn.hidden = !hasActiveFilter();
       const filtered = getFilteredItems();
@@ -4098,7 +4102,7 @@
       for (const it of filtered) {
         const row = buildAccountCatRow(it, () => {
           _accountCollectionDrawerItemId = String(it.id);
-          openDrawerForItem(it);
+          openDrawerForItem(it, row);
           listPane.querySelectorAll(".account-cat-row").forEach((r) => {
             r.setAttribute("aria-selected", String(r.dataset.itemId === String(it.id)));
           });
@@ -4108,11 +4112,18 @@
       }
     }
 
-    function openDrawerForItem(it) {
+    function openDrawerForItem(it, anchorRow) {
       drawer.classList.remove("account-edit-drawer--hidden");
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if (isMobile && anchorRow) {
+        anchorRow.insertAdjacentElement("afterend", drawer);
+      } else if (!isMobile && drawer.parentElement !== layout) {
+        layout.appendChild(drawer);
+      }
       fillAccountEditDrawer(drawer, it, () => {
         _accountCollectionDrawerItemId = null;
         drawer.classList.add("account-edit-drawer--hidden");
+        if (drawer.parentElement !== layout) layout.appendChild(drawer);
         listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
       });
     }
@@ -4134,7 +4145,10 @@
 
     if (_accountCollectionDrawerItemId) {
       const it = itemById.get(_accountCollectionDrawerItemId);
-      if (it) openDrawerForItem(it);
+      if (it) {
+        const anchorRow = listPane.querySelector(`[data-item-id="${CSS.escape(_accountCollectionDrawerItemId)}"]`);
+        openDrawerForItem(it, anchorRow);
+      }
     }
 
     layout.append(listPane, drawer);
@@ -4151,7 +4165,11 @@
 
     const img = document.createElement("img");
     img.className = "account-cat-thumb";
-    img.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    const _catCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
+      || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+    const _catFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    img.src = _catCutout || _catFallback;
+    if (_catCutout) img.onerror = () => { img.onerror = null; img.src = _catFallback; };
     img.alt = "";
     img.loading = "lazy";
     img.decoding = "async";
@@ -4313,7 +4331,7 @@
     if (it?.image) {
       const img = document.createElement("img");
       img.className = "account-drawer-thumb";
-      img.src = String(it.image);
+      wireItemThumbWithSeedFallback(img, it, 300, 400);
       img.alt = "";
       img.loading = "lazy";
       drawer.appendChild(img);
@@ -4527,7 +4545,7 @@
           row.className = "account-picker-row";
           const thumb = document.createElement("img");
           thumb.className = "account-picker-thumb";
-          thumb.src = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+          wireItemThumbWithSeedFallback(thumb, it);
           thumb.alt = "";
           thumb.loading = "lazy";
           const name = document.createElement("span");
@@ -4571,7 +4589,11 @@
 
     const thumb = document.createElement("img");
     thumb.className = "account-playlist-thumb";
-    thumb.src = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? "")) || withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    const _plCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
+      || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+    const _plFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
+    thumb.src = _plCutout || _plFallback;
+    if (_plCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = _plFallback; };
     thumb.alt = "";
     thumb.loading = "lazy";
     thumb.decoding = "async";
@@ -4865,7 +4887,7 @@
 
       const thumb = document.createElement("img");
       thumb.className = "account-notes-editor__thumb";
-      thumb.src = String(it?.image ?? "");
+      wireItemThumbWithSeedFallback(thumb, it);
       thumb.alt = "";
       thumb.loading = "lazy";
       thumb.decoding = "async";
@@ -4931,7 +4953,7 @@
 
       const thumb = document.createElement("img");
       thumb.className = "account-notes-list-row__thumb";
-      thumb.src = String(it?.image ?? "");
+      wireItemThumbWithSeedFallback(thumb, it);
       thumb.alt = "";
       thumb.loading = "lazy";
       thumb.decoding = "async";
@@ -5078,15 +5100,26 @@
     });
     drawer.classList.add("account-edit-drawer--hidden");
 
+    function openFutureDrawer(it, anchorRow) {
+      drawer.classList.remove("account-edit-drawer--hidden");
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if (isMobile && anchorRow) {
+        anchorRow.insertAdjacentElement("afterend", drawer);
+      } else if (!isMobile && drawer.parentElement !== layout) {
+        layout.appendChild(drawer);
+      }
+      fillAccountEditDrawer(drawer, it, () => {
+        _accountFutureDrawerItemId = null;
+        drawer.classList.add("account-edit-drawer--hidden");
+        if (drawer.parentElement !== layout) layout.appendChild(drawer);
+        listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+      });
+    }
+
     for (const it of futureItems) {
       const row = buildAccountCatRow(it, () => {
         _accountFutureDrawerItemId = String(it.id);
-        drawer.classList.remove("account-edit-drawer--hidden");
-        fillAccountEditDrawer(drawer, it, () => {
-          _accountFutureDrawerItemId = null;
-          drawer.classList.add("account-edit-drawer--hidden");
-          listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
-        });
+        openFutureDrawer(it, row);
         listPane.querySelectorAll(".account-cat-row").forEach((r) => {
           r.setAttribute("aria-selected", String(r.dataset.itemId === String(it.id)));
         });
@@ -5098,11 +5131,8 @@
     if (_accountFutureDrawerItemId) {
       const it = itemById.get(_accountFutureDrawerItemId);
       if (it) {
-        drawer.classList.remove("account-edit-drawer--hidden");
-        fillAccountEditDrawer(drawer, it, () => {
-          _accountFutureDrawerItemId = null;
-          drawer.classList.add("account-edit-drawer--hidden");
-        });
+        const anchorRow = listPane.querySelector(`[data-item-id="${CSS.escape(_accountFutureDrawerItemId)}"]`);
+        openFutureDrawer(it, anchorRow);
       }
     }
 
@@ -9632,6 +9662,28 @@
     return /^https?:\/\/[^/]*\.r2\.dev\//i.test(String(url ?? "").trim().split("?")[0]);
   }
 
+  /**
+   * Sets img.src to the best available thumbnail for a wardrobe item.
+   * For local-catalogue items whose live `image` is an R2 URL, wires an onerror
+   * that falls back to the frozen seed image so a 404 R2 file never blanks the thumb.
+   * @param {HTMLImageElement} img
+   * @param {object} it wardrobe item
+   * @param {number} [w]
+   * @param {number} [h]
+   */
+  function wireItemThumbWithSeedFallback(img, it, w = 200, h = 250) {
+    const src = withSupabaseWardrobeImageRenderSize(it?.image, w, h, { item: it }) || String(it?.image ?? "");
+    img.src = src;
+    if (isLocalCatalogueItemId(it?.id) && /^https?:\/\//i.test(String(it?.image ?? "").split("?")[0])) {
+      const seed = catalogueSeedRow(it.id);
+      const seedRaw = String(seed?.image ?? seed?.colourVariants?.[0]?.image ?? "").trim();
+      if (seedRaw) {
+        const seedSrc = withSupabaseWardrobeImageRenderSize(seedRaw, w, h, { item: it }) || seedRaw;
+        img.onerror = () => { img.onerror = null; img.src = seedSrc; };
+      }
+    }
+  }
+
   async function deleteWardrobeImageUrlFromCloud(url) {
     if (!isSupabaseReady()) return false;
     const path = wardrobeStoragePathFromMediaUrl(url);
@@ -10467,12 +10519,6 @@
     ) {
       return false;
     }
-    if (
-      Object.prototype.hasOwnProperty.call(data, "archive_overrides") ||
-      Object.prototype.hasOwnProperty.call(data, "archive_hidden_ids")
-    ) {
-      return true;
-    }
     return wardrobeAppStateUsesLegacyColumns;
   }
 
@@ -10484,16 +10530,10 @@
       typeof data.collection_overrides === "object" &&
       !Array.isArray(data.collection_overrides)
         ? { .../** @type {Record<string, object>} */ (data.collection_overrides) }
-        : data.archive_overrides &&
-            typeof data.archive_overrides === "object" &&
-            !Array.isArray(data.archive_overrides)
-          ? { .../** @type {Record<string, object>} */ (data.archive_overrides) }
-          : {};
+        : {};
     const hiddenRaw = Array.isArray(data.collection_hidden_ids)
       ? data.collection_hidden_ids
-      : Array.isArray(data.archive_hidden_ids)
-        ? data.archive_hidden_ids
-        : [];
+      : [];
     const metadata =
       data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
         ? { .../** @type {Record<string, unknown>} */ (data.metadata) }
@@ -10518,7 +10558,7 @@
     wardrobeAppStateUsesLegacyColumns = true;
     const legacyRes = await supabaseClient
       .from("wardrobe_app_state")
-      .select("archive_overrides, archive_hidden_ids")
+      .select("collection_overrides, collection_hidden_ids")
       .eq("id", "default")
       .maybeSingle();
     if (!legacyRes.error) return legacyRes;
@@ -10536,8 +10576,8 @@
       const row = legacy
         ? {
             id: "default",
-            archive_overrides: overrides,
-            archive_hidden_ids: hidden,
+            collection_overrides: overrides,
+            collection_hidden_ids: hidden,
             updated_at,
           }
         : {
@@ -17026,7 +17066,7 @@
   /**
    * Last-resort cover for a local-catalogue item whose live cover is a cloud (R2/Supabase) URL:
    * the frozen seed image from `data/wardrobe.js`. Lets carousel slides survive a dangling
-   * `archive_overrides` URL (e.g. the R2 file was deleted) by degrading to the local file.
+   * `collection_overrides` URL (e.g. the R2 file was deleted) by degrading to the local file.
    * @param {object} item
    * @param {string} liveCoverRaw the cover URL actually in use (only cloud URLs get a fallback)
    * @param {object} [frame] render frame (width/height) to resize the seed image to
@@ -27138,10 +27178,9 @@
       name.textContent = displayNameWithoutLeadingColour(navItem);
       // width > WARDROBE_THUMB_MAX_REQUEST_WIDTH skips the thumb/ redirect so we get
       // the RGBA transparent cutout from main/ instead of the RGB background photo.
-      const thumbSrc = withSupabaseWardrobeImageRenderSize(navItem.image, 1001, 1251, { item: navItem });
       const thumb = document.createElement("img");
       thumb.className = "item-detail__item-nav-thumb";
-      thumb.src = thumbSrc || navItem.image || "";
+      wireItemThumbWithSeedFallback(thumb, navItem, 1001, 1251);
       thumb.alt = "";
       thumb.loading = "lazy";
       thumb.decoding = "async";
@@ -30051,7 +30090,6 @@
     let mobileShellCloseAbort = null;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let mobileShellShowTimer = null;
-    let mobileNavScrollY = 0;
 
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
@@ -30075,16 +30113,8 @@
           "collection-ui--mobile-nav-shown"
         );
         setMobileNavDimVisible(false);
-        // Restore scroll position saved on open.
-        const y = mobileNavScrollY;
-        mobileNavScrollY = 0;
-        document.documentElement.style.scrollBehavior = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        document.body.style.width = "";
-        if (y > 0) globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
+        // Release the <html> scroll-lock. Scroll position was never moved, so nothing to restore.
+        document.documentElement.style.overflow = "";
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
       };
@@ -30116,14 +30146,9 @@
         mobileShellCloseAbort = null;
         mobileShell.classList.remove("is-closing");
       }
-      // Lock scroll so the header stays at viewport top while the drawer is open.
-      mobileNavScrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      document.documentElement.style.scrollBehavior = "auto";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${mobileNavScrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
+      // Scroll-lock on <html>, not <body>: leaves the body in flow so the sticky header keeps its
+      // viewport scrollport and stays pinned at the top. Position is not moved, so no save/restore.
+      document.documentElement.style.overflow = "hidden";
       syncMobileShellTop();
       resetMobileNavDrill();
       mobileShell.hidden = false;

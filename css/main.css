@@ -6746,23 +6746,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: calc(var(--z-outfits-backdrop, 1290) - 1);
   }
 
-  /* Home overlay shell is z 1200; drawer must sit above hero in that context. */
+  /* Sidebar z is the permanent 1150 (below Header chrome) at all times — open/closed alike. */
   body.collection-ui--mobile-nav-open .site-mobile-shell,
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open,
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-closing {
-    z-index: var(--z-outfits-drawer, 1300);
-  }
-
-  /* Nav-open scroll lock parks the body (position:fixed, top:-scrollY), which turns the body
-     into the sticky shell's reference and drags the masthead off-screen with the frozen page.
-     Pin the shell to the viewport for the open/close duration so the masthead (ivory sweep +
-     wordmark) always rests at the top edge. JS clears the body lock on close. */
-  body.collection-ui--mobile-nav-open .site-header-shell,
-  body.collection-ui--mobile-nav-closing .site-header-shell {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    z-index: 1150;
   }
 
   .site-mobile-shell {
@@ -6777,13 +6765,12 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     display: flex !important;
     flex-direction: column;
     position: fixed;
-    z-index: calc(var(--z-site-header-chrome) - 1);
-    top: var(--site-mobile-shell-top, var(--site-header-chrome-bottom, 5.5rem));
-    right: 0;
-    left: auto;
+    /* Permanent fact: Sidebar (1150) sits below Header chrome (--z-site-header-chrome 1200) and above
+       page content — Header floats on top of the full-screen surface. Not nav-conditional. */
+    z-index: 1150;
+    inset: 0;
     width: 100%;
     max-width: 100%;
-    bottom: 0;
     background: var(--tw-mobile-nav-surface-rail, var(--tw-surface-rail, #eee9df));
     color: var(--tw-brand-signature-navy, #163229);
     opacity: 1;
@@ -6990,6 +6977,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     display: flex;
     flex-direction: column;
     background: var(--tw-mobile-nav-surface-rail, var(--tw-surface-rail, #eee9df));
+    /* Sidebar's OWN content inset — a design value chosen for comfortable breathing room, NOT derived
+       from the Header height. Header floats on top; this just keeps the first row clear of it. */
+    padding-top: 6rem;
   }
 
   .site-mobile-nav {
@@ -7738,7 +7728,8 @@ body.collection-ui--mobile-nav-drill {
   --tw-mobile-nav-surface: var(--tw-brand-ivory, #f7f4ed);
   --tw-mobile-nav-surface-rail: var(--tw-surface-rail, #eee9df);
   --tw-mobile-nav-surface-preview: var(--tw-surface-rail, #eee9df);
-  overflow: hidden;
+  /* Scroll-lock lives on <html> (set in JS), not <body>: body{overflow:hidden} makes the body the
+     sticky header's scrollport and drags the masthead off-screen when opened after scrolling. */
 }
 
 body.collection-ui--mobile-nav-drill .site-mobile-shell,
@@ -15493,6 +15484,7 @@ html.tw-account-dark body.account-page {
   --tw-header-fg: #d9d0c2;
   --tw-header-fg-muted: rgba(217, 208, 194, 0.55);
   --tw-brand-utility-bar: #1a2e22;
+  --media-cutout-canvas: #282420;
 }
 
 /* Filter chips + search field: soften borders so they recede into the surface */
@@ -25161,8 +25153,8 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 }
 
 .account-drawer-currency-input {
+  flex: 0 0 4rem;
   width: 4rem;
-  flex-shrink: 0;
   text-transform: uppercase;
 }
 
@@ -26372,15 +26364,16 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 }
 
 @media (max-width: 640px) {
-  .account-collection-layout {
-    flex-direction: column;
-  }
-
   .account-edit-drawer {
     width: 100%;
     border-left: none;
     border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
     padding: 1rem 0;
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow-y: visible;
+    min-height: 0;
   }
 
   .account-future-layout {

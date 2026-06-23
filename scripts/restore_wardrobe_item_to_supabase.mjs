@@ -120,14 +120,10 @@ if (sErr && sErr.code !== "PGRST116") {
 } else if (stateRow) {
   const hiddenRaw = Array.isArray(stateRow.collection_hidden_ids)
     ? stateRow.collection_hidden_ids
-    : Array.isArray(stateRow.archive_hidden_ids)
-      ? stateRow.archive_hidden_ids
-      : [];
+    : [];
   const nextHidden = hiddenRaw.filter((id) => String(id) !== itemId);
   if (nextHidden.length !== hiddenRaw.length) {
-    const patch = { id: "default", updated_at: new Date().toISOString() };
-    if (stateRow.collection_hidden_ids !== undefined) patch.collection_hidden_ids = nextHidden;
-    else patch.archive_hidden_ids = nextHidden;
+    const patch = { id: "default", updated_at: new Date().toISOString(), collection_hidden_ids: nextHidden };
     const { error: stErr } = await client.from("wardrobe_app_state").upsert(patch, { onConflict: "id" });
     if (stErr) console.warn("wardrobe_app_state update:", stErr.message);
     else console.log(`Removed "${itemId}" from collection_hidden_ids in cloud app state.`);

@@ -208,18 +208,18 @@ export default async function handler(req, res) {
       body: { sha: newCommit.sha },
     });
 
-    // 7. Clear __mediaEditedAt / image / gallery from archive_overrides for this item
+    // 7. Clear __mediaEditedAt / image / gallery from collection_overrides for this item
     if (supabaseServiceKey) {
       const sbAdmin = createClient(supabaseUrl, supabaseServiceKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
       const { data: row } = await sbAdmin
         .from("wardrobe_app_state")
-        .select("archive_overrides")
+        .select("collection_overrides")
         .eq("id", "default")
         .single();
 
-      const allOv = row?.archive_overrides ?? {};
+      const allOv = row?.collection_overrides ?? {};
       const ov = allOv[itemId];
       if (ov) {
         const cleaned = { ...ov };
@@ -229,7 +229,7 @@ export default async function handler(req, res) {
         allOv[itemId] = cleaned;
         await sbAdmin
           .from("wardrobe_app_state")
-          .update({ archive_overrides: allOv })
+          .update({ collection_overrides: allOv })
           .eq("id", "default");
       }
     }

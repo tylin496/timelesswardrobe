@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Clear image/gallery/__mediaEditedAt from Supabase archive_overrides for given item IDs.
+ * Clear image/gallery/__mediaEditedAt from Supabase collection_overrides for given item IDs.
  * Usage: node scripts/clear-wardrobe-media-overrides.mjs <id1> <id2> ...
  */
 import { createClient } from "@supabase/supabase-js";
@@ -26,16 +26,16 @@ const sb = createClient(
   env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// 1. Clear archive_overrides (wardrobe_app_state)
+// 1. Clear collection_overrides (wardrobe_app_state)
 const { data, error } = await sb
   .from("wardrobe_app_state")
-  .select("archive_overrides")
+  .select("collection_overrides")
   .eq("id", "default")
   .single();
 
 if (error) { console.error("Supabase error:", error.message); process.exit(1); }
 
-const overrides = data.archive_overrides ?? {};
+const overrides = data.collection_overrides ?? {};
 let clearedOverrides = 0;
 
 for (const id of ids) {
@@ -51,7 +51,7 @@ for (const id of ids) {
 if (clearedOverrides > 0) {
   const { error: updateError } = await sb
     .from("wardrobe_app_state")
-    .update({ archive_overrides: overrides })
+    .update({ collection_overrides: overrides })
     .eq("id", "default");
   if (updateError) { console.error("Supabase update error:", updateError.message); process.exit(1); }
 }

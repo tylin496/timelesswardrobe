@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Export Supabase-only state to a local backup file.
- * Covers: archive_overrides, hidden IDs, outfits, custom items.
+ * Covers: collection_overrides, hidden IDs, outfits, custom items.
  *
  *   node scripts/backup.mjs [output-path]
  *   npm run db:backup
@@ -31,7 +31,7 @@ const catalogueIds = new Set(catalogueLock.ids ?? []);
 // 1. wardrobe_app_state
 const { data: state, error: stateErr } = await sb
   .from("wardrobe_app_state")
-  .select("archive_overrides, archive_hidden_ids")
+  .select("collection_overrides, collection_hidden_ids")
   .eq("id", "default")
   .single();
 if (stateErr) { console.error("wardrobe_app_state:", stateErr.message); process.exit(1); }
@@ -82,8 +82,8 @@ const payload = {
   _schema: "timeless-wardrobe-backup-v1",
   exportedAt: new Date().toISOString(),
   app_state: {
-    archive_overrides: state.archive_overrides ?? {},
-    archive_hidden_ids: state.archive_hidden_ids ?? [],
+    collection_overrides: state.collection_overrides ?? {},
+    collection_hidden_ids: state.collection_hidden_ids ?? [],
   },
   outfits: outfitsWithItems,
   custom_items: customItems,
@@ -91,10 +91,10 @@ const payload = {
 
 writeFileSync(outPath, JSON.stringify(payload, null, 2), "utf8");
 
-const overrideCount = Object.keys(payload.app_state.archive_overrides).length;
-const hiddenCount = payload.app_state.archive_hidden_ids.length;
+const overrideCount = Object.keys(payload.app_state.collection_overrides).length;
+const hiddenCount = payload.app_state.collection_hidden_ids.length;
 console.log(`Backup written to ${outPath}`);
-console.log(`  archive_overrides: ${overrideCount} items`);
-console.log(`  archive_hidden_ids: ${hiddenCount}`);
+console.log(`  collection_overrides: ${overrideCount} items`);
+console.log(`  collection_hidden_ids: ${hiddenCount}`);
 console.log(`  outfits: ${outfitsWithItems.length}`);
 console.log(`  custom_items: ${customItems.length}`);
