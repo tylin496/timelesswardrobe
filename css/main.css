@@ -10943,6 +10943,17 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
   box-shadow: 0 4px 14px rgba(20, 19, 18, 0.06);
 }
 
+.outfits-drawer .outfit-slot--clear-exiting {
+  pointer-events: none;
+  cursor: default;
+  transform: scale(0.86) translateY(8px);
+  opacity: 0;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  transition-delay: calc(var(--outfit-slot-stagger, 0) * 40ms);
+}
+
 .outfits-drawer .outfit-slot__thumb {
   position: absolute;
   inset: 0;
@@ -12032,6 +12043,7 @@ body.tw-outfit-drag-active * {
   .outfits-drawer__sheet,
   .outfit-toast,
   .outfits-drawer .outfit-slot--dismissing,
+  .outfits-drawer .outfit-slot--clear-exiting,
   .outfits-drawer .outfit-slot {
     transition-duration: 0.01ms;
   }
@@ -23568,6 +23580,18 @@ body.tw-page-loader-revealed #grid .card {
   animation: none;
   opacity: 1;
   transform: none;
+}
+
+/* Page-enter stagger: first 8 cards fade in after the loader exits. */
+body.tw-page-loader-revealed #grid.grid--entering .card:not(.card--no-enter) {
+  animation: tlw-fade-in 0.3s ease backwards;
+  animation-delay: calc(var(--card-enter-i, 0) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.tw-page-loader-revealed #grid.grid--entering .card:not(.card--no-enter) {
+    animation: none;
+  }
 }
 
 body.tw-page-loader-revealed .site-footer {

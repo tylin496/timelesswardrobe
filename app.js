@@ -7674,19 +7674,26 @@
 
   function buildItemShareText(item) {
     if (!item) return "";
+    return buildItemCopyText(item);
+  }
+
+  function buildItemCopyText(item) {
+    if (!item) return "";
     const lines = [];
     const name = displayNameWithoutLeadingColour(item);
     if (name) lines.push(name);
-    if (item.brand) lines.push(String(item.brand).trim());
+    lines.push("");
     const colour = colourLabelForItem(item);
     const seasonNorm = normalizeSeason(item.season);
-    const season = seasonNorm === "SS" ? "Spring / Summer" : seasonNorm === "AW" ? "Autumn / Winter" : seasonNorm === "ALL" ? "All seasons" : "";
-    const size = String(item.size ?? "").trim();
-    const meta = [];
-    if (colour) meta.push(`Colour: ${colour}`);
-    if (season) meta.push(`Season: ${season}`);
-    if (size) meta.push(`Size: ${size}`);
-    if (meta.length) { lines.push(""); lines.push(...meta); }
+    const seasonLabel = seasonNorm === "SS" ? "S/S" : seasonNorm === "AW" ? "A/W" : seasonNorm === "ALL" ? "All-season" : (String(item.season ?? "").trim() || null);
+    const category = String(item.category ?? "").trim();
+    const fabric = String(item.fabric ?? "").trim();
+    if (category) lines.push(`Category: ${category}`);
+    if (colour) lines.push(`Colour: ${colour}`);
+    if (fabric) lines.push(`Material: ${fabric}`);
+    if (seasonLabel) lines.push(`Season: ${seasonLabel}`);
+    const details = String(item.details ?? "").trim();
+    if (details) { lines.push(""); lines.push("Details:"); lines.push(details); }
     const notes = itemNotesDisplayText(item.notes);
     if (notes) { lines.push(""); lines.push("Notes:"); lines.push(notes); }
     return lines.join("\n");
@@ -7762,7 +7769,19 @@
       }
       return;
     }
-    showItemShareMenu(btn, item);
+    const ok = await writeTextToClipboard(url, { successToast: "Link copied." });
+    if (ok) playItemDetailShareSuccess(btn);
+  }
+
+  async function handleItemCopyAction(item, btn) {
+    const text = buildItemCopyText(item);
+    const ok = await writeTextToClipboard(text, { successToast: "Copied." });
+    if (ok) {
+      btn.textContent = "Copied";
+      btn.dataset.state = "copied";
+      clearTimeout(btn._copyTimer);
+      btn._copyTimer = setTimeout(() => { btn.textContent = "Copy"; btn.dataset.state = ""; }, 2000);
+    }
   }
 
   /** Previously saved Chinese clothing slots → Clothing (典藏·配件 handled in `itemSlot`). */
@@ -8245,13 +8264,13 @@
     for (const item of Array.isArray(list) ? list : []) {
       if (isFuturePiece(item)) {
         future.push(item);
-      } else if (typeof item?.showcaseOrder === "number" && item.showcaseOrder >= 0) {
+      } else if (isInShowcase(item)) {
         ordered.push(item);
       } else {
         archive.push(item);
       }
     }
-    ordered.sort((a, b) => a.showcaseOrder - b.showcaseOrder);
+    ordered.sort((a, b) => showcaseRank(a) - showcaseRank(b));
     archive.sort(compareArchiveItems);
     future.sort(compareArchiveItems);
     return [...ordered, ...archive, ...future];
@@ -31034,7 +31053,16 @@
         showToast("Nothing to clear.");
         return;
       }
-      clearOutfit();
+      const slots = els.outfitStrip ? [...els.outfitStrip.querySelectorAll(".outfit-slot")] : [];
+      if (slots.length) {
+        slots.forEach((s, i) => {
+          s.style.setProperty("--outfit-slot-stagger", String(i));
+          s.classList.add("outfit-slot--clear-exiting");
+        });
+        setTimeout(() => clearOutfit(), 260 + slots.length * 40 + 60);
+      } else {
+        clearOutfit();
+      }
     };
 
     if (els.outfitClear) {
@@ -31806,6 +31834,16 @@
     }
     document.body.classList.add("tw-page-loader-revealed");
     document.querySelector(".site-header")?.classList.add("site-header--entered");
+    if (isCollectionGridPage) {
+      const grid = document.getElementById("grid");
+      if (grid) {
+        grid.querySelectorAll(".card").forEach((card, i) => {
+          if (i < 8) card.style.setProperty("--card-enter-i", String(i));
+        });
+        grid.classList.add("grid--entering");
+        setTimeout(() => grid.classList.remove("grid--entering"), 1200);
+      }
+    }
   }
 
   async function bootstrap() {
