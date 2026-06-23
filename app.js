@@ -22249,6 +22249,16 @@
    * @param {HTMLImageElement} img
    * @param {{ url: string, cutout: boolean }[]} frameEntries
    */
+  function wireGalleryCoverSlideLoaded(simg) {
+    if (simg.complete && simg.naturalWidth > 0) {
+      simg.classList.add("card__media-img--loaded");
+    } else {
+      simg.addEventListener("load", () => {
+        if (simg.naturalWidth > 0) simg.classList.add("card__media-img--loaded");
+      }, { once: true });
+    }
+  }
+
   function syncDesktopGalleryTrack(media, img, frameEntries) {
     const sig = collectionCardGalleryFrameSig(frameEntries);
     let stage = getDesktopGalleryStage(media);
@@ -22288,15 +22298,7 @@
         if (img.sizes) simg.sizes = img.sizes;
         if (i === 0) {
           simg.src = entry.url;
-          if (useCoverPlate) {
-            if (simg.complete && simg.naturalWidth > 0) {
-              simg.classList.add("card__media-img--loaded");
-            } else {
-              simg.addEventListener("load", function onDesktopCoverSlideLoad() {
-                if (simg.naturalWidth > 0) simg.classList.add("card__media-img--loaded");
-              }, { once: true });
-            }
-          }
+          if (useCoverPlate) wireGalleryCoverSlideLoaded(simg);
           wireImgSeedFallback(simg, entry.fallback, () => { slide.hidden = true; });
         } else {
           simg.dataset.twFrameSrc = entry.url;
@@ -22448,15 +22450,7 @@
         simg.decoding = "async";
         simg.draggable = false;
         simg.src = entry.url;
-        if (useCoverPlate) {
-          if (simg.complete && simg.naturalWidth > 0) {
-            simg.classList.add("card__media-img--loaded");
-          } else {
-            simg.addEventListener("load", function onCoverSlideLoad() {
-              if (simg.naturalWidth > 0) simg.classList.add("card__media-img--loaded");
-            }, { once: true });
-          }
-        }
+        if (useCoverPlate) wireGalleryCoverSlideLoaded(simg);
         wireImgSeedFallback(simg, entry.fallback, () => { slide.hidden = true; });
         slide.appendChild(simg);
         return slide;
