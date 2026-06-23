@@ -25796,9 +25796,8 @@ html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page
   flex: 0 0 auto;
 }
 
-/* In dark account mode the header fg is white */
 html.tw-account-dark body.account-page .account-theme-toggle {
-  color: #ffffff;
+  color: var(--ink);
 }
 
 /* ── Account Overview ─────────────────────────────────────────────────────── */
