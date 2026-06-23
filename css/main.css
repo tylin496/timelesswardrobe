@@ -15282,13 +15282,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 .account-page-hero {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-start;
-  gap: clamp(0.75rem, 1.5vw, 1.4rem);
-  width: 100%;
-  max-width: 86rem;
-  margin: 0 0 clamp(1.25rem, 2.5vw, 2.25rem);
+  display: none;
 }
 
 .account-page-hero__copy {
