@@ -3463,7 +3463,7 @@
     setStatsCols();
     window.addEventListener("resize", setStatsCols);
     for (const s of [
-      { n: ownedItems.length, label: "Pieces"                            },
+      { n: allItems.length,   label: "Pieces", sub: futureCount ? `${ownedItems.length} owned · ${futureCount} wishlist` : null },
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
       { n: futureCount,       label: "Wishlist"                          },
@@ -4572,8 +4572,6 @@
     }
     sortSel.value = _accountNotesSort;
     sortSel.addEventListener("change", () => { _accountNotesSort = sortSel.value; refreshNotesList(); });
-    toolbar.appendChild(sortSel);
-
     const copyAllBtn = document.createElement("button");
     copyAllBtn.type = "button";
     copyAllBtn.className = "account-notes-copy-btn account-notes-copy-all-btn";
@@ -4595,6 +4593,7 @@
         copyAllTimer = setTimeout(() => { copyAllBtn.textContent = "Copy all"; }, 2200);
       }
     });
+    toolbar.appendChild(sortSel);
     toolbar.appendChild(copyAllBtn);
 
     wrapper.appendChild(toolbar);

@@ -27039,10 +27039,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   min-height: 1.2rem;
 }
 
-.account-notes-copy-all-btn {
-  margin-left: auto;
-}
-
 .account-notes-copy-btn {
   margin-left: auto;
   padding: 0.2rem 0.6rem;
@@ -27067,6 +27063,11 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 .account-notes-copy-btn[data-state="copied"] {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+/* Copy-all: sits inline after select, no auto-margin */
+.account-notes-copy-all-btn {
+  margin-left: 0;
 }
 
 /* Mobile: sits below the textarea */
