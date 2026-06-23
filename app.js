@@ -3122,6 +3122,7 @@
     if (!active) return;
     nav.style.setProperty("--tab-indicator-left",  active.offsetLeft + "px");
     nav.style.setProperty("--tab-indicator-width", active.offsetWidth + "px");
+    nav.style.setProperty("--tab-indicator-color", getComputedStyle(active).color);
   }
 
   function buildAccountTabNav() {
