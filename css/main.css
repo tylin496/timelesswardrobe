@@ -6772,6 +6772,19 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: var(--z-outfits-drawer, 1300);
   }
 
+  /* Scroll-then-open fix: opening the drawer scroll-locks the page with `body { position: fixed; top: -Y }`,
+     which drags the STICKY header-shell off-screen (-Y) — leaving the scrolled page content showing above
+     the drawer with no masthead/surface. Pin the shell to the viewport while the nav is open/closing so the
+     masthead + ivory surface keep covering the top. A fixed child of the fixed body is still
+     viewport-relative (body has no transform); z-index stays --z-site-header-chrome, above page content. */
+  body.collection-ui--mobile-nav-open .site-header-shell,
+  body.collection-ui--mobile-nav-closing .site-header-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
   .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
     display: none;
   }
@@ -17133,6 +17146,21 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   width: 100%;
 }
 
+/* Media leads each variant: the cover reads as a hero plate, gallery + add tiles
+   sit beside it as supporting thumbnails. */
+.item-edit-photo-manager--variant .item-edit-photo-tile--cover,
+.item-edit-photo-manager--variant .item-edit-photo-tile--cover .item-edit-photo-tile__media {
+  width: 168px;
+}
+
+/* The detail fields are now secondary to the media — quiet them and set them off
+   with a hairline once the photos lead the row. */
+.item-edit-variant-row__body > .item-edit-variant-row__basics {
+  margin-top: 0.25rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
 .item-edit-secondary-colour-block {
   display: flex;
   flex-direction: column;
@@ -17700,8 +17728,49 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.6rem;
   width: 100%;
+}
+
+/* ── Variant "work" header — colour identity reads like a piece, not a field row. ── */
+.item-edit-variant-head-swatch {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, var(--line));
+}
+
+.item-edit-variant-head__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.item-edit-variant-head-title {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-edit-variant-head-meta {
+  @apply m-0;
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+  color: var(--ink-muted);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .item-edit-variant-row__body {
