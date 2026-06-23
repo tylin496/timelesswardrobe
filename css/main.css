@@ -1217,8 +1217,9 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
 }
 
 /* Keyboard focus recolours on every device; pointer hover is desktop-only (a touch tap leaves a
-   sticky :hover that flips the overlay header solid and never reverts). */
-.site-header--overlay:focus-within {
+   sticky :hover that flips the overlay header solid and never reverts). :focus-within also fires on
+   touch taps so we gate on :focus-visible (keyboard nav only) via :has(). */
+.site-header--overlay:has(:focus-visible) {
   --tw-header-fg: var(--tw-brand-wordmark);
   --tw-header-fg-muted: var(--ink-muted);
   --tw-header-monogram: var(--tw-brand-monogram-green);
