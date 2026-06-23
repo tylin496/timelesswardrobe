@@ -6753,6 +6753,18 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: var(--z-outfits-drawer, 1300);
   }
 
+  /* Nav-open scroll lock parks the body (position:fixed, top:-scrollY), which turns the body
+     into the sticky shell's reference and drags the masthead off-screen with the frozen page.
+     Pin the shell to the viewport for the open/close duration so the masthead (ivory sweep +
+     wordmark) always rests at the top edge. JS clears the body lock on close. */
+  body.collection-ui--mobile-nav-open .site-header-shell,
+  body.collection-ui--mobile-nav-closing .site-header-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
   .site-mobile-shell {
     --tw-mobile-nav-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
     --tw-mobile-nav-duration: 320ms;

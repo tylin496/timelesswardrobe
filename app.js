@@ -4324,16 +4324,70 @@
       drawer.appendChild(ph);
     }
 
-    // ── Category ──
-    const catLbl = document.createElement("span");
-    catLbl.className = "account-drawer-field-label";
-    catLbl.textContent = "Category";
-    drawer.appendChild(catLbl);
-    const catInput = document.createElement("input");
-    catInput.type = "text";
-    catInput.className = "account-drawer-input";
-    makeAutoSaveInput(catInput, "category");
-    drawer.appendChild(catInput);
+    const mkField = (label, fieldKey, type = "text", placeholder = "") => {
+      const lbl = document.createElement("span");
+      lbl.className = "account-drawer-field-label";
+      lbl.textContent = label;
+      drawer.appendChild(lbl);
+      const inp = document.createElement("input");
+      inp.type = type;
+      inp.className = "account-drawer-input";
+      if (placeholder) inp.placeholder = placeholder;
+      makeAutoSaveInput(inp, fieldKey);
+      drawer.appendChild(inp);
+    };
+
+    mkField("Category",   "category");
+    mkField("Season",     "season",  "text",   "e.g. AW24");
+    mkField("Colour",     "colour",  "text");
+    mkField("Material",   "fabric",  "text");
+    mkField("Size",       "size",    "text");
+    mkField("Purchased",  "purchaseDate", "date");
+
+    // ── Price (numeric + currency) ──
+    const priceLbl = document.createElement("span");
+    priceLbl.className = "account-drawer-field-label";
+    priceLbl.textContent = "Price";
+    drawer.appendChild(priceLbl);
+    const priceRow = document.createElement("div");
+    priceRow.className = "account-drawer-price-row";
+    const priceInput = document.createElement("input");
+    priceInput.type = "number";
+    priceInput.min = "0";
+    priceInput.step = "1";
+    priceInput.className = "account-drawer-input account-drawer-price-input";
+    priceInput.placeholder = "0";
+    priceInput.value = it?.price != null ? String(it.price) : "";
+    const currInput = document.createElement("input");
+    currInput.type = "text";
+    currInput.maxLength = 3;
+    currInput.className = "account-drawer-input account-drawer-currency-input";
+    currInput.placeholder = "TWD";
+    currInput.value = String(it?.priceCurrency ?? "TWD").toUpperCase();
+    const savePriceFields = async () => {
+      const newPrice = priceInput.value.trim() === "" ? null : Number(priceInput.value);
+      const newCurr  = currInput.value.trim().toUpperCase() || "TWD";
+      const priceChanged = newPrice !== (it?.price ?? null);
+      const currChanged  = newCurr !== String(it?.priceCurrency ?? "TWD").toUpperCase();
+      if (!priceChanged && !currChanged) return;
+      setStatus("saving", "Saving…");
+      try {
+        const patch = { ...it, price: newPrice, priceCurrency: newCurr };
+        const saved = await saveWardrobeItemToCloud(patch);
+        upsertWardrobeBaseRowInMemory(saved);
+        it.price = newPrice;
+        it.priceCurrency = newCurr;
+        mergeWardrobeFromSources();
+        setStatus("saved", "Saved");
+      } catch (err) {
+        console.warn("[account] drawer price save failed:", err);
+        setStatus("error", "Save failed");
+      }
+    };
+    priceInput.addEventListener("blur", savePriceFields);
+    currInput.addEventListener("blur", savePriceFields);
+    priceRow.append(priceInput, currInput);
+    drawer.appendChild(priceRow);
 
     // ── Notes ──
     const notesLbl = document.createElement("span");
