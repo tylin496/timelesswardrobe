@@ -1931,7 +1931,7 @@ body.home-page .site-header--scroll-driven::before {
     --line: rgba(244, 241, 234, 0.18);
     color: #f4f1ea;
     background: var(--bg-elevated, #2d2b28);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--frost-border-strong);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32), 0 1px 4px rgba(0, 0, 0, 0.14);
   }
 
@@ -25702,11 +25702,11 @@ body.editorial-page #editorial-root {
 
 html.tw-account-dark body.account-page .account-tab-drawer__sheet {
   background: var(--bg-elevated, #2d2b28);
-  border-left-color: rgba(255,255,255,0.1);
+  border-left-color: var(--frost-border);
 }
-html.tw-account-dark body.account-page .account-tab-drawer__item { color: rgba(255,255,255,0.55); }
-html.tw-account-dark body.account-page .account-tab-drawer__item:hover { color: #fff; background: rgba(255,255,255,0.05); }
-html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="page"] { color: #fff; }
+html.tw-account-dark body.account-page .account-tab-drawer__item { color: var(--ink-muted); }
+html.tw-account-dark body.account-page .account-tab-drawer__item:hover { color: var(--ink); background: var(--line); }
+html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="page"] { color: var(--ink); }
 
 
 /* ── Account tab nav ────────────────────────────────────────────────────────── */
