@@ -30,6 +30,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
+// Alpha threshold for centroid calculation: pixels above this are treated as the
+// solid product (not cast shadows). Shadows are typically alpha < 80; the actual
+// object is alpha ≈ 200–255.
+const SOLID_ALPHA = 80;
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WARDROBE_DIR = path.join(ROOT, "images", "wardrobe");
 const MANIFEST_PATH = path.join(WARDROBE_DIR, ".center-manifest.json");
@@ -70,13 +75,59 @@ async function isCutout(srcPath) {
 
 async function centredBytes(srcPath) {
   const m = await sharp(srcPath).metadata();
+  const W = m.width, H = m.height;
+
+  // Trim with low threshold to preserve soft edges and cast shadows in the output.
   const trimmed = await sharp(srcPath)
     .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: TRIM_THRESHOLD })
     .toBuffer();
+  const tMeta = await sharp(trimmed).metadata();
+  const tw = tMeta.width, th = tMeta.height;
+
+  // Compute centroid of solid pixels (excludes shadows) within the trimmed image.
+  // gravity:'centre' uses bbox centre which is biased by shadow bounding boxes.
+  const { data: alpha } = await sharp(trimmed)
+    .ensureAlpha()
+    .extractChannel(3)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  let sumX = 0, sumY = 0, count = 0;
+  for (let y = 0; y < th; y++) {
+    for (let x = 0; x < tw; x++) {
+      if (alpha[y * tw + x] >= SOLID_ALPHA) { sumX += x; sumY += y; count++; }
+    }
+  }
+  // Fallback: use all non-transparent pixels if no solid content found.
+  if (count === 0) {
+    for (let i = 0; i < alpha.length; i++) {
+      if (alpha[i] > 0) { sumX += i % tw; sumY += Math.floor(i / tw); count++; }
+    }
+  }
+  if (count === 0) return readFileSync(srcPath);
+
+  // Position trimmed image so solid centroid aligns with canvas centre.
+  let left = Math.round(W / 2 - sumX / count);
+  let top  = Math.round(H / 2 - sumY / count);
+
+  // Clip any portion that would land outside the canvas.
+  let cropLeft = 0, cropTop = 0, cropW = tw, cropH = th;
+  if (left < 0) { cropLeft = -left; cropW += left; left = 0; }
+  if (top  < 0) { cropTop  = -top;  cropH += top;  top  = 0; }
+  if (left + cropW > W) cropW = W - left;
+  if (top  + cropH > H) cropH = H - top;
+
+  let input = trimmed;
+  if (cropLeft > 0 || cropTop > 0 || cropW < tw || cropH < th) {
+    input = await sharp(trimmed)
+      .extract({ left: cropLeft, top: cropTop, width: Math.max(1, cropW), height: Math.max(1, cropH) })
+      .toBuffer();
+  }
+
   return sharp({
-    create: { width: m.width, height: m.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+    create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
   })
-    .composite([{ input: trimmed, gravity: "centre" }])
+    .composite([{ input, left, top }])
     .webp({ lossless: true, effort: 6 })
     .toBuffer();
 }
