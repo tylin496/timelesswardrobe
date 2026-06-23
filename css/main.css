@@ -1038,6 +1038,13 @@ body {
   transition: color var(--tw-header-overlay-duration, 400ms) var(--tw-header-overlay-ease, var(--ease-luxe));
 }
 
+/* Per-character wordmark spans (split in JS so the recolor can travel across the word). They inherit the
+   line's font/size/spacing and carry the same default color ease, so non-nav recolours (scroll/hover)
+   still fade normally; the mobile-nav rules override with staggered per-char delays. */
+.site-title__wordmark-char {
+  transition: color var(--tw-header-overlay-duration, 400ms) var(--tw-header-overlay-ease, var(--ease-luxe));
+}
+
 /* Monogram: mask + header token so mark tracks wordmark (overlay / solid / dark). */
 .site-title__mark {
   display: block;
@@ -7640,26 +7647,25 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     transition: stroke 190ms var(--ease-luxe) 170ms;
   }
 
-  /* LEFT group (brand: wordmark + monogram). Wordmark lines are `color: inherit` → set their color;
-     the crest is `background-color: var(--tw-header-monogram)` → set the background. Dark only while open. */
-  body.collection-ui--mobile-nav-open .site-title__wordmark-line {
+  /* LEFT group (brand: wordmark + monogram), phased PER CHARACTER so the recolor travels across the word
+     instead of flipping as a block. Each char's delay = its distance from the right edge (`--w-step`, set
+     in JS: 0 = rightmost), so on OPEN the recolor continues the right→left sweep through the letters and
+     the monogram (far left) lands last. Wordmark chars are `color: inherit`; the crest is
+     `background-color: var(--tw-header-monogram)`. Dark only while open. */
+  body.collection-ui--mobile-nav-open .site-title__wordmark-char {
     color: var(--tw-brand-wordmark);
+    transition: color 130ms var(--ease-luxe) calc(40ms + var(--w-step, 0) * 11ms);
   }
   body.collection-ui--mobile-nav-open .site-title__mark {
     background-color: var(--tw-brand-monogram-green);
+    transition: background-color 150ms var(--ease-luxe) calc(40ms + (var(--w-max, 0) + 1) * 11ms);
   }
-  /* OPEN: brand trails the tools (delay). CLOSE: brand leads (no delay) — surface uncovers it first. */
-  body.collection-ui--mobile-nav-open .site-title__wordmark-line {
-    transition: color 190ms var(--ease-luxe) 170ms;
-  }
-  body.collection-ui--mobile-nav-open .site-title__mark {
-    transition: background-color 190ms var(--ease-luxe) 170ms;
-  }
-  body.collection-ui--mobile-nav-closing .site-title__wordmark-line {
-    transition: color 190ms var(--ease-luxe) 0ms;
+  /* CLOSE reverses (the surface uncovers the left first): leftmost char un-colours first, monogram leads. */
+  body.collection-ui--mobile-nav-closing .site-title__wordmark-char {
+    transition: color 130ms var(--ease-luxe) calc((var(--w-max, 0) - var(--w-step, 0)) * 11ms);
   }
   body.collection-ui--mobile-nav-closing .site-title__mark {
-    transition: background-color 190ms var(--ease-luxe) 0ms;
+    transition: background-color 150ms var(--ease-luxe) 0ms;
   }
 
   /*
