@@ -13254,7 +13254,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   -webkit-user-select: contain;
   user-select: contain;
   transition:
-    transform 0.32s var(--ease-luxe),
     box-shadow 0.32s var(--ease-luxe),
     border-color 0.32s var(--ease-luxe);
 }
@@ -13274,7 +13273,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 .card:hover {
-  transform: scale(1.025);
   box-shadow: 0 10px 28px var(--card-shadow-hover);
   border-color: color-mix(in srgb, var(--line) 45%, var(--ink-muted));
 }
@@ -13338,6 +13336,12 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   object-fit: contain;
   object-position: top center;
   filter: var(--collection-cutout-shadow);
+  transform-origin: center top;
+  transition: transform 0.38s var(--ease-luxe);
+}
+
+#grid .card:hover .card__media-img.card__media-img--cover {
+  transform: scale(1.02);
 }
 
 /* Gallery frames — edge-to-edge crop (not cut-out contain). */
@@ -13519,8 +13523,15 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
+  opacity: 0.76;
+  transition: opacity 0.25s ease;
   user-select: text;
   -webkit-user-select: text;
+}
+
+.card:hover .card__title,
+.card:focus-within .card__title {
+  opacity: 1;
 }
 
 .card__title--opens-detail {
@@ -19321,6 +19332,7 @@ a.item-detail__breadcrumb-current {
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: 0.12em;
+  text-indent: 0.12em;
   text-transform: uppercase;
   line-height: 1;
   cursor: pointer;
@@ -24692,10 +24704,17 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 .account-overview__stat {
   padding: clamp(0.9rem, 2vw, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
   background: var(--bg-elevated, #fff);
+  text-align: center;
 }
 
 .account-overview__stat + .account-overview__stat {
   border-left: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.account-overview__stat--wide {
+  grid-column: span 2;
+  border-left: none !important;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .account-overview__stat-n {
@@ -25087,6 +25106,26 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   border-left: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
   padding: 1.1rem 1.2rem;
   min-height: 400px;
+  position: sticky;
+  top: calc(var(--site-header-row-height) + 0.5rem);
+  max-height: calc(100vh - var(--site-header-row-height) - 1rem);
+  overflow-y: auto;
+}
+
+.account-drawer-price-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.account-drawer-price-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-drawer-currency-input {
+  width: 4rem;
+  flex-shrink: 0;
+  text-transform: uppercase;
 }
 
 .account-edit-drawer--hidden {
