@@ -25559,7 +25559,7 @@ body.editorial-page #editorial-root {
 }
 
 /* Hamburger — mobile only; reuses site-header__menu-btn appearance */
-.account-mobile-menu-btn { display: none; }
+.account-mobile-menu-btn { display: none; order: 99; }
 
 @media (max-width: 1024px) {
   .account-mobile-menu-btn { display: inline-flex; }
