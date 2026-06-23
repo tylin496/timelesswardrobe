@@ -3404,7 +3404,9 @@
       const p = it?.price ?? it?.metadata?.price;
       return p === undefined || p === null || p === "";
     }).length;
-    const noBrandCount = ownedItems.filter((it) => !String(it?.brand ?? "").trim()).length;
+    const noDateCount    = ownedItems.filter((it) => !String(it?.purchaseDate ?? "").trim()).length;
+    const noFabricCount  = ownedItems.filter((it) => !String(it?.fabric ?? "").trim()).length;
+    const noMeasureCount = ownedItems.filter((it) => !Array.isArray(it?.measurementRows) || !it.measurementRows.length).length;
 
     // helper: create a section title element
     function mkTitle(text, mt, sub) {
@@ -3509,8 +3511,10 @@
       // Health
       const healthDefs = [
         { label: "Missing Notes", count: noNotesCount, filter: "no-notes" },
-        { label: "Missing Price", count: noPriceCount, filter: "no-price" },
-        { label: "Missing Brand", count: noBrandCount, filter: "no-brand" },
+        { label: "Missing Price",            count: noPriceCount,   filter: "no-price" },
+        { label: "Missing Acquisition Date", count: noDateCount,    filter: "no-date" },
+        { label: "Missing Material",         count: noFabricCount,  filter: "no-fabric" },
+        { label: "Missing Measurements",     count: noMeasureCount, filter: "no-measure" },
       ];
       const healthList = document.createElement("div");
       healthList.className = "account-health-list";
@@ -3856,7 +3860,7 @@
   let _accountCollectionBrand = "";
   let _accountCollectionCategory = "";
   let _accountCollectionSeason = "";
-  let _accountCollectionStatus = "";   // "" | "showcase" | "wishlist" | "has-notes" | "no-notes" | "no-price"
+  let _accountCollectionStatus = "";   // "" | "showcase" | "wishlist" | "has-notes" | "no-notes" | "no-price" | "no-date" | "no-fabric" | "no-measure"
   let _accountCollectionDrawerItemId = null;
   let _accountCollectionSortKey = "";  // "" | "name" | "brand" | "category" | "season" | "year" | "price"
   let _accountCollectionSortDir = 1;   // 1 = asc, -1 = desc
@@ -3865,9 +3869,7 @@
     _accountCollectionBrand = "";
     _accountCollectionCategory = "";
     _accountCollectionSeason = "";
-    _accountCollectionStatus = f === "no-notes" ? "no-notes"
-                             : f === "no-price" ? "no-price"
-                             : "";
+    _accountCollectionStatus = ["no-notes","no-price","no-date","no-fabric","no-measure"].includes(f) ? f : "";
     if (_accountCurrentTab !== "collection") {
       history.pushState(null, "", "/account#collection");
       _accountCurrentTab = "collection";
@@ -3916,7 +3918,7 @@
     const catSel    = makeSelect("Category", allCategories, _accountCollectionCategory);
     const seasonSel = makeSelect("Season",   allSeasons,    _accountCollectionSeason);
     const statusSel = makeSelect("Status", [], _accountCollectionStatus);
-    for (const [v, lbl] of [["showcase","Showcase"],["wishlist","Wishlist"],["has-notes","Has Notes"],["no-notes","Missing Notes"],["no-price","Missing Price"]]) {
+    for (const [v, lbl] of [["showcase","Showcase"],["wishlist","Wishlist"],["has-notes","Has Notes"],["no-notes","Missing Notes"],["no-price","Missing Price"],["no-date","Missing Date"],["no-fabric","Missing Material"],["no-measure","Missing Measurements"]]) {
       const opt = document.createElement("option");
       opt.value = v; opt.textContent = lbl;
       statusSel.appendChild(opt);
@@ -4012,6 +4014,9 @@
           const p = it?.price ?? it?.metadata?.price;
           if ((p !== undefined && p !== null && p !== "") || isFuturePiece(it)) return false;
         }
+        if (st === "no-date"    && (String(it?.purchaseDate ?? "").trim() || isFuturePiece(it))) return false;
+        if (st === "no-fabric"  && (String(it?.fabric ?? "").trim() || isFuturePiece(it))) return false;
+        if (st === "no-measure" && ((Array.isArray(it?.measurementRows) && it.measurementRows.length) || isFuturePiece(it))) return false;
         if (q) {
           const hay = [it?.name, it?.brand, it?.category, it?.season, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
           if (!hay.includes(q)) return false;
@@ -11828,80 +11833,6 @@
     return slice.slice(0, use);
   }
 
-  const RECENTLY_VIEWED_STORAGE_KEY = "twRecentlyViewed-v1";
-  const RECENTLY_VIEWED_MAX = 12;
-
-  /** @param {string} itemId */
-  function recordRecentlyViewedItem(itemId) {
-    const id = String(itemId ?? "").trim();
-    if (!id) return;
-    let ids = [];
-    try {
-      const raw = localStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
-      if (raw) ids = JSON.parse(raw);
-    } catch {
-      /* ignore */
-    }
-    if (!Array.isArray(ids)) ids = [];
-    ids = ids.filter((x) => String(x) !== id);
-    ids.unshift(id);
-    ids = ids.slice(0, RECENTLY_VIEWED_MAX);
-    try {
-      localStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(ids));
-    } catch {
-      /* private mode / quota */
-    }
-  }
-
-  /** @param {object[]} pool @returns {object[]} */
-  function getRecentlyViewedItemsFromPool(pool) {
-    let ids = [];
-    try {
-      const raw = localStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
-      if (raw) ids = JSON.parse(raw);
-    } catch {
-      /* ignore */
-    }
-    if (!Array.isArray(ids)) return [];
-    const byId = new Map(
-      (Array.isArray(pool) ? pool : [])
-        .map((it) => [String(it?.id ?? "").trim(), it])
-        .filter(([k]) => k)
-    );
-    const out = [];
-    for (const id of ids) {
-      const it = byId.get(String(id));
-      if (it) out.push(it);
-    }
-    return out;
-  }
-
-  /** @param {object[]} pool @param {number} [fallbackN] */
-  function resolveHomeRecentlyViewedItems(pool, fallbackN = 8) {
-    const viewed = getRecentlyViewedItemsFromPool(pool);
-    if (viewed.length) return viewed;
-    return pickRecentAcquisitionItems(pool, fallbackN);
-  }
-
-  function pickRecentAcquisitionItems(pool, n) {
-    const dated = pool
-      .filter((it) => purchaseDateSortMs(it) != null)
-      .sort(
-        (a, b) =>
-          /** @type {number} */ (purchaseDateSortMs(b)) - /** @type {number} */ (purchaseDateSortMs(a))
-      );
-    const out = dated.slice(0, n);
-    if (out.length >= n) return out;
-    const rest = pool.filter((it) => !out.includes(it));
-    shuffleArrayInPlace(rest);
-    for (const it of rest) {
-      out.push(it);
-      if (out.length >= n) break;
-    }
-    return out.slice(0, n);
-  }
-
-
   function buildItemDetailHrefFromId(id) {
     return buildItemPageUrl(id).toString();
   }
@@ -12711,75 +12642,6 @@
     });
   }
 
-  /** @param {object} item */
-  function buildHomeRecentlyViewedCard(item) {
-    const a = document.createElement("a");
-    a.href = buildItemDetailHrefFromId(item.id);
-    a.draggable = false;
-    a.className = "home-hero__viewed-card";
-    a.setAttribute("role", "listitem");
-    a.setAttribute("aria-label", `${String(item.brand ?? "").trim() || "—"} — ${displayNameWithoutLeadingColour(item)}`);
-
-    const media = document.createElement("div");
-    media.className = "home-hero__viewed-card-media";
-    const img = document.createElement("img");
-    img.className = "home-hero__viewed-card-img";
-    img.alt = imageAltForItem(item);
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.draggable = false;
-    media.appendChild(img);
-    wireHomeEditorialCardImage(img, item, homeEditorialCoverSrc(item), {
-      host: media,
-      missingClass: "home-hero__viewed-card-media--missing",
-      coverRenderWidth: HOME_RECENTLY_VIEWED_RENDER.width,
-      coverRenderHeight: HOME_RECENTLY_VIEWED_RENDER.height,
-      coverRenderQuality: HOME_RECENTLY_VIEWED_RENDER.quality,
-      coverRenderResize: HOME_RECENTLY_VIEWED_RENDER.resize,
-    });
-
-    const body = document.createElement("div");
-    body.className = "home-hero__viewed-card-body";
-    const brand = document.createElement("p");
-    brand.className = "home-hero__viewed-card-brand";
-    brand.textContent = String(item.brand ?? "").trim() || "—";
-    const title = document.createElement("p");
-    title.className = "home-hero__viewed-card-title";
-    title.textContent = displayNameWithoutLeadingColour(item);
-    const price = document.createElement("p");
-    price.className = "home-hero__viewed-card-price";
-    const priceLine = formattedCollectionPriceLine(item, { brief: true });
-    if (priceLine) price.textContent = priceLine;
-    else price.hidden = true;
-    body.appendChild(brand);
-    body.appendChild(title);
-    if (!price.hidden) body.appendChild(price);
-
-    a.appendChild(media);
-    a.appendChild(body);
-    return a;
-  }
-
-  /** @param {object[]} pool */
-  function mountHomeRecentlyViewedRail(pool) {
-    const section = document.getElementById("home-hero-viewed-rail");
-    const scroller = document.getElementById("home-hero-recently-viewed");
-    if (!section || !scroller) return;
-
-    const list = resolveHomeRecentlyViewedItems(pool, 10).filter((it) => buildCoverCandidates(it).length > 0);
-    if (!list.length) {
-      section.hidden = true;
-      return;
-    }
-
-    section.hidden = false;
-    scroller.replaceChildren();
-    for (const item of list) {
-      scroller.appendChild(buildHomeRecentlyViewedCard(item));
-    }
-    wireHomeHorizontalRailScroller(scroller);
-  }
-
   /**
    * @param {HTMLImageElement} img
    * @param {object} item
@@ -13066,8 +12928,6 @@
       highlightItems.map((it) => String(it?.id ?? "").trim()).filter(Boolean)
     );
     mountHomeDivisionRail(items, { excludeItemIds: highlightItemIds });
-
-    mountHomeRecentlyViewedRail(items);
 
     syncCategoryTabUI();
   }
@@ -17260,13 +17120,6 @@
     height: 500,
     quality: 82,
     resize: /** @type {const} */ ("cover"),
-  });
-
-  const HOME_RECENTLY_VIEWED_RENDER = Object.freeze({
-    width: 400,
-    height: 533,
-    quality: 82,
-    resize: /** @type {const} */ ("contain"),
   });
 
   const HEADER_SUBMENU_PREVIEW_RENDER = Object.freeze({
@@ -27801,7 +27654,6 @@
 
     root.classList.remove("item-detail__root--not-found");
     document.title = `${item.brand} — ${displayNameWithoutLeadingColour(item)} · Timeless Wardrobe`;
-    recordRecentlyViewedItem(item.id);
     const wantEditRequested = wantEdit;
     let allowEdit = wantEditRequested && canUseItemDetailEdit();
     if (wantEditRequested && !allowEdit) {
