@@ -160,8 +160,8 @@
   --z-utility-bar: 1200;
   --z-site-header-chrome: 1200;
   /* Collection drawers / panels that must cover sticky header chrome (mobile filter sheet, Outfits). */
-  --z-styling-board-backdrop: 1290;
-  --z-styling-board-drawer: 1300;
+  --z-outfits-backdrop: 1290;
+  --z-outfits-drawer: 1300;
   --z-header-search-overlay: 1400;
   /* Search + Outfits compact sheets share one motion curve (ease-luxe = softer deceleration). */
   --tw-header-overlay-duration: 400ms;
@@ -208,7 +208,7 @@
 }
 
 .site-header__search-close > span[aria-hidden="true"],
-.styling-board-drawer__close > span[aria-hidden="true"],
+.outfits-drawer__close > span[aria-hidden="true"],
 .site-mobile-nav__drill-close > .site-mobile-shell__close-icon,
 .item-image-zoom__close > span[aria-hidden="true"],
 .filters__search-clear-icon,
@@ -227,8 +227,8 @@
 
 .site-header__search-close > span[aria-hidden="true"]::before,
 .site-header__search-close > span[aria-hidden="true"]::after,
-.styling-board-drawer__close > span[aria-hidden="true"]::before,
-.styling-board-drawer__close > span[aria-hidden="true"]::after,
+.outfits-drawer__close > span[aria-hidden="true"]::before,
+.outfits-drawer__close > span[aria-hidden="true"]::after,
 .site-mobile-nav__drill-close > .site-mobile-shell__close-icon::before,
 .site-mobile-nav__drill-close > .site-mobile-shell__close-icon::after,
 .item-image-zoom__close > span[aria-hidden="true"]::before,
@@ -248,7 +248,7 @@
 }
 
 .site-header__search-close > span[aria-hidden="true"]::before,
-.styling-board-drawer__close > span[aria-hidden="true"]::before,
+.outfits-drawer__close > span[aria-hidden="true"]::before,
 .site-mobile-nav__drill-close > .site-mobile-shell__close-icon::before,
 .item-image-zoom__close > span[aria-hidden="true"]::before,
 .filters__search-clear-icon::before,
@@ -257,7 +257,7 @@
 }
 
 .site-header__search-close > span[aria-hidden="true"]::after,
-.styling-board-drawer__close > span[aria-hidden="true"]::after,
+.outfits-drawer__close > span[aria-hidden="true"]::after,
 .site-mobile-nav__drill-close > .site-mobile-shell__close-icon::after,
 .item-image-zoom__close > span[aria-hidden="true"]::after,
 .filters__search-clear-icon::after,
@@ -1325,16 +1325,16 @@ body.home-page .site-header--scroll-driven::before {
 .site-header--overlay .site-header__search-btn,
 .site-header--solid .site-header__account-link,
 .site-header--overlay .site-header__account-link,
-.site-header--solid .site-header__styling-board-btn,
-.site-header--overlay .site-header__styling-board-btn,
-.site-header--solid .site-header__styling-board-label,
-.site-header--overlay .site-header__styling-board-label,
+.site-header--solid .site-header__outfits-btn,
+.site-header--overlay .site-header__outfits-btn,
+.site-header--solid .site-header__outfits-label,
+.site-header--overlay .site-header__outfits-label,
 .site-header--solid .site-header__saved-btn,
 .site-header--overlay .site-header__saved-btn,
 .site-header--solid .site-header__menu-btn,
 .site-header--overlay .site-header__menu-btn,
-.site-header--solid .site-header__styling-board-icon,
-.site-header--overlay .site-header__styling-board-icon,
+.site-header--solid .site-header__outfits-icon,
+.site-header--overlay .site-header__outfits-icon,
 .site-header--solid .site-header__saved-icon,
 .site-header--overlay .site-header__saved-icon {
   color: inherit;
@@ -1367,8 +1367,8 @@ body.home-page .site-header--scroll-driven::before {
   color: currentColor;
 }
 
-.site-header--solid .site-header__styling-board-icon svg,
-.site-header--overlay .site-header__styling-board-icon svg,
+.site-header--solid .site-header__outfits-icon svg,
+.site-header--overlay .site-header__outfits-icon svg,
 .site-header--solid .site-header__saved-icon svg,
 .site-header--overlay .site-header__saved-icon svg {
   stroke: currentColor;
@@ -1565,7 +1565,7 @@ body.home-page .site-header--scroll-driven::before {
 .site-header__tools > .site-header__season-mini,
 .site-header__tools > .site-header__search-btn,
 .site-header__tools > .site-header__account-link,
-.site-header__tools > .site-header__styling-board-btn,
+.site-header__tools > .site-header__outfits-btn,
 .site-header__tools > .site-header__saved-btn,
 .site-header__tools > .site-header__menu-btn,
 .site-header__tools > .site-header__editor-auth {
@@ -1586,7 +1586,7 @@ body.home-page .site-header--scroll-driven::before {
   text-transform: uppercase;
 }
 
-.site-header__styling-board-btn,
+.site-header__outfits-btn,
 .site-header__saved-btn {
   display: inline-flex;
   align-items: center;
@@ -1605,7 +1605,7 @@ body.home-page .site-header--scroll-driven::before {
 
 .site-header__search-icon,
 .site-header__account-icon,
-.site-header__styling-board-icon,
+.site-header__outfits-icon,
 .site-header__menu-icon {
   position: relative;
   display: flex;
@@ -1637,7 +1637,7 @@ body.home-page .site-header--scroll-driven::before {
 
 .site-header__search-icon svg,
 .site-header__account-icon svg,
-.site-header__styling-board-icon svg,
+.site-header__outfits-icon svg,
 .site-header__menu-icon svg,
 .site-header__saved-icon svg {
   display: block;
@@ -1658,7 +1658,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 .site-header__tool-glyph,
-.styling-board-glyph__grid {
+.outfits-glyph__grid {
   fill: none;
   stroke: currentColor;
   stroke-width: var(--site-header-tool-glyph-stroke, 1.4);
@@ -1673,20 +1673,20 @@ body.home-page .site-header--scroll-driven::before {
   stroke-linecap: round;
 }
 
-.styling-board-glyph {
+.outfits-glyph {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.styling-board-glyph__cell {
+.outfits-glyph__cell {
   fill: currentColor;
   stroke: none;
   opacity: 0;
   transition: opacity 0.22s var(--ease-out);
 }
 
-.site-header__styling-board-label {
+.site-header__outfits-label {
   font-family: var(--font-sans);
   font-size: 0.66rem;
   font-weight: 500;
@@ -1696,7 +1696,7 @@ body.home-page .site-header--scroll-driven::before {
   color: inherit;
 }
 
-.site-header__styling-board-count {
+.site-header__outfits-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1723,8 +1723,8 @@ body.home-page .site-header--scroll-driven::before {
 
 /* Outfits count — solid header: green pill, ivory numeral. */
 @media (max-width: 1024px) {
-  .site-header--solid .site-header__styling-board-btn .site-header__styling-board-count,
-  .site-header--overlay:focus-within .site-header__styling-board-btn .site-header__styling-board-count {
+  .site-header--solid .site-header__outfits-btn .site-header__outfits-count,
+  .site-header--overlay:focus-within .site-header__outfits-btn .site-header__outfits-count {
     -webkit-mask-image: none;
     mask-image: none;
     background-color: var(--tw-header-badge-bg, var(--tw-brand-green));
@@ -1735,7 +1735,7 @@ body.home-page .site-header--scroll-driven::before {
   }
 }
 
-.site-header__styling-board-label-wrap {
+.site-header__outfits-label-wrap {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -1743,12 +1743,12 @@ body.home-page .site-header--scroll-driven::before {
   line-height: 1;
 }
 
-.site-header__styling-board-btn {
+.site-header__outfits-btn {
   position: relative;
   overflow: visible;
 }
 
-.site-header__styling-board-btn .site-header__styling-board-count {
+.site-header__outfits-btn .site-header__outfits-count {
   position: absolute;
   z-index: 1;
   display: inline-flex;
@@ -1765,25 +1765,25 @@ body.home-page .site-header--scroll-driven::before {
 
 /* Desktop — icon-only hanger (no text label). */
 @media (min-width: 1025px) {
-  .site-header__styling-board-btn {
+  .site-header__outfits-btn {
     align-items: center;
     gap: 0;
   }
 
-  .site-header__styling-board-icon {
+  .site-header__outfits-icon {
     align-self: center;
     flex: 0 0 auto;
   }
 
-  .site-header__styling-board-label {
+  .site-header__outfits-label {
     display: none;
   }
 
-  .site-header__styling-board-label-wrap {
+  .site-header__outfits-label-wrap {
     display: contents;
   }
 
-  .site-header__styling-board-btn .site-header__styling-board-count {
+  .site-header__outfits-btn .site-header__outfits-count {
     top: 0.14rem;
     right: 0.12rem;
     left: auto;
@@ -1791,23 +1791,23 @@ body.home-page .site-header--scroll-driven::before {
 
   /* Transparent header — dim badge to match glyph opacity. */
   .site-header--overlay:not(:hover):not(:focus-within)
-    .site-header__styling-board-btn:not(:hover):not(:focus-visible):not([aria-expanded=”true”])
-    .site-header__styling-board-count {
+    .site-header__outfits-btn:not(:hover):not(:focus-visible):not([aria-expanded=”true”])
+    .site-header__outfits-count {
     opacity: var(--site-header-tool-glyph-opacity, 0.72);
   }
 }
 
 /* Mobile — icon-corner badge; transparent header = filled disc + knockout numeral. */
 @media (max-width: 1024px) {
-  .site-header__styling-board-label-wrap {
+  .site-header__outfits-label-wrap {
     display: contents;
   }
 
-  .site-header__styling-board-btn {
+  .site-header__outfits-btn {
     gap: 0;
   }
 
-  .site-header__styling-board-btn .site-header__styling-board-count {
+  .site-header__outfits-btn .site-header__outfits-count {
     top: 0.14rem;
     right: 0.12rem;
     left: auto;
@@ -1815,29 +1815,29 @@ body.home-page .site-header--scroll-driven::before {
 
 }
 
-.site-header__styling-board-count[hidden] {
+.site-header__outfits-count[hidden] {
   display: none !important;
 }
 
-.site-header__styling-board-btn[aria-expanded="true"],
+.site-header__outfits-btn[aria-expanded="true"],
 .site-header__saved-btn[aria-expanded="true"] {
   color: var(--ink);
 }
 
 /* Outfits — pressed/open tool chrome (search/menu stay icon-only). */
-.site-header__styling-board-btn[aria-expanded="true"],
+.site-header__outfits-btn[aria-expanded="true"],
 .site-header__saved-btn[aria-expanded="true"] {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-.site-header--overlay .site-header__styling-board-btn[aria-expanded="true"],
+.site-header--overlay .site-header__outfits-btn[aria-expanded="true"],
 .site-header--overlay .site-header__saved-btn[aria-expanded="true"] {
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
 }
 
 @media (max-width: 1024px) {
-  .site-header__styling-board-label {
+  .site-header__outfits-label {
   @apply -m-px;
     position: absolute;
     width: 1px;
@@ -1849,7 +1849,7 @@ body.home-page .site-header--scroll-driven::before {
     border: 0;
   }
 
-  .site-header__styling-board-btn,
+  .site-header__outfits-btn,
   .site-header__saved-btn {
     width: 2.35rem;
     padding: 0;
@@ -1859,14 +1859,14 @@ body.home-page .site-header--scroll-driven::before {
      only :focus-visible / [aria-expanded] drive these (NOT :hover). */
   .site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-header__menu-btn:is(:focus-visible, [aria-expanded="true"]),
-  .site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header__outfits-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-header__saved-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-header--overlay .site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-header--overlay .site-header__menu-btn:is(:focus-visible, [aria-expanded="true"]),
-  .site-header--overlay .site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header--overlay .site-header__outfits-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-header--overlay .site-header__saved-btn:is(:focus-visible, [aria-expanded="true"]),
   .site-mobile-shell__tool.site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
-  .site-mobile-shell__tool.site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]) {
+  .site-mobile-shell__tool.site-header__outfits-btn:is(:focus-visible, [aria-expanded="true"]) {
     background: transparent;
   }
 
@@ -2106,9 +2106,9 @@ body.home-page .site-header--scroll-driven::before {
   background: transparent;
 }
 
-.site-header__styling-board-btn:hover,
+.site-header__outfits-btn:hover,
 .site-header__saved-btn:hover,
-.site-header__styling-board-btn:focus-visible,
+.site-header__outfits-btn:focus-visible,
 .site-header__saved-btn:focus-visible {
   background: transparent;
 }
@@ -2124,9 +2124,9 @@ body.home-page .site-header--scroll-driven::before {
   background: transparent;
 }
 
-.site-header--overlay .site-header__styling-board-btn:hover,
+.site-header--overlay .site-header__outfits-btn:hover,
 .site-header--overlay .site-header__saved-btn:hover,
-.site-header--overlay .site-header__styling-board-btn:focus-visible,
+.site-header--overlay .site-header__outfits-btn:focus-visible,
 .site-header--overlay .site-header__saved-btn:focus-visible {
   background: rgba(255, 255, 255, 0.12);
 }
@@ -2147,16 +2147,16 @@ body.home-page .site-header--scroll-driven::before {
   background: transparent;
 }
 
-.site-header:hover .site-header__styling-board-btn:hover,
+.site-header:hover .site-header__outfits-btn:hover,
 .site-header:hover .site-header__saved-btn:hover,
-.site-header:focus-within .site-header__styling-board-btn:hover,
+.site-header:focus-within .site-header__outfits-btn:hover,
 .site-header:focus-within .site-header__saved-btn:hover {
   background: transparent;
 }
 
 .site-header__search-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
 .site-header__account-link:is(:hover, :focus-visible) .site-header__tool-glyph,
-.site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
+.site-header__outfits-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
 .site-header__saved-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
 .site-header__menu-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph {
   stroke-opacity: 1;
@@ -2175,18 +2175,18 @@ body.home-page .site-header--scroll-driven::before {
   display: block;
 }
 
-.site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"])
-  .site-header__styling-board-label {
+.site-header__outfits-btn:is(:hover, :focus-visible, [aria-expanded="true"])
+  .site-header__outfits-label {
   color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 88%, var(--ink));
 }
 
-.site-header__styling-board-btn:hover .site-header__styling-board-label {
+.site-header__outfits-btn:hover .site-header__outfits-label {
   color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 88%, var(--ink));
 }
 
 .site-header__search-btn:focus-visible,
 .site-header__account-link:focus-visible,
-.site-header__styling-board-btn:focus-visible,
+.site-header__outfits-btn:focus-visible,
 .site-header__saved-btn:focus-visible,
 .site-header__menu-btn:focus-visible,
 .site-header__collection-back:focus-visible {
@@ -3891,7 +3891,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-header__brand-nav .site-header__season-mini,
   .site-header__brand-nav .site-header__season-mini-tab,
   .site-header__brand-nav .site-header__tools > .site-header__search-btn,
-  .site-header__brand-nav .site-header__tools > .site-header__styling-board-btn,
+  .site-header__brand-nav .site-header__tools > .site-header__outfits-btn,
   .site-header__brand-nav .site-header__tools > .site-header__saved-btn {
     min-height: var(--site-header-control-h);
     height: var(--site-header-control-h);
@@ -4825,8 +4825,8 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   }
 
   .site-header__tools > .site-header__search-btn + .site-header__account-link,
-  .site-header__tools > .site-header__account-link + .site-header__styling-board-btn,
-  .site-header__tools > .site-header__search-btn + .site-header__styling-board-btn {
+  .site-header__tools > .site-header__account-link + .site-header__outfits-btn,
+  .site-header__tools > .site-header__search-btn + .site-header__outfits-btn {
     margin-inline-start: -0.625rem;
   }
 
@@ -4869,17 +4869,17 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 
   .site-header__division-hover-zone .site-header__nav-link,
   .site-header__season-mini-tab,
-  .site-header__styling-board-label {
+  .site-header__outfits-label {
     font-size: 11px;
   }
 
-  .site-header__styling-board-btn .site-header__styling-board-count {
+  .site-header__outfits-btn .site-header__outfits-count {
     font-size: 0.5rem;
   }
 
   .site-header__search-btn,
   .site-header__account-link,
-  .site-header__styling-board-btn,
+  .site-header__outfits-btn,
   .site-header__saved-btn {
     align-self: center;
     flex: 0 0 auto;
@@ -4898,7 +4898,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     padding: 0;
   }
 
-  .site-header__styling-board-btn,
+  .site-header__outfits-btn,
   .site-header__saved-btn {
     padding-inline: 0.55rem;
     padding-block: 0;
@@ -4924,16 +4924,16 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-header--overlay:hover .site-header__account-link:hover,
   .site-header--overlay:focus-within .site-header__search-btn:hover,
   .site-header--overlay:focus-within .site-header__account-link:hover,
-  .site-header__styling-board-btn:hover,
-  .site-header__styling-board-btn:focus-visible,
-  .site-header__styling-board-btn[aria-expanded="true"],
-  .site-header--overlay .site-header__styling-board-btn:hover,
-  .site-header--overlay .site-header__styling-board-btn:focus-visible,
-  .site-header--overlay .site-header__styling-board-btn[aria-expanded="true"],
-  .site-header:hover .site-header__styling-board-btn:hover,
-  .site-header:focus-within .site-header__styling-board-btn:hover,
-  .site-header--overlay:hover .site-header__styling-board-btn:hover,
-  .site-header--overlay:focus-within .site-header__styling-board-btn:hover {
+  .site-header__outfits-btn:hover,
+  .site-header__outfits-btn:focus-visible,
+  .site-header__outfits-btn[aria-expanded="true"],
+  .site-header--overlay .site-header__outfits-btn:hover,
+  .site-header--overlay .site-header__outfits-btn:focus-visible,
+  .site-header--overlay .site-header__outfits-btn[aria-expanded="true"],
+  .site-header:hover .site-header__outfits-btn:hover,
+  .site-header:focus-within .site-header__outfits-btn:hover,
+  .site-header--overlay:hover .site-header__outfits-btn:hover,
+  .site-header--overlay:focus-within .site-header__outfits-btn:hover {
     background: transparent;
     border-radius: 0;
     color: inherit;
@@ -4949,9 +4949,9 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     stroke-width: 1.65;
   }
 
-  .site-header__styling-board-btn:hover .site-header__styling-board-label,
-  .site-header__styling-board-btn:focus-visible .site-header__styling-board-label,
-  .site-header__styling-board-btn[aria-expanded="true"] .site-header__styling-board-label {
+  .site-header__outfits-btn:hover .site-header__outfits-label,
+  .site-header__outfits-btn:focus-visible .site-header__outfits-label,
+  .site-header__outfits-btn[aria-expanded="true"] .site-header__outfits-label {
     font-weight: 600;
     text-decoration-line: none;
     color: inherit;
@@ -5732,7 +5732,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Compact search = same model as `.styling-board-drawer` (fixed full-viewport root + dim + bottom sheet).
+   * Compact search = same model as `.outfits-drawer` (fixed full-viewport root + dim + bottom sheet).
    * Sheet slides up from below to cover the viewport (Outfits parity).
    */
   .site-header__search-wrap,
@@ -6043,7 +6043,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-header__search-btn,
   .site-header__account-link,
-  .site-header__styling-board-btn,
+  .site-header__outfits-btn,
   .site-header__menu-btn {
     flex-shrink: 0;
     width: 2.35rem;
@@ -6052,7 +6052,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     padding: 0;
   }
 
-  .site-header__styling-board-btn {
+  .site-header__outfits-btn {
     position: relative;
     gap: 0;
     overflow: visible;
@@ -6780,14 +6780,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     opacity: 1;
     pointer-events: auto;
     /* Below shell (1300) so dim never tints the menu panel interior. */
-    z-index: calc(var(--z-styling-board-backdrop, 1290) - 1);
+    z-index: calc(var(--z-outfits-backdrop, 1290) - 1);
   }
 
   /* Home overlay shell is z 1200; drawer must sit above hero in that context. */
   body.collection-ui--mobile-nav-open .site-mobile-shell,
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open,
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-closing {
-    z-index: var(--z-styling-board-drawer, 1300);
+    z-index: var(--z-outfits-drawer, 1300);
   }
 
   .site-mobile-shell {
@@ -6825,7 +6825,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-mobile-shell.is-open,
   .site-mobile-shell.is-closing {
-    z-index: var(--z-styling-board-drawer, 1300);
+    z-index: var(--z-outfits-drawer, 1300);
   }
 
   .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
@@ -6964,7 +6964,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-mobile-shell__tool.site-header__search-btn,
-  .site-mobile-shell__tool.site-header__styling-board-btn {
+  .site-mobile-shell__tool.site-header__outfits-btn {
     width: 2.35rem;
     height: 2.35rem;
     min-width: 2.35rem;
@@ -6977,7 +6977,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     outline-offset: 2px;
   }
 
-  .site-mobile-shell__tool--board .site-header__styling-board-label {
+  .site-mobile-shell__tool--board .site-header__outfits-label {
     display: none;
   }
 
@@ -7709,7 +7709,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: calc(var(--z-styling-board-drawer, 1300) + 2);
+    z-index: calc(var(--z-outfits-drawer, 1300) + 2);
     overflow: hidden;
     overflow-x: clip;
     opacity: 1;
@@ -9715,11 +9715,11 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
 }
 
 /* Outfits — right drawer (private wardrobe notebook) */
-.styling-board-drawer[hidden] {
+.outfits-drawer[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer {
+.outfits-drawer {
   --sb-ink: var(--ink, #181614);
   --sb-ink-soft: #4a4540;
   --sb-ink-muted: #5c5650;
@@ -9748,14 +9748,14 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   width: 100%;
   height: 100svh;
   height: 100dvh;
-  z-index: var(--z-styling-board-drawer, 1100);
+  z-index: var(--z-outfits-drawer, 1100);
 }
 
-.styling-board-drawer__backdrop {
+.outfits-drawer__backdrop {
   @apply m-0;
   position: absolute;
   inset: 0;
-  z-index: var(--z-styling-board-backdrop, 1000);
+  z-index: var(--z-outfits-backdrop, 1000);
   display: block;
   width: 100%;
   height: 100%;
@@ -9767,12 +9767,12 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   transition: opacity 0.28s var(--ease-out);
 }
 
-.styling-board-drawer__sheet {
+.outfits-drawer__sheet {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: calc(var(--z-styling-board-backdrop, 1000) + 1);
+  z-index: calc(var(--z-outfits-backdrop, 1000) + 1);
   display: flex;
   flex-direction: column;
   width: min(100%, clamp(20rem, 42vw, 34rem));
@@ -9787,52 +9787,52 @@ body.collection-ui--filter-drawer .site-header__search-wrap {
   transition: transform 0.32s var(--ease-luxe);
 }
 
-.styling-board-drawer--visible .styling-board-drawer__backdrop {
+.outfits-drawer--visible .outfits-drawer__backdrop {
   opacity: 1;
 }
 
-.styling-board-drawer--visible .styling-board-drawer__sheet {
+.outfits-drawer--visible .outfits-drawer__sheet {
   transform: translateX(0);
 }
 
 /* Outfits drawer must sit above mega menu / search flyouts when opened from header. */
-body.collection-ui--styling-board .styling-board-drawer {
+body.collection-ui--outfits .outfits-drawer {
   z-index: calc(var(--z-header-search-overlay, 1400) + 1);
 }
 
 /* Outfits drawer open — site masthead stays #F7F4ED (never transparent overlay). */
-body.collection-ui--styling-board .site-header,
-body.collection-ui--styling-board .site-header.site-header--overlay,
-body.collection-ui--styling-board .site-header.site-header--solid,
-body.collection-ui--styling-board .site-header.site-header--overlay:hover,
-body.collection-ui--styling-board .site-header.site-header--overlay:focus-within {
+body.collection-ui--outfits .site-header,
+body.collection-ui--outfits .site-header.site-header--overlay,
+body.collection-ui--outfits .site-header.site-header--solid,
+body.collection-ui--outfits .site-header.site-header--overlay:hover,
+body.collection-ui--outfits .site-header.site-header--overlay:focus-within {
   background-color: #f7f4ed;
 }
 
-body.collection-ui--styling-board .site-header__submenu,
-body.collection-ui--styling-board .site-header__submenu.desktop-mega-menu,
-body.collection-ui--styling-board .site-header__search-megamenu,
-body.collection-ui--styling-board .site-header__search-megamenu-inner {
+body.collection-ui--outfits .site-header__submenu,
+body.collection-ui--outfits .site-header__submenu.desktop-mega-menu,
+body.collection-ui--outfits .site-header__search-megamenu,
+body.collection-ui--outfits .site-header__search-megamenu-inner {
   background-color: #eee9df;
   background-image: none;
 }
 
 /* Mobile Outfits drawer — full-width bottom sheet (slide up / down). */
 @media (max-width: 900px) {
-  body.collection-ui--styling-board .styling-board-drawer {
-    z-index: calc(var(--z-styling-board-drawer, 1300) + 10);
+  body.collection-ui--outfits .outfits-drawer {
+    z-index: calc(var(--z-outfits-drawer, 1300) + 10);
   }
 
-  .styling-board-drawer {
-    --tw-styling-board-sheet-duration: var(--tw-header-overlay-duration);
-    --tw-styling-board-sheet-ease: var(--tw-header-overlay-ease);
+  .outfits-drawer {
+    --tw-outfits-sheet-duration: var(--tw-header-overlay-duration);
+    --tw-outfits-sheet-ease: var(--tw-header-overlay-ease);
   }
 
-  .styling-board-drawer__backdrop {
+  .outfits-drawer__backdrop {
     transition: opacity var(--tw-header-overlay-duration) var(--tw-header-overlay-ease);
   }
 
-  .styling-board-drawer__sheet {
+  .outfits-drawer__sheet {
     top: auto;
     right: 0;
     left: 0;
@@ -9850,13 +9850,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     transform: translate3d(0, 100%, 0);
     opacity: 0;
     transition:
-      transform var(--tw-styling-board-sheet-duration) var(--tw-styling-board-sheet-ease),
-      opacity calc(var(--tw-styling-board-sheet-duration) * 0.85) var(--tw-styling-board-sheet-ease);
+      transform var(--tw-outfits-sheet-duration) var(--tw-outfits-sheet-ease),
+      opacity calc(var(--tw-outfits-sheet-duration) * 0.85) var(--tw-outfits-sheet-ease);
     overscroll-behavior: contain;
     will-change: transform, opacity;
   }
 
-  .styling-board-drawer--visible .styling-board-drawer__sheet {
+  .outfits-drawer--visible .outfits-drawer__sheet {
     transform: translate3d(0, 0, 0);
     opacity: 1;
     will-change: auto;
@@ -9865,22 +9865,22 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 @media (max-width: 900px) {
   /* Drawer shell must never create page-level horizontal overflow. */
-  .styling-board-drawer,
-  .styling-board-drawer__sheet,
-  .styling-board-drawer__scroll,
-  .styling-board__current,
-  .styling-board__saved.saved-outfits,
-  .styling-board__board-row,
-  .styling-board__board-stack,
-  .styling-board-drawer .saved-outfits__list {
+  .outfits-drawer,
+  .outfits-drawer__sheet,
+  .outfits-drawer__scroll,
+  .outfits__current,
+  .outfits__saved.saved-outfits,
+  .outfits__board-row,
+  .outfits__board-stack,
+  .outfits-drawer .saved-outfits__list {
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     min-width: 0;
   }
 
-  .styling-board-drawer {
-    --styling-board-scroll-inline: clamp(1.125rem, 5vw, 1.25rem);
+  .outfits-drawer {
+    --outfits-scroll-inline: clamp(1.125rem, 5vw, 1.25rem);
     left: 0;
     right: 0;
     width: 100vw;
@@ -9890,7 +9890,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     overflow-x: hidden;
   }
 
-  .styling-board-drawer__sheet {
+  .outfits-drawer__sheet {
     left: 0;
     right: 0;
     /* Always fill the viewport to the very top — never a content-height sheet that
@@ -9905,41 +9905,41 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     transform: translate3d(0, 100%, 0);
   }
 
-  .styling-board-drawer__header {
-    padding: 1.1rem var(--styling-board-scroll-inline) 0.9rem;
+  .outfits-drawer__header {
+    padding: 1.1rem var(--outfits-scroll-inline) 0.9rem;
   }
 
-  .styling-board-drawer__scroll {
+  .outfits-drawer__scroll {
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 0.95rem var(--styling-board-scroll-inline) 0.35rem;
+    padding: 0.95rem var(--outfits-scroll-inline) 0.35rem;
   }
 
-  .styling-board-drawer__footer {
+  .outfits-drawer__footer {
     gap: 0.42rem;
-    padding: 0.55rem var(--styling-board-scroll-inline) max(0.72rem, calc(env(safe-area-inset-bottom, 0px) + 0.45rem));
+    padding: 0.55rem var(--outfits-scroll-inline) max(0.72rem, calc(env(safe-area-inset-bottom, 0px) + 0.45rem));
   }
 
-  .styling-board-drawer__scroll > *,
-  .styling-board-drawer__sheet > *,
-  .styling-board__current > *,
-  .styling-board__board-row > *,
-  .styling-board__board-stack > * {
+  .outfits-drawer__scroll > *,
+  .outfits-drawer__sheet > *,
+  .outfits__current > *,
+  .outfits__board-row > *,
+  .outfits__board-stack > * {
     box-sizing: border-box;
     max-width: 100%;
   }
 
-  .styling-board-drawer .styling-board__current-head > #outfit-clear,
-  .styling-board-drawer #outfit-clear {
+  .outfits-drawer .outfits__current-head > #outfit-clear,
+  .outfits-drawer #outfit-clear {
     font-size: 0.54rem;
     opacity: 0.38;
     color: color-mix(in srgb, var(--sb-ink-muted) 88%, transparent);
   }
 
-  .styling-board-drawer .styling-board__current-head > #outfit-clear:hover,
-  .styling-board-drawer .styling-board__current-head > #outfit-clear:focus-visible,
-  .styling-board-drawer #outfit-clear:hover,
-  .styling-board-drawer #outfit-clear:focus-visible {
+  .outfits-drawer .outfits__current-head > #outfit-clear:hover,
+  .outfits-drawer .outfits__current-head > #outfit-clear:focus-visible,
+  .outfits-drawer #outfit-clear:hover,
+  .outfits-drawer #outfit-clear:focus-visible {
     opacity: 1;
     color: color-mix(in srgb, var(--sb-ink-soft) 92%, transparent);
   }
@@ -9947,7 +9947,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   /* Current Outfit: horizontal rail only — calm swipe, no overlap theatrics.
      Row sits at the content edge so the first card aligns with the
      "Current outfit" heading (no full-bleed negative margin). */
-  .styling-board-drawer .styling-board__board-row {
+  .outfits-drawer .outfits__board-row {
     overflow: visible;
     min-width: 0;
     margin-inline: 0;
@@ -9955,18 +9955,18 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     max-width: 100%;
   }
 
-  .styling-board-drawer .styling-board__board-stack {
+  .outfits-drawer .outfits__board-stack {
     overflow: visible;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip {
+  .outfits-drawer .outfits__board-stack > #outfit-strip {
     gap: 0.55rem;
     padding: 0.2rem env(safe-area-inset-right, 0px) 0.15rem env(safe-area-inset-left, 0px);
-    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-start: var(--outfits-scroll-inline);
     scroll-padding-inline-end: 0;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip {
+  .outfits-drawer .outfits__pieces.outfit-strip {
     gap: 0.55rem;
     width: 100%;
     max-width: 100%;
@@ -9974,24 +9974,24 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     overflow-x: auto;
     overflow-y: auto;
     scroll-snap-type: none;
-    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-start: var(--outfits-scroll-inline);
     scroll-padding-inline-end: 0;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+  .outfits-drawer .outfits__pieces.outfit-strip::-webkit-scrollbar {
     display: none;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__board-stack {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__board-stack > #outfit-strip {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__board-stack > #outfit-strip {
     flex: 0 0 auto;
     padding-bottom: 0.1rem;
     scrollbar-width: none;
@@ -9999,39 +9999,39 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     -webkit-overflow-scrolling: touch;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip {
+  .outfits-drawer .outfits__pieces.outfit-strip,
+  .outfits-drawer .outfits__board-stack > #outfit-strip {
     cursor: grab;
     scroll-snap-type: none;
     scroll-snap-stop: normal;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-inline-end: var(--styling-board-scroll-inline, 1.25rem);
+    scroll-padding-inline-end: var(--outfits-scroll-inline, 1.25rem);
     transition:
       transform 240ms var(--ease-out),
       filter 260ms var(--ease-out);
     will-change: transform, filter;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip.is-dragging,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip.is-dragging {
+  .outfits-drawer .outfits__pieces.outfit-strip.is-dragging,
+  .outfits-drawer .outfits__board-stack > #outfit-strip.is-dragging {
     cursor: grabbing;
     scroll-snap-type: none;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip.is-edge-bump-right,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip.is-edge-bump-right {
+  .outfits-drawer .outfits__pieces.outfit-strip.is-edge-bump-right,
+  .outfits-drawer .outfits__board-stack > #outfit-strip.is-edge-bump-right {
     transform: translateX(-4px);
     filter: saturate(1.03) brightness(0.99);
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip.is-edge-bump-left,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip.is-edge-bump-left {
+  .outfits-drawer .outfits__pieces.outfit-strip.is-edge-bump-left,
+  .outfits-drawer .outfits__board-stack > #outfit-strip.is-edge-bump-left {
     transform: translateX(4px);
     filter: saturate(1.03) brightness(0.99);
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress {
     position: relative;
     display: block;
     flex: 0 0 auto;
@@ -10047,11 +10047,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     background: transparent;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress[hidden] {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress[hidden] {
     display: none !important;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress::before {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress::before {
     content: "";
     position: absolute;
     left: 0;
@@ -10064,7 +10064,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     pointer-events: none;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar {
     position: absolute;
     left: 0;
     top: calc(50% - 1px);
@@ -10080,13 +10080,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     cursor: grab;
   }
 
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress.is-dragging .ed-lp__rail-progress-bar,
-  .styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar.is-dragging {
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress.is-dragging .ed-lp__rail-progress-bar,
+  .outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar.is-dragging {
     cursor: grabbing;
     transition: none;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
     --outfit-stagger-y: 0px;
     --outfit-slot-h: 9.25rem;
@@ -10108,41 +10108,41 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     transform: none;
   }
 
-  .styling-board-drawer .outfit-slot__thumb {
+  .outfits-drawer .outfit-slot__thumb {
     flex: 1 1 auto;
     max-height: none;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:nth-child(n) {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot:nth-child(n) {
     --outfit-stagger-y: 0px;
     z-index: 0;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(.outfit-slot--dismissing),
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(.outfit-slot--dismissing) {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(.outfit-slot--dismissing),
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(.outfit-slot--dismissing) {
     transform: none;
     box-shadow: var(--wardrobe-card-shadow);
   }
 
-  .styling-board-drawer .outfit-slot__meta {
+  .outfits-drawer .outfit-slot__meta {
     padding: 0.85rem 0.18rem 0.42rem;
   }
 
-  .styling-board-drawer .outfit-slot__name {
+  .outfits-drawer .outfit-slot__name {
     font-size: 0.56rem;
     line-height: 1.15;
     -webkit-line-clamp: 1;
     line-clamp: 1;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot--enter:not(.outfit-slot--dismissing),
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot--just-added:not(.outfit-slot--dismissing),
-  .styling-board-drawer .saved-card--enter {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot--enter:not(.outfit-slot--dismissing),
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot--just-added:not(.outfit-slot--dismissing),
+  .outfits-drawer .saved-card--enter {
     animation: none;
   }
 
   /* Saved Outfits: below current outfit — same horizontal inset as current block. */
-  .styling-board__saved.saved-outfits {
+  .outfits__saved.saved-outfits {
     margin-top: 0.65rem;
     margin-left: 0;
     margin-right: 0;
@@ -10150,46 +10150,46 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     overflow: visible;
   }
 
-  .styling-board-drawer .saved-outfits__list {
+  .outfits-drawer .saved-outfits__list {
     gap: 0.65rem;
   }
 
-  .styling-board-drawer .saved-card__flatlay {
+  .outfits-drawer .saved-card__flatlay {
     min-height: 3.3rem;
     margin-bottom: 0.1rem;
     padding: 0.08rem 0.5rem 0.2rem;
     overflow: hidden;
   }
 
-  .styling-board-drawer .saved-card__piece {
+  .outfits-drawer .saved-card__piece {
     width: 3.1rem;
     height: 3.3rem;
     margin-left: 0;
   }
 
-  .styling-board-drawer .saved-card__piece:not(:first-child) {
+  .outfits-drawer .saved-card__piece:not(:first-child) {
     margin-left: -0.53rem;
   }
 
-  .styling-board-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
+  .outfits-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
     margin-left: -0.56rem;
   }
 
-  .styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
+  .outfits-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
     margin-left: -0.62rem;
   }
 
-  .styling-board-drawer .saved-card__meta {
+  .outfits-drawer .saved-card__meta {
     font-size: 0.58rem;
     line-height: 1.3;
   }
 
-  .styling-board-drawer .saved-card__ctrl {
+  .outfits-drawer .saved-card__ctrl {
     font-size: 0.56rem;
     letter-spacing: 0.13em;
   }
 
-  .styling-board-drawer .outfit-slot {
+  .outfits-drawer .outfit-slot {
     cursor: default;
     touch-action: pan-x;
     transform: none;
@@ -10198,35 +10198,35 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
       border-color 0.2s var(--ease-out);
   }
 
-  .styling-board-drawer__scroll {
+  .outfits-drawer__scroll {
     scrollbar-width: none;
     scrollbar-color: transparent transparent;
   }
 
-  .styling-board-drawer__scroll::-webkit-scrollbar {
+  .outfits-drawer__scroll::-webkit-scrollbar {
     width: 3px;
   }
 
-  .styling-board-drawer__scroll::-webkit-scrollbar-track {
+  .outfits-drawer__scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .styling-board-drawer__scroll::-webkit-scrollbar-thumb {
+  .outfits-drawer__scroll::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 999px;
   }
 
-  .styling-board-drawer__scroll.is-scrolling {
+  .outfits-drawer__scroll.is-scrolling {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--sb-ink) 22%, transparent) transparent;
   }
 
-  .styling-board-drawer__scroll.is-scrolling::-webkit-scrollbar-thumb {
+  .outfits-drawer__scroll.is-scrolling::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--sb-ink) 26%, transparent);
   }
 }
 
-.styling-board-drawer__header {
+.outfits-drawer__header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
@@ -10237,7 +10237,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   flex-shrink: 0;
 }
 
-.styling-board-drawer__status {
+.outfits-drawer__status {
   grid-column: 1;
   grid-row: 1;
   display: flex;
@@ -10247,11 +10247,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   padding-right: 0.5rem;
 }
 
-.styling-board-drawer__status[hidden] {
+.outfits-drawer__status[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer__status-icon {
+.outfits-drawer__status-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -10263,13 +10263,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   color: var(--sb-ink);
 }
 
-.styling-board-drawer__status-icon svg {
+.outfits-drawer__status-icon svg {
   display: block;
   width: 0.95rem;
   height: 0.95rem;
 }
 
-.styling-board-drawer__status-text {
+.outfits-drawer__status-text {
   @apply m-0;
   font-family: var(--font-serif);
   font-size: clamp(1.2rem, 2.8vw, 1.45rem);
@@ -10279,7 +10279,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   color: var(--sb-ink);
 }
 
-.styling-board-drawer__title {
+.outfits-drawer__title {
   @apply m-0;
   font-family: var(--font-serif);
   font-size: 1.55rem;
@@ -10289,11 +10289,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   line-height: 1.15;
 }
 
-.styling-board-drawer--added .styling-board-drawer__title {
+.outfits-drawer--added .outfits-drawer__title {
   display: none;
 }
 
-.styling-board-drawer__close {
+.outfits-drawer__close {
   @apply m-0;
   border: none;
   background: transparent;
@@ -10304,40 +10304,40 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   justify-self: end;
 }
 
-.styling-board-drawer__close svg {
+.outfits-drawer__close svg {
   display: block;
   width: 1rem;
   height: 1rem;
 }
 
-.styling-board-drawer--added .styling-board-drawer__close {
+.outfits-drawer--added .outfits-drawer__close {
   grid-column: 2;
   grid-row: 1;
   align-self: start;
 }
 
-.styling-board-drawer__close:hover {
+.outfits-drawer__close:hover {
   color: var(--sb-ink);
 }
 
-.styling-board-drawer__close:focus-visible {
+.outfits-drawer__close:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
   outline-offset: 2px;
 }
 
 /* Hero section is no longer used — always hidden */
-.styling-board-drawer__added {
+.outfits-drawer__added {
   display: none !important;
 }
 
 /* "Added to Outfits" header subtitle (item name) */
-.styling-board-drawer--added .styling-board-drawer__status {
+.outfits-drawer--added .outfits-drawer__status {
   flex-wrap: wrap;
   align-items: center;
   row-gap: 0.18rem;
 }
 
-.styling-board-drawer__added-subtitle {
+.outfits-drawer__added-subtitle {
   @apply m-0;
   flex-basis: 100%;
   padding-left: calc(1.65rem + 0.7rem);
@@ -10352,51 +10352,51 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   text-overflow: ellipsis;
 }
 
-.styling-board-drawer__scroll {
-  --styling-board-scroll-inline: 1.35rem;
+.outfits-drawer__scroll {
+  --outfits-scroll-inline: 1.35rem;
   flex: 1;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding: 1.15rem var(--styling-board-scroll-inline) 0.55rem;
+  padding: 1.15rem var(--outfits-scroll-inline) 0.55rem;
   -webkit-overflow-scrolling: touch;
   background: var(--sb-drawer-bg);
   display: flex;
   flex-direction: column;
 }
 
-.styling-board-drawer__scroll > .styling-board-drawer__added {
+.outfits-drawer__scroll > .outfits-drawer__added {
   order: 0;
 }
 
-.styling-board-drawer__scroll > .styling-board__current {
+.outfits-drawer__scroll > .outfits__current {
   order: 1;
   margin-top: 0;
   padding-top: 0;
 }
 
-.styling-board-drawer__scroll > .styling-board__saved.saved-outfits {
+.outfits-drawer__scroll > .outfits__saved.saved-outfits {
   order: 2;
 }
 
-/* Inner sections grow naturally — only `.styling-board-drawer__scroll` scrolls vertically. */
-.styling-board-drawer__scroll .styling-board__current,
-.styling-board-drawer__scroll .styling-board__saved.saved-outfits,
-.styling-board-drawer__scroll .styling-board__board-row,
-.styling-board-drawer__scroll .styling-board__board-stack,
-.styling-board-drawer .saved-outfits__list,
-.styling-board-drawer .saved-outfits__list > li,
-.styling-board-drawer .saved-card,
-.styling-board-drawer .saved-card__body,
-.styling-board-drawer .saved-card__footer,
-.styling-board-drawer .saved-card__flatlay {
+/* Inner sections grow naturally — only `.outfits-drawer__scroll` scrolls vertically. */
+.outfits-drawer__scroll .outfits__current,
+.outfits-drawer__scroll .outfits__saved.saved-outfits,
+.outfits-drawer__scroll .outfits__board-row,
+.outfits-drawer__scroll .outfits__board-stack,
+.outfits-drawer .saved-outfits__list,
+.outfits-drawer .saved-outfits__list > li,
+.outfits-drawer .saved-card,
+.outfits-drawer .saved-card__body,
+.outfits-drawer .saved-card__footer,
+.outfits-drawer .saved-card__flatlay {
   overflow: visible;
   max-height: none;
 }
 
 
-.styling-board-drawer__footer {
+.outfits-drawer__footer {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -10406,7 +10406,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   background: var(--sb-drawer-bg);
 }
 
-.styling-board-drawer__cta {
+.outfits-drawer__cta {
   @apply m-0;
   appearance: none;
   display: block;
@@ -10426,17 +10426,17 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     border-color 0.2s var(--ease-luxe);
 }
 
-.styling-board-drawer__cta--primary {
+.outfits-drawer__cta--primary {
   border: 1px solid var(--tw-brand-signature-navy, #163229);
   background: var(--tw-brand-signature-navy, #163229);
   color: #fff;
 }
 
-.styling-board-drawer__cta--primary:hover {
+.outfits-drawer__cta--primary:hover {
   opacity: 0.92;
 }
 
-.styling-board-drawer__cta--secondary {
+.outfits-drawer__cta--secondary {
   border: 1px solid transparent;
   background: transparent;
   color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 72%, transparent);
@@ -10448,18 +10448,18 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   padding-bottom: 0.5rem;
 }
 
-.styling-board-drawer__cta--secondary:hover {
+.outfits-drawer__cta--secondary:hover {
   color: var(--tw-brand-signature-navy, #163229);
   text-decoration-color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 58%, transparent);
   background: transparent;
 }
 
-.styling-board-drawer__cta:focus-visible {
+.outfits-drawer__cta:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
   outline-offset: 2px;
 }
 
-.styling-board-drawer__clear-all {
+.outfits-drawer__clear-all {
   @apply m-0;
   appearance: none;
   display: block;
@@ -10483,22 +10483,22 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   transition: color 0.15s var(--ease-out);
 }
 
-.styling-board-drawer__clear-all:hover,
-.styling-board-drawer__clear-all:focus-visible {
+.outfits-drawer__clear-all:hover,
+.outfits-drawer__clear-all:focus-visible {
   color: var(--sb-ink);
   text-decoration-color: currentColor;
 }
 
-.styling-board-drawer__clear-all:focus-visible {
+.outfits-drawer__clear-all:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
   outline-offset: 2px;
 }
 
-.styling-board-drawer__clear-all[hidden] {
+.outfits-drawer__clear-all[hidden] {
   display: none !important;
 }
 
-.styling-board__clear-link {
+.outfits__clear-link {
   padding-left: 0;
   padding-right: 0;
   text-transform: none;
@@ -10506,8 +10506,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   font-weight: 500;
 }
 
-.styling-board-drawer .styling-board__clear-link,
-.styling-board-drawer #outfit-clear {
+.outfits-drawer .outfits__clear-link,
+.outfits-drawer #outfit-clear {
   text-transform: none;
   letter-spacing: 0.1em;
   font-size: 0.58rem;
@@ -10524,8 +10524,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     text-decoration-color 0.2s var(--ease-out);
 }
 
-.styling-board-drawer #outfit-clear:hover,
-.styling-board-drawer #outfit-clear:focus-visible {
+.outfits-drawer #outfit-clear:hover,
+.outfits-drawer #outfit-clear:focus-visible {
   background: transparent;
   box-shadow: none;
   color: color-mix(in srgb, var(--sb-ink-soft) 92%, transparent);
@@ -10535,12 +10535,12 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
-.styling-board-drawer .styling-board__current-head > #outfit-clear[hidden] {
+.outfits-drawer .outfits__current-head > #outfit-clear[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer .styling-board__section-title,
-.styling-board-drawer .saved-outfits__title {
+.outfits-drawer .outfits__section-title,
+.outfits-drawer .saved-outfits__title {
   @apply mb-3;
   font-size: 0.62rem;
   letter-spacing: 0.18em;
@@ -10550,7 +10550,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 /* Current outfit rail — clean horizontal row (drawer only; no stacked overlap). */
-.styling-board-drawer .styling-board__pieces.outfit-strip {
+.outfits-drawer .outfits__pieces.outfit-strip {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -10569,27 +10569,27 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   touch-action: pan-x;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar:vertical,
-.styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar:vertical {
+.outfits-drawer .outfits__pieces.outfit-strip::-webkit-scrollbar:vertical,
+.outfits-drawer .outfits__board-stack > #outfit-strip::-webkit-scrollbar:vertical {
   display: none;
   width: 0;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip:empty {
+.outfits-drawer .outfits__pieces.outfit-strip:empty {
   min-height: 0;
   padding: 0;
   overflow: hidden;
 }
 
-.styling-board-drawer .styling-board__board-stack > #outfit-strip:empty {
+.outfits-drawer .outfits__board-stack > #outfit-strip:empty {
   display: none;
 }
 
-.styling-board-drawer .styling-board__current:has(#outfit-empty:not([hidden])) .styling-board__current-head {
+.outfits-drawer .outfits__current:has(#outfit-empty:not([hidden])) .outfits__current-head {
   margin-bottom: 0.5rem;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot {
   --outfit-card-overlap: 0px;
   --outfit-card-min-w: 6.75rem;
   --outfit-card-max-w: 6.75rem;
@@ -10603,20 +10603,20 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   scroll-snap-align: start;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:nth-child(3n + 1) {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot:nth-child(3n + 1) {
   --outfit-stagger-y: 1px;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:nth-child(3n + 2) {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot:nth-child(3n + 2) {
   --outfit-stagger-y: 3px;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:nth-child(3n) {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot:nth-child(3n) {
   --outfit-stagger-y: 0px;
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(.outfit-slot--dismissing),
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(.outfit-slot--dismissing) {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(.outfit-slot--dismissing),
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(.outfit-slot--dismissing) {
   z-index: 2;
 }
 
@@ -10624,8 +10624,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
    so they sit side by side with a small gap — continuity without overlap, which
    would crowd the dismiss button and clip names. The first card is nudged a hair
    larger since the look builds from the first piece. */
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot:first-child,
-.styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:first-child {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot:first-child,
+.outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot:first-child {
   /* The look builds from the first piece — give it a hair more presence without a
      transform (that would fight the stagger/drag transforms). */
   filter: brightness(1.05) saturate(1.04);
@@ -10633,16 +10633,16 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   z-index: 1;
 }
 
-.styling-board-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
+.outfits-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
   border-color: color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 18%, rgba(24, 55, 47, 0.08));
 }
 
-.styling-board-drawer--added .outfit-slot__remove {
+.outfits-drawer--added .outfit-slot__remove {
   display: none;
 }
 
 @media (min-width: 901px) {
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
     --outfit-slot-h: 8.85rem;
     flex: 0 0 var(--outfit-card-max-w);
@@ -10652,7 +10652,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     scroll-snap-align: start;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--dragging:not(
       .outfit-slot--dismissing
     ) {
     z-index: 3;
@@ -10660,7 +10660,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     box-shadow: var(--wardrobe-card-shadow-lift);
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot.outfit-slot--active:not(
       .outfit-slot--dismissing
     ):not(.outfit-slot--dragging) {
     z-index: 2;
@@ -10669,7 +10669,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 }
 
-.styling-board-drawer .outfit-slot {
+.outfits-drawer .outfit-slot {
   /* Catalogue/archive card — flat plate, squared frame, not an iOS product tile. */
   --outfit-card-bg: var(--wardrobe-card-bg, rgba(248, 246, 241, 0.94));
   --outfit-card-border: 1px solid rgba(24, 55, 47, 0.09);
@@ -10710,12 +10710,12 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     margin 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.styling-board-drawer .outfit-slot:active:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
+.outfits-drawer .outfit-slot:active:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
   transform: translateY(var(--outfit-stagger-y)) scale(0.995);
   transition-duration: 120ms;
 }
 
-.styling-board-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
+.outfits-drawer .outfit-slot--just-added:not(.outfit-slot--dragging):not(.outfit-slot--dismissing) {
   transform: translateY(var(--outfit-stagger-y));
   z-index: 2;
   box-shadow: var(--outfit-card-shadow);
@@ -10821,20 +10821,20 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     box-shadow 240ms ease;
 }
 
-.styling-board-drawer .outfit-slot--placeholder {
+.outfits-drawer .outfit-slot--placeholder {
   border: 1px dashed rgba(24, 55, 47, 0.14);
   background: var(--wardrobe-card-bg, #e4dfd6);
   box-shadow: var(--wardrobe-card-shadow);
   opacity: 1;
 }
 
-.styling-board-drawer .outfit-slot--placeholder .outfit-slot__dismiss,
-.styling-board-drawer .outfit-slot--placeholder .outfit-slot__meta,
-.styling-board-drawer .outfit-slot--placeholder .outfit-slot__thumb img {
+.outfits-drawer .outfit-slot--placeholder .outfit-slot__dismiss,
+.outfits-drawer .outfit-slot--placeholder .outfit-slot__meta,
+.outfits-drawer .outfit-slot--placeholder .outfit-slot__thumb img {
   visibility: hidden;
 }
 
-@keyframes styling-board-outfit-slot-enter {
+@keyframes outfits-outfit-slot-enter {
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.92);
@@ -10846,7 +10846,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 }
 
-@keyframes styling-board-outfit-slot-added {
+@keyframes outfits-outfit-slot-added {
   0% {
     opacity: 0;
     transform: translateY(10px) scale(0.94) rotate(-1deg);
@@ -10863,13 +10863,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 }
 
-.styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot--enter:not(.outfit-slot--dismissing):not(.outfit-slot--dragging) {
+.outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot--enter:not(.outfit-slot--dismissing):not(.outfit-slot--dragging) {
   animation: tlw-fade-in 0.2s ease both;
   animation-delay: calc(var(--outfit-slot-stagger, 0) * 30ms);
 }
 
 
-.styling-board-drawer .outfit-slot__dismiss {
+.outfits-drawer .outfit-slot__dismiss {
   position: absolute;
   top: 0.22rem;
   right: 0.22rem;
@@ -10902,15 +10902,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     box-shadow 0.15s var(--ease-out);
 }
 
-.styling-board-drawer .outfit-slot--active .outfit-slot__dismiss,
-.styling-board-drawer .outfit-slot:focus-within .outfit-slot__dismiss {
+.outfits-drawer .outfit-slot--active .outfit-slot__dismiss,
+.outfits-drawer .outfit-slot:focus-within .outfit-slot__dismiss {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .styling-board-drawer .outfit-slot:hover .outfit-slot__dismiss {
+  .outfits-drawer .outfit-slot:hover .outfit-slot__dismiss {
     opacity: 1;
     pointer-events: auto;
     transform: scale(1);
@@ -10919,8 +10919,8 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 /* Mobile current outfit: always show remove control (no hover / tap-to-reveal). */
 @media (max-width: 900px) {
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot .outfit-slot__dismiss,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot .outfit-slot__dismiss {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot .outfit-slot__dismiss,
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot .outfit-slot__dismiss {
     opacity: 0.45;
     pointer-events: auto;
     transform: scale(1);
@@ -10930,20 +10930,20 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     right: 0.18rem;
   }
 
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot .outfit-slot__dismiss svg,
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot .outfit-slot__dismiss svg {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot .outfit-slot__dismiss svg,
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot .outfit-slot__dismiss svg {
     width: 0.78rem;
     height: 0.78rem;
   }
 }
 
-.styling-board-drawer .outfit-slot__dismiss svg {
+.outfits-drawer .outfit-slot__dismiss svg {
   width: 0.88rem;
   height: 0.88rem;
 }
 
-.styling-board-drawer .outfit-slot__dismiss:hover,
-.styling-board-drawer .outfit-slot__dismiss:focus-visible {
+.outfits-drawer .outfit-slot__dismiss:hover,
+.outfits-drawer .outfit-slot__dismiss:focus-visible {
   color: var(--sb-ink);
   background: var(--sb-drawer-bg);
   transform: scale(1.06);
@@ -10952,7 +10952,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     0 3px 10px rgba(20, 19, 18, 0.12);
 }
 
-.styling-board-drawer .outfit-slot--dismissing {
+.outfits-drawer .outfit-slot--dismissing {
   z-index: 24;
   pointer-events: none;
   cursor: default;
@@ -10965,7 +10965,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   box-shadow: 0 4px 14px rgba(20, 19, 18, 0.06);
 }
 
-.styling-board-drawer .outfit-slot__thumb {
+.outfits-drawer .outfit-slot__thumb {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -10983,7 +10983,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   user-select: none;
 }
 
-.styling-board-drawer .outfit-slot__thumb img {
+.outfits-drawer .outfit-slot__thumb img {
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -11002,7 +11002,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   pointer-events: none;
 }
 
-.styling-board-drawer .outfit-slot__meta {
+.outfits-drawer .outfit-slot__meta {
   position: absolute;
   left: 0;
   right: 0;
@@ -11028,20 +11028,20 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 /* Keep drag affordance on cards, but always allow copying outfit text. */
-.styling-board-drawer .outfit-slot__brand,
-.styling-board-drawer .outfit-slot__name,
-.styling-board-drawer .outfit-slot__colour,
-.styling-board-drawer .saved-card__name,
-.styling-board-drawer .saved-card__meta {
+.outfits-drawer .outfit-slot__brand,
+.outfits-drawer .outfit-slot__name,
+.outfits-drawer .outfit-slot__colour,
+.outfits-drawer .saved-card__name,
+.outfits-drawer .saved-card__meta {
   user-select: text;
   -webkit-user-select: text;
 }
 
-.styling-board-drawer .outfit-slot__brand {
+.outfits-drawer .outfit-slot__brand {
   display: none;
 }
 
-.styling-board-drawer .outfit-slot__name {
+.outfits-drawer .outfit-slot__name {
   width: 100%;
   color: #fff;
   text-shadow: 0 1px 3px rgba(15, 14, 13, 0.5);
@@ -11060,12 +11060,12 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 @media (min-width: 901px) {
-  .styling-board-drawer .styling-board__pieces.outfit-strip > .outfit-slot {
+  .outfits-drawer .outfits__pieces.outfit-strip > .outfit-slot {
     --outfit-card-max-w: 6.75rem;
     --outfit-slot-h: 7.8rem;
   }
 
-  .styling-board-drawer .outfit-slot {
+  .outfits-drawer .outfit-slot {
     --outfit-slot-h: 7.8rem;
     --outfit-thumb-h: 5.15rem;
   }
@@ -11076,21 +11076,21 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   }
 }
 
-.styling-board-drawer .outfit-slot__colour {
+.outfits-drawer .outfit-slot__colour {
   display: none;
 }
 
-.styling-board-drawer .outfit-slot__remove {
+.outfits-drawer .outfit-slot__remove {
   display: none !important;
 }
 
-.styling-board-drawer .outfit-slot__dismiss.btn--ghost {
+.outfits-drawer .outfit-slot__dismiss.btn--ghost {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
 }
 
-.styling-board__empty {
+.outfits__empty {
   @apply mb-4;
   font-size: 0.875rem;
   color: var(--sb-ink-soft);
@@ -11098,26 +11098,26 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 }
 
 /* Board: overlapping cards; Clear All sits in the current-outfit header row. */
-.styling-board-drawer .styling-board__current {
+.outfits-drawer .outfits__current {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.2rem;
 }
 
-.styling-board-drawer .styling-board__current--empty {
+.outfits-drawer .outfits__current--empty {
   display: none;
 }
 
-.styling-board-drawer .styling-board__current--empty .styling-board__board-row {
+.outfits-drawer .outfits__current--empty .outfits__board-row {
   display: none;
 }
 
-.styling-board-drawer .styling-board__current--empty .styling-board__current-head {
+.outfits-drawer .outfits__current--empty .outfits__current-head {
   margin-bottom: 0;
 }
 
-.styling-board-drawer .styling-board__current--empty > .styling-board__empty {
+.outfits-drawer .outfits__current--empty > .outfits__empty {
   margin: 0;
   padding: 0;
   font-size: 0.62rem;
@@ -11125,7 +11125,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   color: color-mix(in srgb, var(--sb-ink-muted) 88%, transparent);
 }
 
-.styling-board-drawer .styling-board__current-head {
+.outfits-drawer .outfits__current-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11135,15 +11135,15 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   box-sizing: border-box;
 }
 
-.styling-board-drawer .styling-board__current-head > .styling-board__section-title {
+.outfits-drawer .outfits__current-head > .outfits__section-title {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
   line-height: 1.2;
 }
 
-.styling-board-drawer .styling-board__current-head > #outfit-clear.btn,
-.styling-board-drawer .styling-board__clear-link--head {
+.outfits-drawer .outfits__current-head > #outfit-clear.btn,
+.outfits-drawer .outfits__clear-link--head {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -11160,7 +11160,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   white-space: nowrap;
 }
 
-.styling-board-drawer .styling-board__board-row {
+.outfits-drawer .outfits__board-row {
   width: 100%;
   max-width: 100%;
 }
@@ -11169,19 +11169,19 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
    first card aligns with the "Current outfit" heading. Once the rail overflows
    (JS adds .is-rail-scrollable), bleed the row to the drawer edges so cards can
    run past both panel edges. Higher specificity than the base rules above. */
-.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__board-row {
-  margin-inline: calc(-1 * var(--styling-board-scroll-inline));
-  width: calc(100% + 2 * var(--styling-board-scroll-inline));
-  max-width: calc(100% + 2 * var(--styling-board-scroll-inline));
+.outfits-drawer .outfits__current.is-rail-scrollable .outfits__board-row {
+  margin-inline: calc(-1 * var(--outfits-scroll-inline));
+  width: calc(100% + 2 * var(--outfits-scroll-inline));
+  max-width: calc(100% + 2 * var(--outfits-scroll-inline));
 }
 
 /* While bled, inset the strip's leading edge by the same gutter so AT REST
    (scrollLeft 0) the first card still lines up with the heading — the left keeps
    its padding. Once you scroll, cards slide past that inset and bleed off the
    left edge too; the right bleeds from the start. Only when scrollable. */
-.styling-board-drawer .styling-board__current.is-rail-scrollable #outfit-strip,
-.styling-board-drawer .styling-board__current.is-rail-scrollable .styling-board__pieces.outfit-strip {
-  padding-inline-start: calc(env(safe-area-inset-left, 0px) + var(--styling-board-scroll-inline));
+.outfits-drawer .outfits__current.is-rail-scrollable #outfit-strip,
+.outfits-drawer .outfits__current.is-rail-scrollable .outfits__pieces.outfit-strip {
+  padding-inline-start: calc(env(safe-area-inset-left, 0px) + var(--outfits-scroll-inline));
 }
 
 /* Outfit rail progress track + thumb — base (ALL widths). The matching rules in
@@ -11190,7 +11190,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
    landing-page positioning, floating a dark line across the card middles. The
    track must be relative so the absolutely-positioned bar sits inside it (below
    the strip), centred on its hairline. */
-.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress {
+.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress {
   position: relative;
   display: block;
   box-sizing: border-box;
@@ -11204,11 +11204,11 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   background: transparent;
 }
 
-.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress[hidden] {
+.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress::before {
+.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress::before {
   content: "";
   position: absolute;
   left: 0;
@@ -11221,7 +11221,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   pointer-events: none;
 }
 
-.styling-board-drawer [data-styling-board-outfit-rail] .styling-board__outfit-rail-progress .ed-lp__rail-progress-bar {
+.outfits-drawer [data-outfits-outfit-rail] .outfits__outfit-rail-progress .ed-lp__rail-progress-bar {
   position: absolute;
   left: 0;
   top: calc(50% - 1px);
@@ -11235,7 +11235,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   cursor: grab;
 }
 
-.styling-board-drawer .styling-board__board-stack {
+.outfits-drawer .outfits__board-stack {
   position: relative;
   display: block;
   width: 100%;
@@ -11243,7 +11243,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overflow: visible;
 }
 
-.styling-board-drawer .styling-board__board-stack > #outfit-strip {
+.outfits-drawer .outfits__board-stack > #outfit-strip {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -11260,7 +11260,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   overscroll-behavior-x: contain;
   padding: 0.4rem env(safe-area-inset-right, 0px) 0.35rem env(safe-area-inset-left, 0px);
   scroll-snap-type: none;
-  scroll-padding-inline-start: var(--styling-board-scroll-inline, 0.85rem);
+  scroll-padding-inline-start: var(--outfits-scroll-inline, 0.85rem);
   scroll-padding-inline-end: 0;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -11269,20 +11269,20 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
 
 /* Desktop drawer: end pad so the last card can scroll fully into view. */
 @media (min-width: 901px) {
-  .styling-board-drawer__scroll {
+  .outfits-drawer__scroll {
     padding-bottom: 0.75rem;
     scroll-padding-bottom: 0.25rem;
   }
 
-  .styling-board__saved.saved-outfits {
+  .outfits__saved.saved-outfits {
     padding-bottom: 0.55rem;
   }
 
-  .styling-board-drawer .saved-outfits__list > li:last-child {
+  .outfits-drawer .saved-outfits__list > li:last-child {
     scroll-margin-bottom: 0.35rem;
   }
 
-  .styling-board-drawer .styling-board__board-row {
+  .outfits-drawer .outfits__board-row {
     overflow: visible;
     min-width: 0;
     margin-inline: 0;
@@ -11290,7 +11290,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     max-width: 100%;
   }
 
-  .styling-board-drawer .styling-board__board-stack {
+  .outfits-drawer .outfits__board-stack {
     overflow: visible;
     width: 100%;
     max-width: 100%;
@@ -11299,38 +11299,38 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     margin-right: 0;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip,
-  .styling-board-drawer .styling-board__pieces.outfit-strip {
+  .outfits-drawer .outfits__board-stack > #outfit-strip,
+  .outfits-drawer .outfits__pieces.outfit-strip {
     --outfit-strip-card-w: 6.75rem;
     --outfit-strip-end-pad: max(0px, calc(100% - var(--outfit-strip-card-w)));
     padding-top: 0.4rem;
     padding-bottom: 0.55rem;
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
-    scroll-padding-inline-start: var(--styling-board-scroll-inline);
+    scroll-padding-inline-start: var(--outfits-scroll-inline);
     scroll-padding-inline-end: 0;
     scrollbar-width: none;
     touch-action: auto;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
-  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+  .outfits-drawer .outfits__board-stack > #outfit-strip::-webkit-scrollbar,
+  .outfits-drawer .outfits__pieces.outfit-strip::-webkit-scrollbar {
     display: none;
   }
 }
 
 /* Only lock scrolling once reorder drag has started — pending hold must allow pan-x. */
-.styling-board-drawer .styling-board__board-stack > #outfit-strip.outfit-strip--drag-active {
+.outfits-drawer .outfits__board-stack > #outfit-strip.outfit-strip--drag-active {
   overflow-x: hidden;
   touch-action: none;
   scroll-snap-type: none;
 }
 
-.styling-board-drawer .styling-board__board-stack > #outfit-strip.outfit-strip--drag-active {
+.outfits-drawer .outfits__board-stack > #outfit-strip.outfit-strip--drag-active {
   cursor: grabbing;
 }
 
-.styling-board-drawer .outfit-slot--drag-pending {
+.outfits-drawer .outfit-slot--drag-pending {
   scroll-snap-align: none;
   transform: translateY(2px) scale(0.985);
   opacity: 0.94;
@@ -11339,7 +11339,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     opacity 100ms var(--ease-out);
 }
 
-.styling-board-drawer .outfit-slot--dragging {
+.outfits-drawer .outfit-slot--dragging {
   touch-action: none;
 }
 
@@ -11352,7 +11352,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
       0 32px 64px rgba(20, 19, 18, 0.32);
   }
 
-  .styling-board-drawer .outfit-slot--drag-pending {
+  .outfits-drawer .outfit-slot--drag-pending {
     transform: scale(0.97);
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--sb-line) 70%, transparent),
@@ -11370,25 +11370,25 @@ body.tw-outfit-drag-active * {
 
 
 @media (max-width: 900px) {
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
-  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
+  .outfits-drawer .outfits__board-stack > #outfit-strip::-webkit-scrollbar,
+  .outfits-drawer .outfits__pieces.outfit-strip::-webkit-scrollbar {
     display: none;
   }
 }
 
-.styling-board-drawer .styling-board__current > #outfit-empty {
+.outfits-drawer .outfits__current > #outfit-empty {
   margin-bottom: 0;
 }
 
-.styling-board-drawer .styling-board__current > #styling-board-save-form {
+.outfits-drawer .outfits__current > #outfits-save-form {
   margin-top: 0.35rem;
 }
 
-.styling-board-drawer #styling-board-save-form.styling-board__save {
-  animation: styling-board-save-form-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+.outfits-drawer #outfits-save-form.outfits__save {
+  animation: outfits-save-form-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes styling-board-save-form-in {
+@keyframes outfits-save-form-in {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -11400,37 +11400,37 @@ body.tw-outfit-drag-active * {
   }
 }
 
-.styling-board-drawer .styling-board__save,
-.styling-board-drawer #styling-board-save-form.styling-board__save {
+.outfits-drawer .outfits__save,
+.outfits-drawer #outfits-save-form.outfits__save {
   margin-top: 0.5rem;
   padding-top: 0;
   border-top: none;
 }
 
-.styling-board__save {
+.outfits__save {
   @apply mt-2.5;
   padding-top: 1.35rem;
   border-top: 1px solid var(--sb-line);
 }
 
-.styling-board__save[hidden] {
+.outfits__save[hidden] {
   display: none !important;
 }
 
-.styling-board-drawer .field__label {
+.outfits-drawer .field__label {
   color: color-mix(in srgb, var(--sb-ink) 72%, var(--sb-ink-muted));
   font-weight: 500;
   letter-spacing: 0.1em;
 }
 
-.styling-board-drawer .field--notes .field__label-optional {
+.outfits-drawer .field--notes .field__label-optional {
   font-weight: 400;
   color: var(--sb-ink-muted);
 }
 
-.styling-board-drawer .field--inline input[type="text"],
-.styling-board-drawer .field--inline input[type="date"],
-.styling-board-drawer .styling-board__notes {
+.outfits-drawer .field--inline input[type="text"],
+.outfits-drawer .field--inline input[type="date"],
+.outfits-drawer .outfits__notes {
   color: var(--sb-ink);
   background: var(--sb-drawer-bg);
   border: 1px solid var(--sb-line-strong);
@@ -11441,21 +11441,21 @@ body.tw-outfit-drag-active * {
   line-height: 1.45;
 }
 
-.styling-board-drawer .field--inline input[type="text"]::placeholder,
-.styling-board-drawer .styling-board__notes::placeholder {
+.outfits-drawer .field--inline input[type="text"]::placeholder,
+.outfits-drawer .outfits__notes::placeholder {
   color: color-mix(in srgb, var(--sb-ink-muted) 72%, transparent);
   font-size: inherit;
   line-height: inherit;
 }
 
-.styling-board__notes {
+.outfits__notes {
   width: 100%;
   min-height: 3.25rem;
   resize: vertical;
 }
 
 /* Name left, notes right (same row); date below name. */
-.styling-board-drawer #styling-board-save-form.outfit-actions {
+.outfits-drawer #outfits-save-form.outfit-actions {
   display: grid;
   grid-template-columns: minmax(9rem, 0.44fr) minmax(0, 0.56fr);
   grid-template-rows: auto auto;
@@ -11465,41 +11465,41 @@ body.tw-outfit-drag-active * {
   flex-wrap: nowrap;
 }
 
-.styling-board-drawer #styling-board-save-form .field {
+.outfits-drawer #outfits-save-form .field {
   margin-bottom: 0 !important;
   min-width: 0;
   gap: 0.35rem;
 }
 
-.styling-board-drawer #styling-board-save-form .field--inline {
+.outfits-drawer #outfits-save-form .field--inline {
   flex: none;
 }
 
-.styling-board-drawer #styling-board-save-form .field--notes {
+.outfits-drawer #outfits-save-form .field--notes {
   grid-column: 2;
   grid-row: 1;
   display: flex;
   flex-direction: column;
 }
 
-.styling-board-drawer #styling-board-save-form .field__label {
+.outfits-drawer #outfits-save-form .field__label {
   margin: 0;
   padding: 0;
 }
 
-.styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
-.styling-board-drawer #styling-board-save-form .field--inline input[type="date"],
-.styling-board-drawer #styling-board-save-form .styling-board__notes {
+.outfits-drawer #outfits-save-form .field--inline input[type="text"],
+.outfits-drawer #outfits-save-form .field--inline input[type="date"],
+.outfits-drawer #outfits-save-form .outfits__notes {
   width: 100%;
   box-sizing: border-box;
 }
 
-.styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
-.styling-board-drawer #styling-board-save-form .field--inline input[type="date"] {
+.outfits-drawer #outfits-save-form .field--inline input[type="text"],
+.outfits-drawer #outfits-save-form .field--inline input[type="date"] {
   height: 2.85rem;
 }
 
-.styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
+.outfits-drawer #outfits-save-form .field--notes .outfits__notes {
   height: 2.85rem;
   min-height: 0;
   resize: none;
@@ -11507,18 +11507,18 @@ body.tw-outfit-drag-active * {
 }
 
 @media (max-width: 520px) {
-  .styling-board-drawer #styling-board-save-form.outfit-actions {
+  .outfits-drawer #outfits-save-form.outfit-actions {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     row-gap: 0.75rem;
   }
 
-  .styling-board-drawer #styling-board-save-form .field--notes {
+  .outfits-drawer #outfits-save-form .field--notes {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .styling-board-drawer #styling-board-save-form .field--notes .styling-board__notes {
+  .outfits-drawer #outfits-save-form .field--notes .outfits__notes {
     height: 2.85rem;
     min-height: 0;
     flex: none;
@@ -11528,14 +11528,14 @@ body.tw-outfit-drag-active * {
 
 @media (max-width: 900px) {
   /* iOS Safari zoom guard: keep editable controls at >=16px while typing in Outfits drawer. */
-  .styling-board-drawer #styling-board-save-form .field--inline input[type="text"],
-  .styling-board-drawer #styling-board-save-form .field--inline input[type="date"],
-  .styling-board-drawer #styling-board-save-form .styling-board__notes {
+  .outfits-drawer #outfits-save-form .field--inline input[type="text"],
+  .outfits-drawer #outfits-save-form .field--inline input[type="date"],
+  .outfits-drawer #outfits-save-form .outfits__notes {
     font-size: 16px;
     line-height: 1.4;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip {
+  .outfits-drawer .outfits__board-stack > #outfit-strip {
     gap: 0.4rem;
     width: 100%;
     max-width: 100%;
@@ -11548,7 +11548,7 @@ body.tw-outfit-drag-active * {
       calc(max(1rem, env(safe-area-inset-right, 0px)) + 1.35rem);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot {
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot {
     --outfit-card-overlap: 0px;
     /* Fixed card width — no viewport flex, every piece the same. */
     flex: 0 0 6.5rem;
@@ -11560,20 +11560,20 @@ body.tw-outfit-drag-active * {
     touch-action: pan-x;
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 1) {
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 1) {
     transform: translateY(2px);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 2) {
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot:nth-child(3n + 2) {
     transform: translateY(5px);
   }
 
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip > .outfit-slot:nth-child(3n) {
+  .outfits-drawer .outfits__board-stack > #outfit-strip > .outfit-slot:nth-child(3n) {
     transform: translateY(0);
   }
 }
 
-.styling-board__save-actions {
+.outfits__save-actions {
   @apply mt-0.5;
   display: flex;
   flex-wrap: wrap;
@@ -11581,7 +11581,7 @@ body.tw-outfit-drag-active * {
   gap: 0.85rem 1.15rem;
 }
 
-.styling-board-drawer .btn {
+.outfits-drawer .btn {
   box-shadow: none;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -11591,18 +11591,18 @@ body.tw-outfit-drag-active * {
   border-radius: 2px;
 }
 
-.styling-board-drawer .styling-board-drawer__footer .styling-board-drawer__cta--primary {
+.outfits-drawer .outfits-drawer__footer .outfits-drawer__cta--primary {
   background: var(--tw-brand-signature-navy, #163229);
   border-color: var(--tw-brand-signature-navy, #163229);
   color: #fff;
 }
 
-.styling-board-drawer .styling-board-drawer__footer .styling-board-drawer__cta--primary:hover {
+.outfits-drawer .outfits-drawer__footer .outfits-drawer__cta--primary:hover {
   opacity: 0.92;
   box-shadow: none;
 }
 
-.styling-board-drawer .btn--ghost {
+.outfits-drawer .btn--ghost {
   background: transparent;
   border: none;
   color: var(--sb-ink-soft);
@@ -11612,19 +11612,19 @@ body.tw-outfit-drag-active * {
   text-decoration-thickness: 1px;
 }
 
-.styling-board-drawer .btn--ghost:hover {
+.outfits-drawer .btn--ghost:hover {
   color: var(--sb-ink);
   background: transparent;
   box-shadow: none;
 }
 
-.styling-board-drawer .outfit-slot__remove.btn--ghost {
+.outfits-drawer .outfit-slot__remove.btn--ghost {
   font-size: 0.66rem;
   letter-spacing: 0.12em;
 }
 
-.styling-board-drawer__scroll > .styling-board__current,
-.styling-board-drawer__scroll > .styling-board__saved.saved-outfits {
+.outfits-drawer__scroll > .outfits__current,
+.outfits-drawer__scroll > .outfits__saved.saved-outfits {
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -11635,24 +11635,24 @@ body.tw-outfit-drag-active * {
   box-sizing: border-box;
 }
 
-.styling-board__saved.saved-outfits {
+.outfits__saved.saved-outfits {
   margin-top: 0;
   padding: 0.35rem 0 0.5rem;
   border-top: none;
   overflow: visible;
 }
 
-.styling-board-drawer__scroll > .styling-board__current::before {
+.outfits-drawer__scroll > .outfits__current::before {
   display: none;
 }
 
 /* Divider above saved outfits (current outfit is listed first). */
-.styling-board-drawer__scroll > .styling-board__saved.saved-outfits {
+.outfits-drawer__scroll > .outfits__saved.saved-outfits {
   margin-top: 0.65rem;
   padding-top: 0.85rem;
 }
 
-.styling-board-drawer__scroll > .styling-board__saved.saved-outfits::before {
+.outfits-drawer__scroll > .outfits__saved.saved-outfits::before {
   content: "";
   position: absolute;
   top: 0;
@@ -11664,28 +11664,28 @@ body.tw-outfit-drag-active * {
   pointer-events: none;
 }
 
-.styling-board-drawer__scroll > .styling-board__current.styling-board__current--empty + .styling-board__saved.saved-outfits::before {
+.outfits-drawer__scroll > .outfits__current.outfits__current--empty + .outfits__saved.saved-outfits::before {
   opacity: 0.55;
 }
 
-.styling-board-drawer .saved-outfits__list {
+.outfits-drawer .saved-outfits__list {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
 }
 
-.styling-board-drawer .saved-outfits__empty {
+.outfits-drawer .saved-outfits__empty {
   color: var(--sb-ink-soft);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 /* Legacy thumb row — superseded by flat lay in drawer */
-.styling-board-drawer .saved-card__thumbs {
+.outfits-drawer .saved-card__thumbs {
   display: none !important;
 }
 
-@keyframes styling-board-saved-card-enter {
+@keyframes outfits-saved-card-enter {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -11699,7 +11699,7 @@ body.tw-outfit-drag-active * {
 
 
 /* Saved outfit — elevated ivory card with fanned item strip. */
-.styling-board-drawer .saved-card {
+.outfits-drawer .saved-card {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -11717,20 +11717,20 @@ body.tw-outfit-drag-active * {
     opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.styling-board-drawer .saved-card:active {
+.outfits-drawer .saved-card:active {
   transform: translateY(-1px);
   box-shadow: var(--wardrobe-card-shadow-lift);
   transition-duration: 140ms;
 }
 
-.styling-board-drawer .saved-card__name-row {
+.outfits-drawer .saved-card__name-row {
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
   min-width: 0;
 }
 
-.styling-board-drawer .saved-card__name {
+.outfits-drawer .saved-card__name {
   margin: 0;
   min-width: 0;
   flex: 0 1 auto;
@@ -11745,7 +11745,7 @@ body.tw-outfit-drag-active * {
   color: color-mix(in srgb, var(--sb-ink) 94%, var(--sb-ink-muted));
 }
 
-.styling-board-drawer .saved-card__flatlay {
+.outfits-drawer .saved-card__flatlay {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11759,11 +11759,11 @@ body.tw-outfit-drag-active * {
   isolation: isolate;
 }
 
-.styling-board-drawer .saved-card__footer {
+.outfits-drawer .saved-card__footer {
   display: none;
 }
 
-.styling-board-drawer .saved-card__piece {
+.outfits-drawer .saved-card__piece {
   position: relative;
   flex: 0 0 auto;
   width: 4.7rem;
@@ -11777,23 +11777,23 @@ body.tw-outfit-drag-active * {
   transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.styling-board-drawer .saved-card__piece:not(:first-child) {
+.outfits-drawer .saved-card__piece:not(:first-child) {
   margin-left: -0.85rem;
 }
 
-.styling-board-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
+.outfits-drawer .saved-card__flatlay[data-piece-count="5"] .saved-card__piece:not(:first-child) {
   margin-left: -0.9rem;
 }
 
-.styling-board-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
+.outfits-drawer .saved-card__flatlay[data-piece-count="6"] .saved-card__piece:not(:first-child) {
   margin-left: -1.7rem;
 }
 
-.styling-board-drawer .saved-card__piece:nth-child(n) {
+.outfits-drawer .saved-card__piece:nth-child(n) {
   transform: none;
 }
 
-.styling-board-drawer .saved-card__piece {
+.outfits-drawer .saved-card__piece {
   /* Three layers, each doing one job:
      1. Luminance-edge separation — a 0.6px near-zero-offset trace that only
         becomes perceptible where a light piece meets the light paper (white
@@ -11809,7 +11809,7 @@ body.tw-outfit-drag-active * {
     drop-shadow(0 3px 4px rgb(0 0 0 / 0.04));
 }
 
-.styling-board-drawer .saved-card__piece img {
+.outfits-drawer .saved-card__piece img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -11824,11 +11824,11 @@ body.tw-outfit-drag-active * {
 }
 
 @media (max-width: 900px) {
-  .styling-board-drawer .saved-outfits__list,
-  .styling-board-drawer .saved-outfits__list > li,
-  .styling-board-drawer .saved-card__footer,
-  .styling-board-drawer .saved-card__body,
-  .styling-board-drawer .saved-card__flatlay {
+  .outfits-drawer .saved-outfits__list,
+  .outfits-drawer .saved-outfits__list > li,
+  .outfits-drawer .saved-card__footer,
+  .outfits-drawer .saved-card__body,
+  .outfits-drawer .saved-card__flatlay {
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
@@ -11836,7 +11836,7 @@ body.tw-outfit-drag-active * {
   }
 }
 
-.styling-board-drawer .saved-card__body {
+.outfits-drawer .saved-card__body {
   position: relative;
   display: flex;
   flex-direction: row;
@@ -11847,7 +11847,7 @@ body.tw-outfit-drag-active * {
   padding: 0.42rem 0.8rem 0.1rem 0.8rem;
 }
 
-.styling-board-drawer .saved-card__info {
+.outfits-drawer .saved-card__info {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
@@ -11855,7 +11855,7 @@ body.tw-outfit-drag-active * {
   flex: 1 1 auto;
 }
 
-.styling-board-drawer .saved-card__meta {
+.outfits-drawer .saved-card__meta {
   margin: 0;
   display: flex;
   align-items: baseline;
@@ -11870,7 +11870,7 @@ body.tw-outfit-drag-active * {
 
 /* Notes flex and truncate; the piece-count + date tail stays fixed so the date
    is always visible (and never collides with the hover action icons up top). */
-.styling-board-drawer .saved-card__meta-notes {
+.outfits-drawer .saved-card__meta-notes {
   min-width: 0;
   flex: 0 1 auto;
   /* Gap after the comma (a trailing space would be trimmed at the flex boundary). */
@@ -11880,13 +11880,13 @@ body.tw-outfit-drag-active * {
   text-overflow: ellipsis;
 }
 
-.styling-board-drawer .saved-card__meta-tail {
+.outfits-drawer .saved-card__meta-tail {
   flex: 0 0 auto;
   white-space: nowrap;
   color: color-mix(in srgb, var(--sb-ink-muted) 78%, transparent);
 }
 
-.styling-board-drawer .saved-card__actions {
+.outfits-drawer .saved-card__actions {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -11899,25 +11899,25 @@ body.tw-outfit-drag-active * {
 @media (hover: hover) and (pointer: fine) {
   /* Hover-only actions float over the top-right corner (no reserved inline
      space). The date now lives on the metadata line, so nothing collides. */
-  .styling-board-drawer .saved-card__actions {
+  .outfits-drawer .saved-card__actions {
     position: absolute;
     top: 0.34rem;
     right: 0.72rem;
     opacity: 0;
     transition: opacity 0.18s var(--ease-out);
   }
-  .styling-board-drawer .saved-card:hover .saved-card__actions,
-  .styling-board-drawer .saved-card:focus-within .saved-card__actions {
+  .outfits-drawer .saved-card:hover .saved-card__actions,
+  .outfits-drawer .saved-card:focus-within .saved-card__actions {
     opacity: 1;
   }
   /* Keep the title clear of the floating actions on hover. */
-  .styling-board-drawer .saved-card:hover .saved-card__name,
-  .styling-board-drawer .saved-card:focus-within .saved-card__name {
+  .outfits-drawer .saved-card:hover .saved-card__name,
+  .outfits-drawer .saved-card:focus-within .saved-card__name {
     padding-right: 4.5rem;
   }
 }
 
-.styling-board-drawer .saved-card__ctrl {
+.outfits-drawer .saved-card__ctrl {
   margin: 0;
   appearance: none;
   padding: 0;
@@ -11935,7 +11935,7 @@ body.tw-outfit-drag-active * {
   transition: color 0.16s var(--ease-out), opacity 0.16s var(--ease-out);
 }
 
-.styling-board-drawer .saved-card__ctrl:not(:first-child)::before {
+.outfits-drawer .saved-card__ctrl:not(:first-child)::before {
   content: "·";
   margin: 0 0.42em;
   color: color-mix(in srgb, var(--sb-ink-muted) 72%, transparent);
@@ -11943,38 +11943,38 @@ body.tw-outfit-drag-active * {
   pointer-events: none;
 }
 
-.styling-board-drawer .saved-card__ctrl:hover {
+.outfits-drawer .saved-card__ctrl:hover {
   color: var(--tw-brand-signature-navy, #163229);
 }
 
-.styling-board-drawer .saved-card__ctrl:active {
+.outfits-drawer .saved-card__ctrl:active {
   opacity: 0.78;
 }
 
-.styling-board-drawer .saved-card__ctrl:focus-visible {
+.outfits-drawer .saved-card__ctrl:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
   outline-offset: 2px;
 }
 
-.styling-board-drawer .saved-card__ctrl--danger {
+.outfits-drawer .saved-card__ctrl--danger {
   color: color-mix(in srgb, var(--sb-danger) 88%, var(--sb-ink-muted));
 }
 
-.styling-board-drawer .saved-card__ctrl--danger:hover {
+.outfits-drawer .saved-card__ctrl--danger:hover {
   color: var(--sb-danger);
 }
 
-.styling-board-drawer .saved-card__ctrl--danger:focus-visible {
+.outfits-drawer .saved-card__ctrl--danger:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--sb-danger) 55%, var(--tw-brand-signature-navy, #163229));
   outline-offset: 2px;
 }
 
 /* ── Icon-only action buttons (replace text VIEW/EDIT/DELETE) ──────────── */
-.styling-board-drawer [data-outfit-open] {
+.outfits-drawer [data-outfit-open] {
   cursor: pointer;
 }
 
-.styling-board-drawer .saved-card__tool-glyph {
+.outfits-drawer .saved-card__tool-glyph {
   width: 15px;
   height: 15px;
   fill: none;
@@ -11986,7 +11986,7 @@ body.tw-outfit-drag-active * {
   vector-effect: non-scaling-stroke;
 }
 
-.styling-board-drawer .saved-card__icon-btn {
+.outfits-drawer .saved-card__icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12003,26 +12003,26 @@ body.tw-outfit-drag-active * {
   transition: color 0.16s var(--ease-out), background 0.16s var(--ease-out);
 }
 
-.styling-board-drawer .saved-card__icon-btn:hover {
+.outfits-drawer .saved-card__icon-btn:hover {
   color: var(--tw-brand-signature-navy, #163229);
   background: color-mix(in srgb, var(--sb-ink) 6%, transparent);
 }
 
-.styling-board-drawer .saved-card__icon-btn:active {
+.outfits-drawer .saved-card__icon-btn:active {
   opacity: 0.72;
   transition-duration: 80ms;
 }
 
-.styling-board-drawer .saved-card__icon-btn:focus-visible {
+.outfits-drawer .saved-card__icon-btn:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
   outline-offset: 1px;
 }
 
-.styling-board-drawer .saved-card__icon-btn--danger {
+.outfits-drawer .saved-card__icon-btn--danger {
   color: color-mix(in srgb, var(--sb-danger) 72%, transparent);
 }
 
-.styling-board-drawer .saved-card__icon-btn--danger:hover {
+.outfits-drawer .saved-card__icon-btn--danger:hover {
   color: var(--sb-danger);
   background: color-mix(in srgb, var(--sb-danger) 8%, transparent);
 }
@@ -12030,18 +12030,18 @@ body.tw-outfit-drag-active * {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .styling-board-drawer .saved-card--enter {
+  .outfits-drawer .saved-card--enter {
     animation: none;
   }
 
-  .styling-board-drawer .saved-card,
-  .styling-board-drawer .saved-card__piece,
-  .styling-board-drawer .outfit-slot {
+  .outfits-drawer .saved-card,
+  .outfits-drawer .saved-card__piece,
+  .outfits-drawer .outfit-slot {
     transition: none;
   }
 }
 
-.styling-board-drawer__toast {
+.outfits-drawer__toast {
   @apply mx-6 mb-4;
   color: var(--sb-ink);
   background: var(--sb-drawer-bg);
@@ -12050,17 +12050,17 @@ body.tw-outfit-drag-active * {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .styling-board-drawer__backdrop,
-  .styling-board-drawer__sheet,
+  .outfits-drawer__backdrop,
+  .outfits-drawer__sheet,
   .outfit-toast,
-  .styling-board-drawer .outfit-slot--dismissing,
-  .styling-board-drawer .outfit-slot {
+  .outfits-drawer .outfit-slot--dismissing,
+  .outfits-drawer .outfit-slot {
     transition-duration: 0.01ms;
   }
 
-  .styling-board-drawer .outfit-slot--enter,
-  .styling-board-drawer .outfit-slot--just-added,
-  .styling-board-drawer #styling-board-save-form.styling-board__save {
+  .outfits-drawer .outfit-slot--enter,
+  .outfits-drawer .outfit-slot--just-added,
+  .outfits-drawer #outfits-save-form.outfits__save {
     animation: none;
   }
 }
@@ -13086,7 +13086,7 @@ dialog.add-item-dialog[open]::backdrop {
   position: fixed;
   bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1rem));
   left: 50%;
-  z-index: calc(var(--z-styling-board-drawer, 1300) + 10);
+  z-index: calc(var(--z-outfits-drawer, 1300) + 10);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -23969,8 +23969,8 @@ body:not(.tw-admin-mode) .tw-admin-only[hidden] {
   .site-mobile-nav__level,
   .collection-filter-drawer__backdrop,
   .collection-filter-drawer__sheet,
-  .styling-board-drawer__backdrop,
-  .styling-board-drawer__sheet,
+  .outfits-drawer__backdrop,
+  .outfits-drawer__sheet,
   .site-header__submenu--switching .site-header__submenu-links {
     animation: none !important;
   }
@@ -25588,7 +25588,7 @@ body.editorial-page #editorial-root {
   /* 2 — invisible 44px hit area for compact icon/utility buttons.
      The ::before is centred on the button and does not alter layout. */
   .site-header__search-btn,
-  .site-header__styling-board-btn,
+  .site-header__outfits-btn,
   .site-header__saved-btn,
   .site-header__menu-btn,
   .items-toolbar__view-toggle-btn {
@@ -25596,7 +25596,7 @@ body.editorial-page #editorial-root {
   }
 
   .site-header__search-btn::before,
-  .site-header__styling-board-btn::before,
+  .site-header__outfits-btn::before,
   .site-header__saved-btn::before,
   .site-header__menu-btn::before,
   .items-toolbar__view-toggle-btn::before {

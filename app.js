@@ -31,7 +31,7 @@
     ),
   };
 
-  const STYLING_BOARD_DRAFT_KEY = "timeless-wardrobe-styling-board-draft-v1";
+  const STYLING_BOARD_DRAFT_KEY = "timeless-wardrobe-outfits-draft-v1";
   const MAX_OUTFIT_ITEMS = 16;
   const OUTFIT_STORAGE_VERSION = 2;
   const STYLING_BOARD_DRAFT_VERSION = 1;
@@ -49,14 +49,14 @@
     '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.2" y1="10.35" x2="13.8" y2="10.35"/>' +
     "</g></svg>";
   const STYLING_BOARD_GLYPH_SVG =
-    '<svg class="styling-board-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-    '<g class="styling-board-glyph__fills" aria-hidden="true">' +
-    '<rect class="styling-board-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />' +
-    '<rect class="styling-board-glyph__cell" x="1.6" y="7.2" width="7.15" height="6.45" />' +
-    '<rect class="styling-board-glyph__cell" x="9.05" y="2.35" width="5.25" height="7.92" />' +
-    '<rect class="styling-board-glyph__cell" x="9.05" y="10.52" width="5.25" height="3.13" />' +
+    '<svg class="outfits-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+    '<g class="outfits-glyph__fills" aria-hidden="true">' +
+    '<rect class="outfits-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />' +
+    '<rect class="outfits-glyph__cell" x="1.6" y="7.2" width="7.15" height="6.45" />' +
+    '<rect class="outfits-glyph__cell" x="9.05" y="2.35" width="5.25" height="7.92" />' +
+    '<rect class="outfits-glyph__cell" x="9.05" y="10.52" width="5.25" height="3.13" />' +
     "</g>" +
-    '<path class="styling-board-glyph__grid site-header__tool-glyph" pathLength="100" d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"/>' +
+    '<path class="outfits-glyph__grid site-header__tool-glyph" pathLength="100" d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"/>' +
     "</svg>";
   const HEADER_SEARCH_ICON_HTML =
     '<span class="site-header__search-icon" aria-hidden="true">' + HEADER_SEARCH_GLYPH_SVG + "</span>";
@@ -12176,9 +12176,9 @@
     prepareHomeHorizontalRailScroller(scroller);
     const section =
       options.railRoot ??
-      scroller.closest("[data-ed-lp-horizontal-rail], [data-styling-board-outfit-rail]");
+      scroller.closest("[data-ed-lp-horizontal-rail], [data-outfits-outfit-rail]");
     const track = section?.querySelector(
-      ".styling-board__outfit-rail-progress, .ed-lp__rail-progress, .ed-lp__division-rail-progress"
+      ".outfits__outfit-rail-progress, .ed-lp__rail-progress, .ed-lp__division-rail-progress"
     );
     const thumb = section?.querySelector(
       ".ed-lp__rail-progress-bar, .ed-lp__division-rail-progress-bar"
@@ -12518,14 +12518,14 @@
   function ensureStylingBoardOutfitRailChrome() {
     const strip = document.getElementById("outfit-strip");
     if (!(strip instanceof HTMLElement)) return;
-    const row = strip.closest(".styling-board__board-row");
+    const row = strip.closest(".outfits__board-row");
     if (!(row instanceof HTMLElement)) return;
-    const currentSection = strip.closest(".styling-board__current") ?? row;
-    currentSection.setAttribute("data-styling-board-outfit-rail", "");
-    let track = currentSection.querySelector(".styling-board__outfit-rail-progress");
+    const currentSection = strip.closest(".outfits__current") ?? row;
+    currentSection.setAttribute("data-outfits-outfit-rail", "");
+    let track = currentSection.querySelector(".outfits__outfit-rail-progress");
     if (!(track instanceof HTMLElement)) {
       track = document.createElement("div");
-      track.className = "styling-board__outfit-rail-progress";
+      track.className = "outfits__outfit-rail-progress";
       track.setAttribute("role", "slider");
       track.setAttribute("aria-label", "Scroll current outfit pieces");
       track.setAttribute("aria-valuemin", "0");
@@ -12763,7 +12763,7 @@
     const shouldUseSolidHeader = () => {
       if (document.body.classList.contains("collection-ui--header-search-open")) return true;
       if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
-      if (document.body.classList.contains("collection-ui--styling-board")) return true;
+      if (document.body.classList.contains("collection-ui--outfits")) return true;
       // Mobile nav: keep the header in its overlay state — the opaque ivory is supplied by the
       // sliding `.site-header::after` surface, and overlay lets the white ink restore on close.
       if (!hero) return true;
@@ -13024,15 +13024,15 @@
   let countLineAnimRaf = 0;
   let countLineAnimToken = 0;
   let countLineDisplay = { visible: 0, total: 0, spend: 0 };
-  let stylingBoardDrawerOpen = false;
-  let stylingBoardDrawerOpenRaf = 0;
+  let outfitsDrawerOpen = false;
+  let outfitsDrawerOpenRaf = 0;
   let outfitStripEntranceOnNextRender = false;
   let headerSearchOpenRaf = 0;
   /** Ignore document outside-click closes right after opening (iOS ghost click / bubble). */
   let headerSearchOutsideClickGuardUntil = 0;
   /** When set, that slot renders in the added hero instead of the strip grid. */
-  let stylingBoardAddedRevealKey = null;
-  let stylingBoardDrawerFocusReturn = /** @type {Element | null} */ (null);
+  let outfitsAddedRevealKey = null;
+  let outfitsDrawerFocusReturn = /** @type {Element | null} */ (null);
   let collectionPageScrollLockCount = 0;
   let collectionPageScrollLockY = 0;
   /** Card the user opened from the PLP, so returning can re-anchor to it (survives the
@@ -18412,35 +18412,35 @@
   }
 
   function clearStylingBoardAddedReveal() {
-    stylingBoardAddedRevealKey = null;
-    const root = document.getElementById("styling-board-drawer");
-    root?.classList.remove("styling-board-drawer--added");
-    const status = document.getElementById("styling-board-drawer-status");
+    outfitsAddedRevealKey = null;
+    const root = document.getElementById("outfits-drawer");
+    root?.classList.remove("outfits-drawer--added");
+    const status = document.getElementById("outfits-drawer-status");
     status?.setAttribute("hidden", "");
-    status?.querySelector(".styling-board-drawer__added-subtitle")?.remove();
-    const heading = document.getElementById("styling-board-heading");
+    status?.querySelector(".outfits-drawer__added-subtitle")?.remove();
+    const heading = document.getElementById("outfits-heading");
     if (heading) heading.hidden = false;
   }
 
   function revealStylingBoardAddedPiece(slot) {
     const item = itemById.get(slot.itemId);
     if (!item) return;
-    stylingBoardAddedRevealKey = outfitSlotKey(slot);
+    outfitsAddedRevealKey = outfitSlotKey(slot);
 
-    const root = document.getElementById("styling-board-drawer");
-    const status = document.getElementById("styling-board-drawer-status");
-    const heading = document.getElementById("styling-board-heading");
+    const root = document.getElementById("outfits-drawer");
+    const status = document.getElementById("outfits-drawer-status");
+    const heading = document.getElementById("outfits-heading");
     if (!root) return;
 
-    root.classList.add("styling-board-drawer--added");
+    root.classList.add("outfits-drawer--added");
     status?.removeAttribute("hidden");
     if (heading) heading.hidden = true;
 
     // Show item name as subtitle under "Added to Outfits"
-    status?.querySelector(".styling-board-drawer__added-subtitle")?.remove();
+    status?.querySelector(".outfits-drawer__added-subtitle")?.remove();
     if (status) {
       const subtitle = document.createElement("p");
-      subtitle.className = "styling-board-drawer__added-subtitle";
+      subtitle.className = "outfits-drawer__added-subtitle";
       subtitle.textContent = displayNameWithoutLeadingColour(item);
       status.appendChild(subtitle);
     }
@@ -18450,21 +18450,21 @@
   }
 
   function isStylingBoardSaveFormOpen() {
-    const form = document.getElementById("styling-board-save-form");
+    const form = document.getElementById("outfits-save-form");
     return form instanceof HTMLElement && !form.hasAttribute("hidden");
   }
 
   function setStylingBoardSaveFormOpen(open) {
-    const form = document.getElementById("styling-board-save-form");
-    const root = document.getElementById("styling-board-drawer");
+    const form = document.getElementById("outfits-save-form");
+    const root = document.getElementById("outfits-drawer");
     if (!(form instanceof HTMLElement)) return;
     if (open) {
       form.removeAttribute("hidden");
-      root?.classList.add("styling-board-drawer--save-form-open");
+      root?.classList.add("outfits-drawer--save-form-open");
       form.scrollIntoView({ block: "nearest", behavior: "smooth" });
     } else {
       form.setAttribute("hidden", "");
-      root?.classList.remove("styling-board-drawer--save-form-open");
+      root?.classList.remove("outfits-drawer--save-form-open");
     }
     syncOutfitSaveButtonLabel();
   }
@@ -22593,7 +22593,7 @@
     collectionCardBoardHoverBarInner(media).appendChild(boardAddBtn);
   }
 
-  function stylingBoardCtaLabel() {
+  function outfitsCtaLabel() {
     const compactQuickFind = collectionViewMode === "compact";
     return isFiltersNarrowViewport() || compactQuickFind ? "+" : `ADD TO ${OUTFITS_UI_NAME.toUpperCase()}`;
   }
@@ -22601,7 +22601,7 @@
   function syncBoardAddButtonPresentation(btn, blocked) {
     if (!(btn instanceof HTMLButtonElement)) return;
     btn.classList.toggle("card__board-add--on-board", Boolean(blocked));
-    btn.textContent = blocked ? "" : stylingBoardCtaLabel();
+    btn.textContent = blocked ? "" : outfitsCtaLabel();
   }
 
   function syncCollectionBoardAddButtonLabels() {
@@ -24235,11 +24235,11 @@
 
   function syncStylingBoardUi() {
     const n = currentOutfitSlots.length;
-    const currentSection = document.querySelector(".styling-board-drawer .styling-board__current");
+    const currentSection = document.querySelector(".outfits-drawer .outfits__current");
     if (currentSection instanceof HTMLElement) {
-      currentSection.classList.toggle("styling-board__current--empty", n === 0);
+      currentSection.classList.toggle("outfits__current--empty", n === 0);
     }
-    const countEl = document.getElementById("styling-board-count");
+    const countEl = document.getElementById("outfits-count");
     const btn = document.getElementById("site-header-saved-toggle");
     if (countEl) {
       if (n > 0) {
@@ -24251,8 +24251,8 @@
       }
     }
     if (btn) {
-      btn.setAttribute("aria-expanded", stylingBoardDrawerOpen ? "true" : "false");
-      const label = stylingBoardDrawerOpen ? `Close ${OUTFITS_UI_NAME}` : `Open ${OUTFITS_UI_NAME}`;
+      btn.setAttribute("aria-expanded", outfitsDrawerOpen ? "true" : "false");
+      const label = outfitsDrawerOpen ? `Close ${OUTFITS_UI_NAME}` : `Open ${OUTFITS_UI_NAME}`;
       btn.setAttribute("aria-label", label);
       btn.title = OUTFITS_UI_NAME;
     }
@@ -24279,7 +24279,7 @@
 
   /** Mobile drawer: faint scrollbar thumb only while the main panel is scrolling. */
   function wireStylingBoardDrawerScrollChrome() {
-    const scroll = document.querySelector(".styling-board-drawer__scroll");
+    const scroll = document.querySelector(".outfits-drawer__scroll");
     if (!(scroll instanceof HTMLElement) || scroll.dataset.scrollChromeWired === "1") return;
     scroll.dataset.scrollChromeWired = "1";
     let hideTimer = 0;
@@ -24298,7 +24298,7 @@
   }
 
   function openStylingBoardDrawer(options = {}) {
-    const root = document.getElementById("styling-board-drawer");
+    const root = document.getElementById("outfits-drawer");
     if (!root) return;
     closeMobileNavShellIfOpen();
     dismissHeaderSubmenuDom();
@@ -24306,16 +24306,16 @@
     if (!options.fromAdd) clearStylingBoardAddedReveal();
     outfitStripEntranceOnNextRender = true;
     syncStylingBoardDrawerLayout();
-    stylingBoardDrawerOpen = true;
+    outfitsDrawerOpen = true;
     if (root.hasAttribute("hidden")) {
-      if (stylingBoardDrawerOpenRaf) {
-        cancelAnimationFrame(stylingBoardDrawerOpenRaf);
-        stylingBoardDrawerOpenRaf = 0;
+      if (outfitsDrawerOpenRaf) {
+        cancelAnimationFrame(outfitsDrawerOpenRaf);
+        outfitsDrawerOpenRaf = 0;
       }
-      stylingBoardDrawerFocusReturn = document.activeElement;
+      outfitsDrawerFocusReturn = document.activeElement;
       root.removeAttribute("hidden");
       root.setAttribute("aria-hidden", "false");
-      const sheet = root.querySelector(".styling-board-drawer__sheet");
+      const sheet = root.querySelector(".outfits-drawer__sheet");
       if (sheet instanceof HTMLElement) {
         sheet.style.removeProperty("transition");
         sheet.style.removeProperty("transform");
@@ -24324,28 +24324,28 @@
       lockCollectionPageScroll();
       const revealDrawer = () => {
         if (root.hasAttribute("hidden")) return;
-        root.classList.add("styling-board-drawer--visible");
-        document.body.classList.add("collection-ui--styling-board");
+        root.classList.add("outfits-drawer--visible");
+        document.body.classList.add("collection-ui--outfits");
         /* Mobile: always open My Outfits scrolled to the top, never a retained position. */
         if (isHeaderCompactViewport()) {
-          const scroll = root.querySelector(".styling-board-drawer__scroll");
+          const scroll = root.querySelector(".outfits-drawer__scroll");
           if (scroll instanceof HTMLElement) scroll.scrollTop = 0;
         }
         syncStylingBoardUi();
         renderOutfitStrip();
-        document.getElementById("styling-board-drawer-close")?.focus({ preventScroll: true });
+        document.getElementById("outfits-drawer-close")?.focus({ preventScroll: true });
       };
       if (isHeaderCompactViewport() && !twPrefersReducedMotion()) {
-        stylingBoardDrawerOpenRaf = requestAnimationFrame(() => {
+        outfitsDrawerOpenRaf = requestAnimationFrame(() => {
           void root.offsetWidth;
-          stylingBoardDrawerOpenRaf = requestAnimationFrame(() => {
-            stylingBoardDrawerOpenRaf = 0;
+          outfitsDrawerOpenRaf = requestAnimationFrame(() => {
+            outfitsDrawerOpenRaf = 0;
             revealDrawer();
           });
         });
       } else {
-        stylingBoardDrawerOpenRaf = requestAnimationFrame(() => {
-          stylingBoardDrawerOpenRaf = 0;
+        outfitsDrawerOpenRaf = requestAnimationFrame(() => {
+          outfitsDrawerOpenRaf = 0;
           revealDrawer();
         });
       }
@@ -24356,27 +24356,27 @@
   }
 
   function closeStylingBoardDrawer() {
-    const root = document.getElementById("styling-board-drawer");
+    const root = document.getElementById("outfits-drawer");
     if (!root) return;
-    stylingBoardDrawerOpen = false;
-    if (stylingBoardDrawerOpenRaf) {
-      cancelAnimationFrame(stylingBoardDrawerOpenRaf);
-      stylingBoardDrawerOpenRaf = 0;
+    outfitsDrawerOpen = false;
+    if (outfitsDrawerOpenRaf) {
+      cancelAnimationFrame(outfitsDrawerOpenRaf);
+      outfitsDrawerOpenRaf = 0;
     }
     if (root.hasAttribute("hidden")) {
-      document.body.classList.remove("collection-ui--styling-board");
+      document.body.classList.remove("collection-ui--outfits");
       unlockCollectionPageScroll();
       syncStylingBoardUi();
       return;
     }
-    root.classList.remove("styling-board-drawer--visible");
+    root.classList.remove("outfits-drawer--visible");
     root.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("collection-ui--styling-board");
+    document.body.classList.remove("collection-ui--outfits");
     unlockCollectionPageScroll();
-    const returnFocus = stylingBoardDrawerFocusReturn;
-    stylingBoardDrawerFocusReturn = null;
+    const returnFocus = outfitsDrawerFocusReturn;
+    outfitsDrawerFocusReturn = null;
     const finish = () => {
-      if (stylingBoardDrawerOpen) return;
+      if (outfitsDrawerOpen) return;
       clearStylingBoardAddedReveal();
       setStylingBoardSaveFormOpen(false);
       root.setAttribute("hidden", "");
@@ -24385,7 +24385,7 @@
         returnFocus.focus();
       }
     };
-    const sheet = root.querySelector(".styling-board-drawer__sheet");
+    const sheet = root.querySelector(".outfits-drawer__sheet");
     if (sheet) {
       const onEnd = (e) => {
         if (e.target !== sheet || e.propertyName !== "transform") return;
@@ -24401,7 +24401,7 @@
   }
 
   function toggleStylingBoardDrawer() {
-    if (stylingBoardDrawerOpen) closeStylingBoardDrawer();
+    if (outfitsDrawerOpen) closeStylingBoardDrawer();
     else openStylingBoardDrawer();
   }
 
@@ -24436,7 +24436,7 @@
       slot.dataset.outfitAnimKey = outfitSlotAnimKey(pieceSlot);
       slot.style.setProperty("--outfit-slot-stagger", String(index));
       const isJustAdded =
-        stylingBoardAddedRevealKey && outfitSlotKey(pieceSlot) === stylingBoardAddedRevealKey;
+        outfitsAddedRevealKey && outfitSlotKey(pieceSlot) === outfitsAddedRevealKey;
       if (isJustAdded) slot.classList.add("outfit-slot--just-added");
       else if (animateEntrance) slot.classList.add("outfit-slot--enter");
       slot.setAttribute("role", "listitem");
@@ -28605,7 +28605,7 @@
       "collection-ui--header-search-open",
       "collection-ui--header-search-closing",
       "collection-ui--header-submenu-open",
-      "collection-ui--styling-board",
+      "collection-ui--outfits",
       "collection-ui--filter-drawer",
       "collection-ui--nav-folded"
     );
@@ -28721,16 +28721,16 @@
   function ensureBodyScrollUnlockedWhenNoOverlay() {
     const drawerRoot = document.getElementById("collection-filter-drawer");
     const drawerOpen = !!drawerRoot && !drawerRoot.hasAttribute("hidden");
-    const stylingRoot = document.getElementById("styling-board-drawer");
+    const stylingRoot = document.getElementById("outfits-drawer");
     const stylingOpen =
-      stylingBoardDrawerOpen && !!stylingRoot && !stylingRoot.hasAttribute("hidden");
+      outfitsDrawerOpen && !!stylingRoot && !stylingRoot.hasAttribute("hidden");
     const headerSearchOpen = isHeaderSearchWrapOpen();
     const mobileNavOpen = document.getElementById("site-mobile-shell")?.classList.contains("is-open");
     const submenuOpen =
       document.body.classList.contains("collection-ui--header-submenu-open") ||
       document.body.classList.contains("collection-ui--header-submenu-closing");
     if (!drawerOpen && !stylingOpen && !headerSearchOpen && !mobileNavOpen) {
-      document.body.classList.remove("collection-ui--filter-drawer", "collection-ui--styling-board");
+      document.body.classList.remove("collection-ui--filter-drawer", "collection-ui--outfits");
       forceUnlockCollectionPageScroll();
     }
     if (!drawerOpen && !stylingOpen && !headerSearchOpen && !mobileNavOpen && !submenuOpen) {
@@ -28927,8 +28927,8 @@
     const collectionMainHref = () => collectionHrefForBrowseState();
 
     /** Full-screen mobile nav shell (below utility bar); replaces legacy slide-in panel. */
-    const stylingBoardIconHtml =
-      '<span class="site-header__styling-board-icon" aria-hidden="true">' + STYLING_BOARD_GLYPH_SVG + "</span>";
+    const outfitsIconHtml =
+      '<span class="site-header__outfits-icon" aria-hidden="true">' + STYLING_BOARD_GLYPH_SVG + "</span>";
 
     const MOBILE_NAV_DRILL_PORTAL_ID = "site-mobile-nav-drill-portal";
 
@@ -29087,9 +29087,9 @@
       shellStylingBtn.type = "button";
       shellStylingBtn.id = "site-mobile-shell-styling-btn";
       shellStylingBtn.className =
-        "site-mobile-shell__tool site-mobile-shell__tool--board site-header__styling-board-btn";
+        "site-mobile-shell__tool site-mobile-shell__tool--board site-header__outfits-btn";
       shellStylingBtn.setAttribute("aria-label", `Open ${OUTFITS_UI_NAME}`);
-      shellStylingBtn.innerHTML = stylingBoardIconHtml;
+      shellStylingBtn.innerHTML = outfitsIconHtml;
 
       const shellCloseBtn = document.createElement("button");
       shellCloseBtn.type = "button";
@@ -30774,27 +30774,27 @@
         mobileShell.classList.contains("is-open");
       if (mobileNavOpen) {
         closeMobileCategoryPanel();
-        if (!stylingBoardDrawerOpen) openStylingBoardDrawer();
+        if (!outfitsDrawerOpen) openStylingBoardDrawer();
         return;
       }
       toggleStylingBoardDrawer();
     });
-    document.getElementById("styling-board-drawer-backdrop")?.addEventListener("click", () => {
+    document.getElementById("outfits-drawer-backdrop")?.addEventListener("click", () => {
       closeStylingBoardDrawer();
     });
-    document.getElementById("styling-board-drawer-close")?.addEventListener("click", () => {
+    document.getElementById("outfits-drawer-close")?.addEventListener("click", () => {
       closeStylingBoardDrawer();
     });
-    document.getElementById("styling-board-continue")?.addEventListener("click", () => {
+    document.getElementById("outfits-continue")?.addEventListener("click", () => {
       closeStylingBoardDrawer();
     });
 
-    const stylingBoardSheet = /** @type {HTMLElement | null} */ (
-      document.querySelector("#styling-board-drawer .styling-board-drawer__sheet")
+    const outfitsSheet = /** @type {HTMLElement | null} */ (
+      document.querySelector("#outfits-drawer .outfits-drawer__sheet")
     );
-    wireMobileSheetSwipeDismiss(stylingBoardSheet, () => closeStylingBoardDrawer(), {
-      handleSelector: ".styling-board-drawer__header",
-      shouldHandle: () => isHeaderCompactLayout() && stylingBoardDrawerOpen,
+    wireMobileSheetSwipeDismiss(outfitsSheet, () => closeStylingBoardDrawer(), {
+      handleSelector: ".outfits-drawer__header",
+      shouldHandle: () => isHeaderCompactLayout() && outfitsDrawerOpen,
       axis: "down",
     });
     wireStylingBoardDrawerScrollChrome();
@@ -30819,7 +30819,7 @@
       document.body.dataset.twStylingBoardEscapeWired = "1";
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
-        const root = document.getElementById("styling-board-drawer");
+        const root = document.getElementById("outfits-drawer");
         if (!root || root.hasAttribute("hidden")) return;
         closeStylingBoardDrawer();
       });
@@ -31523,7 +31523,7 @@
         .filter(Boolean);
       persistSavedOutfitsCache();
       useCloudOutfits = true;
-      if (document.getElementById("outfit-strip") || document.getElementById("styling-board-drawer")) {
+      if (document.getElementById("outfit-strip") || document.getElementById("outfits-drawer")) {
         renderOutfitStrip();
         renderSavedOutfits();
         syncOutfitBuilderPanel();
@@ -31926,7 +31926,7 @@
     }
 
     const hasStylingBoardUi = Boolean(
-      document.getElementById("outfit-strip") || document.getElementById("styling-board-drawer")
+      document.getElementById("outfit-strip") || document.getElementById("outfits-drawer")
     );
 
     mergeWardrobeFromSources();

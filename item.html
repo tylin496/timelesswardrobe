@@ -147,14 +147,14 @@
               <button
               type="button"
               id="site-header-saved-toggle"
-              class="site-header__styling-board-btn"
+              class="site-header__outfits-btn"
               aria-expanded="false"
-              aria-controls="styling-board-drawer"
+              aria-controls="outfits-drawer"
               aria-label="Open Outfits"
               title="Outfits"
             >
-              <span class="site-header__styling-board-icon" aria-hidden="true">
-                <svg class="styling-board-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0.86 0.86 14.29 14.29" fill="none" aria-hidden="true">
+              <span class="site-header__outfits-icon" aria-hidden="true">
+                <svg class="outfits-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0.86 0.86 14.29 14.29" fill="none" aria-hidden="true">
                   <path
                     class="site-header__tool-glyph site-header__tool-glyph--cap-round"
                     stroke-linejoin="round" style="stroke-width:1.1" d="M8 7.5V6A1.2 1.2 0 1 0 6.5 4.8"
@@ -165,9 +165,9 @@
                   />
                 </svg>
               </span>
-              <span class="site-header__styling-board-label-wrap">
-                <span class="site-header__styling-board-label">Outfits</span>
-                <span id="styling-board-count" class="site-header__styling-board-count" hidden></span>
+              <span class="site-header__outfits-label-wrap">
+                <span class="site-header__outfits-label">Outfits</span>
+                <span id="outfits-count" class="site-header__outfits-count" hidden></span>
               </span>
             </button>
               <button
@@ -371,54 +371,54 @@
       <p class="site-footer__credit">Curated by T. Y. Lin</p>
     </footer>
 
-    <div id="styling-board-drawer" class="styling-board-drawer" hidden aria-hidden="true">
+    <div id="outfits-drawer" class="outfits-drawer" hidden aria-hidden="true">
       <button
         type="button"
-        class="styling-board-drawer__backdrop"
-        id="styling-board-drawer-backdrop"
+        class="outfits-drawer__backdrop"
+        id="outfits-drawer-backdrop"
         tabindex="-1"
         aria-label="Close Outfits"
       ></button>
       <div
-        class="styling-board-drawer__sheet"
+        class="outfits-drawer__sheet"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="styling-board-heading"
+        aria-labelledby="outfits-heading"
       >
-        <header class="styling-board-drawer__header">
-          <div class="styling-board-drawer__status" id="styling-board-drawer-status" hidden>
-            <span class="styling-board-drawer__status-icon" aria-hidden="true">
+        <header class="outfits-drawer__header">
+          <div class="outfits-drawer__status" id="outfits-drawer-status" hidden>
+            <span class="outfits-drawer__status-icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 13l4 4L19 7" />
               </svg>
             </span>
-            <p class="styling-board-drawer__status-text" id="styling-board-drawer-status-text">Added to Outfits</p>
+            <p class="outfits-drawer__status-text" id="outfits-drawer-status-text">Added to Outfits</p>
           </div>
-          <h2 id="styling-board-heading" class="styling-board-drawer__title">My Outfits</h2>
+          <h2 id="outfits-heading" class="outfits-drawer__title">My Outfits</h2>
           <button
             type="button"
-            class="styling-board-drawer__close"
-            id="styling-board-drawer-close"
+            class="outfits-drawer__close"
+            id="outfits-drawer-close"
             aria-label="Close Outfits"
           >
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <div class="styling-board-drawer__scroll">
+        <div class="outfits-drawer__scroll">
           <section
-            id="styling-board-drawer-added"
-            class="styling-board-drawer__added"
+            id="outfits-drawer-added"
+            class="outfits-drawer__added"
             hidden
-            aria-labelledby="styling-board-drawer-status-text"
+            aria-labelledby="outfits-drawer-status-text"
           >
-            <div id="styling-board-added-hero" class="styling-board-drawer__added-hero"></div>
+            <div id="outfits-added-hero" class="outfits-drawer__added-hero"></div>
           </section>
-          <section class="styling-board__current" aria-labelledby="styling-board-current-heading">
-            <div class="styling-board__current-head">
-              <h3 id="styling-board-current-heading" class="styling-board__section-title">Current outfit</h3>
+          <section class="outfits__current" aria-labelledby="outfits-current-heading">
+            <div class="outfits__current-head">
+              <h3 id="outfits-current-heading" class="outfits__section-title">Current outfit</h3>
               <button
                 type="button"
-                class="btn btn--ghost styling-board__clear-link styling-board__clear-link--head"
+                class="btn btn--ghost outfits__clear-link outfits__clear-link--head"
                 id="outfit-clear"
                 hidden
                 aria-label="Clear All pieces from Outfits"
@@ -426,22 +426,22 @@
                 Clear All
               </button>
             </div>
-            <div class="styling-board__board-row">
-              <div class="styling-board__board-stack">
+            <div class="outfits__board-row">
+              <div class="outfits__board-stack">
                 <div
                   id="outfit-strip"
-                  class="styling-board__pieces outfit-strip"
+                  class="outfits__pieces outfit-strip"
                   role="list"
                   aria-label="Pieces on outfits"
                 ></div>
               </div>
             </div>
-            <p id="outfit-empty" class="styling-board__empty" hidden>
+            <p id="outfit-empty" class="outfits__empty" hidden>
               Save pieces here to build outfits from the collection.
             </p>
             <div
-              id="styling-board-save-form"
-              class="styling-board__save outfit-actions"
+              id="outfits-save-form"
+              class="outfits__save outfit-actions"
               hidden
               aria-label="Name and save outfit"
             >
@@ -459,7 +459,7 @@
                 <span class="field__label">Notes <span class="field__label-optional">(optional)</span></span>
                 <textarea
                   id="outfit-notes"
-                  class="textarea-autosize styling-board__notes"
+                  class="textarea-autosize outfits__notes"
                   rows="2"
                   maxlength="500"
                   placeholder="Occasion, weather, or styling notes"
@@ -467,19 +467,19 @@
               </label>
             </div>
           </section>
-          <section class="saved-outfits styling-board__saved" aria-labelledby="saved-outfits-heading">
-            <h3 class="saved-outfits__title styling-board__section-title" id="saved-outfits-heading">Saved outfits</h3>
+          <section class="saved-outfits outfits__saved" aria-labelledby="saved-outfits-heading">
+            <h3 class="saved-outfits__title outfits__section-title" id="saved-outfits-heading">Saved outfits</h3>
             <ul id="saved-outfits-list" class="saved-outfits__list"></ul>
             <p id="saved-outfits-empty" class="saved-outfits__empty" hidden>
               No saved outfits yet. Add pieces to Outfits, name your look, and save.
             </p>
           </section>
         </div>
-        <footer class="styling-board-drawer__footer">
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--primary" id="outfit-save">
+        <footer class="outfits-drawer__footer">
+          <button type="button" class="outfits-drawer__cta outfits-drawer__cta--primary" id="outfit-save">
             Save Outfit
           </button>
-          <button type="button" class="styling-board-drawer__cta styling-board-drawer__cta--secondary" id="styling-board-continue">
+          <button type="button" class="outfits-drawer__cta outfits-drawer__cta--secondary" id="outfits-continue">
             Continue Browsing
           </button>
         </footer>
