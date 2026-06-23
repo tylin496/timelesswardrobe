@@ -7603,12 +7603,19 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   body.collection-ui--mobile-nav-closing .site-header,
   body.home-page.collection-ui--mobile-nav-open .site-header,
   body.home-page.collection-ui--mobile-nav-closing .site-header {
+    /* Perceptual sync, NOT mathematical sync. The surface POSITION is linear in --nav-progress, but a
+       linear sRGB mix reads "fully dark" early (a little dark dropped into white collapses perceived
+       lightness fast) — and the wordmark sits on the LEFT, the last strip the surface covers. So the
+       ink must stay light until --nav-progress is high. The dark fraction is eased-in as p³ (`--nav-ink`)
+       so perceived darkening tracks the surface's arrival instead of finishing ahead of it. Still one
+       surface, one DOM, one --nav-progress, one simple fade — only the curve changed. */
+    --nav-ink: calc(var(--nav-progress, 0) * var(--nav-progress, 0) * var(--nav-progress, 0));
     --tw-header-fg: color-mix(in srgb,
-      var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
+      var(--tw-brand-overlay-ink) calc((1 - var(--nav-ink)) * 100%),
       var(--tw-brand-wordmark));
     --tw-header-fg-muted: var(--tw-header-fg);
     --tw-header-monogram: color-mix(in srgb,
-      var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
+      var(--tw-brand-overlay-ink) calc((1 - var(--nav-ink)) * 100%),
       var(--tw-brand-monogram-green));
     --tw-header-surface: var(--tw-header-fg);
     --tw-header-badge-bg: transparent;
