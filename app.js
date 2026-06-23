@@ -10758,9 +10758,7 @@
         // Fall back to the full sorted list only when the user has active filters
         // (category/colour/brand/subcategory) — they've explicitly stepped outside the showcase.
         if (!narrowingFiltersActive()) {
-          const showcaseOnly = all.filter(
-            (it) => typeof it?.showcaseOrder === "number" && it.showcaseOrder >= 0
-          );
+          const showcaseOnly = all.filter((it) => isInShowcase(it));
           collectionSortedCache = showcaseOnly.length ? showcaseOnly : all;
         } else {
           collectionSortedCache = all;
@@ -31543,7 +31541,7 @@
       if (cloudBackedCustomItems.length) {
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       }
-      mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+      mergeWardrobeBaseWithFetchedCloudRows(normalized);
       mergeWardrobeFromSources();
       renderGrid();
       syncOutfitSaveButtonLabel();
