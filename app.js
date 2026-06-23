@@ -4563,6 +4563,29 @@
     sortSel.addEventListener("change", () => { _accountNotesSort = sortSel.value; refreshNotesList(); });
     toolbar.appendChild(sortSel);
 
+    const copyAllBtn = document.createElement("button");
+    copyAllBtn.type = "button";
+    copyAllBtn.className = "account-notes-copy-btn account-notes-copy-all-btn";
+    copyAllBtn.textContent = "Copy all";
+    let copyAllTimer = 0;
+    copyAllBtn.addEventListener("click", async () => {
+      const withNotes = getFilteredItems().filter((it) => String(it?.notes ?? "").trim());
+      if (!withNotes.length) return;
+      const text = withNotes.map((it) => buildNotesCopyText(it)).join("\n\n---\n\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        copyAllBtn.textContent = `Copied ${withNotes.length}`;
+        copyAllBtn.dataset.state = "copied";
+        clearTimeout(copyAllTimer);
+        copyAllTimer = setTimeout(() => { copyAllBtn.textContent = "Copy all"; copyAllBtn.dataset.state = ""; }, 2200);
+      } catch {
+        copyAllBtn.textContent = "Failed";
+        clearTimeout(copyAllTimer);
+        copyAllTimer = setTimeout(() => { copyAllBtn.textContent = "Copy all"; }, 2200);
+      }
+    });
+    toolbar.appendChild(copyAllBtn);
+
     wrapper.appendChild(toolbar);
 
     // ── Body: list pane + editor pane ────────────────────────────────────────────
