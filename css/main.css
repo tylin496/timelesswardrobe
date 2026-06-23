@@ -6712,7 +6712,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     padding: 0;
     border: none;
     appearance: none;
-    background: rgba(20, 19, 18, 0.34);
+    /* Visual scrim dropped: the drawer is full-width when open, so the dim only ever flashed during
+       the slide-in. Element kept (close handler + a11y; re-add a tint if the drawer becomes a side panel). */
+    background: transparent;
     cursor: default;
     opacity: 0;
     pointer-events: none;
@@ -25518,33 +25520,35 @@ body.editorial-page #editorial-root {
 
 /* Sits inside .site-header-shell, right after the <header>. Shares the header's
    background token so it reads as one unified chrome bar. */
+/* Inline nav slot — flex: 1 fills space between logo and tools */
 .account-header-nav {
-  background: var(--tw-header-bg, var(--bg-elevated));
-  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-}
-
-html.tw-account-dark body.account-page .account-header-nav {
-  background: var(--bg-elevated, #2d2b28);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 /* ── Account tab nav ────────────────────────────────────────────────────────── */
 
 .account-tab-nav {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 0;
   overflow-x: auto;
   scrollbar-width: none;
   margin: 0;
-  padding: 0 var(--header-flyout-inline-x, 1.5rem);
+  padding: 0 0.5rem;
+  height: 100%;
 }
 
 .account-tab-nav::-webkit-scrollbar { display: none; }
 
 .account-tab-nav__item {
   flex: 0 0 auto;
-  padding: 0.55rem 0.9rem;
+  display: flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  height: 100%;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 500;
@@ -25552,9 +25556,9 @@ html.tw-account-dark body.account-page .account-header-nav {
   color: var(--ink-muted);
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
   transition: color 0.14s ease, border-color 0.14s ease;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .account-tab-nav__item:hover {
@@ -25566,7 +25570,6 @@ html.tw-account-dark body.account-page .account-header-nav {
   color: var(--ink);
   font-weight: 700;
   border-bottom-color: var(--ink);
-  border-bottom-width: 2px;
 }
 
 html.tw-account-dark body.account-page .account-tab-nav__item {
