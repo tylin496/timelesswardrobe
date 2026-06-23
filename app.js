@@ -6581,7 +6581,7 @@
 
     if (pdpAccordion) {
       sec.classList.add("item-detail__notes-section--accordion");
-      const { h, textEl } = buildNotes("Collection Notes");
+      const { h, textEl } = buildNotes("Notes");
       sec.appendChild(h);
       sec.appendChild(textEl);
       host.appendChild(sec);
