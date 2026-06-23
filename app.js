@@ -8993,7 +8993,9 @@
     if (!key) return "";
     // Normalize simple numeric filenames: /gallery/02.png → /gallery/02
     // Also normalize CDN timestamp-based filenames: /gallery/{ts}-gallery-02.png → /gallery/02
+    // Strip /main/ prefix so R2 paths (id/main/gallery/…) match seed paths (id/gallery/…)
     return key
+      .replace(/\/main\/gallery\//i, "/gallery/")
       .replace(/(\/gallery\/\d{1,2})\.[a-z0-9]+$/i, "$1")
       .replace(/\/gallery\/[^/]*-gallery-(\d{2})\.[a-z0-9]+$/i, "/gallery/$1");
   }
