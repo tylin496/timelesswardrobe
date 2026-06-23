@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "css:build": "node scripts/build-css.mjs",
-    "css:migrate-margins": "node scripts/migrate-margins-to-tailwind.mjs",
     "lint:insets": "node scripts/check-safe-area-insets.mjs",
+    "check:wardrobe-images": "node scripts/check-wardrobe-local-images.mjs",
+    "check:urls": "node scripts/check-public-urls.mjs",
+    "check": "node scripts/check-safe-area-insets.mjs && node scripts/check-public-urls.mjs && node scripts/check-wardrobe-local-images.mjs",
     "predev": "node scripts/build-css.mjs",
     "og:build": "node scripts/build-og-image.mjs",
     "images:center": "node scripts/center-cutouts.mjs",
@@ -15,17 +17,15 @@
     "og:items": "node scripts/build-item-og-pages.mjs",
     "gallery:sync": "node scripts/sync-wardrobe-gallery.mjs",
     "gallery:manifest": "node scripts/build-wardrobe-local-gallery-manifest.mjs",
-    "images:convert": "node scripts/convert-wardrobe-images-to-webp.mjs",
-    "images:convert-clean": "node scripts/convert-wardrobe-images-to-webp.mjs --delete-originals",
-    "check:wardrobe-images": "node scripts/check-wardrobe-local-images.mjs",
-    "check:urls": "node scripts/check-public-urls.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
     "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
-    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs"
+    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs",
+    "db:clear-dead-r2": "node scripts/clear-dead-r2-covers.mjs",
+    "db:clear-media": "node scripts/clear-wardrobe-media-overrides.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"
