@@ -13460,7 +13460,7 @@
       }
     };
 
-    const onLoad = () => resetZoom();
+    const onLoad = () => resetZoom({ showCursor: false });
 
     media.addEventListener("mouseenter", onEnter, { passive: true });
     media.addEventListener("mousemove", onMove, { passive: true });
