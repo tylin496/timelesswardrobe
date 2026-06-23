@@ -925,11 +925,14 @@ body {
   z-index: 1;
 }
 
-/* Dark-ink masthead clone exists only during the mobile nav slide (built/removed in JS).
-   Hidden everywhere by default — its positioning + clip reveal live in the ≤1024px block —
-   so it can never render as a duplicate header row (e.g. on a desktop-width resize). */
-.site-header__ink-clone {
-  display: none;
+/* Single source of truth for the mobile-nav masthead wipe: the ivory/ink boundary position,
+   1 = parked at the right (closed), 0 = swept fully left (open). Registered so it interpolates.
+   The ivory `::after` clip AND the two-tone ink gradients all read this one number, so they
+   can never drift apart. (See the ≤1024px `Mobile nav open — single-DOM two-tone ink` block.) */
+@property --tw-nav-ink-edge {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
 }
 
 /* Run once on load — re-applying `animation` after search close caused a visible header jump. */
