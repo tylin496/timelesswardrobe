@@ -3136,10 +3136,10 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   }
 }
 
-/* Account tab nav visible at tablet: add a 3rd grid column between logo and tools */
+/* Account tab nav visible at tablet: logo wordmark + full-width tabs, no tools/mark */
 @media (min-width: 641px) and (max-width: 1024px) {
   body.account-page .site-header__brand-nav {
-    grid-template-columns: auto 1fr var(--site-header-mobile-tools-reserve);
+    grid-template-columns: auto 1fr;
   }
   body.account-page .account-header-nav {
     grid-column: 2;
@@ -3148,7 +3148,10 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
     overflow: hidden;
   }
   body.account-page .site-header__tools {
-    grid-column: 3;
+    display: none;
+  }
+  body.account-page .site-title__mark {
+    display: none;
   }
 }
 
