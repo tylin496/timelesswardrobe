@@ -7612,6 +7612,32 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     mix-blend-mode: difference;
   }
 
+  /* Settled open (`--mobile-nav-shown`, set by JS once the slide finishes): the surface has fully
+     arrived, so drop the blend — which can only yield a near-black over the ivory — and set the whole
+     masthead to solid BRAND GREEN, unified across wordmark, monogram and tool glyphs. `transition: none`
+     so it snaps from the blend's near-black straight to green; a color ease would pass through light
+     tones and flash invisible on the ivory. The blend returns (and the green is dropped) on close. */
+  body.home-page.collection-ui--mobile-nav-shown .site-header__container {
+    mix-blend-mode: normal;
+  }
+  body.home-page.collection-ui--mobile-nav-shown .site-title__primary,
+  body.home-page.collection-ui--mobile-nav-shown .site-title__wordmark-line {
+    color: var(--tw-brand-green);
+    transition: none;
+  }
+  body.home-page.collection-ui--mobile-nav-shown .site-title__mark {
+    background-color: var(--tw-brand-green);
+    transition: none;
+  }
+  body.home-page.collection-ui--mobile-nav-shown .site-header__tools .site-header__tool-glyph,
+  body.home-page.collection-ui--mobile-nav-shown .site-header__menu-btn .site-header__menu-glyph-line {
+    stroke: var(--tw-brand-green);
+    transition: none;
+  }
+  body.home-page.collection-ui--mobile-nav-shown .site-header__tools {
+    --tw-header-badge-fg: var(--tw-brand-green);
+  }
+
   /*
    * Home masthead on mobile: always overlay (white ink, transparent bg) regardless of which class
    * the scroll observer last set. body.home-page .site-header (0,2,0) beats .site-header--solid/

@@ -29985,11 +29985,16 @@
 
     /** @type {(() => void) | null} */
     let mobileShellCloseAbort = null;
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let mobileShellShowTimer = null;
 
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
       if (mobileShell.hidden && !mobileShell.classList.contains("is-open")) return;
       if (mobileShell.classList.contains("is-closing")) return;
+      // Drop the settled-green state immediately so the close reverts to the blend sweep.
+      if (mobileShellShowTimer) { clearTimeout(mobileShellShowTimer); mobileShellShowTimer = null; }
+      document.body.classList.remove("collection-ui--mobile-nav-shown");
 
       const finish = () => {
         mobileShellCloseAbort = null;
@@ -29999,7 +30004,11 @@
         resetMobileNavDrill();
         headerMenuBtn?.setAttribute("aria-expanded", "false");
         headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
-        document.body.classList.remove("collection-ui--mobile-nav-open", "collection-ui--mobile-nav-closing");
+        document.body.classList.remove(
+          "collection-ui--mobile-nav-open",
+          "collection-ui--mobile-nav-closing",
+          "collection-ui--mobile-nav-shown"
+        );
         setMobileNavDimVisible(false);
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
@@ -30037,7 +30046,8 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
-      document.body.classList.remove("collection-ui--mobile-nav-closing");
+      document.body.classList.remove("collection-ui--mobile-nav-closing", "collection-ui--mobile-nav-shown");
+      if (mobileShellShowTimer) { clearTimeout(mobileShellShowTimer); mobileShellShowTimer = null; }
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");
@@ -30052,11 +30062,20 @@
       if (twPrefersReducedMotion()) {
         mobileShell.classList.add("is-open");
         syncMobileShellTop();
+        document.body.classList.add("collection-ui--mobile-nav-shown");
         return;
       }
 
       void mobileShell.offsetWidth;
       requestAnimationFrame(revealPanel);
+      // Once the surface finishes sliding, swap the blend for solid brand-green ink (the blend can only
+      // render a near-black over the ivory). Guarded against a close that interrupts the slide.
+      mobileShellShowTimer = globalThis.setTimeout(() => {
+        mobileShellShowTimer = null;
+        if (document.body.classList.contains("collection-ui--mobile-nav-open")) {
+          document.body.classList.add("collection-ui--mobile-nav-shown");
+        }
+      }, MOBILE_NAV_MOTION_MS);
     }
 
     function openMobileHeaderSearch() {
