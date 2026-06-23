@@ -25508,17 +25508,28 @@ body.editorial-page #editorial-root {
 }
 
 
-/* ── Account tab shell ─────────────────────────────────────────────────────── */
+/* ── Account header nav slot ───────────────────────────────────────────────── */
 
-/* account-tab-nav — second row inside .site-header on the account page */
+/* Sits inside .site-header-shell, right after the <header>. Shares the header's
+   background token so it reads as one unified chrome bar. */
+.account-header-nav {
+  background: var(--tw-header-bg, var(--bg-elevated));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+html.tw-account-dark body.account-page .account-header-nav {
+  background: var(--bg-elevated, #2d2b28);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Account tab nav ────────────────────────────────────────────────────────── */
+
 .account-tab-nav {
   display: flex;
   align-items: stretch;
   gap: 0;
   overflow-x: auto;
   scrollbar-width: none;
-  border-top: 1px solid color-mix(in srgb, var(--tw-header-fg, #163229) 10%, transparent);
-  background: transparent;
   margin: 0;
   padding: 0 var(--header-flyout-inline-x, 1.5rem);
 }
@@ -25527,12 +25538,12 @@ body.editorial-page #editorial-root {
 
 .account-tab-nav__item {
   flex: 0 0 auto;
-  padding: 0.55rem 0.85rem;
+  padding: 0.55rem 0.9rem;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--tw-header-fg, #163229) 60%, transparent);
+  color: var(--ink-muted);
   text-decoration: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -25541,20 +25552,17 @@ body.editorial-page #editorial-root {
 }
 
 .account-tab-nav__item:hover {
-  color: var(--tw-header-fg, #163229);
-  border-bottom-color: color-mix(in srgb, var(--tw-header-fg, #163229) 30%, transparent);
+  color: var(--ink);
+  border-bottom-color: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
 .account-tab-nav__item[aria-current="page"] {
-  color: var(--tw-header-fg, #163229);
+  color: var(--ink);
   font-weight: 700;
-  border-bottom-color: var(--tw-header-fg, #163229);
+  border-bottom-color: var(--ink);
   border-bottom-width: 2px;
 }
 
-html.tw-account-dark body.account-page .account-tab-nav {
-  border-top-color: rgba(255, 255, 255, 0.12);
-}
 html.tw-account-dark body.account-page .account-tab-nav__item {
   color: rgba(255, 255, 255, 0.55);
 }

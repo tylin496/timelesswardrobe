@@ -3240,11 +3240,11 @@
     body.replaceChildren();
     body.hidden = false;
 
-    // Tab nav goes into the header as a second bar
-    const header = document.querySelector(".site-header");
-    if (header && !header.querySelector(".account-tab-nav")) {
+    // Tab nav goes into the dedicated slot right below the site-header
+    const navSlot = document.getElementById("account-header-nav");
+    if (navSlot && !navSlot.querySelector(".account-tab-nav")) {
       const tabNav = buildAccountTabNav();
-      header.appendChild(tabNav);
+      navSlot.appendChild(tabNav);
     }
 
     // Theme toggle goes into header tools, replacing any existing instance
@@ -29875,6 +29875,8 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
+      // Measure masthead geometry before the edge animates, so the two-tone gradient lands aligned.
+      syncHeaderInkGeometry();
       document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
