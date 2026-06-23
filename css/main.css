@@ -10312,7 +10312,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.72rem 1.35rem max(0.95rem, calc(env(safe-area-inset-bottom, 0px) + 0.55rem));
-  border-top: 1px solid color-mix(in srgb, var(--sb-line) 48%, transparent);
+  border-top: none;
   background: var(--sb-drawer-bg);
 }
 
