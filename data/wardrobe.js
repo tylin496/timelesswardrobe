@@ -164,7 +164,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/black-bay-58/main/1.webp",
     "gallery": [
       "/images/wardrobe/black-bay-58/main/2.webp",
-      "/images/wardrobe/black-bay-58/main/3.jpeg",
+      "/images/wardrobe/black-bay-58/main/3.webp",
       "/images/wardrobe/black-bay-58/main/4.webp"
     ],
     "notes": "Movement: MT5402\nCase: 39mm SS, thickness 11.9mm\nLugs: 20mm lug width\nDial: Black domed\nBracelet: Riveted steel bracelet\n\nThe Tudor Black Bay 58 draws heavily upon the visual language of the iconic Rolex Submariner 6538 ‘Big Crown’, from the red triangle at 12 o’clock to the restrained proportions that defined the finest diving watches of the 1950s. The gilt dial introduces a welcome warmth that sits comfortably alongside the gold pieces elsewhere in the collection. It remains the collection’s sole dedicated sports watch.",
