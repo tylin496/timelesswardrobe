@@ -1636,7 +1636,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 .site-header__search-icon svg,
-.site-header__account-icon svg,
+.site-header__account-icon svg:not(.site-header__account-svg--filled),
 .site-header__outfits-icon svg,
 .site-header__menu-icon svg,
 .site-header__saved-icon svg {
@@ -2167,6 +2167,9 @@ body.home-page .site-header--scroll-driven::before {
   display: none;
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 .site-header__account-link:is(:hover, :focus-visible) .site-header__account-svg--outline {
   display: none;
@@ -7607,7 +7610,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: var(--tw-mobile-nav-surface);
+    /* Match the shell exactly so the header surface and drawer body read as one continuous panel — no
+       shade step at the header/shell seam. */
+    background: var(--tw-mobile-nav-surface-rail);
     transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
   }
 
@@ -7696,7 +7701,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
-    border-top: 1px solid color-mix(in srgb, var(--line) 38%, transparent);
+    /* No divider — header surface and shell are the same colour now, so the seam disappears. */
+    border-top: 0;
   }
 
   /*
