@@ -12855,14 +12855,15 @@
 
     const update = () => {
       syncHeights();
-      // During the mobile nav, the masthead look is driven entirely by CSS — it crossfades to solid
-      // on open and back to overlay on close, in step with the drawer. Bail out of scroll-driving so
-      // the inline `--tw-header-bg-opacity` never overrides that fade (it would pin the bg transparent
-      // at the top of the hero, leaving dark ink on the photo).
+      // During the mobile nav, bail out of scroll-driving so inline --tw-header-bg-opacity never
+      // overrides the ::after ivory surface. Only switch to overlay if we're still in the hero zone
+      // (not scrolled solid) — forcing overlay when solid makes ::before go transparent instantly
+      // while ::after takes 320ms to arrive, briefly exposing the hero behind the header.
       if (document.body.classList.contains("collection-ui--mobile-nav-open")) {
         clearScrollDriven();
-        siteHeader.classList.add("site-header--overlay");
-        siteHeader.classList.remove("site-header--solid");
+        const wasScrolledSolid = shouldUseSolidHeader();
+        siteHeader.classList.toggle("site-header--overlay", !wasScrolledSolid);
+        siteHeader.classList.toggle("site-header--solid", wasScrolledSolid);
         return;
       }
       const solid = shouldUseSolidHeader();
