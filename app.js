@@ -12821,7 +12821,7 @@
       // sliding `.site-header::after` surface, and overlay lets the white ink restore on close.
       if (!hero) return true;
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      return scrollY >= hero.offsetHeight / 2;
+      return scrollY >= hero.offsetHeight * 0.35;
     };
 
     const update = () => {
@@ -12842,8 +12842,8 @@
       if (!solid && hero) {
         const heroH = hero.offsetHeight;
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-        const fadeStart = heroH * 0.2;
-        const fadeEnd = heroH * 0.5;
+        const fadeStart = heroH * 0.1;
+        const fadeEnd = heroH * 0.35;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
