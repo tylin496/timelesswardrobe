@@ -12793,35 +12793,6 @@
     globalThis.setTimeout(markEntered, 650);
   }
 
-  // Split the masthead wordmark into per-character spans so the mobile-nav recolor can travel across the
-  // letters (each char gets `--w-step` = its distance from the right edge; CSS staggers the delay off it).
-  // Idempotent; preserves the text content. Runs once — the wordmark is static.
-  function phaseMastheadWordmarkChars() {
-    const stack = document.querySelector(
-      ".site-header .site-title__primary .site-title__text-stack"
-    );
-    if (!stack || stack.dataset.charsPhased === "1") return;
-    const lines = [...stack.querySelectorAll(".site-title__wordmark-line")];
-    if (!lines.length) return;
-    const chars = [];
-    for (const line of lines) {
-      const text = line.textContent;
-      line.textContent = "";
-      for (const ch of text) {
-        const span = document.createElement("span");
-        span.className = "site-title__wordmark-char";
-        span.textContent = ch;
-        line.appendChild(span);
-        chars.push(span); // pushed left→right across both words
-      }
-    }
-    const max = chars.length - 1;
-    // step = distance from the RIGHT edge (0 = rightmost) → drives the right→left recolor.
-    chars.forEach((span, i) => span.style.setProperty("--w-step", String(max - i)));
-    stack.style.setProperty("--w-max", String(max));
-    stack.dataset.charsPhased = "1";
-  }
-
   function initHomeHeroHeader() {
     if (!document.body.classList.contains("home-page")) {
       teardownHomeHeroHeader();
@@ -12830,7 +12801,6 @@
     const siteHeader = document.querySelector(".site-header");
     const shell = document.querySelector(".site-header-shell");
     if (!siteHeader || !shell) return;
-    phaseMastheadWordmarkChars();
 
     const hero = document.querySelector(".ed-lp__hero");
     const heroInner = hero?.querySelector(".ed-lp__hero-inner") ?? null;

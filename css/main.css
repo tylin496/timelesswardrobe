@@ -1038,13 +1038,6 @@ body {
   transition: color var(--tw-header-overlay-duration, 400ms) var(--tw-header-overlay-ease, var(--ease-luxe));
 }
 
-/* Per-character wordmark spans (split in JS so the recolor can travel across the word). They inherit the
-   line's font/size/spacing and carry the same default color ease, so non-nav recolours (scroll/hover)
-   still fade normally; the mobile-nav rules override with staggered per-char delays. */
-.site-title__wordmark-char {
-  transition: color var(--tw-header-overlay-duration, 400ms) var(--tw-header-overlay-ease, var(--ease-luxe));
-}
-
 /* Monogram: mask + header token so mark tracks wordmark (overlay / solid / dark). */
 .site-title__mark {
   display: block;
@@ -7603,69 +7596,20 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
   }
 
-  /* Baseline ink while the panel is in (open or closing): dark wordmark on the ivory. The doubled body
-     class (home-page + nav-open) gives (0,3,1) so this beats the home white-pin below at (0,2,1). This
-     is the FALLBACK — the per-group phasing right below re-declares `color` on the brand and tools
-     wrappers so the recolor sweeps with the surface edge instead of fading globally. */
-  body.collection-ui--mobile-nav-open .site-header,
-  body.collection-ui--mobile-nav-closing .site-header,
-  body.home-page.collection-ui--mobile-nav-open .site-header,
-  body.home-page.collection-ui--mobile-nav-closing .site-header {
-    --tw-header-fg: var(--tw-brand-wordmark);
-    --tw-header-fg-muted: var(--tw-header-fg);
-    --tw-header-monogram: var(--tw-brand-monogram-green);
-    --tw-header-surface: var(--tw-header-fg);
-    --tw-header-badge-bg: transparent;
-    --tw-header-badge-fg: currentColor;
-    --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
-  }
-
   /*
-   * Real-time right→left recolor sweep. The ink TARGET is discrete (white at rest, dark when open); the
-   * motion is a first-class `transition` on the actual paint property of each group — `stroke` (glyphs),
-   * `color` (wordmark), `background-color` (crest) — which the browser interpolates every frame. (The
-   * earlier --nav-progress→color-mix drive did not repaint per frame, so it read as a uniform fade.)
-   * A per-group `transition-delay` staggers them: on OPEN the RIGHT tools recolor first and the LEFT
-   * brand follows, so the recolor travels with the arriving surface; on CLOSE the order reverses, since
-   * the surface uncovers the left first. One header, one drawer, one DOM — no clone, no second masthead,
-   * no mask. Durations/delays tuned against the 320ms surface slide.
+   * Ink carried by the surface — SPATIAL, not temporal. During the nav the masthead stays in its WHITE
+   * overlay state (the home pin below keeps it white); the content layer blends with the sliding ivory
+   * `::after` via `mix-blend-mode: difference`. Per pixel: white where the hero still shows (the backdrop
+   * inside the header is transparent ⇒ difference leaves the source white) and dark where the ivory has
+   * arrived (white ⊖ ivory ≈ near-black). The boundary IS the surface edge, so the recolor travels
+   * right→left purely from the surface `transform` — no recolor timing, no per-element/per-char stagger,
+   * no mask, no gradient, no clone, no second masthead. `isolation: isolate` on `.site-header` confines
+   * the blend to the header's own ::before/::after layers, so it never reacts to the hero photo behind.
+   * Home only: catalogue/account mastheads are already dark on a light bar and need no blend.
    */
-
-  /* RIGHT group (tools: search / hanger / menu-X). Glyphs are `stroke: currentColor` but the tool
-     buttons re-declare `color`, so set `stroke` straight to the target. Dark only while open. */
-  body.collection-ui--mobile-nav-open .site-header__tools .site-header__tool-glyph,
-  body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line {
-    stroke: var(--tw-brand-wordmark);
-  }
-  /* OPEN: tools lead (no delay). CLOSE: tools trail (delay) — surface uncovers them last. */
-  body.collection-ui--mobile-nav-open .site-header__tools .site-header__tool-glyph,
-  body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line {
-    transition: stroke 190ms var(--ease-luxe) 0ms;
-  }
-  body.collection-ui--mobile-nav-closing .site-header__tools .site-header__tool-glyph,
-  body.collection-ui--mobile-nav-closing .site-header__menu-btn .site-header__menu-glyph-line {
-    transition: stroke 190ms var(--ease-luxe) 170ms;
-  }
-
-  /* LEFT group (brand: wordmark + monogram), phased PER CHARACTER so the recolor travels across the word
-     instead of flipping as a block. Each char's delay = its distance from the right edge (`--w-step`, set
-     in JS: 0 = rightmost), so on OPEN the recolor continues the right→left sweep through the letters and
-     the monogram (far left) lands last. Wordmark chars are `color: inherit`; the crest is
-     `background-color: var(--tw-header-monogram)`. Dark only while open. */
-  body.collection-ui--mobile-nav-open .site-title__wordmark-char {
-    color: var(--tw-brand-wordmark);
-    transition: color 130ms var(--ease-luxe) calc(40ms + var(--w-step, 0) * 11ms);
-  }
-  body.collection-ui--mobile-nav-open .site-title__mark {
-    background-color: var(--tw-brand-monogram-green);
-    transition: background-color 150ms var(--ease-luxe) calc(40ms + (var(--w-max, 0) + 1) * 11ms);
-  }
-  /* CLOSE reverses (the surface uncovers the left first): leftmost char un-colours first, monogram leads. */
-  body.collection-ui--mobile-nav-closing .site-title__wordmark-char {
-    transition: color 130ms var(--ease-luxe) calc((var(--w-max, 0) - var(--w-step, 0)) * 11ms);
-  }
-  body.collection-ui--mobile-nav-closing .site-title__mark {
-    transition: background-color 150ms var(--ease-luxe) 0ms;
+  body.home-page.collection-ui--mobile-nav-open .site-header__container,
+  body.home-page.collection-ui--mobile-nav-closing .site-header__container {
+    mix-blend-mode: difference;
   }
 
   /*
