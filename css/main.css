@@ -21400,6 +21400,13 @@ body.home-page .home-hero__division-rail {
   );
 }
 
+body.home-page .home-hero__viewed-rail {
+  --home-hero-viewed-rail-pad-left: max(
+    var(--chrome-inline-x, clamp(2rem, 4vw, 5rem)),
+    env(safe-area-inset-left, 0px)
+  );
+}
+
 body.home-page .home-hero__hero-inner {
   max-width: none;
   padding-left: var(--home-hero-hero-copy-x, clamp(2rem, 7vw, 7rem));
