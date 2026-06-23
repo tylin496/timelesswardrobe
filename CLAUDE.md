@@ -17,7 +17,7 @@ stylesheet. Read the docs before styling work:
 
 ## Rails — fixed contract
 
-Horizontal card rails (Collection Highlights, item page Related, styling-board
+Horizontal card rails (Collection Highlights, item page Related, outfits
 Current Outfit strip) keep breaking when edited ad-hoc. Before touching any rail,
 read **[docs/CONVENTIONS.md → Rails](docs/CONVENTIONS.md#rails-horizontal-card-scrollers)**.
 The short version:

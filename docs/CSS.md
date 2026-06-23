@@ -29,18 +29,18 @@ This repo sets `"workbench.editorAssociations": { "*.md": "default" }` in `.vsco
 Several selectors often target the **same node** on purpose:
 
 1. **Base component** — e.g. `.editorial-quote { padding: … }`
-2. **Page override** — e.g. `body.home-page #main.ed-lp .ed-lp__division-rail-philosophy.editorial-quote { padding-top: var(--ed-lp-philosophy-pad-y); … }`
+2. **Page override** — e.g. `body.home-page #main.home-hero .home-hero__division-rail-philosophy.editorial-quote { padding-top: var(--home-hero-philosophy-pad-y); … }`
 3. **Breakpoint** — e.g. `@media (max-width: 768px) { … }`
 
 That is normal cascade, not a broken build. The more specific rule wins for the properties it sets.
 
-Homepage philosophy quote spacing is owned only by the `body.home-page #main.ed-lp .ed-lp__division-rail-philosophy` block and tokens:
+Homepage philosophy quote spacing is owned only by the `body.home-page #main.home-hero .home-hero__division-rail-philosophy` block and tokens:
 
-- `--ed-lp-philosophy-block-gap` — symmetric external margin above and below the quote box (Browse rail → quote ↔ quote → Highlights)
-- `--ed-lp-philosophy-pad-y` — padding inside the tinted quote box (text breathing room)
-- Highlights band after the quote uses `padding-top: 0`; do not add `--ed-lp-section-pad-y` there or the lower gap doubles
+- `--home-hero-philosophy-block-gap` — symmetric external margin above and below the quote box (Browse rail → quote ↔ quote → Highlights)
+- `--home-hero-philosophy-pad-y` — padding inside the tinted quote box (text breathing room)
+- Highlights band after the quote uses `padding-top: 0`; do not add `--home-hero-section-pad-y` there or the lower gap doubles
 
-Generic `.editorial-quote` padding excludes that block via `:not(.ed-lp__division-rail-philosophy)`.
+Generic `.editorial-quote` padding excludes that block via `:not(.home-hero__division-rail-philosophy)`.
 
 ## Debugging checklist
 

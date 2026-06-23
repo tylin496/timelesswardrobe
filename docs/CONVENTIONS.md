@@ -12,7 +12,7 @@ selectors, near-zero ad-hoc class names.
 
 | Pattern | Meaning | Example |
 | --- | --- | --- |
-| `block` | Component root, feature-scoped kebab name | `.card`, `.site-header`, `.styling-board-drawer` |
+| `block` | Component root, feature-scoped kebab name | `.card`, `.site-header`, `.outfits-drawer` |
 | `block__element` | Child part | `.card__media`, `.site-header__tool-glyph` |
 | `block--modifier` | Variant of the block/element | `.site-header__tool-glyph--cap-round` |
 | `.is-*` / `.has-*` | Runtime **state** (toggled from JS) | `.is-active`, `.is-open`, `.has-results` |
@@ -107,8 +107,8 @@ Use a named `--z-*` token, never a raw number. Current ladder (low → high):
 --z-mega-menu              1100
 --z-utility-bar            1200
 --z-site-header-chrome     1200
---z-styling-board-backdrop 1290
---z-styling-board-drawer   1300
+--z-outfits-backdrop 1290
+--z-outfits-drawer   1300
 --z-collection-filter-drawer 1300
 --z-header-search-overlay  1400
 ```
@@ -118,8 +118,8 @@ New overlays slot into a gap in this range with a new `--z-*` token.
 ## Rails (horizontal card scrollers)
 
 Every horizontal card rail follows **one contract** — Collection Highlights
-(`.ed-lp__rail` / `.ed-lp__division-rail`), the item page Related rail
-(`.item-detail__related-grid`), and the styling-board Current Outfit strip
+(`.home-hero__rail` / `.home-hero__division-rail`), the item page Related rail
+(`.item-detail__related-grid`), and the outfits Current Outfit strip
 (`#outfit-strip`). These break constantly when edited piecemeal; treat the rules
 below as fixed.
 
@@ -148,7 +148,7 @@ space, and do **not** "fix" it into a symmetric or no-bleed rail. (The Current
 Outfit strip adds the bleed only on real overflow, gated by `.is-rail-scrollable`;
 when cards fit, no bleed — both edges at the content gutter.)
 
-**4. Progress track** (`.ed-lp__rail-progress`, `.styling-board__outfit-rail-progress`):
+**4. Progress track** (`.home-hero__rail-progress`, `.outfits__outfit-rail-progress`):
 - `position: relative` — the bar inside is `position: absolute`. If the track is
   `static`/`height:0`, the bar escapes to the nearest positioned ancestor and
   floats a line across the cards (this was a real desktop bug).
@@ -163,7 +163,7 @@ when cards fit, no bleed — both edges at the content gutter.)
   broken (e.g. progress styled for mobile only → bar floats on desktop).
 
 **5. Gutters come from tokens**, never raw px: `--content-inline`,
-`--ed-lp-division-rail-pad-left`, `--styling-board-scroll-inline`.
+`--home-hero-division-rail-pad-left`, `--outfits-scroll-inline`.
 
 Verify after any rail change: at rest the first card aligns with the heading
 (`firstCard.left === heading.left`), the right bleeds, and the progress bar sits
