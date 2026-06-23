@@ -7596,32 +7596,77 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
   }
 
-  /* Ink follows the surface — single source of truth is --nav-progress (white at 0, dark at 1), the
-     SAME var that drives the slide. While the panel is in (open or closing) the masthead reads dark on
-     the ivory. The doubled body class (home-page + nav-open) gives (0,3,1) so this beats the home
-     white-pin below at (0,2,1); without it the ink stays white on the ivory and the logo vanishes. */
+  /* Baseline ink while the panel is in (open or closing): dark wordmark on the ivory. The doubled body
+     class (home-page + nav-open) gives (0,3,1) so this beats the home white-pin below at (0,2,1). This
+     is the FALLBACK — the per-group phasing right below re-declares `color` on the brand and tools
+     wrappers so the recolor sweeps with the surface edge instead of fading globally. */
   body.collection-ui--mobile-nav-open .site-header,
   body.collection-ui--mobile-nav-closing .site-header,
   body.home-page.collection-ui--mobile-nav-open .site-header,
   body.home-page.collection-ui--mobile-nav-closing .site-header {
-    /* Perceptual sync, NOT mathematical sync. The surface POSITION is linear in --nav-progress, but a
-       linear sRGB mix reads "fully dark" early (a little dark dropped into white collapses perceived
-       lightness fast) — and the wordmark sits on the LEFT, the last strip the surface covers. So the
-       ink must stay light until --nav-progress is high. The dark fraction is eased-in as p³ (`--nav-ink`)
-       so perceived darkening tracks the surface's arrival instead of finishing ahead of it. Still one
-       surface, one DOM, one --nav-progress, one simple fade — only the curve changed. */
-    --nav-ink: calc(var(--nav-progress, 0) * var(--nav-progress, 0) * var(--nav-progress, 0));
+    --tw-header-fg: var(--tw-brand-wordmark);
+    --tw-header-fg-muted: var(--tw-header-fg);
+    --tw-header-monogram: var(--tw-brand-monogram-green);
+    --tw-header-surface: var(--tw-header-fg);
+    --tw-header-badge-bg: transparent;
+    --tw-header-badge-fg: currentColor;
+    --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
+  }
+
+  /*
+   * Spatially-linked ink. The surface is a wipe (a hard ivory edge sweeping right→left); a single
+   * uniform recolor reads as an independent fade because it carries no position. So phase each masthead
+   * GROUP by where the edge reaches it — the recolor then travels with the edge. Measured x-centres:
+   * tools ≈0.75·W → covered at p≈0.25 (early); brand ≈0.29·W → covered at p≈0.71 (late). Each group's
+   * local progress `--nav-ink` is a clamped ramp of --nav-progress around its own coverage point.
+   * Levers follow the existing plumbing: wordmark/links are `color: inherit`, the crest is
+   * `background-color: var(--tw-header-monogram)`, glyphs are `stroke: currentColor` — so we set `color`
+   * (+ monogram token) on the group wrappers. One DOM, one --nav-progress, no clone, no mask, no second
+   * header — just a per-group phase on the same color fade. `transition: none` keeps each group locked
+   * to the live --nav-progress (the slide already supplies the smoothing) instead of double-easing.
+   */
+  /* RIGHT group — surface reaches it first → darkens over p∈[0, 0.45]. Tool buttons read the TOKEN
+     (`color: var(--tw-header-fg)`), so phase the token here; glyph `stroke: currentColor` follows. */
+  body.collection-ui--mobile-nav-open .site-header__tools,
+  body.collection-ui--mobile-nav-closing .site-header__tools {
+    --nav-ink: clamp(0, calc(var(--nav-progress, 0) / 0.45), 1);
     --tw-header-fg: color-mix(in srgb,
       var(--tw-brand-overlay-ink) calc((1 - var(--nav-ink)) * 100%),
       var(--tw-brand-wordmark));
     --tw-header-fg-muted: var(--tw-header-fg);
+    --tw-header-badge-fg: var(--tw-header-fg);
+  }
+
+  /* Glyphs paint with `stroke: currentColor`, but the tool buttons re-declare `color`, breaking the
+     currentColor chain to the phased group token. Point the stroke straight at the (phased, inherited)
+     --tw-header-fg so the search/hanger/menu icons darken in step with their group, not stay white. */
+  body.collection-ui--mobile-nav-open .site-header__tools .site-header__tool-glyph,
+  body.collection-ui--mobile-nav-closing .site-header__tools .site-header__tool-glyph,
+  body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line,
+  body.collection-ui--mobile-nav-closing .site-header__menu-btn .site-header__menu-glyph-line {
+    stroke: var(--tw-header-fg);
+  }
+
+  /* LEFT group — surface reaches it last → darkens over p∈[0.5, 0.95]. */
+  body.collection-ui--mobile-nav-open .site-title__primary,
+  body.collection-ui--mobile-nav-closing .site-title__primary {
+    --nav-ink: clamp(0, calc((var(--nav-progress, 0) - 0.5) / 0.45), 1);
+    color: color-mix(in srgb,
+      var(--tw-brand-overlay-ink) calc((1 - var(--nav-ink)) * 100%),
+      var(--tw-brand-wordmark));
     --tw-header-monogram: color-mix(in srgb,
       var(--tw-brand-overlay-ink) calc((1 - var(--nav-ink)) * 100%),
       var(--tw-brand-monogram-green));
-    --tw-header-surface: var(--tw-header-fg);
-    --tw-header-badge-bg: transparent;
-    --tw-header-badge-fg: var(--tw-header-fg);
-    --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
+    transition: none;
+  }
+
+  /* Wordmark/crest inherit the group `color`/token — drop their own 400ms ease during nav so they
+     track --nav-progress 1:1 rather than chasing it. */
+  body.collection-ui--mobile-nav-open .site-title__primary .site-title__wordmark-line,
+  body.collection-ui--mobile-nav-closing .site-title__primary .site-title__wordmark-line,
+  body.collection-ui--mobile-nav-open .site-title__primary .site-title__mark,
+  body.collection-ui--mobile-nav-closing .site-title__primary .site-title__mark {
+    transition: none;
   }
 
   /*
