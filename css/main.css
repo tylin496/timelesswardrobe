@@ -7595,16 +7595,25 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
   }
 
-  /* Ink transitions in lockstep: white at nav-progress=0, nav-wordmark at 1.
-     color-mix is keyed to --nav-progress so the wordmark/icons track the surface exactly. */
+  /* Ink follows the surface — single source of truth is --nav-progress (white at 0, dark at 1), the
+     SAME var that drives the slide. While the panel is in (open or closing) the masthead reads dark on
+     the ivory. The doubled body class (home-page + nav-open) gives (0,3,1) so this beats the home
+     white-pin below at (0,2,1); without it the ink stays white on the ivory and the logo vanishes. */
   body.collection-ui--mobile-nav-open .site-header,
-  body.collection-ui--mobile-nav-closing .site-header {
+  body.collection-ui--mobile-nav-closing .site-header,
+  body.home-page.collection-ui--mobile-nav-open .site-header,
+  body.home-page.collection-ui--mobile-nav-closing .site-header {
     --tw-header-fg: color-mix(in srgb,
       var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
       var(--tw-brand-wordmark));
+    --tw-header-fg-muted: var(--tw-header-fg);
     --tw-header-monogram: color-mix(in srgb,
       var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
       var(--tw-brand-monogram-green));
+    --tw-header-surface: var(--tw-header-fg);
+    --tw-header-badge-bg: transparent;
+    --tw-header-badge-fg: var(--tw-header-fg);
+    --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
   }
 
   /*

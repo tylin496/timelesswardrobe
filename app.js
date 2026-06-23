@@ -29805,13 +29805,14 @@
     function ensureMobileNavDim() {
       let dim = document.getElementById("site-mobile-nav-dim");
       if (!dim) {
-        dim = document.createElement("button");
-        dim.type = "button";
+        // Pure pointer-blocking layer. The open drawer is a full navigation layer — the hero behind it
+        // must not be visible OR interactive — so the dim swallows taps over the page. It is NOT a
+        // dismissal target: only the menu/X button closes the drawer (no tap-to-close, no scrim-close).
+        dim = document.createElement("div");
         dim.id = "site-mobile-nav-dim";
         dim.className = "site-mobile-nav-dim";
-        dim.setAttribute("aria-label", "Close menu");
         dim.hidden = true;
-        dim.addEventListener("click", () => closeMobileCategoryPanel());
+        dim.setAttribute("aria-hidden", "true");
         document.body.appendChild(dim);
       }
       return dim;
@@ -29819,13 +29820,8 @@
 
     function setMobileNavDimVisible(visible) {
       const dim = ensureMobileNavDim();
-      if (visible) {
-        dim.hidden = false;
-        dim.removeAttribute("aria-hidden");
-      } else {
-        dim.hidden = true;
-        dim.setAttribute("aria-hidden", "true");
-      }
+      // Decorative blocker — stays aria-hidden in both states; only `hidden` toggles its presence.
+      dim.hidden = !visible;
     }
 
     const MOBILE_NAV_MOTION_MS = 320;
