@@ -7593,6 +7593,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
    */
   .site-header {
     --tw-nav-ink-edge-px: calc(var(--tw-nav-ink-edge) * var(--tw-header-w, 100vw));
+    /* Soft trailing fade: ink ramps white→dark over this band *behind* the ivory edge, so the
+       colour change reads as a slide-fade in step with the drawer (not a hard wipe), while the
+       hero-side text stays crisp white (the fade lives on the ivory side — no dark-on-hero). */
+    --tw-nav-ink-fade: 2.25rem;
   }
 
   body.collection-ui--mobile-nav-open .site-header,
@@ -7623,7 +7627,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     background-image: linear-gradient(
       90deg,
       var(--tw-brand-overlay-ink, #fff) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
-      var(--tw-brand-wordmark) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)) 100%
+      var(--tw-brand-wordmark) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px) + var(--tw-nav-ink-fade, 2.25rem)) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -7636,17 +7640,18 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     background-image: linear-gradient(
       90deg,
       var(--tw-brand-overlay-ink, #fff) 0 calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)),
-      var(--tw-brand-monogram-green) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px)) 100%
+      var(--tw-brand-monogram-green) calc(var(--tw-nav-ink-edge-px) - var(--tw-el-x, 0px) + var(--tw-nav-ink-fade, 2.25rem)) 100%
     );
   }
 
-  /* Icons are narrow + the first thing the ivory covers → step their colour with the edge. */
+  /* Icons are narrow + the first thing the ivory covers → fade their colour as the edge sweeps the
+     tool band (a gentle ramp, not a hard step, to match the wordmark's slide-fade). */
   body.collection-ui--mobile-nav-open .site-header__tools,
   body.collection-ui--mobile-nav-closing .site-header__tools {
     color: color-mix(
       in srgb,
       var(--tw-brand-overlay-ink, #fff),
-      var(--tw-brand-wordmark) calc(clamp(0, (0.82 - var(--tw-nav-ink-edge)) * 1000, 1) * 100%)
+      var(--tw-brand-wordmark) calc(clamp(0, (0.9 - var(--tw-nav-ink-edge)) * 6, 1) * 100%)
     );
   }
 
@@ -27600,6 +27605,24 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 
   .account-overview__stat:nth-child(n+3) {
     border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  .account-overview__stat {
+    padding: 0.85rem 0.8rem;
+  }
+
+  .account-overview__stat-n {
+    font-size: clamp(1.4rem, 5.5vw, 1.9rem);
+  }
+
+  .account-overview__stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+  }
+
+  .account-overview__stat-sub {
+    font-size: 0.64rem;
   }
 
   .account-edit-drawer {
