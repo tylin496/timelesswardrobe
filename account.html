@@ -49,14 +49,20 @@
               <button
                 type="button"
                 id="account-mobile-menu-btn"
-                class="account-mobile-menu-btn"
+                class="account-mobile-menu-btn site-header__menu-btn"
                 aria-label="Open account menu"
                 aria-expanded="false"
                 aria-controls="account-tab-drawer"
               >
-                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
-                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
-                <span class="account-mobile-menu-btn__bar" aria-hidden="true"></span>
+                <span class="site-header__menu-icon" aria-hidden="true">
+                  <svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <g class="site-header__menu-glyph-bars">
+                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.5" y1="5" x2="13.5" y2="5"/>
+                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--mid" x1="2.5" y1="8" x2="13.5" y2="8"/>
+                      <line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.5" y1="11" x2="13.5" y2="11"/>
+                    </g>
+                  </svg>
+                </span>
               </button>
               <div id="tw-editor-auth" class="site-header__editor-auth" hidden></div>
               <a class="site-header__account-link" href="/account" aria-label="Open account" title="Account">
