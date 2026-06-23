@@ -26673,19 +26673,6 @@
     brand.className = "item-detail__brand";
     if (item.brand) {
       brand.appendChild(document.createTextNode(item.brand));
-      if (isItemPageView) {
-        const pd = String(item.purchaseDate ?? "").trim();
-        if (pd) {
-          const sep = document.createElement("span");
-          sep.className = "item-detail__brand-sep";
-          sep.textContent = "·";
-          const date = document.createElement("span");
-          date.className = "item-detail__brand-date";
-          date.textContent = formatPurchaseDateForDisplay(pd);
-          brand.appendChild(sep);
-          brand.appendChild(date);
-        }
-      }
     }
     body.appendChild(brand);
 
@@ -26767,7 +26754,7 @@
       addRow("Size", item.size);
       addRow("Season", seasonUiLabel(item.season));
       const pd = String(item.purchaseDate ?? "").trim();
-      if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
+      if (pd) addRow("Date", formatPurchaseDateForDisplay(pd));
       if (specLine) addRow("Details", specLine);
       const p = item?.price;
       if (Number.isFinite(Number(p))) {
@@ -26795,7 +26782,7 @@
       addRow("Season", seasonUiLabel(item.season));
       addRow("Size", item.size);
       const pd = String(item.purchaseDate ?? "").trim();
-      if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
+      if (pd) addRow("Date", formatPurchaseDateForDisplay(pd));
       const pl = formattedCollectionPriceLine(item);
       if (pl) addRow("Price", pl);
       if (specLine) addRow("Details", specLine);
