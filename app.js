@@ -29215,55 +29215,9 @@
       shell.hidden = true;
       shell.setAttribute("aria-hidden", "true");
 
-      const chrome = document.createElement("div");
-      chrome.className = "site-mobile-shell__chrome";
-
-      const mainBar = document.createElement("header");
-      mainBar.className = "site-mobile-shell__bar site-mobile-shell__bar--main";
-
-      const logo = document.createElement("a");
-      logo.href = "/";
-      logo.className = "site-mobile-shell__logo";
-      logo.setAttribute("aria-label", "Timeless Wardrobe home");
-      logo.innerHTML =
-        '<span class="site-title__mark" role="img" aria-hidden="true"></span><span class="site-mobile-shell__wordmark">TIMELESS WARDROBE</span>';
-
-      const tools = document.createElement("div");
-      tools.className = "site-mobile-shell__tools";
-
-      const shellSearchBtn = document.createElement("button");
-      shellSearchBtn.type = "button";
-      shellSearchBtn.id = "site-mobile-shell-search-btn";
-      shellSearchBtn.className =
-        "site-mobile-shell__tool site-mobile-shell__tool--search site-header__search-btn";
-      shellSearchBtn.setAttribute("aria-label", "Search");
-      shellSearchBtn.innerHTML = HEADER_SEARCH_ICON_HTML;
-
-      const shellStylingBtn = document.createElement("button");
-      shellStylingBtn.type = "button";
-      shellStylingBtn.id = "site-mobile-shell-styling-btn";
-      shellStylingBtn.className =
-        "site-mobile-shell__tool site-mobile-shell__tool--board site-header__outfits-btn";
-      shellStylingBtn.setAttribute("aria-label", `Open ${OUTFITS_UI_NAME}`);
-      shellStylingBtn.innerHTML = outfitsIconHtml;
-
-      const shellCloseBtn = document.createElement("button");
-      shellCloseBtn.type = "button";
-      shellCloseBtn.id = "site-mobile-shell-close-btn";
-      shellCloseBtn.className = "site-mobile-shell__tool site-mobile-shell__tool--close";
-      shellCloseBtn.setAttribute("aria-label", "Close menu");
-      shellCloseBtn.innerHTML = '<span class="site-mobile-shell__close-icon" aria-hidden="true"></span>';
-
-      logo.addEventListener("click", (e) => {
-        e.preventDefault();
-        closeMobileCategoryPanel();
-        handleSiteHeaderBrandClick();
-      });
-
-      tools.append(shellSearchBtn, shellStylingBtn, shellCloseBtn);
-      mainBar.append(logo, tools);
-
-      chrome.append(mainBar);
+      // Sidebar carries no chrome: the masthead (logo / search / hanger / close) lives only in the
+      // Header, which floats on top. Closing is the Header menu toggle; search & outfits are the
+      // Header's own buttons. Drill nav (back / title / close) lives in the body, not here.
 
       const body = document.createElement("div");
       body.className = "site-mobile-shell__body";
@@ -29362,7 +29316,7 @@
 
       nav.append(rootLevel, drillLevel);
       body.appendChild(nav);
-      shell.append(chrome, body);
+      shell.append(body);
       ensureMobileNavDim();
       document.body.appendChild(shell);
       // Now that the shell is in the DOM, sync the login row (querySelector works).
@@ -30758,17 +30712,6 @@
         closeMobileCategoryPanel();
       }
     });
-    document.getElementById("site-mobile-shell-close-btn")?.addEventListener("click", () => {
-      closeMobileCategoryPanel();
-    });
-    document.getElementById("site-mobile-shell-search-btn")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openMobileHeaderSearch();
-    });
-    document.getElementById("site-mobile-shell-styling-btn")?.addEventListener("click", () => {
-      closeMobileCategoryPanel();
-      document.getElementById("site-header-saved-toggle")?.click();
-    });
     document.getElementById("site-mobile-nav-back")?.addEventListener("click", () => {
       resetMobileNavDrill({ focusMain: true });
     });
@@ -30828,7 +30771,6 @@
       if (!(t instanceof Element)) return;
       if (headerSearchWrap?.contains(t)) return;
       if (headerSearchBtn?.contains(t)) return;
-      if (document.getElementById("site-mobile-shell-search-btn")?.contains(t)) return;
       closeHeaderSearch();
     });
     if (document.body.dataset.twSearchDimResizeWired !== "1") {
