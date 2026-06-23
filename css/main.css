@@ -27024,6 +27024,38 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   min-height: 1.2rem;
 }
 
+.account-notes-copy-btn {
+  margin-left: auto;
+  padding: 0.2rem 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+
+.account-notes-copy-btn:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 200%, transparent);
+}
+
+.account-notes-copy-btn[data-state="copied"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Mobile: sits below the textarea */
+.account-notes-list-row__mobile-body .account-notes-copy-btn {
+  display: block;
+  margin: 0.5rem 0 0.25rem auto;
+}
+
 .account-notes-editor__wordcount {
   font-family: var(--font-sans);
   font-size: 0.69rem;

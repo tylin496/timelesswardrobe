@@ -4611,6 +4611,46 @@
       });
     }
 
+    // ── Notes copy helper ────────────────────────────────────────────────────────
+    function buildNotesCopyText(it) {
+      const lines = [];
+      if (it?.name)         lines.push(String(it.name).trim());
+      const meta = [it?.brand, it?.category, it?.season].map((x) => String(x ?? "").trim()).filter(Boolean).join(" · ");
+      if (meta)             lines.push(meta);
+      const price = it?.price ?? it?.metadata?.price;
+      if (price)            lines.push(`Price: ${price}`);
+      const pd = it?.purchaseDate ? String(it.purchaseDate).slice(0, 10) : "";
+      if (pd)               lines.push(`Acquired: ${pd}`);
+      const note = String(it?.notes ?? "").trim();
+      if (note) { lines.push(""); lines.push(note); }
+      return lines.join("\n");
+    }
+
+    function buildCopyBtn(it, getLatestNote) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "account-notes-copy-btn";
+      btn.textContent = "Copy";
+      btn.setAttribute("aria-label", "Copy item info and notes");
+      let resetTimer = 0;
+      btn.addEventListener("click", async () => {
+        const itSnapshot = { ...it, notes: getLatestNote() };
+        const text = buildNotesCopyText(itSnapshot);
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = "Copied";
+          btn.dataset.state = "copied";
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => { btn.textContent = "Copy"; btn.dataset.state = ""; }, 2000);
+        } catch {
+          btn.textContent = "Failed";
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+        }
+      });
+      return btn;
+    }
+
     // ── Note save helper (shared by desktop + mobile) ────────────────────────────
     function makeNotesSaver(it, textarea, onStatus) {
       let notesDebounce = 0;
@@ -4719,9 +4759,11 @@
       updateWC();
       textarea.addEventListener("input", updateWC);
 
+      const copyBtn = buildCopyBtn(it, () => textarea.value);
+
       const footer = document.createElement("div");
       footer.className = "account-notes-editor__footer";
-      footer.append(wordCountEl, statusEl);
+      footer.append(wordCountEl, statusEl, copyBtn);
 
       editorPane.append(textarea, footer);
     }
@@ -4810,7 +4852,8 @@
               textarea.style.height = `${textarea.scrollHeight}px`;
               textarea.focus();
             });
-            mobileBody.append(statusEl, textarea);
+            const mobileCopyBtn = buildCopyBtn(it, () => textarea.value);
+            mobileBody.append(statusEl, textarea, mobileCopyBtn);
           }
         }
       });
