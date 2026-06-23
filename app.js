@@ -3116,6 +3116,14 @@
     }
   }
 
+  function updateTabIndicator(nav) {
+    if (!nav) return;
+    const active = nav.querySelector(".account-tab-nav__item[aria-current='page']");
+    if (!active) return;
+    nav.style.setProperty("--tab-indicator-left",  active.offsetLeft + "px");
+    nav.style.setProperty("--tab-indicator-width", active.offsetWidth + "px");
+  }
+
   function buildAccountTabNav() {
     const nav = document.createElement("nav");
     nav.className = "account-tab-nav";
@@ -3245,6 +3253,7 @@
             document.querySelectorAll(".account-tab-nav__item").forEach((a) => {
               a.toggleAttribute("aria-current", a.getAttribute("href") === `/account#${tab.key}`);
             });
+            updateTabIndicator(document.querySelector(".account-tab-nav"));
           });
           navEl.appendChild(btn);
         }
@@ -3297,6 +3306,7 @@
         if (key === tab) a.setAttribute("aria-current", "page");
         else a.removeAttribute("aria-current");
       }
+      updateTabIndicator(nav);
     }
 
     contentEl.replaceChildren();
@@ -3335,6 +3345,7 @@
     if (navSlot && !navSlot.querySelector(".account-tab-nav")) {
       const tabNav = buildAccountTabNav();
       navSlot.appendChild(tabNav);
+      requestAnimationFrame(() => updateTabIndicator(tabNav));
     }
 
     // Wire mobile hamburger → account tab drawer (idempotent)

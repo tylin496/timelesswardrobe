@@ -25748,9 +25748,24 @@ html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="p
   margin: 0;
   padding: 0 0.5rem;
   height: 100%;
+  position: relative;
 }
 
 .account-tab-nav::-webkit-scrollbar { display: none; }
+
+/* Sliding underline indicator */
+.account-tab-nav::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: var(--tab-indicator-left, 0px);
+  width: var(--tab-indicator-width, 0px);
+  height: 1.5px;
+  background: var(--ink);
+  transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
 
 .account-tab-nav__item {
   flex: 0 0 auto;
@@ -25764,24 +25779,18 @@ html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="p
   letter-spacing: 0.04em;
   color: var(--ink-muted);
   text-decoration: none;
-  transition: color 0.14s ease, text-decoration-color 0.14s ease;
+  transition: color 0.14s ease;
   white-space: nowrap;
   box-sizing: border-box;
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  text-decoration-color: transparent;
 }
 
 .account-tab-nav__item:hover {
   color: var(--ink);
-  text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
 .account-tab-nav__item[aria-current="page"] {
   color: var(--ink);
   font-weight: 600;
-  text-decoration-color: var(--ink);
 }
 
 html.tw-account-dark body.account-page .account-tab-nav__item {
@@ -25789,11 +25798,9 @@ html.tw-account-dark body.account-page .account-tab-nav__item {
 }
 html.tw-account-dark body.account-page .account-tab-nav__item:hover {
   color: var(--ink);
-  text-decoration-color: color-mix(in srgb, var(--ink) 35%, transparent);
 }
 html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page"] {
   color: var(--ink);
-  text-decoration-color: var(--ink);
 }
 
 /* ── Account theme toggle ─────────────────────────────────────────────────── */
