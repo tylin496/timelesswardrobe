@@ -3120,8 +3120,11 @@
     if (!nav) return;
     const active = nav.querySelector(".account-tab-nav__item[aria-current='page']");
     if (!active) return;
-    nav.style.setProperty("--tab-indicator-left",  active.offsetLeft + "px");
-    nav.style.setProperty("--tab-indicator-width", active.offsetWidth + "px");
+    const span = active.querySelector("span");
+    const left  = span ? active.offsetLeft + span.offsetLeft : active.offsetLeft;
+    const width = span ? span.offsetWidth : active.offsetWidth;
+    nav.style.setProperty("--tab-indicator-left",  left + "px");
+    nav.style.setProperty("--tab-indicator-width", width + "px");
     nav.style.setProperty("--tab-indicator-color", getComputedStyle(active).color);
   }
 
@@ -3135,7 +3138,9 @@
       const a = document.createElement("a");
       a.className = "account-tab-nav__item";
       a.href = `/account#${tab.key}`;
-      a.textContent = tab.label;
+      const lbl = document.createElement("span");
+      lbl.textContent = tab.label;
+      a.appendChild(lbl);
       if (tab.key === active) a.setAttribute("aria-current", "page");
 
       a.addEventListener("click", (e) => {
