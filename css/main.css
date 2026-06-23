@@ -15608,12 +15608,20 @@ html.tw-account-dark body.account-page {
 html.tw-account-dark body.account-page .account-filter-chip,
 html.tw-account-dark body.account-page .account-filters-toggle,
 html.tw-account-dark body.account-page .account-collection-search,
-html.tw-account-dark body.account-page .account-collection-add-btn {
+html.tw-account-dark body.account-page .account-collection-add-btn,
+html.tw-account-dark body.account-page .account-filter-select,
+html.tw-account-dark body.account-page .account-filter-clear,
+html.tw-account-dark body.account-page .account-notes-copy-btn,
+html.tw-account-dark body.account-page .account-filters-toggle {
   border-color: var(--frost-border);
 }
 html.tw-account-dark body.account-page .account-filter-chip:hover,
 html.tw-account-dark body.account-page .account-filters-toggle:hover,
-html.tw-account-dark body.account-page .account-collection-add-btn:hover {
+html.tw-account-dark body.account-page .account-collection-add-btn:hover,
+html.tw-account-dark body.account-page .account-filter-select:focus-visible,
+html.tw-account-dark body.account-page .account-filter-select:not([value=""]),
+html.tw-account-dark body.account-page .account-filter-clear:hover,
+html.tw-account-dark body.account-page .account-notes-copy-btn:hover {
   border-color: var(--frost-border-strong);
 }
 html.tw-account-dark body.account-page .account-filter-chip[aria-pressed="true"] {
