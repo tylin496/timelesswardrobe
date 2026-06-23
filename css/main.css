@@ -1721,7 +1721,7 @@ body.home-page .site-header--scroll-driven::before {
 /* Outfits count — solid header: green pill, ivory numeral. */
 @media (max-width: 1024px) {
   .site-header--solid .site-header__styling-board-btn .site-header__styling-board-count,
-  .site-header--overlay:is(:hover, :focus-within) .site-header__styling-board-btn .site-header__styling-board-count {
+  .site-header--overlay:focus-within .site-header__styling-board-btn .site-header__styling-board-count {
     -webkit-mask-image: none;
     mask-image: none;
     background-color: var(--tw-header-badge-bg, var(--tw-brand-green));
@@ -1852,26 +1852,23 @@ body.home-page .site-header--scroll-driven::before {
     padding: 0;
   }
 
-  /* Tools — no circular hover/open chrome; icon stroke only (parity with desktop). */
-  .site-header__search-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header__menu-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header__saved-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header--overlay .site-header__search-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header--overlay .site-header__menu-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header--overlay .site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header--overlay .site-header__saved-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-header:hover .site-header__search-btn:hover,
-  .site-header:hover .site-header__menu-btn:hover,
-  .site-header:focus-within .site-header__search-btn:hover,
-  .site-header:focus-within .site-header__menu-btn:hover,
-  .site-mobile-shell__tool.site-header__search-btn:is(:hover, :focus-visible, [aria-expanded="true"]),
-  .site-mobile-shell__tool.site-header__styling-board-btn:is(:hover, :focus-visible, [aria-expanded="true"]) {
+  /* Tools — no circular hover/open chrome; icon stroke only. Mobile-nav mode (≤1024) has no hover UI:
+     only :focus-visible / [aria-expanded] drive these (NOT :hover). */
+  .site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header__menu-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header__saved-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header--overlay .site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header--overlay .site-header__menu-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header--overlay .site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-header--overlay .site-header__saved-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-mobile-shell__tool.site-header__search-btn:is(:focus-visible, [aria-expanded="true"]),
+  .site-mobile-shell__tool.site-header__styling-board-btn:is(:focus-visible, [aria-expanded="true"]) {
     background: transparent;
   }
 
-  .site-header__search-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
-  .site-header__menu-btn:is(:hover, :focus-visible, [aria-expanded="true"]) .site-header__tool-glyph {
+  .site-header__search-btn:is(:focus-visible, [aria-expanded="true"]) .site-header__tool-glyph,
+  .site-header__menu-btn:is(:focus-visible, [aria-expanded="true"]) .site-header__tool-glyph {
     stroke-opacity: 1;
   }
 }
@@ -7387,7 +7384,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     opacity: 0.62;
   }
 
-  .site-mobile-nav__row:hover,
+  /* Mobile-nav mode: no hover UI — :active (above) gives the press feedback, :focus-visible the a11y. */
   .site-mobile-nav__row:focus-visible {
     opacity: 0.78;
   }
@@ -7462,11 +7459,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     opacity: 0.62;
   }
 
-  .site-mobile-nav__season-link:hover,
   .site-mobile-nav__season-link:focus-visible,
-  .site-mobile-nav__season-btn:hover,
   .site-mobile-nav__season-btn:focus-visible,
-  .site-mobile-nav__browse-all:hover,
   .site-mobile-nav__browse-all:focus-visible {
     opacity: 0.78;
   }
@@ -7571,7 +7565,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     opacity: 0.62;
   }
 
-  .site-mobile-nav__subrow:hover,
   .site-mobile-nav__subrow:focus-visible {
     opacity: 0.78;
   }
@@ -7591,6 +7584,37 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) {
     --nav-progress: 1;
+  }
+
+  /*
+   * Home masthead on mobile: always overlay (white ink, transparent bg) regardless of which class
+   * the scroll observer last set. body.home-page .site-header (0,2,0) beats .site-header--solid/
+   * --overlay (0,1,0), so the ink is CSS-guaranteed — no JS race can leave it dark at scroll=0.
+   * The .site-header--solid counter-rule at (0,3,0) restores dark ink only when JS explicitly
+   * sets that class (scrolled past the hero mid-point). Only home: catalogue/account are solid by
+   * design.
+   */
+  body.home-page .site-header {
+    --tw-header-fg: var(--tw-brand-overlay-ink);
+    --tw-header-fg-muted: var(--tw-brand-overlay-ink);
+    --tw-header-monogram: var(--tw-brand-overlay-ink);
+    --tw-header-surface: var(--tw-brand-overlay-ink);
+    --tw-header-bg-opacity: 0;
+    --tw-header-badge-bg: transparent;
+    --tw-header-badge-fg: var(--tw-brand-overlay-ink);
+    --tw-header-badge-opacity: var(--site-header-tool-glyph-opacity, 0.72);
+  }
+
+  body.home-page .site-header.site-header--solid {
+    --tw-header-fg: var(--tw-brand-wordmark);
+    --tw-header-fg-muted: var(--ink-muted);
+    --tw-header-monogram: var(--tw-brand-monogram-green);
+    --tw-header-surface: var(--bg-elevated);
+    --tw-header-bg: var(--bg-elevated);
+    --tw-header-bg-opacity: 1;
+    --tw-header-badge-bg: var(--tw-brand-green);
+    --tw-header-badge-fg: var(--tw-header-surface);
+    --tw-header-badge-opacity: 1;
   }
 
   body.collection-ui--mobile-nav-open .site-mobile-shell.is-open {
