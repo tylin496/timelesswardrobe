@@ -23621,10 +23621,10 @@ body.home-page #main.ed-lp .ed-lp__band--season {
     content: "";
     display: block;
     width: 100%;
-    height: 1px;
-    margin: 0.7em auto 0;
+    height: 0.6px;
+    margin: 0.38em auto 0;
     background: color-mix(in srgb, #ffffff 82%, transparent);
-    transform: translateY(4px);
+    transform: translateY(2px);
     transition:
       background-color 0.2s var(--ease-out),
       transform 0.25s var(--ease-out);
@@ -25527,6 +25527,118 @@ body.editorial-page #editorial-root {
   display: flex;
   align-items: stretch;
 }
+
+/* Hamburger — mobile only */
+.account-mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 100%;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--tw-header-fg, #163229);
+}
+.account-mobile-menu-btn__bar {
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+@media (max-width: 1024px) {
+  .account-mobile-menu-btn { display: flex; }
+  body.account-page .account-tab-nav { display: none; }
+}
+
+/* ── Account tab drawer (mobile) ────────────────────────────────────────────── */
+
+.account-tab-drawer[hidden] { display: none !important; }
+
+.account-tab-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+}
+
+.account-tab-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: rgba(20, 19, 18, 0.36);
+  opacity: 0;
+  transition: opacity 0.24s var(--ease-out, ease);
+}
+
+.account-tab-drawer__sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(80vw, 18rem);
+  background: var(--bg, #f4f1ea);
+  border-right: 1px solid rgba(24, 55, 47, 0.1);
+  box-shadow: 8px 0 32px rgba(20, 19, 18, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.26s var(--ease-luxe, cubic-bezier(0.22, 1, 0.36, 1));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.account-tab-drawer--visible .account-tab-drawer__backdrop { opacity: 1; }
+.account-tab-drawer--visible .account-tab-drawer__sheet { transform: translateX(0); }
+
+.account-tab-drawer__nav {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem 0 2rem;
+}
+
+.account-tab-drawer__item {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: color 0.12s, background 0.12s;
+}
+.account-tab-drawer__item:hover {
+  color: var(--ink);
+  background: rgba(24, 55, 47, 0.04);
+}
+.account-tab-drawer__item[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+html.tw-account-dark body.account-page .account-tab-drawer__sheet {
+  background: var(--bg-elevated, #2d2b28);
+  border-right-color: rgba(255,255,255,0.1);
+}
+html.tw-account-dark body.account-page .account-tab-drawer__item { color: rgba(255,255,255,0.55); }
+html.tw-account-dark body.account-page .account-tab-drawer__item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="page"] { color: #fff; }
+html.tw-account-dark body.account-page .account-mobile-menu-btn { color: var(--tw-header-fg, #f4f1ea); }
 
 /* ── Account tab nav ────────────────────────────────────────────────────────── */
 
