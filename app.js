@@ -26834,7 +26834,7 @@
     }
 
     if (notesDisplay && isItemPageView) {
-      mountItemDetailNotesSection(body, notesDisplay, { essayMode: true });
+      mountItemDetailNotesSection(body, notesDisplay, { pdpAccordion: true });
     }
 
     if (isItemPageView) {
@@ -28447,7 +28447,6 @@
     siteHeader?.classList.remove("site-header--overlay");
     siteHeader?.classList.add("site-header--solid");
 
-    document.getElementById("site-header-ink-clone")?.remove();
     document.body.classList.remove(
       "collection-ui--mobile-nav-open",
       "collection-ui--mobile-nav-closing",
@@ -29836,9 +29835,6 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
-      // Build the dark-ink masthead clone (clipped) before flipping state, so it starts hidden
-      // off the right edge and reveals in sync with the ivory surface.
-      buildSiteHeaderInkClone();
       document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
