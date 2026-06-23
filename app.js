@@ -12820,8 +12820,10 @@
       // Mobile nav: keep the header in its overlay state — the opaque ivory is supplied by the
       // sliding `.site-header::after` surface, and overlay lets the white ink restore on close.
       if (!hero) return true;
+      const heroH = hero.offsetHeight;
+      if (heroH <= 0) return false; // not laid out yet — keep overlay
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      return scrollY >= hero.offsetHeight * 0.35;
+      return scrollY >= heroH * 0.35;
     };
 
     const update = () => {
