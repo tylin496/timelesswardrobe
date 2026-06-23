@@ -573,6 +573,10 @@ body.theme-catalogue #tw-page-loader.tw-page-loader {
   background: var(--bg);
 }
 
+html.tw-account-dark body.account-page #tw-page-loader.tw-page-loader {
+  background: var(--tw-brand-ivory);
+}
+
 @media (prefers-color-scheme: dark) {
   html.theme-catalogue,
   body.theme-catalogue {
@@ -1873,6 +1877,16 @@ body.home-page .site-header--scroll-driven::before {
     --ink-muted: rgba(22, 50, 41, 0.58);
     --line: rgba(22, 50, 41, 0.18);
     color: #163229;
+  }
+
+  html.tw-account-dark .account-flyout {
+    --ink: #f4f1ea;
+    --ink-muted: rgba(244, 241, 234, 0.58);
+    --line: rgba(244, 241, 234, 0.18);
+    color: #f4f1ea;
+    background: var(--bg-elevated, #2d2b28);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32), 0 1px 4px rgba(0, 0, 0, 0.14);
   }
 
   .account-flyout::before {
@@ -10854,7 +10868,7 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
   align-items: center;
   justify-content: center;
   /* Leave room at the bottom so the cutout floats above the title scrim. */
-  padding: 0.5rem 0.5rem 1.6rem;
+  padding: 0.2rem 0.25rem 1.4rem;
   border-radius: 0;
   overflow: hidden;
   background: transparent;
@@ -11187,28 +11201,13 @@ body.collection-ui--styling-board .site-header__search-megamenu-inner {
     padding-right: env(safe-area-inset-right, 0px);
     scroll-padding-inline-start: var(--styling-board-scroll-inline);
     scroll-padding-inline-end: 0;
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--sb-ink) 26%, transparent) transparent;
+    scrollbar-width: none;
     touch-action: auto;
   }
 
   .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar,
   .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar {
-    display: block;
-    height: 5px;
-  }
-
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-track,
-  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-track {
-    background: color-mix(in srgb, var(--sb-ink) 8%, transparent);
-    border-radius: 999px;
-    margin-inline: var(--styling-board-scroll-inline);
-  }
-
-  .styling-board-drawer .styling-board__board-stack > #outfit-strip::-webkit-scrollbar-thumb,
-  .styling-board-drawer .styling-board__pieces.outfit-strip::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--sb-ink) 28%, transparent);
-    border-radius: 999px;
+    display: none;
   }
 }
 
@@ -15450,7 +15449,7 @@ html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark
 html.tw-account-dark body.account-page {
   color-scheme: dark;
   --bg: #141312;
-  --bg-elevated: #222019;
+  --bg-elevated: #2d2b28;
   --ink: #f4f1ea;
   --ink-muted: #c4bfb8;
   --ink-faint: #a8a39a;
@@ -19116,14 +19115,13 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__brand {
-  @apply mb-5;
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 400;
-  letter-spacing: 0.005em;
+  @apply mb-2;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   text-transform: none;
-  color: var(--ink);
-  opacity: 0.82;
+  color: var(--ink-muted);
 }
 
 .item-detail__price {
@@ -25491,30 +25489,29 @@ body.editorial-page #editorial-root {
 
 /* ── Account tab shell ─────────────────────────────────────────────────────── */
 
+/* account-tab-nav — second row inside .site-header on the account page */
 .account-tab-nav {
   display: flex;
   align-items: stretch;
   gap: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-  margin-bottom: clamp(1.75rem, 4vw, 3rem);
   overflow-x: auto;
   scrollbar-width: none;
-  position: sticky;
-  top: calc(40px + var(--site-header-row-height, 4.75rem));
-  z-index: 40;
-  background: var(--bg, #faf8f4);
+  border-top: 1px solid color-mix(in srgb, var(--tw-header-fg, #163229) 10%, transparent);
+  background: transparent;
+  margin: 0;
+  padding: 0 var(--header-flyout-inline-x, 1.5rem);
 }
 
 .account-tab-nav::-webkit-scrollbar { display: none; }
 
 .account-tab-nav__item {
   flex: 0 0 auto;
-  padding: 0.65rem 1.1rem;
+  padding: 0.55rem 0.85rem;
   font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--ink-muted);
+  color: color-mix(in srgb, var(--tw-header-fg, #163229) 60%, transparent);
   text-decoration: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -25523,47 +25520,63 @@ body.editorial-page #editorial-root {
 }
 
 .account-tab-nav__item:hover {
-  color: var(--ink);
-  border-bottom-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  color: var(--tw-header-fg, #163229);
+  border-bottom-color: color-mix(in srgb, var(--tw-header-fg, #163229) 30%, transparent);
 }
 
 .account-tab-nav__item[aria-current="page"] {
-  color: var(--ink);
+  color: var(--tw-header-fg, #163229);
   font-weight: 700;
-  border-bottom-color: var(--ink);
-  border-bottom-width: 2.5px;
+  border-bottom-color: var(--tw-header-fg, #163229);
+  border-bottom-width: 2px;
+}
+
+html.tw-account-dark body.account-page .account-tab-nav {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+html.tw-account-dark body.account-page .account-tab-nav__item {
+  color: rgba(255, 255, 255, 0.55);
+}
+html.tw-account-dark body.account-page .account-tab-nav__item:hover {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, 0.35);
+}
+html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page"] {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
 /* ── Account theme toggle ─────────────────────────────────────────────────── */
+/* account-theme-toggle — now lives in the site header on the account page */
 .account-theme-toggle {
   flex: 0 0 auto;
-  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.5rem 0.85rem 0.5rem 0.75rem;
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--ink-muted);
-  background: var(--bg, #faf8f4);
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.14s ease;
-  position: sticky;
-  right: 0;
-  white-space: nowrap;
+  color: var(--tw-header-fg, #163229);
+  transition: color 0.14s ease, opacity 0.14s ease;
+  opacity: 0.7;
 }
 .account-theme-toggle:hover,
 .account-theme-toggle:focus-visible {
-  color: var(--ink);
+  opacity: 1;
   outline: none;
 }
 .account-theme-toggle__icon {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex: 0 0 auto;
+}
+
+/* In dark account mode the header fg is white */
+html.tw-account-dark body.account-page .account-theme-toggle {
+  color: #ffffff;
 }
 
 /* ── Account Overview ─────────────────────────────────────────────────────── */
@@ -26147,9 +26160,9 @@ body.editorial-page #editorial-root {
   width: 34px;
   height: 44px;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--media-cutout-canvas, #e6e7e9);
 }
 
 .account-cat-meta {
@@ -26435,9 +26448,9 @@ body.editorial-page #editorial-root {
   width: 30px;
   height: 38px;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--media-cutout-canvas, #e6e7e9);
 }
 
 .account-playlist-name {
