@@ -25555,21 +25555,24 @@ body.editorial-page #editorial-root {
   letter-spacing: 0.04em;
   color: var(--ink-muted);
   text-decoration: none;
-  border-bottom: 2px solid transparent;
-  transition: color 0.14s ease, border-color 0.14s ease;
+  transition: color 0.14s ease, text-decoration-color 0.14s ease;
   white-space: nowrap;
   box-sizing: border-box;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
 }
 
 .account-tab-nav__item:hover {
   color: var(--ink);
-  border-bottom-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
 .account-tab-nav__item[aria-current="page"] {
   color: var(--ink);
-  font-weight: 700;
-  border-bottom-color: var(--ink);
+  font-weight: 600;
+  text-decoration-color: var(--ink);
 }
 
 html.tw-account-dark body.account-page .account-tab-nav__item {
@@ -25577,11 +25580,11 @@ html.tw-account-dark body.account-page .account-tab-nav__item {
 }
 html.tw-account-dark body.account-page .account-tab-nav__item:hover {
   color: #ffffff;
-  border-bottom-color: rgba(255, 255, 255, 0.35);
+  text-decoration-color: rgba(255, 255, 255, 0.35);
 }
 html.tw-account-dark body.account-page .account-tab-nav__item[aria-current="page"] {
   color: #ffffff;
-  border-bottom-color: #ffffff;
+  text-decoration-color: #ffffff;
 }
 
 /* ── Account theme toggle ─────────────────────────────────────────────────── */
