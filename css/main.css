@@ -6791,19 +6791,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: var(--z-outfits-drawer, 1300);
   }
 
-  /* Scroll-then-open fix: opening the drawer scroll-locks the page with `body { position: fixed; top: -Y }`,
-     which drags the STICKY header-shell off-screen (-Y) — leaving the scrolled page content showing above
-     the drawer with no masthead/surface. Pin the shell to the viewport while the nav is open/closing so the
-     masthead + ivory surface keep covering the top. A fixed child of the fixed body is still
-     viewport-relative (body has no transform); z-index stays --z-site-header-chrome, above page content. */
-  body.collection-ui--mobile-nav-open .site-header-shell,
-  body.collection-ui--mobile-nav-closing .site-header-shell {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-  }
-
   .site-mobile-shell:not(.site-mobile-shell--submenu) .site-mobile-shell__chrome {
     display: none;
   }
@@ -7583,9 +7570,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    /* Match the shell exactly so the header surface and drawer body read as one continuous panel — no
-       shade step at the header/shell seam. */
-    background: var(--tw-mobile-nav-surface-rail);
+    /* Ivory header surface (matches the masthead's normal ivory). Border-top on the shell stays removed
+       so there's no 1px seam line; the soft ivory→rail shade at the junction is the intended header/list
+       distinction, not a divider. */
+    background: var(--tw-mobile-nav-surface);
     transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
   }
 
