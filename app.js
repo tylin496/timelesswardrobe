@@ -3121,7 +3121,7 @@
     const active = nav.querySelector(".account-tab-nav__item[aria-current='page']");
     if (!active) return;
     const span = active.querySelector("span");
-    const left  = span ? active.offsetLeft + span.offsetLeft : active.offsetLeft;
+    const left  = span ? span.offsetLeft : active.offsetLeft;
     const width = span ? span.offsetWidth : active.offsetWidth;
     nav.style.setProperty("--tab-indicator-left",  left + "px");
     nav.style.setProperty("--tab-indicator-width", width + "px");
