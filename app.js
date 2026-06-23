@@ -2070,7 +2070,7 @@
       labelRow.className = "item-detail__colour-label";
       const labelK = document.createElement("span");
       labelK.className = "item-detail__colour-label-k";
-      labelK.textContent = "Colour:";
+      labelK.textContent = "Colour";
       colourLabelValue = document.createElement("span");
       colourLabelValue.className = "item-detail__colour-label-v";
       labelRow.appendChild(labelK);
@@ -6657,18 +6657,8 @@
     const roundedAmount = Math.round(Number(amount));
 
     if (code === "TWD") {
-      // en-US locale renders TWD as "NT$" — zh-TW collapses it to a bare "$",
-      // which is indistinguishable from USD when both appear together.
-      try {
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "TWD",
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(roundedAmount);
-      } catch {
-        return `NT$${roundedAmount.toLocaleString("en-US")}`;
-      }
+      // TWD is the default currency so just "$" is enough — no country prefix needed.
+      return `$${roundedAmount.toLocaleString("en-US")}`;
     }
 
     try {
@@ -16614,12 +16604,6 @@
   function specParts(item, opts = {}) {
     const forGrid = Boolean(opts.forGridCard);
     const parts = [];
-    const vars = getItemColourVariants(item);
-    if (!forGrid) {
-      if (vars?.length) {
-        parts.push(`${vars.length} colours: ${vars.map((v) => v.label).join(", ")}`);
-      }
-    }
     if (forGrid) {
       const w = String(item.weight ?? "").trim();
       if (w) parts.push(w);
@@ -26687,7 +26671,22 @@
 
     const brand = document.createElement("p");
     brand.className = "item-detail__brand";
-    brand.textContent = item.brand;
+    if (item.brand) {
+      brand.appendChild(document.createTextNode(item.brand));
+      if (isItemPageView) {
+        const pd = String(item.purchaseDate ?? "").trim();
+        if (pd) {
+          const sep = document.createElement("span");
+          sep.className = "item-detail__brand-sep";
+          sep.textContent = "·";
+          const date = document.createElement("span");
+          date.className = "item-detail__brand-date";
+          date.textContent = formatPurchaseDateForDisplay(pd);
+          brand.appendChild(sep);
+          brand.appendChild(date);
+        }
+      }
+    }
     body.appendChild(brand);
 
     if (isItemPageView && detailVariants?.length) {
@@ -26711,10 +26710,19 @@
       if (col) {
         const picker = document.createElement("div");
         picker.className = "item-detail__colour-picker item-detail__colour-picker--solo";
-        const heading = document.createElement("p");
-        heading.className = "item-detail__colour-heading";
-        heading.textContent = "Colour";
-        picker.appendChild(heading);
+        // Match the variant picker label: "COLOUR: <value>" inline, swatch below.
+        const labelRow = document.createElement("p");
+        labelRow.className = "item-detail__colour-label";
+        const labelK = document.createElement("span");
+        labelK.className = "item-detail__colour-label-k";
+        labelK.textContent = "Colour";
+        const labelV = document.createElement("span");
+        labelV.className = "item-detail__colour-label-v";
+        labelV.textContent = col;
+        labelRow.appendChild(labelK);
+        labelRow.appendChild(document.createTextNode(" "));
+        labelRow.appendChild(labelV);
+        picker.appendChild(labelRow);
         const soloFields = {
           colour: item.colour ?? item.color,
           colourCode: itemColourCode(item),
@@ -26724,20 +26732,16 @@
         };
         const priHex = resolveSwatchHexFromFields(soloFields);
         const secHex = variantSecondarySwatchHex(soloFields);
-        const inlineRow = document.createElement("div");
-        inlineRow.className = "item-detail__colour-inline";
         if (priHex || secHex || hasSecondaryColourFields({ colour: soloFields.secondaryColour, colourCode: soloFields.secondaryColourCode })) {
+          const inlineRow = document.createElement("div");
+          inlineRow.className = "item-detail__colour-inline";
           const sw = document.createElement("span");
           sw.className = "card__swatch card__swatch--colour-fill item-detail__colour-swatch-inline";
           sw.setAttribute("aria-hidden", "true");
           applyVariantSwatchFill(sw, soloFields);
           inlineRow.appendChild(sw);
+          picker.appendChild(inlineRow);
         }
-        const labelV = document.createElement("span");
-        labelV.className = "item-detail__colour-label-v";
-        labelV.textContent = col;
-        inlineRow.appendChild(labelV);
-        picker.appendChild(inlineRow);
         body.appendChild(picker);
       }
     }
@@ -26758,57 +26762,46 @@
       dl.appendChild(dd);
     }
 
-    if (isItemPageView && item.category) addRow("Category", item.category);
-    addRow("Season", seasonUiLabel(item.season));
-    addRow("Size", item.size);
-    if (!isItemPageView) {
+    const specLine = specParts(item).join(" · ");
+    if (isItemPageView) {
+      addRow("Size", item.size);
+      addRow("Season", seasonUiLabel(item.season));
+      const pd = String(item.purchaseDate ?? "").trim();
+      if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
+      if (specLine) addRow("Details", specLine);
+      const p = item?.price;
+      if (Number.isFinite(Number(p))) {
+        const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
+        const total = Number(p) * collectionPriceColourVariantCount(item);
+        const dt = document.createElement("dt");
+        dt.textContent = "Price";
+        const dd = document.createElement("dd");
+        if (from === "TWD") {
+          dd.textContent = formatMoneyInCurrency(total, "TWD");
+        } else {
+          const twdAmt = convertPriceAmount(total, from, "TWD");
+          const primary = document.createElement("span");
+          primary.textContent = Number.isFinite(twdAmt) ? formatMoneyInCurrency(twdAmt, "TWD") : "";
+          dd.appendChild(primary);
+          const secondary = document.createElement("span");
+          secondary.className = "item-detail__price-secondary";
+          secondary.textContent = formatMoneyInCurrency(total, from);
+          dd.appendChild(secondary);
+        }
+        dl.appendChild(dt);
+        dl.appendChild(dd);
+      }
+    } else {
+      addRow("Season", seasonUiLabel(item.season));
+      addRow("Size", item.size);
       const pd = String(item.purchaseDate ?? "").trim();
       if (pd) addRow("Purchase date", formatPurchaseDateForDisplay(pd));
       const pl = formattedCollectionPriceLine(item);
       if (pl) addRow("Price", pl);
+      if (specLine) addRow("Details", specLine);
     }
-    const specLine = specParts(item).join(" · ");
-    if (specLine) addRow(isItemPageView ? "Material" : "Details", specLine);
 
     if (dl.children.length) body.appendChild(dl);
-
-    // ── Acquisition block (item page only) ───────────────────────────────────
-    if (isItemPageView) {
-      const pd = String(item.purchaseDate ?? "").trim();
-      const p = item?.price;
-      const hasPd = Boolean(pd);
-      const hasPrice = Number.isFinite(Number(p));
-      if (hasPd || hasPrice) {
-        const acq = document.createElement("div");
-        acq.className = "item-detail__acquired";
-        const acqLabel = document.createElement("span");
-        acqLabel.className = "item-detail__acquired-label";
-        acqLabel.textContent = "Acquired";
-        const acqDate = document.createElement("span");
-        acqDate.className = "item-detail__acquired-date";
-        if (hasPd) acqDate.textContent = formatPurchaseDateForDisplay(pd);
-        acq.append(acqLabel, acqDate);
-        if (hasPrice) {
-          const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
-          const n = collectionPriceColourVariantCount(item);
-          const total = Number(p) * n;
-          const acqPrice = document.createElement("span");
-          acqPrice.className = "item-detail__acquired-price";
-          acqPrice.textContent = formatMoneyInCurrency(total, from);
-          acq.appendChild(acqPrice);
-          if (from !== "TWD") {
-            const twdAmt = convertPriceAmount(total, from, "TWD");
-            if (Number.isFinite(twdAmt)) {
-              const acqTwd = document.createElement("span");
-              acqTwd.className = "item-detail__acquired-twd";
-              acqTwd.textContent = "≈ " + formatMoneyInCurrency(twdAmt, "TWD");
-              acq.appendChild(acqTwd);
-            }
-          }
-        }
-        body.appendChild(acq);
-      }
-    }
 
     // ── Showcase context (item page only) ────────────────────────────────────
     if (isItemPageView && isInShowcase(item)) {
@@ -28454,8 +28447,10 @@
     siteHeader?.classList.remove("site-header--overlay");
     siteHeader?.classList.add("site-header--solid");
 
+    document.getElementById("site-header-ink-clone")?.remove();
     document.body.classList.remove(
       "collection-ui--mobile-nav-open",
+      "collection-ui--mobile-nav-closing",
       "collection-ui--header-search-open",
       "collection-ui--header-search-closing",
       "collection-ui--header-submenu-open",
@@ -29803,7 +29798,7 @@
         resetMobileNavDrill();
         headerMenuBtn?.setAttribute("aria-expanded", "false");
         headerMenuBtn?.setAttribute("aria-label", "Open categories menu");
-        document.body.classList.remove("collection-ui--mobile-nav-open");
+        document.body.classList.remove("collection-ui--mobile-nav-open", "collection-ui--mobile-nav-closing");
         setMobileNavDimVisible(false);
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
@@ -29823,6 +29818,8 @@
         return;
       }
 
+      // Closing: surface (`::after`) slides out and the ink clip reverses, in step with the panel.
+      document.body.classList.add("collection-ui--mobile-nav-closing");
       mobileShell.classList.add("is-closing");
       mobileShellCloseAbort = twAfterMotion(mobileShell, MOBILE_NAV_MOTION_MS, finish);
     }
@@ -29839,6 +29836,10 @@
       mobileShell.hidden = false;
       mobileShell.setAttribute("aria-hidden", "false");
       mobileShell.classList.remove("is-open", "is-closing");
+      // Build the dark-ink masthead clone (clipped) before flipping state, so it starts hidden
+      // off the right edge and reveals in sync with the ivory surface.
+      buildSiteHeaderInkClone();
+      document.body.classList.remove("collection-ui--mobile-nav-closing");
       document.body.classList.add("collection-ui--mobile-nav-open");
       setMobileNavDimVisible(true);
       headerMenuBtn?.setAttribute("aria-expanded", "true");
