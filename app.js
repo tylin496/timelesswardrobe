@@ -8097,22 +8097,22 @@
 
   /** @param {object[]} list */
   function sortItemsShowcaseArchive(list) {
-    const showcase = [];
+    const ordered = [];
     const archive = [];
-    const future = [];
+    const future  = [];
     for (const item of Array.isArray(list) ? list : []) {
       if (isFuturePiece(item)) {
         future.push(item);
-      } else if (showcaseRank(item) >= 0) {
-        showcase.push(item);
+      } else if (typeof item?.showcaseOrder === "number" && item.showcaseOrder >= 0) {
+        ordered.push(item);
       } else {
         archive.push(item);
       }
     }
-    showcase.sort((a, b) => showcaseRank(a) - showcaseRank(b));
+    ordered.sort((a, b) => a.showcaseOrder - b.showcaseOrder);
     archive.sort(compareArchiveItems);
     future.sort(compareArchiveItems);
-    return [...showcase, ...archive, ...future];
+    return [...ordered, ...archive, ...future];
   }
 
   /**
