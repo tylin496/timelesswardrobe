@@ -26230,7 +26230,7 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 }
 
 .account-filter-chip[aria-pressed="true"] {
-  color: var(--parchment, #faf8f4);
+  color: var(--bg, #faf8f4);
   background: var(--ink);
   border-color: var(--ink);
 }
