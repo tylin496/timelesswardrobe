@@ -10752,8 +10752,22 @@
     if (searchQ) {
       collectionSortedCache = orderSearchResultItems(filtered, searchQ);
     } else {
-      collectionSortedCache =
-        collectionSortMode === "default" ? sortItemsShowcaseArchive(filtered) : [...filtered].sort(compareGridItems);
+      if (collectionSortMode === "default") {
+        const all = sortItemsShowcaseArchive(filtered);
+        // Default view: show only showcase items (the curated public grid).
+        // Fall back to the full sorted list only when the user has active filters
+        // (category/colour/brand/subcategory) — they've explicitly stepped outside the showcase.
+        if (!narrowingFiltersActive()) {
+          const showcaseOnly = all.filter(
+            (it) => typeof it?.showcaseOrder === "number" && it.showcaseOrder >= 0
+          );
+          collectionSortedCache = showcaseOnly.length ? showcaseOnly : all;
+        } else {
+          collectionSortedCache = all;
+        }
+      } else {
+        collectionSortedCache = [...filtered].sort(compareGridItems);
+      }
     }
     collectionSortedCacheKey = key;
     return collectionSortedCache;
@@ -29969,6 +29983,7 @@
     let mobileShellCloseAbort = null;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let mobileShellShowTimer = null;
+    let mobileNavScrollY = 0;
 
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
@@ -29992,6 +30007,16 @@
           "collection-ui--mobile-nav-shown"
         );
         setMobileNavDimVisible(false);
+        // Restore scroll position saved on open.
+        const y = mobileNavScrollY;
+        mobileNavScrollY = 0;
+        document.documentElement.style.scrollBehavior = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        if (y > 0) globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
       };
@@ -30023,6 +30048,14 @@
         mobileShellCloseAbort = null;
         mobileShell.classList.remove("is-closing");
       }
+      // Lock scroll so the header stays at viewport top while the drawer is open.
+      mobileNavScrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      document.documentElement.style.scrollBehavior = "auto";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${mobileNavScrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
       syncMobileShellTop();
       resetMobileNavDrill();
       mobileShell.hidden = false;
