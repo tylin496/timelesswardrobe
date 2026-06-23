@@ -3104,6 +3104,7 @@
 
   function renderAccountTabForKey(contentEl, tabKey) {
     contentEl.replaceChildren();
+    document.body.classList.remove("account-collection-drawer-open");
     switch (tabKey) {
       case "overview":   renderAccountTab_Overview(contentEl); break;
       case "collection": renderAccountTab_Collection(contentEl); break;
@@ -4120,9 +4121,11 @@
       } else if (!isMobile && drawer.parentElement !== layout) {
         layout.appendChild(drawer);
       }
+      if (!isMobile) document.body.classList.add("account-collection-drawer-open");
       fillAccountEditDrawer(drawer, it, () => {
         _accountCollectionDrawerItemId = null;
         drawer.classList.add("account-edit-drawer--hidden");
+        document.body.classList.remove("account-collection-drawer-open");
         if (drawer.parentElement !== layout) layout.appendChild(drawer);
         listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
       });
@@ -5108,9 +5111,11 @@
       } else if (!isMobile && drawer.parentElement !== layout) {
         layout.appendChild(drawer);
       }
+      if (!isMobile) document.body.classList.add("account-collection-drawer-open");
       fillAccountEditDrawer(drawer, it, () => {
         _accountFutureDrawerItemId = null;
         drawer.classList.add("account-edit-drawer--hidden");
+        document.body.classList.remove("account-collection-drawer-open");
         if (drawer.parentElement !== layout) layout.appendChild(drawer);
         listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
       });

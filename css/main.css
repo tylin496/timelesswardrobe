@@ -25129,17 +25129,22 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   color: #8b4a1a;
 }
 
-/* edit drawer */
+/* edit drawer — fixed right panel, slides in from viewport edge */
 .account-edit-drawer {
-  width: 260px;
-  flex-shrink: 0;
+  position: fixed;
+  right: 0;
+  top: var(--site-header-chrome-bottom, 7.5rem);
+  bottom: 0;
+  width: 280px;
+  background: var(--bg);
   border-left: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.06);
   padding: 1.1rem 1.2rem;
-  min-height: 400px;
-  position: sticky;
-  top: calc(var(--site-header-row-height) + 0.5rem);
-  max-height: calc(100vh - var(--site-header-row-height) - 1rem);
   overflow-y: auto;
+  z-index: 1100;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.22s var(--ease-out), opacity 0.16s;
 }
 
 .account-drawer-price-row {
@@ -25159,7 +25164,18 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 }
 
 .account-edit-drawer--hidden {
-  display: none;
+  transform: translateX(calc(100% + 1px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Shift main content left when drawer is open so it doesn't overlap */
+.account-page-main {
+  transition: padding-right 0.22s var(--ease-out);
+}
+
+body.account-collection-drawer-open .account-page-main {
+  padding-right: 300px;
 }
 
 .account-drawer-header {
@@ -26301,9 +26317,13 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     max-width: 9.5rem;
   }
 
-  /* Drawer wider on desktop */
+  /* Drawer wider on large desktop */
   .account-edit-drawer {
-    width: 300px;
+    width: 320px;
+  }
+
+  body.account-collection-drawer-open .account-page-main {
+    padding-right: 340px;
   }
 
   /* count label inline in toolbar */
@@ -26355,7 +26375,11 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   }
 
   .account-edit-drawer {
-    width: 220px;
+    width: 250px;
+  }
+
+  body.account-collection-drawer-open .account-page-main {
+    padding-right: 270px;
   }
 
   .account-collection-add-btn {
@@ -26365,15 +26389,34 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
 @media (max-width: 640px) {
   .account-edit-drawer {
+    position: static;
+    right: auto;
+    top: auto;
+    bottom: auto;
     width: 100%;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    transition: none;
     border-left: none;
     border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+    box-shadow: none;
+    background: transparent;
     padding: 1rem 0;
-    position: static;
-    top: auto;
-    max-height: none;
     overflow-y: visible;
-    min-height: 0;
+    z-index: auto;
+  }
+
+  .account-edit-drawer--hidden {
+    display: none;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  body.account-collection-drawer-open .account-page-main {
+    padding-right: clamp(1.5rem, 5.8vw, 7.25rem);
+    transition: none;
   }
 
   .account-future-layout {
