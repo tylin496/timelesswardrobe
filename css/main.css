@@ -15521,9 +15521,17 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 html.tw-account-dark {
   color-scheme: dark;
 }
+html.tw-account-dark body.account-page .site-header--solid,
+html.tw-account-dark body.account-page .site-header--overlay {
+  --tw-header-monogram: var(--ink);
+}
+html.tw-account-dark body.account-page .site-header--solid .site-title__primary,
+html.tw-account-dark body.account-page .site-header--overlay .site-title__primary,
 html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark,
-html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark-line {
-  color: #ffffff;
+html.tw-account-dark body.account-page .site-header--overlay .site-title__wordmark,
+html.tw-account-dark body.account-page .site-header--solid .site-title__wordmark-line,
+html.tw-account-dark body.account-page .site-header--overlay .site-title__wordmark-line {
+  color: var(--ink);
 }
 
 
