@@ -15282,7 +15282,7 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 }
 
 .account-page-hero {
-  display: none;
+  display: none !important;
 }
 
 .account-page-hero__copy {
@@ -15697,7 +15697,7 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 @media (max-width: 900px) {
   .account-page-main {
     max-width: none;
-    margin-top: clamp(3.75rem, 13vh, 5.25rem);
+    margin-top: 1.5rem;
     padding: 0 max(1.5rem, env(safe-area-inset-right, 0px)) 3.75rem max(1.5rem, env(safe-area-inset-left, 0px));
   }
 
