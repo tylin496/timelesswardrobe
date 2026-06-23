@@ -16392,31 +16392,49 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   }
 }
 
+/* Each section opens on a hairline top rule + generous air, so the form reads as
+   distinct bands (Identity / Colour / Material / Acquisition / Notes / Measurements)
+   instead of one flat scroll. */
 .item-edit-section {
-  @apply mb-5;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  margin-bottom: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.item-edit-section:first-child {
+  padding-top: 0;
+  border-top: none;
 }
 
 .item-edit-section:last-child {
   @apply mb-2;
-  padding-bottom: 0;
-  border-bottom: none;
 }
 
-.item-edit-section__heading {
-  @apply mb-2.5;
-  font-family: var(--font-serif);
-  font-size: 0.92rem;
+/* Section label — uppercase eyebrow, darker + heavier than the muted field labels
+   so the section header clearly outranks the fields beneath it. */
+.item-edit-section__heading,
+.item-edit-section__eyebrow {
+  margin: 0 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--ink);
 }
 
+/* Identity: eyebrow label sits above a quiet breadcrumb path sub-line. */
+.item-edit-section__eyebrow {
+  margin-bottom: 0.55rem;
+}
+
 .item-edit-section__heading--path {
+  margin-bottom: 1rem;
   font-family: var(--font-sans);
   font-weight: 500;
   letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-muted);
 }
 
 .item-edit-section__heading--path .item-detail__breadcrumb {
