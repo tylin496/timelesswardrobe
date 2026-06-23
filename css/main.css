@@ -15334,11 +15334,6 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
   color: var(--ink-muted);
 }
 
-.account-brand-form {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-
 .account-quick-actions {
   display: grid;
   grid-column: 1 / -1;
@@ -15397,63 +15392,6 @@ body.item-page .item-page-main:has(.item-detail__root--not-found) {
 .account-edit-mode-btn[data-active="1"] {
   background: var(--ink);
   color: var(--parchment, #faf8f4);
-}
-
-.account-brand-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(14rem, 1fr));
-  gap: 0.7rem 0.8rem;
-  margin: 0 0 1.35rem;
-  padding: 0;
-  list-style: none;
-  max-height: min(56vh, 40rem);
-  overflow-y: auto;
-  padding-right: 0.25rem;
-}
-
-.account-brand-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.account-brand-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 2.9rem;
-  padding: 0 0.85rem;
-  font-size: 0.94rem;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--bg-elevated, #fff) 82%, var(--bg));
-  border: 1px solid color-mix(in srgb, var(--line, #e3dcd0) 88%, transparent);
-  border-radius: 2px;
-}
-
-.account-brand-input:focus-visible {
-  outline: none;
-  border-color: var(--tw-brand-signature-navy, #163229);
-}
-
-.account-brand-count {
-  flex: 0 0 auto;
-  min-width: 2.35rem;
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--ink-muted);
-}
-
-.account-brand-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.account-brand-feedback {
-  font-size: 0.78rem;
-  color: var(--ink-muted);
 }
 
 .account-actions {
@@ -15587,11 +15525,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   color: var(--error);
 }
 
-@media (min-width: 1360px) {
-  .account-brand-list {
-    grid-template-columns: repeat(4, minmax(14rem, 1fr));
-  }
-}
 
 /* ── Notes bulk editor ─────────────────────────────────────────────────────── */
 
@@ -15769,11 +15702,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   .account-card__hint {
     max-width: none;
     margin-bottom: 1.25rem;
-  }
-
-  .account-brand-list {
-    grid-template-columns: 1fr;
-    max-height: 52vh;
   }
 
   .account-quick-actions {
@@ -24636,7 +24564,7 @@ html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="p
 .account-tab-nav::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: 4px;
   left: var(--tab-indicator-left, 0px);
   width: var(--tab-indicator-width, 0px);
   height: 1.5px;
