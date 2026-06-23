@@ -7570,11 +7570,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /*
-   * Mobile nav — `--nav-progress` (0 = closed, 1 = open) drives the DRAWER slide. It animates on the
-   * body class so the slide starts the instant the menu opens. The masthead is deliberately NOT
-   * recoloured here: on mobile the header stays in its overlay (white-ink) state the whole time — the
-   * home hero observer keeps it overlay during the nav (see `update()` guard), and hover recolour is
-   * gated to `@media (hover: hover)`. So nothing turns the header dark on touch.
+   * Mobile nav — `--nav-progress` (0 = closed, 1 = open) drives BOTH the drawer slide AND the header
+   * ivory surface. One registered property, one timeline — drawer and header move as a single panel.
    */
   body.collection-ui--mobile-nav-open,
   body.collection-ui--mobile-nav-closing {
@@ -7584,6 +7581,30 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   body.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) {
     --nav-progress: 1;
+  }
+
+  /* Ivory surface: header ::after slides in from the right in lockstep with the drawer.
+     overflow-x:clip on .site-header hides it when parked off-screen (nav-progress=0). */
+  .site-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--tw-mobile-nav-surface);
+    transform: translate3d(calc((1 - var(--nav-progress, 0)) * 100%), 0, 0);
+  }
+
+  /* Ink transitions in lockstep: white at nav-progress=0, nav-wordmark at 1.
+     color-mix is keyed to --nav-progress so the wordmark/icons track the surface exactly. */
+  body.collection-ui--mobile-nav-open .site-header,
+  body.collection-ui--mobile-nav-closing .site-header {
+    --tw-header-fg: color-mix(in srgb,
+      var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
+      var(--tw-brand-wordmark));
+    --tw-header-monogram: color-mix(in srgb,
+      var(--tw-brand-overlay-ink) calc((1 - var(--nav-progress, 0)) * 100%),
+      var(--tw-brand-monogram-green));
   }
 
   /*
