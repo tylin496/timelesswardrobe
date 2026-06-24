@@ -25818,6 +25818,12 @@ body.account-collection-drawer-open .account-page-main {
   margin-left: 0;
 }
 
+/* Notes toolbar: search should not greedily expand — collection toolbar keeps flex: 1 1 auto */
+.account-notes-toolbar .account-collection-search {
+  flex: 0 1 auto;
+  max-width: 12rem;
+}
+
 /* Mobile: sits below the textarea */
 .account-notes-list-row__mobile-body .account-notes-copy-btn {
   display: block;
