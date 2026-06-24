@@ -4197,7 +4197,13 @@
       _syncScroll = false;
     }, { passive: true });
     const syncMirrorWidth = () => {
-      scrollMirrorInner.style.width = listPane.scrollWidth + "px";
+      // rAF lets the breakpoint reflow settle before we read scrollWidth,
+      // preventing the mirror from showing stale overflow from a wider layout.
+      requestAnimationFrame(() => {
+        const hasOverflow = listPane.scrollWidth > listPane.clientWidth;
+        scrollMirrorInner.style.width = listPane.scrollWidth + "px";
+        scrollMirror.style.display = hasOverflow ? "" : "none";
+      });
     };
     // Observe listPane so mirror width stays current when the viewport resizes.
     new ResizeObserver(syncMirrorWidth).observe(listPane);
