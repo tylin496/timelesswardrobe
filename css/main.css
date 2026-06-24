@@ -24462,7 +24462,7 @@ html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="p
   bottom: calc(50% - 0.6rem);
   left: var(--tab-indicator-left, 0px);
   width: var(--tab-indicator-width, 0px);
-  height: 1.5px;
+  height: 1px;
   background: var(--tab-indicator-color, currentColor);
   transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1),
               width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
