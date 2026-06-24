@@ -30157,6 +30157,39 @@
     let mobileShellCloseAbort = null;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let mobileShellShowTimer = null;
+    /** Window scroll captured while the mobile nav owns a position:fixed body lock. */
+    let mobileNavScrollLockY = 0;
+    let mobileNavScrollLocked = false;
+
+    function lockMobileNavPageScroll() {
+      if (mobileNavScrollLocked) return;
+      mobileNavScrollLocked = true;
+      mobileNavScrollLockY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
+      /* html overflow:hidden alone does NOT lock touch scroll on iOS Safari — the page rubber-bands
+         behind the fixed sidebar and peeks through. position:fixed on <body> is the reliable lock. */
+      document.documentElement.style.scrollBehavior = "auto";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${mobileNavScrollLockY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+    }
+
+    function unlockMobileNavPageScroll() {
+      if (!mobileNavScrollLocked) return;
+      mobileNavScrollLocked = false;
+      const y = mobileNavScrollLockY;
+      mobileNavScrollLockY = 0;
+      document.documentElement.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      if (y > 0) globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
+      document.documentElement.style.scrollBehavior = "";
+    }
 
     function closeMobileCategoryPanel() {
       if (!mobileShell) return;
@@ -30180,8 +30213,7 @@
           "collection-ui--mobile-nav-shown"
         );
         setMobileNavDimVisible(false);
-        // Release the <html> scroll-lock. Scroll position was never moved, so nothing to restore.
-        document.documentElement.style.overflow = "";
+        unlockMobileNavPageScroll();
         ensureBodyScrollUnlockedWhenNoOverlay();
         normalizeCatalogueHeaderMasthead();
       };
@@ -30213,9 +30245,7 @@
         mobileShellCloseAbort = null;
         mobileShell.classList.remove("is-closing");
       }
-      // Scroll-lock on <html>, not <body>: leaves the body in flow so the sticky header keeps its
-      // viewport scrollport and stays pinned at the top. Position is not moved, so no save/restore.
-      document.documentElement.style.overflow = "hidden";
+      lockMobileNavPageScroll();
       syncMobileShellTop();
       resetMobileNavDrill();
       mobileShell.hidden = false;
