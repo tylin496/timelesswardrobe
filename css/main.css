@@ -24459,7 +24459,7 @@ html.tw-account-dark body.account-page .account-tab-drawer__item[aria-current="p
 .account-tab-nav::after {
   content: "";
   position: absolute;
-  bottom: 4px;
+  bottom: calc(50% - 0.6rem);
   left: var(--tab-indicator-left, 0px);
   width: var(--tab-indicator-width, 0px);
   height: 1.5px;
