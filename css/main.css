@@ -6803,6 +6803,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-mobile-shell.is-open {
     visibility: visible;
     pointer-events: auto;
+    /* Blocks the iOS rubber-band that leaks through to the page behind the fixed overlay.
+       touch-action on a non-scrollable full-screen surface suppresses the gesture without
+       calling preventDefault() on touchmove (which breaks tap/click events on iOS). */
+    touch-action: none;
     transition: visibility 0s linear 0s;
   }
 
@@ -25390,6 +25394,7 @@ body.account-collection-drawer-open .account-page-main {
 
 .account-showcase-layout {
   max-width: 42rem;
+  margin-inline: auto;
 }
 
 .account-showcase-summary {

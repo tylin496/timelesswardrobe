@@ -30188,38 +30188,20 @@
     let mobileShellShowTimer = null;
     let mobileNavScrollLocked = false;
 
-    /* iOS Safari ignores `<html>{overflow:hidden}` for touch scroll — a vertical drag over the fixed
-       sidebar rubber-bands the page behind it and the content peeks through. A non-passive touchmove
-       guard cancels that page scroll. We keep the body in flow (no position:fixed) so the sticky header
-       keeps its scrollport — switching to a body lock regressed the header/shell interaction. */
-    function onMobileNavTouchMove(e) {
-      if (!document.body.classList.contains("collection-ui--mobile-nav-open")) return;
-      if (e.touches && e.touches.length > 1) return; // let pinch-zoom through
-      // Allow the drag only when it lands inside an inner region that can actually scroll vertically;
-      // everything else (the full-bleed sidebar surface, the dim) must not scroll the page behind.
-      let node = e.target instanceof Element ? e.target : null;
-      while (node && node !== document.body) {
-        const style = getComputedStyle(node);
-        if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight) return;
-        node = node.parentElement;
-      }
-      if (e.cancelable) e.preventDefault();
-    }
-
     function lockMobileNavPageScroll() {
       if (mobileNavScrollLocked) return;
       mobileNavScrollLocked = true;
       // Scroll-lock on <html>, not <body>: leaves the body in flow so the sticky header keeps its
       // viewport scrollport and stays pinned at the top. Position is not moved, so no save/restore.
+      // touch-action:none on .site-mobile-shell.is-open (CSS) blocks the iOS rubber-band behind the
+      // overlay without a touchmove/preventDefault guard that would break tap events.
       document.documentElement.style.overflow = "hidden";
-      document.addEventListener("touchmove", onMobileNavTouchMove, { passive: false });
     }
 
     function unlockMobileNavPageScroll() {
       if (!mobileNavScrollLocked) return;
       mobileNavScrollLocked = false;
       document.documentElement.style.overflow = "";
-      document.removeEventListener("touchmove", onMobileNavTouchMove, { passive: false });
     }
 
     function closeMobileCategoryPanel() {
