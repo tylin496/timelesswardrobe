@@ -15292,11 +15292,6 @@
   let compactSearchVisualViewportTeardown = null;
 
   function syncCompactHeaderSearchVisualViewport() {
-    /* TEMP HYPOTHESIS TEST — visualViewport height-rewrite disabled to confirm it is the
-       trigger for Popular Categories collapsing during iOS keyboard rise. Revert this return
-       to restore normal behavior. */
-    return;
-    // eslint-disable-next-line no-unreachable
     const wrap = document.getElementById("site-header-search-wrap");
     const vv = globalThis.visualViewport;
     if (
@@ -15386,6 +15381,11 @@
   }
 
   function scrollCompactHeaderSearchFieldIntoView() {
+    /* TEMP ISOLATION TEST — scroll-pin disabled while ALL visualViewport sync (height/top/
+       left/width) stays active. If Popular Categories no longer gets pulled up during iOS
+       keyboard rise, the scrollTop re-pin is the trigger. Revert this return after testing. */
+    return;
+    // eslint-disable-next-line no-unreachable
     if (!isHeaderCompactViewport() || !isHeaderSearchWrapOpen()) return;
     const inner = getCompactHeaderSearchSheetEl();
     const field = document.getElementById("filter-search");
