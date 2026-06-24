@@ -3484,6 +3484,7 @@
     for (const s of statsData) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
+      if (s.raw) cell.classList.add("account-overview__stat--wide");
       const n = document.createElement("div");
       n.className = "account-overview__stat-n";
       n.textContent = String(s.n);
@@ -4184,9 +4185,18 @@
       scrollMirror.scrollLeft = listPane.scrollLeft;
       _syncScroll = false;
     }, { passive: true });
-    new ResizeObserver(() => {
+    const syncMirrorWidth = () => {
       scrollMirrorInner.style.width = listPane.scrollWidth + "px";
-    }).observe(listPane);
+    };
+    // Observe listPane for container-size changes, and the header row for
+    // content-overflow changes (min-width on rows doesn't resize the container,
+    // so the observer on listPane alone misses the transition).
+    new ResizeObserver(syncMirrorWidth).observe(listPane);
+    const headerRowEl = listPane.querySelector(".account-cat-list__header");
+    if (headerRowEl) new ResizeObserver(syncMirrorWidth).observe(headerRowEl);
+    // rAF ensures the sync runs after the first layout pass, by which point
+    // listPane.scrollWidth reflects row min-width overflow correctly.
+    requestAnimationFrame(syncMirrorWidth);
 
     el.appendChild(wrapper);
   }
