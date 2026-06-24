@@ -24565,6 +24565,9 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   color: var(--ink-muted);
   opacity: 0.6;
   margin-top: 0.1rem;
+  /* Reserve one line so cells without meta text (e.g. Wishlist, Acquisition
+     Cost) keep the same Number → Label → Meta height and share a baseline. */
+  min-height: 1lh;
 }
 
 /* activity feed rows (recently added / recent notes) */
@@ -24794,12 +24797,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   padding: clamp(0.9rem, 2vw, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
   background: var(--bg-elevated, #fff);
   text-align: center;
-  /* Centre the whole content block (number + label + optional sub) so cells
-     with fewer lines (no sub, or a wrapped label) stay vertically aligned with
-     the taller cells instead of stranding their content at the top. */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .account-overview__stat + .account-overview__stat {

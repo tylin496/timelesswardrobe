@@ -3506,13 +3506,14 @@
       const lbl = document.createElement("div");
       lbl.className = "account-overview__stat-label";
       lbl.textContent = s.label;
-      cell.append(n, lbl);
-      if (s.sub) {
-        const sub = document.createElement("div");
-        sub.className = "account-overview__stat-sub";
-        sub.textContent = s.sub;
-        cell.appendChild(sub);
-      }
+      // Always render the meta row so every card keeps the same
+      // Number → Label → Meta structure; an empty slot still reserves its
+      // height (CSS) so all labels and metas share a baseline across cells.
+      const sub = document.createElement("div");
+      sub.className = "account-overview__stat-sub";
+      if (s.sub) sub.textContent = s.sub;
+      else sub.classList.add("account-overview__stat-sub--empty");
+      cell.append(n, lbl, sub);
       statsGrid.appendChild(cell);
     }
     wrapper.appendChild(statsGrid);
