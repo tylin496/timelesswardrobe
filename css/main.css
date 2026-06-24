@@ -3152,9 +3152,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   body.account-page .site-header__tools {
     display: none;
   }
-  body.account-page .site-title__mark {
-    display: none;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -26259,7 +26256,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 @media (min-width: 640px) {
   .account-cat-row {
     display: grid;
-    grid-template-columns: 44px 1fr 9rem 8rem 3.5rem;
+    grid-template-columns: 44px minmax(10rem, 1fr) 9rem 8rem 3.5rem;
     gap: 0 1rem;
     align-items: center;
     padding: 0.4rem 0.6rem;
@@ -26281,7 +26278,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   .account-cat-list__header {
     display: grid;
-    grid-template-columns: 44px 1fr 9rem 8rem 3.5rem;
+    grid-template-columns: 44px minmax(10rem, 1fr) 9rem 8rem 3.5rem;
     gap: 0 1rem;
     padding: 0.3rem 0.6rem;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
@@ -26312,7 +26309,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 @media (min-width: 1024px) {
   /* Collection rows become a 7-column grid */
   .account-cat-row {
-    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
+    grid-template-columns: 40px minmax(10rem, 1fr) 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
     gap: 0 1.1rem;
     padding: 0.45rem 0.6rem;
   }
@@ -26341,7 +26338,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   /* Column header row */
   .account-cat-list__header {
-    grid-template-columns: 40px 1fr 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
+    grid-template-columns: 40px minmax(10rem, 1fr) 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
     margin-bottom: 0;
