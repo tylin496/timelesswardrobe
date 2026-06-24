@@ -7604,7 +7604,11 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    /* `color` stays at the base ink (not `transparent`) so that when this rule drops at finish() the
+       `color` value is unchanged → no `transition: color` fade (the second close flash). The clip:text
+       reveal is carried entirely by `-webkit-text-fill-color: transparent`, which is not in the
+       transition list and therefore snaps when it reverts. */
+    color: var(--tw-header-fg);
     -webkit-text-fill-color: transparent;
   }
 
