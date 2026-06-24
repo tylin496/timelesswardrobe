@@ -4720,29 +4720,7 @@
     }
     sortSel.value = _accountNotesSort;
     sortSel.addEventListener("change", () => { _accountNotesSort = sortSel.value; refreshNotesList(); });
-    const copyAllBtn = document.createElement("button");
-    copyAllBtn.type = "button";
-    copyAllBtn.className = "account-notes-copy-btn account-notes-copy-all-btn";
-    copyAllBtn.textContent = "Copy all";
-    let copyAllTimer = 0;
-    copyAllBtn.addEventListener("click", async () => {
-      const withNotes = getFilteredItems().filter((it) => String(it?.notes ?? "").trim());
-      if (!withNotes.length) return;
-      const text = withNotes.map((it) => buildNotesCopyText(it)).join("\n\n---\n\n");
-      try {
-        await navigator.clipboard.writeText(text);
-        copyAllBtn.textContent = `Copied ${withNotes.length}`;
-        copyAllBtn.dataset.state = "copied";
-        clearTimeout(copyAllTimer);
-        copyAllTimer = setTimeout(() => { copyAllBtn.textContent = "Copy all"; copyAllBtn.dataset.state = ""; }, 2200);
-      } catch {
-        copyAllBtn.textContent = "Failed";
-        clearTimeout(copyAllTimer);
-        copyAllTimer = setTimeout(() => { copyAllBtn.textContent = "Copy all"; }, 2200);
-      }
-    });
     toolbar.appendChild(sortSel);
-    toolbar.appendChild(copyAllBtn);
 
     wrapper.appendChild(toolbar);
 
@@ -4807,30 +4785,6 @@
       return lines.join("\n");
     }
 
-    function buildCopyBtn(it, getLatestNote) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "account-notes-copy-btn";
-      btn.textContent = "Copy";
-      btn.setAttribute("aria-label", "Copy item info and notes");
-      let resetTimer = 0;
-      btn.addEventListener("click", async () => {
-        const itSnapshot = { ...it, notes: getLatestNote() };
-        const text = buildNotesCopyText(itSnapshot);
-        try {
-          await navigator.clipboard.writeText(text);
-          btn.textContent = "Copied";
-          btn.dataset.state = "copied";
-          clearTimeout(resetTimer);
-          resetTimer = setTimeout(() => { btn.textContent = "Copy"; btn.dataset.state = ""; }, 2000);
-        } catch {
-          btn.textContent = "Failed";
-          clearTimeout(resetTimer);
-          resetTimer = setTimeout(() => { btn.textContent = "Copy"; }, 2000);
-        }
-      });
-      return btn;
-    }
 
     // ── Note save helper (shared by desktop + mobile) ────────────────────────────
     function makeNotesSaver(it, textarea, onStatus) {
@@ -4940,11 +4894,9 @@
       updateWC();
       textarea.addEventListener("input", updateWC);
 
-      const copyBtn = buildCopyBtn(it, () => textarea.value);
-
       const footer = document.createElement("div");
       footer.className = "account-notes-editor__footer";
-      footer.append(wordCountEl, statusEl, copyBtn);
+      footer.append(wordCountEl, statusEl);
 
       editorPane.append(textarea, footer);
     }
@@ -5033,8 +4985,7 @@
               textarea.style.height = `${textarea.scrollHeight}px`;
               textarea.focus();
             });
-            const mobileCopyBtn = buildCopyBtn(it, () => textarea.value);
-            mobileBody.append(statusEl, textarea, mobileCopyBtn);
+            mobileBody.append(statusEl, textarea);
           }
         }
       });
