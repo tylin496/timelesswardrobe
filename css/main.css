@@ -24808,6 +24808,12 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   color: var(--ink);
   line-height: 1;
   letter-spacing: -0.02em;
+  /* Fixed-height, centred number area so a smaller value (e.g. the currency
+     cell) keeps every label on the same baseline across all five cells. */
+  min-height: clamp(1.6rem, 3vw, 2.4rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .account-overview__stat-label {
@@ -26417,6 +26423,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   .account-overview__stat-n {
     font-size: clamp(1.4rem, 5.5vw, 1.9rem);
+    min-height: clamp(1.4rem, 5.5vw, 1.9rem);
   }
 
   .account-overview__stat-label {
