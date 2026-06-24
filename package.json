@@ -25,8 +25,7 @@
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
     "db:bake-showcase": "node scripts/build-showcase-order.mjs",
     "db:import-seed": "node scripts/import_seed_to_supabase.mjs",
-    "db:restore-item": "node scripts/restore_wardrobe_item_to_supabase.mjs",
-    "db:repair-gallery-drift": "node scripts/repair_frozen_gallery_drift.mjs",
+
     "db:clear-dead-r2": "node scripts/clear-dead-r2-covers.mjs",
     "db:clear-media": "node scripts/clear-wardrobe-media-overrides.mjs"
   },
