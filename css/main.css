@@ -26322,11 +26322,12 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   /* PRICE header right-aligns to match data cell */
   .account-cat-list__header span:nth-child(7) { text-align: right; }
 
-  /* Flags: compact single-column on desktop */
+  /* Flags: compact single-column on desktop; centred to read as utility, not PRICE suffix */
   .account-cat-flags {
     flex-direction: row;
     gap: 0.4rem;
     align-items: center;
+    justify-content: center;
   }
 
   .account-cat-flag--showcase {
