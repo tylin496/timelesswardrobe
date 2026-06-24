@@ -31045,7 +31045,7 @@
       const slots = strip ? [...strip.querySelectorAll(".outfit-slot")] : [];
       if (slots.length) {
         slots.forEach((s, i) => {
-          const delay = i * 40;
+          const delay = (slots.length - 1 - i) * 40;
           s.style.transition = `opacity 0.2s ease ${delay}ms, transform 0.22s ease ${delay}ms, filter 0.2s ease ${delay}ms`;
           s.style.opacity = "0";
           s.style.transform = "translateY(10px)";
