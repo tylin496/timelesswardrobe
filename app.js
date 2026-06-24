@@ -23593,6 +23593,10 @@
       renderCollectionGridSkeleton();
       return;
     }
+    // Capture before clearing: a skeleton→real swap must NOT replay the enter
+    // animation (that blanks the grid to opacity 0 then fades, reading as a
+    // second flash). Reconcile straight to the final cards.
+    const fromSkeleton = els.grid.classList.contains("is-skeleton");
     els.grid.classList.remove("is-skeleton");
     const sorted = getCollectionSortedDataset();
     const filtered = sorted;
@@ -23639,18 +23643,24 @@
       const firstCount = Math.min(FIRST_PAINT_COUNT, sorted.length);
 
       // Reset loaded state so enter animations play once on re-render, then lock them out.
-      els.grid.classList.remove("grid--loaded");
-      const loadToken = renderToken;
-      setTimeout(() => {
-        if (renderToken === loadToken) els.grid?.classList.add("grid--loaded");
-      }, 1000);
+      // From a skeleton, lock animations off immediately so the cards reconcile
+      // in place (no opacity-0 fade) — skeleton frame and final frame coincide.
+      if (fromSkeleton) {
+        els.grid.classList.add("grid--loaded");
+      } else {
+        els.grid.classList.remove("grid--loaded");
+        const loadToken = renderToken;
+        setTimeout(() => {
+          if (renderToken === loadToken) els.grid?.classList.add("grid--loaded");
+        }, 1000);
+      }
 
       const firstFrag = document.createDocumentFragment();
       for (let i = 0; i < firstCount; i++) {
         firstFrag.appendChild(
           createCard(sorted[i], {
             fetchPriority: i < 4 ? "high" : "auto",
-            skipEnterAnimation: i >= 8,
+            skipEnterAnimation: fromSkeleton || i >= 8,
           })
         );
       }
