@@ -5,7 +5,9 @@
   /* Timeless Wardrobe — signature chrome only (utility bar, monogram). */
   --tw-brand-green: #163229;
   --tw-brand-monogram-green: var(--tw-brand-green);
-  --tw-brand-wordmark: #141210;
+  /* Masthead ink unified to brand green: solid/scrolled wordmark is the brand colour, not a separate
+     near-black. (Dark mode overrides this token to a light ink; overlay-on-photo stays white.) */
+  --tw-brand-wordmark: var(--tw-brand-green);
   --tw-brand-overlay-ink: #ffffff;
   --tw-brand-page: #faf8f2;
   --tw-brand-ivory: var(--tw-brand-page);
