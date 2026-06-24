@@ -5712,7 +5712,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     min-height: 0 !important;
     max-height: none !important;
     height: 100svh !important;
-    height: 100dvh !important;
+    /* E3 DIAGNOSTIC — dvh removed: 100dvh shrinks with the iOS keyboard, which
+       collapses the bottom-anchored sheet and pulls Popular Categories up. svh is
+       stable (keyboard-independent). Restore the dvh line if this doesn't fix it. */
     margin: 0 !important;
     clip-path: none !important;
     opacity: 1 !important;

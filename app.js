@@ -15382,11 +15382,6 @@
   }
 
   function scrollCompactHeaderSearchFieldIntoView() {
-    /* TEMP ISOLATION TEST — scroll-pin disabled while ALL visualViewport sync (height/top/
-       left/width) stays active. If Popular Categories no longer gets pulled up during iOS
-       keyboard rise, the scrollTop re-pin is the trigger. Revert this return after testing. */
-    return;
-    // eslint-disable-next-line no-unreachable
     if (!isHeaderCompactViewport() || !isHeaderSearchWrapOpen()) return;
     const inner = getCompactHeaderSearchSheetEl();
     const field = document.getElementById("filter-search");
