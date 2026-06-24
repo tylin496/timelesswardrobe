@@ -42,6 +42,7 @@ const rootFiles = [
   "styles.css",
   "favicon.png",
   "icon-pwa.png",
+  "icon-180.png",
   "icon-192.png",
   "icon-512.png",
   "site.webmanifest",
