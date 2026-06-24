@@ -5799,7 +5799,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-header__search-wrap:not(.site-header__search-wrap--visible) .desktop-search-flyout-inner,
   .site-header__search-wrap:not(.site-header__search-wrap--visible) .site-header__search-megamenu-inner {
-    transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100svh, 0);
     opacity: 0;
     will-change: transform, opacity;
   }
@@ -7856,7 +7856,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 
     .site-header__search-wrap:not(.site-header__search-wrap--visible) .desktop-search-flyout-inner,
     .site-header__search-wrap:not(.site-header__search-wrap--visible) .site-header__search-megamenu-inner {
-      transform: translate3d(0, 100%, 0);
+      transform: translate3d(0, 100svh, 0);
       opacity: 0;
     }
 
@@ -25708,6 +25708,13 @@ body.account-collection-drawer-open .account-page-main {
   overflow: hidden;
 }
 
+.account-notes-list-row__name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .account-notes-list-row__mobile-body {
   padding: 0.5rem 0.6rem 0.75rem;
   display: flex;
@@ -25839,6 +25846,11 @@ body.account-collection-drawer-open .account-page-main {
   font-size: 0.83rem;
   font-weight: 500;
   color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-notes-v2-brand {
@@ -25847,7 +25859,6 @@ body.account-collection-drawer-open .account-page-main {
 }
 
 .account-notes-v2-wordcount {
-  margin-left: auto;
   font-size: 0.68rem;
   color: var(--ink-muted);
   white-space: nowrap;
