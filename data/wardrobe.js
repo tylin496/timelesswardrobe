@@ -136,8 +136,7 @@ const WARDROBE_ITEMS = [
     "image": "/images/wardrobe/tank-solo/main/1.webp",
     "gallery": [
       "/images/wardrobe/tank-solo/main/2.webp",
-      "/images/wardrobe/tank-solo/main/3.webp",
-      "/images/wardrobe/tank-solo/main/4.webp"
+      "/images/wardrobe/tank-solo/main/3.webp"
     ],
     "notes": "Reference: W5200004\nMovement: Cartier Cal. 690 quartz\nCase: 34.8 × 27.4 mm, 18ct yellow gold\nStrap: Brown square-scale alligator leather with original 18ct yellow gold ardillon buckle\n\nDesigned by Louis Cartier in 1917, the Tank remains one of the defining forms of modern watch design. In continuous production for over a century, it has remained unmistakable while becoming one of the canonical objects of the twentieth century. As the only solid-gold watch in this collection, it serves as its aesthetic anchor.",
     "metadata": {
@@ -1946,7 +1945,7 @@ const WARDROBE_ITEMS = [
     "purchaseDate": "2023-11-27",
     "image": "/images/wardrobe/kingsman-0847-sunglasses/main/1.webp",
     "gallery": [
-      "/images/wardrobe/kingsman-0847-sunglasses/main/2.jpeg",
+      "/images/wardrobe/kingsman-0847-sunglasses/main/2.webp",
       "/images/wardrobe/kingsman-0847-sunglasses/main/3.webp",
       "/images/wardrobe/kingsman-0847-sunglasses/main/4.webp",
       "/images/wardrobe/kingsman-0847-sunglasses/main/5.webp",
