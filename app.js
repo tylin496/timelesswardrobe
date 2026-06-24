@@ -10857,16 +10857,7 @@
       collectionSortedCache = orderSearchResultItems(filtered, searchQ);
     } else {
       if (collectionSortMode === "default") {
-        const all = sortItemsShowcaseArchive(filtered);
-        // Default view: show only showcase items (the curated public grid).
-        // Fall back to the full sorted list only when the user has active filters
-        // (category/colour/brand/subcategory) — they've explicitly stepped outside the showcase.
-        if (!narrowingFiltersActive()) {
-          const showcaseOnly = all.filter((it) => isInShowcase(it));
-          collectionSortedCache = showcaseOnly.length ? showcaseOnly : all;
-        } else {
-          collectionSortedCache = all;
-        }
+        collectionSortedCache = sortItemsShowcaseArchive(filtered);
       } else {
         collectionSortedCache = [...filtered].sort(compareGridItems);
       }
