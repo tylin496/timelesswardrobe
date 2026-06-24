@@ -8236,6 +8236,19 @@
     }
 
     await Promise.all(saves);
+    // Write the localStorage rank cache from the just-saved order so the very
+    // next first paint (e.g. navigating straight to /collection on this device)
+    // is already correct — no deploy, no wait for the post-paint Supabase fetch.
+    // Supabase remains the source of truth; this only fast-paths the editor's
+    // own device. Other devices pick it up via refreshHybridCloudAfterCollectionPaint.
+    try {
+      const map = /** @type {Record<string, number>} */ ({});
+      orderedItems.forEach((it, i) => {
+        const id = String(it?.id ?? "").trim();
+        if (id) map[id] = i;
+      });
+      localStorage.setItem(SHOWCASE_RANK_CACHE_KEY, JSON.stringify(map));
+    } catch (_) {}
     wardrobeRevision += 1;
     renderGrid();
   }
@@ -31878,7 +31891,8 @@
             ? 70
             : isItemPdpPage
               ? 0
-              : 70;
+              /* TEMP(perceived-latency A/B): home main-reveal node cut — loader/hero/timing untouched. Revert to 70. */
+              : 0;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
