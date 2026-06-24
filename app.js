@@ -27300,44 +27300,6 @@
     afterItemDetailPageRender(root, false);
   }
 
-  function appendItemDetailNavigation(body, item) {
-    const allItems = getCollectionSortedDataset();
-    const idx = allItems.findIndex((i) => i.id === item.id);
-    if (idx === -1 || allItems.length < 2) return;
-    const prev = idx > 0 ? allItems[idx - 1] : null;
-    const next = idx < allItems.length - 1 ? allItems[idx + 1] : null;
-    if (!prev && !next) return;
-    const nav = document.createElement("nav");
-    nav.className = "item-detail__item-nav";
-    nav.setAttribute("aria-label", "Browse collection");
-    function buildNavLink(navItem, isPrev) {
-      const link = document.createElement("a");
-      link.href = buildItemPageUrl(navItem.id).toString();
-      link.className = `item-detail__item-nav-link item-detail__item-nav-link--${isPrev ? "prev" : "next"}`;
-      const dir = document.createElement("span");
-      dir.className = "item-detail__item-nav-dir";
-      dir.textContent = isPrev ? "← Previous Item" : "Next Item →";
-      const name = document.createElement("span");
-      name.className = "item-detail__item-nav-name";
-      name.textContent = displayNameWithoutLeadingColour(navItem);
-      // width > WARDROBE_THUMB_MAX_REQUEST_WIDTH skips the thumb/ redirect so we get
-      // the RGBA transparent cutout from main/ instead of the RGB background photo.
-      const thumb = document.createElement("img");
-      thumb.className = "item-detail__item-nav-thumb";
-      wireItemThumbWithSeedFallback(thumb, navItem, 1001, 1251);
-      thumb.alt = "";
-      thumb.loading = "lazy";
-      thumb.decoding = "async";
-      link.appendChild(dir);
-      link.appendChild(thumb);
-      link.appendChild(name);
-      return link;
-    }
-    if (prev) nav.appendChild(buildNavLink(prev, true));
-    if (next) nav.appendChild(buildNavLink(next, false));
-    body.appendChild(nav);
-  }
-
   function appendItemDetailRelated(root, item) {
     const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
     const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 6);
