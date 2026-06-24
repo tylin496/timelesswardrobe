@@ -7621,18 +7621,18 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   /* Tool glyphs sit far right (the surface reaches them almost immediately) — SVG strokes can't
-     gradient-clip, so just brand green for the duration of the nav. */
-  body.home-page.collection-ui--mobile-nav-open .site-header__tools .site-header__tool-glyph,
-  body.home-page.collection-ui--mobile-nav-closing .site-header__tools .site-header__tool-glyph,
-  body.home-page.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-glyph-line,
-  body.home-page.collection-ui--mobile-nav-closing .site-header__menu-btn .site-header__menu-glyph-line {
+     gradient-clip, so just brand green while the nav is open.
+     close-start boundary: gated with `:not(--mobile-nav-closing)` so the green drops the instant
+     closing begins — reverting the glyphs WITH the wordmark (which reverts at close-start via
+     --nav-progress), instead of lingering to finish()'s class removal at close-end. */
+  body.home-page.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header__tools .site-header__tool-glyph,
+  body.home-page.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header__menu-btn .site-header__menu-glyph-line {
     stroke: var(--tw-brand-green);
   }
 
   /* Count badge: the overlay hollow-white numeral vanishes on the ivory, so switch it to a solid green
-     knockout (green pill, ivory numeral) for the duration of the nav — matches the green glyphs. */
-  body.home-page.collection-ui--mobile-nav-open .site-header__tools,
-  body.home-page.collection-ui--mobile-nav-closing .site-header__tools {
+     knockout (green pill, ivory numeral) while open — same close-start boundary as the glyphs. */
+  body.home-page.collection-ui--mobile-nav-open:not(.collection-ui--mobile-nav-closing) .site-header__tools {
     --tw-header-badge-bg: var(--tw-brand-green);
     --tw-header-badge-fg: var(--tw-brand-ivory);
     --tw-header-badge-opacity: 1;
