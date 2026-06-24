@@ -13328,7 +13328,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 .skeleton-line {
   position: relative;
   overflow: hidden;
-  background: color-mix(in srgb, var(--line) 38%, var(--bg-elevated));
+  background: color-mix(in srgb, var(--ink) 10%, var(--bg));
 }
 
 .card--skeleton .card__media::after,
@@ -13364,6 +13364,16 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   to {
     transform: translateX(100%);
   }
+}
+
+/* #grid .card__media has higher specificity (ID) — re-assert skeleton styles */
+#grid .card--skeleton .card__media {
+  background-color: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  background-image: none;
+}
+
+#grid .card--skeleton .card__media::after {
+  content: "";
 }
 
 @media (prefers-reduced-motion: reduce) {

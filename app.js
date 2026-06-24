@@ -10699,12 +10699,11 @@
     hydrateCollectionStateFromLocalStorageOnly();
     if (!isSupabaseReady()) return;
     if (opts.deferCloud) {
+      _deferredCollectionPending++;
       scheduleCollectionDeferredWork(() => {
         void hydrateCollectionStateFromCloud().then(() => {
-          if (document.getElementById("grid")) {
-            mergeWardrobeFromSources();
-            renderGrid();
-          }
+          if (document.getElementById("grid")) mergeWardrobeFromSources();
+          _commitCollectionRender();
         });
       });
       return;
@@ -31673,6 +31672,17 @@
     }
   }
 
+  // Single render authority: async pipelines signal done here; last one commits.
+  let _deferredCollectionPending = 0;
+  function _commitCollectionRender() {
+    if (--_deferredCollectionPending <= 0) {
+      _deferredCollectionPending = 0;
+      renderGrid();
+      reconcileItemDetailShowcaseBadge();
+      syncOutfitSaveButtonLabel();
+    }
+  }
+
   /** @returns {string[]} */
   function catalogueLockIdList() {
     if (!catalogueLockManifest?.ids?.size) return [];
@@ -31701,17 +31711,14 @@
       saveShowcaseRankCache(normalized);
       mergeWardrobeFromSources();
       showcaseSourcePending = false;
-      renderGrid();
-      reconcileItemDetailShowcaseBadge();
-      syncOutfitSaveButtonLabel();
+      _commitCollectionRender();
     } else if (!res.ok) {
       console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
-      // Stop skeletoning on failure — fall back to rendering what we have.
       showcaseSourcePending = false;
-      renderGrid();
+      _commitCollectionRender();
     } else {
       showcaseSourcePending = false;
-      renderGrid();
+      _commitCollectionRender();
     }
 
     const outfitsRes = await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
@@ -32258,6 +32265,7 @@
     }
 
     if (deferHybridCloudRefresh && bootstrapSupabaseApi) {
+      _deferredCollectionPending++;
       scheduleCollectionDeferredWork(() => void refreshHybridCloudAfterCollectionPaint(bootstrapSupabaseApi));
     } else if (deferOutfitsFetch && bootstrapSupabaseApi && isSupabaseReady()) {
       scheduleCollectionDeferredWork(() => void refreshOutfitsAfterCollectionPaint(bootstrapSupabaseApi));
