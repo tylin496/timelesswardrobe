@@ -3499,6 +3499,9 @@
     for (const s of statsData) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
+      // Acquisition Cost is collection metadata, not a status KPI: on mobile
+      // this tile is hidden (CSS) and its value moves to the header meta line.
+      if (s.raw) cell.classList.add("account-overview__stat--value");
       const n = document.createElement("div");
       n.className = "account-overview__stat-n";
       n.textContent = String(s.n);
@@ -3516,6 +3519,23 @@
       cell.append(n, lbl, sub);
       statsGrid.appendChild(cell);
     }
+
+    // Mobile-only header meta: lifts Acquisition Cost out of the grid into a
+    // one-line collection descriptor above the 2×2 status tiles. Hidden on
+    // desktop (CSS), where all five tiles render unchanged.
+    const statsMeta = document.createElement("div");
+    statsMeta.className = "account-overview__stats-meta";
+    const statsMetaTitle = document.createElement("div");
+    statsMetaTitle.className = "account-overview__stats-meta-title";
+    statsMetaTitle.textContent = "Collection";
+    const statsMetaLine = document.createElement("div");
+    statsMetaLine.className = "account-overview__stats-meta-line";
+    statsMetaLine.textContent = totalValueFmt
+      ? `${allItems.length} pieces · ${totalValueFmt}`
+      : `${allItems.length} pieces`;
+    statsMeta.append(statsMetaTitle, statsMetaLine);
+    wrapper.appendChild(statsMeta);
+
     wrapper.appendChild(statsGrid);
 
     // ── Row 1: Collection Health | Acquisition Timeline ─────────────────────────

@@ -24801,6 +24801,13 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   text-align: center;
 }
 
+/* Acquisition Cost is collection metadata, not a status KPI. On mobile it's
+   lifted out of the grid into this one-line descriptor (shown ≤900px); on
+   desktop it stays the fifth tile and this block is hidden. */
+.account-overview__stats-meta {
+  display: none;
+}
+
 .account-overview__stat + .account-overview__stat {
   border-left: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
 }
@@ -26412,6 +26419,33 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   .account-overview__stat + .account-overview__stat {
     border-left: none;
+  }
+
+  /* Mobile: Acquisition Cost leaves the grid (now a clean 2×2 status grid);
+     its value surfaces in the header meta descriptor above. */
+  .account-overview__stat--value {
+    display: none;
+  }
+
+  .account-overview__stats-meta {
+    display: block;
+    margin-bottom: clamp(0.85rem, 3vw, 1.15rem);
+  }
+
+  .account-overview__stats-meta-title {
+    font-family: var(--font-serif-display, var(--font-serif));
+    font-size: 1.45rem;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .account-overview__stats-meta-line {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    margin-top: 0.25rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .account-overview__stat:nth-child(odd) {
