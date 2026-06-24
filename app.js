@@ -30167,38 +30167,40 @@
     let mobileShellCloseAbort = null;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let mobileShellShowTimer = null;
-    /** Window scroll captured while the mobile nav owns a position:fixed body lock. */
-    let mobileNavScrollLockY = 0;
     let mobileNavScrollLocked = false;
+
+    /* iOS Safari ignores `<html>{overflow:hidden}` for touch scroll — a vertical drag over the fixed
+       sidebar rubber-bands the page behind it and the content peeks through. A non-passive touchmove
+       guard cancels that page scroll. We keep the body in flow (no position:fixed) so the sticky header
+       keeps its scrollport — switching to a body lock regressed the header/shell interaction. */
+    function onMobileNavTouchMove(e) {
+      if (!document.body.classList.contains("collection-ui--mobile-nav-open")) return;
+      if (e.touches && e.touches.length > 1) return; // let pinch-zoom through
+      // Allow the drag only when it lands inside an inner region that can actually scroll vertically;
+      // everything else (the full-bleed sidebar surface, the dim) must not scroll the page behind.
+      let node = e.target instanceof Element ? e.target : null;
+      while (node && node !== document.body) {
+        const style = getComputedStyle(node);
+        if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight) return;
+        node = node.parentElement;
+      }
+      if (e.cancelable) e.preventDefault();
+    }
 
     function lockMobileNavPageScroll() {
       if (mobileNavScrollLocked) return;
       mobileNavScrollLocked = true;
-      mobileNavScrollLockY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      /* html overflow:hidden alone does NOT lock touch scroll on iOS Safari — the page rubber-bands
-         behind the fixed sidebar and peeks through. position:fixed on <body> is the reliable lock. */
-      document.documentElement.style.scrollBehavior = "auto";
+      // Scroll-lock on <html>, not <body>: leaves the body in flow so the sticky header keeps its
+      // viewport scrollport and stays pinned at the top. Position is not moved, so no save/restore.
       document.documentElement.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${mobileNavScrollLockY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
+      document.addEventListener("touchmove", onMobileNavTouchMove, { passive: false });
     }
 
     function unlockMobileNavPageScroll() {
       if (!mobileNavScrollLocked) return;
       mobileNavScrollLocked = false;
-      const y = mobileNavScrollLockY;
-      mobileNavScrollLockY = 0;
       document.documentElement.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      if (y > 0) globalThis.scrollTo({ top: y, left: 0, behavior: "instant" });
-      document.documentElement.style.scrollBehavior = "";
+      document.removeEventListener("touchmove", onMobileNavTouchMove, { passive: false });
     }
 
     function closeMobileCategoryPanel() {
