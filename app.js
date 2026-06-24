@@ -23097,7 +23097,6 @@
       [...selectedBrandFilters].sort().join("\x1f"),
       collectionSortMode,
       collectionDisplayCurrency,
-      String(wardrobeRevision),
       String(sorted.length),
       ids,
     ].join("\x1e");
