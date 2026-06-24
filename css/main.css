@@ -424,7 +424,7 @@ body.theme-catalogue .desktop-mega-menu .site-header__submenu-link {
   color: var(--submenu-link-ink) !important;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.theme-catalogue .desktop-mega-menu .site-header__submenu-link {
     --submenu-link-ink: rgba(22, 50, 41, 0.58) !important;
     --submenu-link-ink-active: var(--ink) !important;
@@ -841,14 +841,14 @@ body {
 }
 
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   /* Same content box as `.site-header__container` — logo aligns with “INDICIO ET CONSTANTIA”. */
   .site-utility-bar {
     justify-content: center;
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-utility-bar {
     position: relative;
     z-index: var(--z-utility-bar);
@@ -884,7 +884,7 @@ body {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-utility-bar__left {
     /* Mobile motto: smaller than default, but still comfortably legible. */
     font-size: clamp(8.2px, 2.05vw, 9.2px);
@@ -947,7 +947,7 @@ body {
   transform: none;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   .site-header-shell {
     overflow: visible;
   }
@@ -984,7 +984,7 @@ body {
   display: none;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   .site-header__nav-submenu-dismiss {
   @apply m-0;
     display: block;
@@ -1133,7 +1133,7 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
 }
 
 /* Pointer hover — desktop layout only (≥1025px); see note above. */
-@media (hover: hover) and (min-width: 1025px) {
+@media (hover: hover) and (min-width: 901px) {
   body.theme-catalogue .site-header.site-header--solid:hover,
   body.theme-catalogue .site-header.site-header--overlay:hover {
     --tw-header-fg: var(--ink);
@@ -1175,7 +1175,7 @@ body.theme-catalogue .site-header.site-header--overlay:focus-within {
   --tw-header-badge-opacity: 1;
 }
 
-@media (hover: hover) and (min-width: 1025px) {
+@media (hover: hover) and (min-width: 901px) {
   .site-header--overlay:hover {
     --tw-header-fg: var(--tw-brand-wordmark);
     --tw-header-fg-muted: var(--ink-muted);
@@ -1429,7 +1429,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 /* Desktop: logo + inline categories + mega; ≤900px → hamburger + mobile shell (RL-style). */
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.item-page .site-header__collection-back {
     display: none !important;
   }
@@ -1665,7 +1665,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 /* Outfits count — solid header: green pill, ivory numeral. */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header--solid .site-header__outfits-btn .site-header__outfits-count,
   .site-header--overlay:focus-within .site-header__outfits-btn .site-header__outfits-count {
     -webkit-mask-image: none;
@@ -1707,7 +1707,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 /* Desktop — icon-only hanger (no text label). */
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   .site-header__outfits-btn {
     align-items: center;
     gap: 0;
@@ -1741,7 +1741,7 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 /* Mobile — icon-corner badge; transparent header = filled disc + knockout numeral. */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header__outfits-label-wrap {
     display: contents;
   }
@@ -1779,7 +1779,7 @@ body.home-page .site-header--scroll-driven::before {
   color: #fff;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header__outfits-label {
   @apply -m-px;
     position: absolute;
@@ -1845,7 +1845,7 @@ body.home-page .site-header--scroll-driven::before {
   display: none;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   .account-flyout {
     display: block;
     position: fixed;
@@ -3120,7 +3120,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   letter-spacing: 0.14em;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header__account-link {
     display: none;
   }
@@ -3131,7 +3131,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   /* No nav links on account page — stretch bar to full width so ml-auto on tools works. */
   body.account-page .site-header__brand-nav {
     flex: 1 0 0%;
@@ -3311,7 +3311,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   color: var(--ink-muted);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header__search-results-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3751,7 +3751,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   display: none !important;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   :root {
     --site-title-mark-size: 34px;
     --site-title-primary-gap: 0.44rem;
@@ -4439,7 +4439,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .site-header__search-wrap,
   .site-header__search-megamenu,
   .site-header__search-megamenu-inner,
@@ -4584,7 +4584,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   pointer-events: auto;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   /* Author `display:flex` wins over UA `[hidden]` — mobile only. */
   .site-header__submenu[hidden] {
     display: none !important;
@@ -4596,7 +4596,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 /* Desktop: mega panel overlays content — absolute under header, never in document flow. */
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.theme-catalogue,
   body.home-page {
     --header-flyout-open-duration: 300ms;
@@ -5608,7 +5608,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   animation: tlw-submenu-switch-fade 0.24s var(--ease-luxe) both;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   .desktop-mega-menu.site-header__submenu--switching .site-header__submenu-links {
     animation: none;
   }
@@ -5672,7 +5672,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   visibility: hidden;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.collection-ui--header-search-open .site-header-shell,
   body.collection-ui--header-search-closing .site-header-shell {
     z-index: var(--z-mega-menu);
@@ -5687,7 +5687,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   body.theme-catalogue .site-header__search-wrap {
     background: transparent;
   }
@@ -7752,7 +7752,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
   background-color: #eee9df;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   body.collection-ui--header-search-open,
   body.collection-ui--header-search-closing {
     overflow: hidden;
@@ -7838,7 +7838,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @media (max-width: 1024px) {
+  @media (max-width: 900px) {
     .site-header__search-wrap,
     .site-header__search-wrap.desktop-search-flyout,
     .site-header__search-wrap .desktop-search-flyout-inner,
@@ -7868,7 +7868,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
     }
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 900px) {
     body.collection-ui--mobile-nav-open,
     body.collection-ui--mobile-nav-closing,
     .site-mobile-shell,
@@ -9784,7 +9784,7 @@ body.collection-ui--outfits .outfits-drawer {
 /* Outfits drawer open — site masthead stays #F7F4ED (never transparent overlay). DESKTOP ONLY:
    on mobile, Outfits is a full-screen takeover and must NOT change header appearance (scroll /
    sidebar own it there), so this opaque-bg override is gated to ≥1025px. */
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.collection-ui--outfits .site-header,
   body.collection-ui--outfits .site-header.site-header--overlay,
   body.collection-ui--outfits .site-header.site-header--solid,
@@ -13536,7 +13536,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
     transform 250ms ease-out;
 }
 
-@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+@media (hover: hover) and (pointer: fine) {
   .card:hover .card__outfit-add,
   .card:hover .card__quick-outfit,
   .card:focus-within .card__outfit-add,
@@ -13557,7 +13557,25 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-@media (hover: none), (pointer: coarse), (max-width: 900px) {
+/* Capability gate: touch / coarse-pointer — styling-reveal always shows buttons. */
+@media (hover: none), (pointer: coarse) {
+  .card.card--styling-reveal .card__outfit-add,
+  .card.card--styling-reveal .card__quick-outfit {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .card.card--styling-reveal .card__outfit-add:disabled,
+  .card.card--styling-reveal .card__quick-outfit:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+/* Layout gate: narrow viewport (legacy 900px; mirrors min-width:901px in positive block above).
+   Phase 2: drop when positive block's width gate is resolved. */
+@media (max-width: 900px) {
   .card.card--styling-reveal .card__outfit-add,
   .card.card--styling-reveal .card__quick-outfit {
     opacity: 1;
@@ -13817,7 +13835,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 /* Desktop PLP: per-card frame transition on chevron (not a scroll carousel). */
-@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+@media (hover: hover) and (pointer: fine) {
   #grid .card__media--gallery-nav:not(.card__media--gallery-swipe) .card__gallery-desktop-stage {
     position: relative;
     z-index: 1;
@@ -13956,8 +13974,17 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-/* Mobile / touch: swipe between frames — no chevron buttons on the card. */
-@media (hover: none), (pointer: coarse), (max-width: 900px) {
+/* Capability gate: touch / coarse-pointer — hide chevron nav (swipe is the interaction). */
+@media (hover: none), (pointer: coarse) {
+  #grid .card__gallery-nav {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Layout gate: narrow viewport (legacy 900px; mirrors min-width:901px in positive block above).
+   Phase 2: drop when positive block's width gate is resolved. */
+@media (max-width: 900px) {
   #grid .card__gallery-nav {
     display: none !important;
     pointer-events: none !important;
@@ -14173,7 +14200,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+@media (hover: hover) and (pointer: fine) {
   #grid .card__colour-tray,
   #grid .card__hover-bar--solo {
     opacity: 0;
@@ -14218,8 +14245,19 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-/* Touch + narrow viewport: tray always visible (matches real phones; not only coarse pointer). */
-@media (hover: none), (pointer: coarse), (max-width: 900px) {
+/* Capability gate: touch / coarse-pointer — tray always visible. */
+@media (hover: none), (pointer: coarse) {
+  #grid .card__colour-tray,
+  #grid .card__hover-bar--solo {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Layout gate: narrow viewport — tray always visible (matches real phones; not only coarse pointer).
+   Phase 2: drop when positive block's width gate is resolved. */
+@media (max-width: 900px) {
   #grid .card__colour-tray,
   #grid .card__hover-bar--solo {
     opacity: 1;
@@ -14651,14 +14689,14 @@ body.item-page .site-header {
   background-image: none;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   body.item-page.collection-ui--header-submenu-open .site-header-shell,
   body.item-page.collection-ui--header-submenu-open .site-header {
     background-color: var(--bg-elevated);
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 901px) {
   body.item-page.collection-ui--header-submenu-open .site-header-shell,
   body.item-page.collection-ui--header-submenu-closing .site-header-shell,
   body.item-page.collection-ui--header-search-open .site-header-shell,
@@ -15837,7 +15875,7 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 /* PDP hero: desktop — in-frame click zoom + custom “+” cursor (mobile uses lightbox). */
-@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+@media (hover: hover) and (pointer: fine) {
   .item-detail__root--page .item-detail__media.item-detail__media--zoomable,
   .item-detail__root--edit .item-detail__media.item-detail__media--zoomable,
   .item-detail__root--page .item-detail__gallery-stage.item-detail__media--zoomable,
@@ -16078,14 +16116,23 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   }
 }
 
-@media (hover: none), (pointer: coarse), (max-width: 900px) {
+/* Capability gate: touch / coarse-pointer — enable pan/pinch gestures on gallery. */
+@media (hover: none), (pointer: coarse) {
+  .item-detail__gallery-stage.item-detail__media--hero-view {
+    touch-action: pan-x pinch-zoom;
+  }
+}
+
+/* Layout gate: narrow viewport (legacy 900px; mirrors min-width:901px in positive block above).
+   Phase 2: assess whether touch-action is meaningful here without touch capability. */
+@media (max-width: 900px) {
   .item-detail__gallery-stage.item-detail__media--hero-view {
     touch-action: pan-x pinch-zoom;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+  @media (hover: hover) and (pointer: fine) {
     .item-detail__root--page .item-detail__media.item-detail__media--zoomable .item-detail__hero-img--zoomable,
     .item-detail__root--edit .item-detail__media.item-detail__media--zoomable .item-detail__hero-img--zoomable,
     .item-detail__root--page .item-detail__gallery-stage.item-detail__media--zoomable .card__media-img,
@@ -20049,7 +20096,7 @@ body.collection-page .collection-container > .collection-actions {
     padding-right: max(var(--collection-plp-tier3-inner), env(safe-area-inset-right, 0px));
   }
 
-  @media (min-width: 1025px) {
+  @media (min-width: 901px) {
     body.collection-page,
     body.item-page {
       /* Collection / item PDP: header inset + extra nest (never less than logo rail). */
@@ -20643,7 +20690,7 @@ body.collection-page .collection-container > .collection-actions {
    (reference: user-provided luxury retail mobile screenshots; not third-party assets).
    Placed last so `#grid` rules override narrower `@media (max-width: 720px)` card tweaks.
    --------------------------------------------------------------------------- */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   html {
     scroll-padding-top: max(3.85rem, calc(env(safe-area-inset-top, 0px) + 3.1rem));
   }
