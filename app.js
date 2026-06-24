@@ -3466,11 +3466,10 @@
     const totalValueFmt = totalValue > 0 ? formatMoneyInCurrency(totalValue, collectionDisplayCurrency) : null;
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
-    const statsCols = totalValueFmt ? 5 : 4;
     const setStatsCols = () => {
       statsGrid.style.gridTemplateColumns = window.innerWidth <= 900
         ? "repeat(2, 1fr)"
-        : `repeat(${statsCols}, 1fr)`;
+        : "repeat(4, 1fr)";
     };
     setStatsCols();
     window.addEventListener("resize", setStatsCols);
