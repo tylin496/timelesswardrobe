@@ -6753,8 +6753,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     display: block;
     opacity: 1;
     pointer-events: auto;
-    /* Below shell (1300) so dim never tints the menu panel interior. */
-    z-index: calc(var(--z-outfits-backdrop, 1290) - 1);
+    /* Below shell (1150, see body.collection-ui--mobile-nav-open rule) so taps reach the nav items.
+       The sidebar is full-width so the dim sits behind the shell and blocks the page beneath it. */
+    z-index: 1100;
   }
 
   /* Sidebar z is the permanent 1150 (below Header chrome) at all times — open/closed alike. */
