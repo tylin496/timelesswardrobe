@@ -12885,9 +12885,14 @@
     };
 
     const shouldUseSolidHeader = () => {
-      if (document.body.classList.contains("collection-ui--header-search-open")) return true;
+      // Search + Outfits force a solid masthead ONLY on desktop (≥1025px), where the flyout / mega
+      // sits behind an opaque header. On mobile they are full-screen takeovers and must NOT own header
+      // appearance — scroll, the sidebar, and non-home pages own it there. (Submenu is desktop-only by
+      // nature, so it never fires on mobile.)
+      const isDesktopHeader = globalThis.matchMedia?.("(min-width: 1025px)")?.matches;
+      if (isDesktopHeader && document.body.classList.contains("collection-ui--header-search-open")) return true;
       if (document.body.classList.contains("collection-ui--header-submenu-open")) return true;
-      if (document.body.classList.contains("collection-ui--outfits")) return true;
+      if (isDesktopHeader && document.body.classList.contains("collection-ui--outfits")) return true;
       // Mobile nav: keep the header in its overlay state — the opaque ivory is supplied by the
       // sliding `.site-header::after` surface, and overlay lets the white ink restore on close.
       if (!hero) return true;
@@ -31022,7 +31027,8 @@
         showToast("Nothing to clear.");
         return;
       }
-      const slots = els.outfitStrip ? [...els.outfitStrip.querySelectorAll(".outfit-slot")] : [];
+      const strip = els.outfitStrip || document.getElementById("outfit-strip");
+      const slots = strip ? [...strip.querySelectorAll(".outfit-slot")] : [];
       if (slots.length) {
         slots.forEach((s, i) => {
           s.style.setProperty("--outfit-slot-stagger", String(i));
