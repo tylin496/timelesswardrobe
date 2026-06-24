@@ -25155,7 +25155,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 .account-cat-meta {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
 .account-cat-name {
@@ -25164,8 +25163,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   line-height: 1.3;
 }
 
@@ -26297,12 +26294,12 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 /* ── Desktop collection layout (1024px+) ───────────────────────────────────── */
 /* Extends tablet to full 8-col; adds season / year / price.                   */
 @media (min-width: 1024px) {
-  /* Collection rows become a 7-column grid */
+  /* Collection rows — 8-col; NAME min raised to hold ~30-char names without clipping */
   .account-cat-row {
-    grid-template-columns: 40px minmax(9rem, 1fr) minmax(7rem, 12rem) minmax(5.5rem, 8rem) 5rem 3.5rem 5.5rem 2.5rem;
+    grid-template-columns: 40px minmax(16rem, 1fr) minmax(7rem, 12rem) minmax(4.5rem, 7rem) 5rem 3.5rem 5.5rem 2.5rem;
     gap: 0 1.1rem;
     padding: 0.45rem 0.6rem;
-    min-width: 0; /* reset tablet floor; desktop has its own overflow budget */
+    min-width: calc(40px + 55rem); /* forces h-scroll before NAME compresses */
   }
 
   /* Desktop-only column cells */
@@ -26326,10 +26323,10 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   /* Column header row */
   .account-cat-list__header {
-    grid-template-columns: 40px minmax(9rem, 1fr) minmax(7rem, 12rem) minmax(5.5rem, 8rem) 5rem 3.5rem 5.5rem 2.5rem;
+    grid-template-columns: 40px minmax(16rem, 1fr) minmax(7rem, 12rem) minmax(4.5rem, 7rem) 5rem 3.5rem 5.5rem 2.5rem;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
-    min-width: 0;
+    min-width: calc(40px + 55rem);
     margin-bottom: 0;
   }
 
