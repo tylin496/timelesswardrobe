@@ -15564,27 +15564,29 @@ html.tw-account-dark body.account-page .site-header--overlay .site-title__wordma
 
 html.tw-account-dark body.account-page {
   color-scheme: dark;
-  /* Private archive palette — warm charcoal, aged paper, old walnut. Not OLED black. */
-  --bg: #191611;
-  --bg-elevated: #231f18;
+  /* Account palette — neutral charcoal foundation, warm ivory text. Not OLED black.
+     Backgrounds and borders are near-neutral (R-B ≤ 2) so data surfaces read cleanly.
+     Warmth is concentrated in the text stack (--ink R-B +23) where it earns its keep. */
+  --bg: #1c1c1a;
+  --bg-elevated: #252523;
   --ink: #d9d0c2;
   --ink-muted: #9e9688;
   --ink-faint: #6e6860;
-  --line: #302d27;
-  --line-strong: #3e3b34;
+  --line: #2f2f2d;
+  --line-strong: #3d3d3b;
   --accent: #7a9978;
   --accent-brand: #7a9978;
   --shadow: rgba(0, 0, 0, 0.36);
   --error: #c87070;
   --error-soft: rgba(200, 112, 112, 0.12);
-  --tint-strong: rgba(30, 27, 20, 0.96);
-  --tint-mid: rgba(30, 27, 20, 0.82);
-  --tint-soft: rgba(30, 27, 20, 0.5);
-  --tint-empty: rgba(30, 27, 20, 0.78);
-  --thumb-placeholder: #2c2920;
-  --swatch-empty: #3a3630;
-  --frost-bg: rgba(28, 25, 18, 0.94);
-  --frost-bg-strong: rgba(28, 25, 18, 0.97);
+  --tint-strong: rgba(30, 30, 28, 0.96);
+  --tint-mid: rgba(30, 30, 28, 0.82);
+  --tint-soft: rgba(30, 30, 28, 0.50);
+  --tint-empty: rgba(30, 30, 28, 0.78);
+  --thumb-placeholder: #2c2c2b;
+  --swatch-empty: #3a3a38;
+  --frost-bg: rgba(30, 30, 28, 0.94);
+  --frost-bg-strong: rgba(30, 30, 28, 0.97);
   --frost-border: rgba(217, 208, 194, 0.1);
   --frost-border-strong: rgba(217, 208, 194, 0.16);
   --frost-shadow: rgba(0, 0, 0, 0.28);
@@ -15600,7 +15602,7 @@ html.tw-account-dark body.account-page {
   --tw-header-fg: #d9d0c2;
   --tw-header-fg-muted: rgba(217, 208, 194, 0.55);
   --tw-brand-utility-bar: #1a2e22;
-  --media-cutout-canvas: #282420;
+  --media-cutout-canvas: #272726;
 }
 
 /* Filter chips + search field: soften borders so they recede into the surface */
