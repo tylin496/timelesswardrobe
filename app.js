@@ -12923,7 +12923,11 @@
       const isMobileHeader = !globalThis.matchMedia?.("(min-width: 1025px)")?.matches;
       if (
         isMobileHeader &&
-        (document.body.classList.contains("collection-ui--header-search-open") ||
+        // `body{position:fixed}` = a takeover has scroll-locked the page → window.scrollY reads 0 and is
+        // unreliable. It is set atomically with the zeroed scroll, BEFORE the takeover's body class is
+        // observable, so this is the robust catch (the class checks alone miss that gap).
+        (document.body.style.position === "fixed" ||
+          document.body.classList.contains("collection-ui--header-search-open") ||
           document.body.classList.contains("collection-ui--header-search-closing") ||
           document.body.classList.contains("collection-ui--outfits"))
       ) {
