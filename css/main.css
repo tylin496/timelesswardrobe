@@ -25152,8 +25152,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   line-height: 1.3;
 }
 
@@ -25162,8 +25160,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   color: var(--ink-muted);
   margin-top: 0.1rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .account-cat-flags {
@@ -26256,7 +26252,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 @media (min-width: 640px) {
   .account-cat-row {
     display: grid;
-    grid-template-columns: 44px minmax(10rem, 1fr) 9rem 8rem 3.5rem;
+    grid-template-columns: 44px minmax(12rem, 1fr) auto auto 3.5rem;
     gap: 0 1rem;
     align-items: center;
     padding: 0.4rem 0.6rem;
@@ -26272,16 +26268,57 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     font-size: 0.77rem;
     color: var(--ink-muted);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  .account-cat-meta {
+    min-width: unset;
+    position: sticky;
+    left: calc(44px + 1rem);
+    z-index: 2;
+    background: var(--bg);
+  }
+
+  .account-cat-thumb {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--bg);
+  }
+
+  .account-cat-row:hover .account-cat-thumb,
+  .account-cat-row:hover .account-cat-meta {
+    background: color-mix(in srgb, var(--ink) 4%, var(--bg));
+  }
+
+  .account-cat-row[aria-selected="true"] .account-cat-thumb,
+  .account-cat-row[aria-selected="true"] .account-cat-meta {
+    background: color-mix(in srgb, var(--ink) 7%, var(--bg));
   }
 
   .account-cat-list__header {
     display: grid;
-    grid-template-columns: 44px minmax(10rem, 1fr) 9rem 8rem 3.5rem;
+    grid-template-columns: 44px minmax(12rem, 1fr) auto auto 3.5rem;
     gap: 0 1rem;
     padding: 0.3rem 0.6rem;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    background: var(--bg);
+  }
+
+  .account-cat-list__header span:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--bg);
+    opacity: 1;
+  }
+
+  .account-cat-list__header span:nth-child(2) {
+    position: sticky;
+    left: calc(44px + 1rem);
+    z-index: 3;
+    background: var(--bg);
+    opacity: 1;
+    color: color-mix(in srgb, var(--ink-muted) 55%, transparent);
   }
 
   .account-cat-list__header span {
@@ -26309,9 +26346,15 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 @media (min-width: 1024px) {
   /* Collection rows become a 7-column grid */
   .account-cat-row {
-    grid-template-columns: 40px minmax(10rem, 1fr) 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
+    grid-template-columns: 40px minmax(12rem, 1fr) auto auto 5rem 3.75rem 6rem 3.5rem;
     gap: 0 1.1rem;
     padding: 0.45rem 0.6rem;
+  }
+
+  /* Sticky name column: adjust for 40px thumb + 1.1rem gap */
+  .account-cat-meta,
+  .account-cat-list__header span:nth-child(2) {
+    left: calc(40px + 1.1rem);
   }
 
   /* Desktop-only column cells */
@@ -26321,8 +26364,6 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     font-size: 0.77rem;
     color: var(--ink-muted);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .account-cat-col--season,
@@ -26338,7 +26379,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 
   /* Column header row */
   .account-cat-list__header {
-    grid-template-columns: 40px minmax(10rem, 1fr) 10rem 9rem 5rem 3.75rem 6rem 3.5rem;
+    grid-template-columns: 40px minmax(12rem, 1fr) auto auto 5rem 3.75rem 6rem 3.5rem;
     gap: 0 1.1rem;
     padding: 0.3rem 0.6rem 0.3rem;
     margin-bottom: 0;

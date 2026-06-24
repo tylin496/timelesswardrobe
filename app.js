@@ -4100,6 +4100,14 @@
       }
       for (const it of filtered) {
         const row = buildAccountCatRow(it, () => {
+          if (_accountCollectionDrawerItemId === String(it.id)) {
+            _accountCollectionDrawerItemId = null;
+            drawer.classList.add("account-edit-drawer--hidden");
+            document.body.classList.remove("account-collection-drawer-open");
+            if (drawer.parentElement !== layout) layout.appendChild(drawer);
+            listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
+            return;
+          }
           _accountCollectionDrawerItemId = String(it.id);
           openDrawerForItem(it, row);
           listPane.querySelectorAll(".account-cat-row").forEach((r) => {
