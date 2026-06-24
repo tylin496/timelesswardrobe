@@ -4161,6 +4161,32 @@
 
     layout.append(listPane, drawer);
     wrapper.appendChild(layout);
+
+    // Sticky scrollbar mirror — keeps horizontal scroll accessible while browsing rows
+    const scrollMirror = document.createElement("div");
+    scrollMirror.className = "account-cat-scroll-mirror";
+    const scrollMirrorInner = document.createElement("div");
+    scrollMirrorInner.className = "account-cat-scroll-mirror__inner";
+    scrollMirror.appendChild(scrollMirrorInner);
+    wrapper.appendChild(scrollMirror);
+
+    let _syncScroll = false;
+    scrollMirror.addEventListener("scroll", () => {
+      if (_syncScroll) return;
+      _syncScroll = true;
+      listPane.scrollLeft = scrollMirror.scrollLeft;
+      _syncScroll = false;
+    }, { passive: true });
+    listPane.addEventListener("scroll", () => {
+      if (_syncScroll) return;
+      _syncScroll = true;
+      scrollMirror.scrollLeft = listPane.scrollLeft;
+      _syncScroll = false;
+    }, { passive: true });
+    new ResizeObserver(() => {
+      scrollMirrorInner.style.width = listPane.scrollWidth + "px";
+    }).observe(listPane);
+
     el.appendChild(wrapper);
   }
 

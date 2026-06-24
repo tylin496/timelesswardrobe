@@ -25093,7 +25093,18 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.account-cat-list::-webkit-scrollbar { display: none; }
+
+.account-cat-scroll-mirror {
+  position: sticky;
+  bottom: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg);
+}
+.account-cat-scroll-mirror__inner { height: 1px; }
 
 .account-cat-list__empty {
   padding: 1.5rem 0.5rem;
