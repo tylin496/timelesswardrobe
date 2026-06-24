@@ -13,7 +13,8 @@
  * no manual step and no exception. Only real cutouts are processed; full-
  * background / lifestyle photos (no meaningful alpha) are detected and skipped.
  *
- * Scope: only `1.webp` (the grid cover) under main/ and variants/<colour>/.
+ * Scope: only `1.webp` (the grid cover) under cutout/ — the transparent version
+ * derived from main/1.webp. Never touches main/ directly.
  *
  * Idempotent + hash-gated via images/wardrobe/.center-manifest.json: a file is
  * re-centred only when its bytes differ from the last centred output, so repeat
@@ -139,21 +140,15 @@ function collectCovers() {
   for (const item of readdirSync(WARDROBE_DIR)) {
     const base = path.join(WARDROBE_DIR, item);
     if (!statSync(base).isDirectory()) continue;
-    // Prefer cutout/1.webp (dedicated transparent version); fall back to main/1.webp
-    // for items where the main photo itself is a cutout (no background).
     const cutoutCover = path.join(base, "cutout", "1.webp");
-    const mainCover = path.join(base, "main", "1.webp");
     if (existsSync(cutoutCover)) out.push(cutoutCover);
-    else if (existsSync(mainCover)) out.push(mainCover);
     const variantsDir = path.join(base, "variants");
     if (existsSync(variantsDir)) {
       for (const colour of readdirSync(variantsDir)) {
         const cDir = path.join(variantsDir, colour);
         if (statSync(cDir).isDirectory()) {
           const vCutout = path.join(cDir, "cutout", "1.webp");
-          const vMain = path.join(cDir, "1.webp");
           if (existsSync(vCutout)) out.push(vCutout);
-          else if (existsSync(vMain)) out.push(vMain);
         }
       }
     }
