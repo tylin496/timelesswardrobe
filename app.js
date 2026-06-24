@@ -8138,6 +8138,34 @@
     return showcaseRank(item) >= 0;
   }
 
+  const SHOWCASE_RANK_CACHE_KEY = "tw:showcase-rank-v1";
+
+  function saveShowcaseRankCache(normalizedRows) {
+    try {
+      const map = /** @type {Record<string, number>} */ ({});
+      for (const row of normalizedRows) {
+        const rank = row?.metadata?.showcase_rank;
+        if (typeof rank === "number" && rank >= 0 && row?.id) map[String(row.id)] = rank;
+      }
+      localStorage.setItem(SHOWCASE_RANK_CACHE_KEY, JSON.stringify(map));
+    } catch (_) {}
+  }
+
+  function applyShowcaseRankCacheToWardrobeBase() {
+    try {
+      const raw = localStorage.getItem(SHOWCASE_RANK_CACHE_KEY);
+      if (!raw) return;
+      const map = JSON.parse(raw);
+      if (!map || typeof map !== "object" || Array.isArray(map)) return;
+      wardrobeBase = wardrobeBase.map((row) => {
+        if (!row?.id) return row;
+        const rank = map[String(row.id)];
+        if (typeof rank !== "number" || rank < 0) return row;
+        return { ...row, metadata: { ...(row.metadata ?? {}), showcase_rank: rank } };
+      });
+    } catch (_) {}
+  }
+
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
     const seen = new Set();
@@ -12899,7 +12927,9 @@
       const heroH = hero.offsetHeight;
       if (heroH <= 0) return false; // not laid out yet — keep overlay
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      return scrollY >= heroH * 0.35;
+      // Ink flips to solid earlier in the scroll (was 0.35). Kept equal to the bg fade-end below so the
+      // ink still turns dark exactly when the ivory bg is fully opaque — no white-on-light window.
+      return scrollY >= heroH * 0.2;
     };
 
     const update = () => {
@@ -12940,7 +12970,7 @@
         const heroH = hero.offsetHeight;
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
         const fadeStart = heroH * 0.1;
-        const fadeEnd = heroH * 0.35;
+        const fadeEnd = heroH * 0.2;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
@@ -31620,6 +31650,7 @@
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       }
       mergeWardrobeBaseWithFetchedCloudRows(normalized);
+      saveShowcaseRankCache(normalized);
       mergeWardrobeFromSources();
       renderGrid();
       syncOutfitSaveButtonLabel();
@@ -31916,6 +31947,7 @@
             savedOutfits = loadSavedOutfitsFromStorage();
             useCloudOutfits = false;
             deferredSeedSyncSnapshot = null;
+            applyShowcaseRankCacheToWardrobeBase();
           } else {
             const excludeIds = isHybridLocalCatalogueEnabled() ? catalogueLockIdList() : [];
             const res = await withTimeout(
