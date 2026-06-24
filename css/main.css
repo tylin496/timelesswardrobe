@@ -26154,12 +26154,11 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
 }
 
 .account-timeline__year {
-  flex: 0 0 2.5rem;
+  flex: 0 0 auto;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
-  text-align: right;
 }
 
 .account-timeline__bar-wrap {
