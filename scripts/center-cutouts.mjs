@@ -139,14 +139,22 @@ function collectCovers() {
   for (const item of readdirSync(WARDROBE_DIR)) {
     const base = path.join(WARDROBE_DIR, item);
     if (!statSync(base).isDirectory()) continue;
+    // Prefer cutout/1.webp (dedicated transparent version); fall back to main/1.webp
+    // for items where the main photo itself is a cutout (no background).
+    const cutoutCover = path.join(base, "cutout", "1.webp");
     const mainCover = path.join(base, "main", "1.webp");
-    if (existsSync(mainCover)) out.push(mainCover);
+    if (existsSync(cutoutCover)) out.push(cutoutCover);
+    else if (existsSync(mainCover)) out.push(mainCover);
     const variantsDir = path.join(base, "variants");
     if (existsSync(variantsDir)) {
       for (const colour of readdirSync(variantsDir)) {
         const cDir = path.join(variantsDir, colour);
-        if (statSync(cDir).isDirectory() && existsSync(path.join(cDir, "1.webp")))
-          out.push(path.join(cDir, "1.webp"));
+        if (statSync(cDir).isDirectory()) {
+          const vCutout = path.join(cDir, "cutout", "1.webp");
+          const vMain = path.join(cDir, "1.webp");
+          if (existsSync(vCutout)) out.push(vCutout);
+          else if (existsSync(vMain)) out.push(vMain);
+        }
       }
     }
   }
