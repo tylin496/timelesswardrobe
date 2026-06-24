@@ -24800,20 +24800,6 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   border-left: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
-/* Mobile (JS sets 2-col at ≤900px): Est. Value spans full width */
-@media (max-width: 900px) {
-  .account-overview__stat--wide {
-    grid-column: 1 / -1;
-    border-left: none !important;
-    border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-  }
-}
-/* Desktop (JS sets 5-col at >900px): Est. Value is a regular equal-width cell */
-@media (min-width: 901px) {
-  .account-overview__stat--wide {
-    border-left: none !important;
-  }
-}
 
 .account-overview__stat-n {
   font-family: var(--font-serif-display, var(--font-serif));
@@ -26314,9 +26300,9 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   }
 }
 
-/* ── Desktop collection layout (1024px+) ───────────────────────────────────── */
-/* Extends tablet to full 8-col; adds season / year / price.                   */
-@media (min-width: 1024px) {
+/* ── Desktop collection layout (900px+) ────────────────────────────────────── */
+/* Full 8-col from 900px; h-scroll handles narrower viewports within this range */
+@media (min-width: 900px) {
   /* Collection rows — 8-col; NAME min raised to hold ~30-char names without clipping */
   .account-cat-row {
     grid-template-columns: 40px minmax(16rem, 1fr) minmax(7rem, 12rem) minmax(4.5rem, 7rem) 5rem 3.5rem 5.5rem 2.5rem;
