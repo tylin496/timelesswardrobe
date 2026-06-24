@@ -13233,9 +13233,6 @@ body:not(.item-page):not(.tw-page-loader-revealed) #main {
 }
 
 #grid .card {
-  /* Skip layout/paint for off-screen cards while scrolling long collections. */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 520px;
   /* Pure opacity fade — no rise. Thumb already signals the filter change;
      the cards just need to appear cleanly, not draw attention to themselves. */
   animation: tlw-fade-in 0.22s ease backwards;
