@@ -13310,6 +13310,69 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   box-shadow: 0 0 0 2px var(--accent), 0 8px 22px var(--card-shadow-hover);
 }
 
+/* Cold deep-link skeleton — placeholder cards while the deferred showcase
+   fetch lands (no bake, no cache). Reuses .card / .card__media / .card__body
+   layout so the grid geometry matches the real cards exactly. */
+.card--skeleton {
+  pointer-events: none;
+  animation: none;
+  box-shadow: 0 4px 18px var(--card-shadow);
+}
+
+.card--skeleton:hover {
+  box-shadow: 0 4px 18px var(--card-shadow);
+  border-color: color-mix(in srgb, var(--line) 92%, transparent);
+}
+
+.card--skeleton .card__media,
+.skeleton-line {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 38%, var(--bg-elevated));
+}
+
+.card--skeleton .card__media::after,
+.skeleton-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--bg-elevated) 70%, transparent) 50%,
+    transparent 100%
+  );
+  animation: tlw-skeleton-shimmer 1.25s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 0.7rem;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.skeleton-line--brand {
+  width: 38%;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-line--title {
+  width: 68%;
+}
+
+@keyframes tlw-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card--skeleton .card__media::after,
+  .skeleton-line::after {
+    animation: none;
+  }
+}
+
 .card__media {
   position: relative;
   display: flex;

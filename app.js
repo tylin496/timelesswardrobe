@@ -3110,7 +3110,6 @@
       case "collection": renderAccountTab_Collection(contentEl); break;
       case "showcase":   renderAccountTab_Showcase(contentEl); break;
       case "notes":      renderAccountTab_Notes(contentEl); break;
-      case "wishlist":   renderAccountTab_Wishlist(contentEl); break;
       case "brands":     renderAccountTab_Brands(contentEl); break;
       default:           renderAccountTab_Collection(contentEl); break;
     }
@@ -3321,7 +3320,6 @@
       case "collection": renderAccountTab_Collection(contentEl); break;
       case "showcase":   renderAccountTab_Showcase(contentEl); break;
       case "notes":      renderAccountTab_Notes(contentEl); break;
-      case "wishlist":   renderAccountTab_Wishlist(contentEl); break;
       case "brands":     renderAccountTab_Brands(contentEl); break;
       default:           renderAccountTab_Collection(contentEl); break;
     }
@@ -5065,84 +5063,6 @@
     }
 
     refreshNotesList();
-    el.appendChild(wrapper);
-  }
-
-  // ── Tab: Wishlist ─────────────────────────────────────────────────────────────
-  let _accountFutureDrawerItemId = null;
-
-  function renderAccountTab_Wishlist(el) {
-    const futureItems = items.filter((it) => isFuturePiece(it));
-
-    const wrapper = document.createElement("div");
-
-    if (!futureItems.length) {
-      const empty = document.createElement("div");
-      empty.style.cssText = "font-size:0.82rem;color:var(--ink-muted);font-style:italic;";
-      empty.textContent = "No wishlist pieces yet.";
-      wrapper.appendChild(empty);
-      el.appendChild(wrapper);
-      return;
-    }
-
-    const hint = document.createElement("p");
-    hint.className = "account-future-hint";
-    hint.textContent = `${futureItems.length} wishlist piece${futureItems.length === 1 ? "" : "s"}`;
-    wrapper.appendChild(hint);
-
-    const layout = document.createElement("div");
-    layout.className = "account-future-layout";
-
-    const listPane = document.createElement("div");
-    listPane.className = "account-cat-list";
-
-    const drawer = buildAccountEditDrawer(() => {
-      _accountFutureDrawerItemId = null;
-      drawer.classList.add("account-edit-drawer--hidden");
-      listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
-    });
-    drawer.classList.add("account-edit-drawer--hidden");
-
-    function openFutureDrawer(it, anchorRow) {
-      drawer.classList.remove("account-edit-drawer--hidden");
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      if (isMobile && anchorRow) {
-        anchorRow.insertAdjacentElement("afterend", drawer);
-      } else if (!isMobile && drawer.parentElement !== layout) {
-        layout.appendChild(drawer);
-      }
-      if (!isMobile) document.body.classList.add("account-collection-drawer-open");
-      fillAccountEditDrawer(drawer, it, () => {
-        _accountFutureDrawerItemId = null;
-        drawer.classList.add("account-edit-drawer--hidden");
-        document.body.classList.remove("account-collection-drawer-open");
-        if (drawer.parentElement !== layout) layout.appendChild(drawer);
-        listPane.querySelectorAll(".account-cat-row").forEach((r) => r.removeAttribute("aria-selected"));
-      });
-    }
-
-    for (const it of futureItems) {
-      const row = buildAccountCatRow(it, () => {
-        _accountFutureDrawerItemId = String(it.id);
-        openFutureDrawer(it, row);
-        listPane.querySelectorAll(".account-cat-row").forEach((r) => {
-          r.setAttribute("aria-selected", String(r.dataset.itemId === String(it.id)));
-        });
-      });
-      row.setAttribute("aria-selected", String(String(it.id) === _accountFutureDrawerItemId));
-      listPane.appendChild(row);
-    }
-
-    if (_accountFutureDrawerItemId) {
-      const it = itemById.get(_accountFutureDrawerItemId);
-      if (it) {
-        const anchorRow = listPane.querySelector(`[data-item-id="${CSS.escape(_accountFutureDrawerItemId)}"]`);
-        openFutureDrawer(it, anchorRow);
-      }
-    }
-
-    layout.append(listPane, drawer);
-    wrapper.appendChild(layout);
     el.appendChild(wrapper);
   }
 
@@ -10078,6 +9998,15 @@
   let collectionSortedCacheKey = "";
   /** @type {object[] | null} */
   let collectionSortedCache = null;
+
+  /**
+   * True while the hybrid-local deferred Supabase fetch hasn't landed yet AND
+   * no showcase order is available from any seed source (bake/localStorage).
+   * In the pure default collection view this means we'd otherwise paint the
+   * full ~82-item catalogue then snap to the curated 24 — so we show a skeleton
+   * instead until refreshHybridCloudAfterCollectionPaint resolves.
+   */
+  let showcaseSourcePending = false;
 
   const GRID_DENSE_ANIMATION_THRESHOLD = 40;
 
@@ -23606,9 +23535,65 @@
     });
   }
 
+  /**
+   * Cold deep-link to /collection with no showcase order yet (no bake, no
+   * cache) and the deferred cloud fetch still in flight, in the pure default
+   * view. Show a skeleton rather than flashing the full catalogue.
+   */
+  function collectionShowcaseViewPendingSkeleton() {
+    if (!showcaseSourcePending) return false;
+    if (collectionSortMode !== "default") return false;
+    if (narrowingFiltersActive()) return false; // category nav / search / colour / brand / subcat
+    if (String(seasonNavFilter ?? "").trim()) return false;
+    return !items.some((it) => isInShowcase(it));
+  }
+
+  function renderCollectionGridSkeleton() {
+    if (!els.grid) return;
+    const COUNT = 12;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < COUNT; i++) {
+      const card = document.createElement("div");
+      card.className = "card card--skeleton";
+      card.setAttribute("aria-hidden", "true");
+      const media = document.createElement("div");
+      media.className = "card__media";
+      const body = document.createElement("div");
+      body.className = "card__body";
+      const brand = document.createElement("div");
+      brand.className = "skeleton-line skeleton-line--brand";
+      const title = document.createElement("div");
+      title.className = "skeleton-line skeleton-line--title";
+      body.append(brand, title);
+      card.append(media, body);
+      frag.appendChild(card);
+    }
+    els.grid.replaceChildren(frag);
+    els.grid.classList.add("is-skeleton");
+    // Force the next real render to rebuild (skeleton bypassed the key compare).
+    lastGridStructuralKey = "";
+    lastGridOutfitKey = "";
+    // Safety net: never let the skeleton hang if the deferred fetch never lands.
+    if (!skeletonFallbackArmed) {
+      skeletonFallbackArmed = true;
+      setTimeout(() => {
+        if (showcaseSourcePending) {
+          showcaseSourcePending = false;
+          renderGrid();
+        }
+      }, 6000);
+    }
+  }
+  let skeletonFallbackArmed = false;
+
   function renderGrid() {
     if (!els.grid) return;
     dismissCollectionCardStylingReveal();
+    if (collectionShowcaseViewPendingSkeleton()) {
+      renderCollectionGridSkeleton();
+      return;
+    }
+    els.grid.classList.remove("is-skeleton");
     const sorted = getCollectionSortedDataset();
     const filtered = sorted;
     syncCopyFilteredListButton(sorted.length);
@@ -31701,10 +31686,17 @@
       mergeWardrobeBaseWithFetchedCloudRows(normalized);
       saveShowcaseRankCache(normalized);
       mergeWardrobeFromSources();
+      showcaseSourcePending = false;
       renderGrid();
       syncOutfitSaveButtonLabel();
     } else if (!res.ok) {
       console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
+      // Stop skeletoning on failure — fall back to rendering what we have.
+      showcaseSourcePending = false;
+      renderGrid();
+    } else {
+      showcaseSourcePending = false;
+      renderGrid();
     }
 
     const outfitsRes = await withTimeout(api.fetchOutfits(supabaseClient), 7000, "fetchOutfits");
@@ -31998,6 +31990,9 @@
             useCloudOutfits = false;
             deferredSeedSyncSnapshot = null;
             applyShowcaseRankCacheToWardrobeBase();
+            // If no seed source produced any showcase order, the pure default
+            // view should skeleton until the deferred cloud fetch lands.
+            showcaseSourcePending = true;
           } else {
             const excludeIds = isHybridLocalCatalogueEnabled() ? catalogueLockIdList() : [];
             const res = await withTimeout(
