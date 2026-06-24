@@ -4188,17 +4188,13 @@
     const syncMirrorWidth = () => {
       scrollMirrorInner.style.width = listPane.scrollWidth + "px";
     };
-    // Observe listPane for container-size changes, and the header row for
-    // content-overflow changes (min-width on rows doesn't resize the container,
-    // so the observer on listPane alone misses the transition).
+    // Observe listPane so mirror width stays current when the viewport resizes.
     new ResizeObserver(syncMirrorWidth).observe(listPane);
-    const headerRowEl = listPane.querySelector(".account-cat-list__header");
-    if (headerRowEl) new ResizeObserver(syncMirrorWidth).observe(headerRowEl);
-    // rAF ensures the sync runs after the first layout pass, by which point
-    // listPane.scrollWidth reflects row min-width overflow correctly.
-    requestAnimationFrame(syncMirrorWidth);
 
     el.appendChild(wrapper);
+    // Reading scrollWidth after appendChild forces a layout flush so CSS
+    // min-width on rows is already computed when we set the mirror width.
+    syncMirrorWidth();
   }
 
   function buildAccountCatRow(it, onClick) {
