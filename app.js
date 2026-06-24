@@ -12953,9 +12953,10 @@
       const heroH = hero.offsetHeight;
       if (heroH <= 0) return false; // not laid out yet — keep overlay
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-      // Ink flips to solid earlier in the scroll (was 0.35). Kept equal to the bg fade-end below so the
-      // ink still turns dark exactly when the ivory bg is fully opaque — no white-on-light window.
-      return scrollY >= heroH * 0.2;
+      // Ink flips to solid EARLY (~0.16), DECOUPLED from the bg fade-end (0.35 below). White-on-partial-
+      // ivory is fine briefly; once the header has clearly left the hero the dark ink is readable. The bg
+      // keeps fading after the flip, so the transition stays layered instead of completing all-at-once.
+      return scrollY >= heroH * 0.16;
     };
 
     const update = () => {
@@ -12992,12 +12993,21 @@
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
-      if (!solid && hero) {
-        const heroH = hero.offsetHeight;
+      // Background fade is DECOUPLED from the ink flip. The ink turns dark early (~0.16) but the ivory bg
+      // keeps fading over 0.10→0.35 regardless of solid/overlay, so it does not snap opaque at the flip.
+      // The inline opacity (higher specificity than overlay's 0 / solid's 1) drives it; while
+      // `--scroll-driven` is set the ::before has no transition so it tracks scroll per-frame. Cleared
+      // once fully opaque (t=1) so the solid default + its 400ms transition take over cleanly.
+      const heroH = hero ? hero.offsetHeight : 0;
+      if (hero && heroH > 0) {
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
         const fadeStart = heroH * 0.1;
-        const fadeEnd = heroH * 0.2;
+        const fadeEnd = heroH * 0.35;
         const t = Math.min(1, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
+        // Always drive the inline opacity (incl. t=1) while the home hero exists — never clear it mid-
+        // zone. Clearing at t=1 removed `--scroll-driven` (transition:none) and the inline value in the
+        // same frame, which stranded the ::before opacity at its last fade value. With `--scroll-driven`
+        // kept, the ::before tracks `t` instantly and reaches a clean 1.0 at the fade end.
         siteHeader.classList.add("site-header--scroll-driven");
         siteHeader.style.setProperty("--tw-header-bg-opacity", t.toFixed(3));
       } else {
