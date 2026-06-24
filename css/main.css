@@ -25155,6 +25155,7 @@ html.tw-account-dark body.account-page .account-theme-toggle {
 .account-cat-meta {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .account-cat-name {
@@ -25163,6 +25164,8 @@ html.tw-account-dark body.account-page .account-theme-toggle {
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.3;
 }
 
