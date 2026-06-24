@@ -2211,21 +2211,21 @@ const WARDROBE_ITEMS = [
   },
 
   {
-    "id": "anthony-crossbody-bag",
+    "id": "antony-crossbody-bag",
     "section": "Accessories",
     "pillar": "Accessories",
     "category": "Bags",
     "brand": "Mulberry",
-    "name": "Anthony Crossbody Bag",
+    "name": "Antony Crossbody Bag",
     "season": "All-season",
     "colour": "Oak",
     "colourCode": "#A95B32",
     "measuredDimensions": "Height: 25 cm\nWidth: 21 cm\nThickness: 7 cm\nStrap Width: 4 cm",
     "purchaseDate": "2025-07-27",
-    "image": "/images/wardrobe/anthony-crossbody-bag/main/1.webp",
+    "image": "/images/wardrobe/antony-crossbody-bag/main/1.webp",
     "gallery": [
-      "/images/wardrobe/anthony-crossbody-bag/main/2.webp",
-      "/images/wardrobe/anthony-crossbody-bag/main/3.webp"
+      "/images/wardrobe/antony-crossbody-bag/main/2.webp",
+      "/images/wardrobe/antony-crossbody-bag/main/3.webp"
     ],
     "notes": "Purchased in near-excellent condition, with only one previous use. No visible stains, scratches, or notable signs of wear. Compact everyday messenger proportions with a broad adjustable shoulder strap, consistent with the classic Antony design.",
     "metadata": {
