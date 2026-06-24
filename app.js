@@ -3466,26 +3466,27 @@
     const totalValueFmt = totalValue > 0 ? formatMoneyInCurrency(totalValue, collectionDisplayCurrency) : null;
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
-    const setStatsCols = () => {
-      statsGrid.style.gridTemplateColumns = window.innerWidth <= 900
-        ? "repeat(2, 1fr)"
-        : "repeat(4, 1fr)";
-    };
-    setStatsCols();
-    window.addEventListener("resize", setStatsCols);
-    for (const s of [
+    const statsData = [
       { n: allItems.length,   label: "Pieces", sub: futureCount ? `${ownedItems.length} owned · ${futureCount} wishlist` : null },
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
       { n: futureCount,       label: "Wishlist"                          },
       ...(totalValueFmt ? [{ n: totalValueFmt, label: "Est. Value", raw: true }] : []),
-    ]) {
+    ];
+    const desktopCols = statsData.length; /* all cells in one row at desktop */
+    const setStatsCols = () => {
+      statsGrid.style.gridTemplateColumns = window.innerWidth <= 900
+        ? "repeat(2, 1fr)"
+        : `repeat(${desktopCols}, 1fr)`;
+    };
+    setStatsCols();
+    window.addEventListener("resize", setStatsCols);
+    for (const s of statsData) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
-      if (s.raw) cell.classList.add("account-overview__stat--wide");
       const n = document.createElement("div");
       n.className = "account-overview__stat-n";
-      n.textContent = s.raw ? String(s.n) : String(s.n);
+      n.textContent = String(s.n);
       if (s.raw) n.style.cssText = "font-size:clamp(0.9rem,1.8vw,1.25rem);font-variant-numeric:tabular-nums;";
       const lbl = document.createElement("div");
       lbl.className = "account-overview__stat-label";
@@ -4946,19 +4947,6 @@
 
       const info = document.createElement("div");
       info.className = "account-notes-list-row__info";
-      const nameEl = document.createElement("div");
-      nameEl.className = "account-notes-v2-name";
-      nameEl.textContent = String(it?.name ?? it?.id ?? "");
-      const brandEl = document.createElement("div");
-      brandEl.className = "account-notes-v2-brand";
-      brandEl.textContent = String(it?.brand ?? "").trim();
-      info.append(nameEl, brandEl);
-      if (it?.updatedAt) {
-        const tsEl = document.createElement("div");
-        tsEl.className = "account-notes-list-row__ts";
-        tsEl.textContent = formatRelativeTime(it.updatedAt);
-        info.appendChild(tsEl);
-      }
 
       const noteText = String(it?.notes ?? "").trim();
       const wc = noteText ? noteText.split(/\s+/).filter(Boolean).length : 0;
@@ -4967,7 +4955,25 @@
       wcEl.textContent = wc ? `${wc}w` : "No notes";
       wcEl.dataset.empty = wc ? "false" : "true";
 
-      row.append(thumb, info, wcEl);
+      const nameRow = document.createElement("div");
+      nameRow.className = "account-notes-list-row__name-row";
+      const nameEl = document.createElement("div");
+      nameEl.className = "account-notes-v2-name";
+      nameEl.textContent = String(it?.name ?? it?.id ?? "");
+      nameRow.append(nameEl, wcEl);
+
+      const brandEl = document.createElement("div");
+      brandEl.className = "account-notes-v2-brand";
+      brandEl.textContent = String(it?.brand ?? "").trim();
+      info.append(nameRow, brandEl);
+      if (it?.updatedAt) {
+        const tsEl = document.createElement("div");
+        tsEl.className = "account-notes-list-row__ts";
+        tsEl.textContent = formatRelativeTime(it.updatedAt);
+        info.appendChild(tsEl);
+      }
+
+      row.append(thumb, info);
 
       // Mobile expand-in-place body (hidden on desktop)
       const mobileBody = document.createElement("div");
@@ -21628,10 +21634,18 @@
     const coverKey = String(coverUrl).split("?")[0];
     if (coverUrl && coverKey) {
       seen.add(coverKey);
+      // For local items the thumb URL differs from the transport; if the thumb 404s,
+      // fall back to the original local file so the cover slide is never permanently hidden.
+      const coverTransport = resolveWardrobeImageTransportUrl(coverRaw, item) || coverRaw;
+      const seedFallback = seedCoverFallbackFrameUrl(item, coverRaw, COLLECTION_GRID_CARD_RENDER);
+      const thumbFallback =
+        !seedFallback && coverTransport && coverTransport.split("?")[0] !== coverKey
+          ? coverTransport
+          : "";
       out.push({
         url: coverUrl,
         cutout: true,
-        fallback: seedCoverFallbackFrameUrl(item, coverRaw, COLLECTION_GRID_CARD_RENDER),
+        fallback: seedFallback || thumbFallback,
       });
     }
 
