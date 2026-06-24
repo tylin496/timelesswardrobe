@@ -3496,7 +3496,6 @@
     for (const s of statsData) {
       const cell = document.createElement("div");
       cell.className = "account-overview__stat";
-      if (s.raw) cell.classList.add("account-overview__stat--wide");
       const n = document.createElement("div");
       n.className = "account-overview__stat-n";
       n.textContent = String(s.n);
@@ -15284,6 +15283,11 @@
   let compactSearchVisualViewportTeardown = null;
 
   function syncCompactHeaderSearchVisualViewport() {
+    /* TEMP HYPOTHESIS TEST — visualViewport height-rewrite disabled to confirm it is the
+       trigger for Popular Categories collapsing during iOS keyboard rise. Revert this return
+       to restore normal behavior. */
+    return;
+    // eslint-disable-next-line no-unreachable
     const wrap = document.getElementById("site-header-search-wrap");
     const vv = globalThis.visualViewport;
     if (
