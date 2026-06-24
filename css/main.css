@@ -5711,10 +5711,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     max-width: none !important;
     min-height: 0 !important;
     max-height: none !important;
-    height: 100svh !important;
-    /* E3 DIAGNOSTIC — dvh removed: 100dvh shrinks with the iOS keyboard, which
-       collapses the bottom-anchored sheet and pulls Popular Categories up. svh is
-       stable (keyboard-independent). Restore the dvh line if this doesn't fix it. */
+    /* No fixed viewport height: `inset: 0` (above) on a position:fixed root fills the
+       TRUE visible viewport in both iOS URL-bar states. A hard `100svh` is the *small*
+       (URL-bar-expanded) height — once Safari collapses the URL bar on scroll, the
+       visible area grows to `lvh` while the wrap stays 100svh tall, so the bottom strip
+       is uncovered and the dimmed page leaks through. `dvh` was worse (also shrinks with
+       the keyboard). When the keyboard opens, JS adds `--vv-bound` and pins top/height to
+       visualViewport with !important (see syncCompactHeaderSearchVisualViewport). */
+    height: auto !important;
     margin: 0 !important;
     clip-path: none !important;
     opacity: 1 !important;
@@ -5801,7 +5805,9 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-header__search-wrap:not(.site-header__search-wrap--visible) .desktop-search-flyout-inner,
   .site-header__search-wrap:not(.site-header__search-wrap--visible) .site-header__search-megamenu-inner {
-    transform: translate3d(0, 100svh, 0);
+    /* `100%` (own height = full sheet) parks it exactly off the bottom edge in every
+       viewport state; `100svh` under-slides once the URL bar collapses, leaving a sliver. */
+    transform: translate3d(0, 100%, 0);
     opacity: 0;
     will-change: transform, opacity;
   }
@@ -6803,10 +6809,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-mobile-shell.is-open {
     visibility: visible;
     pointer-events: auto;
-    /* Blocks the iOS rubber-band that leaks through to the page behind the fixed overlay.
-       touch-action on a non-scrollable full-screen surface suppresses the gesture without
-       calling preventDefault() on touchmove (which breaks tap/click events on iOS). */
-    touch-action: none;
     transition: visibility 0s linear 0s;
   }
 
@@ -7019,6 +7021,8 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     z-index: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Prevent iOS rubber-band from propagating to the page behind the sidebar. */
+    overscroll-behavior: contain;
     background-color: var(--tw-mobile-nav-surface-rail, var(--tw-surface-rail, #eee9df));
   }
 
@@ -7862,7 +7866,7 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 
     .site-header__search-wrap:not(.site-header__search-wrap--visible) .desktop-search-flyout-inner,
     .site-header__search-wrap:not(.site-header__search-wrap--visible) .site-header__search-megamenu-inner {
-      transform: translate3d(0, 100svh, 0);
+      transform: translate3d(0, 100%, 0);
       opacity: 0;
     }
 

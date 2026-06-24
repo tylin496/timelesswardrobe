@@ -15323,12 +15323,15 @@
     ) {
       return;
     }
-    wrap.style.top = `${Math.max(0, vv.offsetTop)}px`;
-    wrap.style.left = `${Math.max(0, vv.offsetLeft)}px`;
-    wrap.style.width = `${Math.max(0, vv.width)}px`;
-    wrap.style.height = `${Math.max(0, vv.height)}px`;
-    wrap.style.right = "auto";
-    wrap.style.bottom = "auto";
+    // `!important`: the base compact rule pins width/height with `!important`
+    // (and inset:0 via !important), so a plain inline style is silently dropped and
+    // the wrap never shrinks to the area above the keyboard. Inline-important wins.
+    wrap.style.setProperty("top", `${Math.max(0, vv.offsetTop)}px`, "important");
+    wrap.style.setProperty("left", `${Math.max(0, vv.offsetLeft)}px`, "important");
+    wrap.style.setProperty("width", `${Math.max(0, vv.width)}px`, "important");
+    wrap.style.setProperty("height", `${Math.max(0, vv.height)}px`, "important");
+    wrap.style.setProperty("right", "auto", "important");
+    wrap.style.setProperty("bottom", "auto", "important");
   }
 
   function bindCompactHeaderSearchVisualViewport() {
