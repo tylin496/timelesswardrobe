@@ -3327,6 +3327,9 @@
     }
 
     contentEl.replaceChildren();
+    // Leaving Collection drops the edit drawer; clear its body class so the
+    // reserved drawer gutter (padding-right) doesn't strand other tabs left.
+    document.body.classList.remove("account-collection-drawer-open");
     switch (tab) {
       case "overview":   renderAccountTab_Overview(contentEl); break;
       case "collection": renderAccountTab_Collection(contentEl); break;
