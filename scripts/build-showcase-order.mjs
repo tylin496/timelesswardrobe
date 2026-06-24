@@ -43,22 +43,53 @@ function loadEnvFile() {
 
 loadEnvFile();
 
-const url = process.env.SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !serviceKey) {
-  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env");
+const outPathEarly = path.join(root, "data", "showcase-order.js");
+
+/**
+ * This runs in the Vercel build, which has no service-role secret. Read-only
+ * select on wardrobe_items works with the public anon key (committed in
+ * js/tw-supabase-config.js), so fall back to it. A bad bake must never break
+ * the build — keep the committed snapshot and exit 0 on any failure.
+ */
+function keepExistingAndExit(reason) {
+  if (fs.existsSync(outPathEarly)) {
+    console.warn(`Showcase order bake skipped (${reason}); keeping committed data/showcase-order.js.`);
+    process.exit(0);
+  }
+  console.error(`Showcase order bake failed (${reason}) and no committed file exists.`);
   process.exit(1);
 }
 
-const client = createClient(url, serviceKey, {
+function readAnonConfig() {
+  try {
+    const src = fs.readFileSync(path.join(root, "js", "tw-supabase-config.js"), "utf8");
+    const url = src.match(/SUPABASE_URL:\s*"([^"]+)"/)?.[1];
+    const key = src.match(/SUPABASE_ANON_KEY:\s*"([^"]+)"/)?.[1];
+    return url && key ? { url, key } : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+const serviceUrl = process.env.SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anon = readAnonConfig();
+const url = serviceUrl || anon?.url;
+const key = serviceKey || anon?.key;
+if (!url || !key) keepExistingAndExit("no Supabase credentials");
+
+const client = createClient(url, key, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-const { data, error } = await client.from("wardrobe_items").select("id, showcase_order, metadata");
-if (error) {
-  console.error("Fetch failed:", error.message);
-  process.exit(1);
+let data, error;
+try {
+  ({ data, error } = await client.from("wardrobe_items").select("id, showcase_order, metadata"));
+} catch (e) {
+  keepExistingAndExit(`fetch threw: ${e?.message ?? e}`);
 }
+if (error) keepExistingAndExit(`fetch error: ${error.message}`);
+if (!Array.isArray(data) || !data.length) keepExistingAndExit("0 rows returned");
 
 // {id → raw order value} from showcase_order, falling back to metadata.showcase_rank.
 const rawOrderById = new Map();
