@@ -31042,16 +31042,16 @@
         return;
       }
       const strip = els.outfitStrip || document.getElementById("outfit-strip");
-      if (strip && currentOutfitSlots.length) {
-        strip.style.transition = "opacity 0.22s ease, transform 0.26s cubic-bezier(0.32,0.72,0,1)";
-        strip.style.opacity = "0";
-        strip.style.transform = "scale(0.93)";
-        setTimeout(() => {
-          strip.style.transition = "";
-          strip.style.opacity = "";
-          strip.style.transform = "";
-          clearOutfit();
-        }, 340);
+      const slots = strip ? [...strip.querySelectorAll(".outfit-slot")] : [];
+      if (slots.length) {
+        slots.forEach((s, i) => {
+          const delay = i * 40;
+          s.style.transition = `opacity 0.2s ease ${delay}ms, transform 0.22s ease ${delay}ms, filter 0.2s ease ${delay}ms`;
+          s.style.opacity = "0";
+          s.style.transform = "translateY(10px)";
+          s.style.filter = "blur(2px)";
+        });
+        setTimeout(() => clearOutfit(), slots.length * 40 + 220);
       } else {
         clearOutfit();
       }
