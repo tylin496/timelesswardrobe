@@ -26288,6 +26288,58 @@
     return ed;
   }
 
+  /** 1-based position of an item within the live Showcase order, or null. */
+  function showcaseDisplayPosition(item) {
+    if (!isInShowcase(item)) return null;
+    const id = String(item?.id ?? "");
+    const idx = getShowcaseItems().findIndex((it) => String(it.id) === id);
+    return idx >= 0 ? idx + 1 : null;
+  }
+
+  /** Build the "Featured in Showcase" context block, or null if not in Showcase. */
+  function buildItemDetailShowcaseContext(item) {
+    if (!isInShowcase(item)) return null;
+    const pos = showcaseDisplayPosition(item);
+    const ctx = document.createElement("div");
+    ctx.className = "item-detail__context";
+    const ctxLabel = document.createElement("span");
+    ctxLabel.className = "item-detail__context-label";
+    ctxLabel.textContent = "Featured in Showcase";
+    const ctxPos = document.createElement("span");
+    ctxPos.className = "item-detail__context-pos";
+    ctxPos.textContent = pos ? `#${pos} Current Order` : "Current Showcase";
+    ctx.append(ctxLabel, ctxPos);
+    return ctx;
+  }
+
+  /**
+   * Runtime reconciliation for the item page: after the deferred Supabase
+   * fetch lands, the showcase membership/position may have changed (cold
+   * device had no order at first paint). Patch just the context badge in
+   * place — no full re-render, so the hero/gallery don't reflow or re-fade.
+   */
+  function reconcileItemDetailShowcaseBadge() {
+    const root = document.getElementById("item-detail-root");
+    if (!root || !itemDetailIsPageRoot(root)) return;
+    const item = detailItemId ? itemById.get(String(detailItemId)) : null;
+    if (!item) return;
+    const body = root.querySelector(".item-detail__body");
+    if (!body) return;
+    const existing = body.querySelector(".item-detail__context");
+    const fresh = buildItemDetailShowcaseContext(item);
+    if (!fresh) {
+      existing?.remove();
+      return;
+    }
+    if (existing) {
+      existing.replaceWith(fresh);
+      return;
+    }
+    const cta = body.querySelector(".item-detail__outfits-cta-wrap");
+    if (cta) body.insertBefore(fresh, cta);
+    else body.appendChild(fresh);
+  }
+
   function renderItemDetailContent(root, item, opts = {}) {
     const edit = Boolean(opts.edit) && canUseItemDetailEdit();
     const isPageEdit = edit && root.classList.contains("item-detail__root--page");
@@ -27216,19 +27268,9 @@
     if (dl.children.length) body.appendChild(dl);
 
     // ── Showcase context (item page only) ────────────────────────────────────
-    if (isItemPageView && isInShowcase(item)) {
-      const rank = showcaseRank(item);
-      const pos = rank >= 0 ? Math.round(rank / 10) + 1 : null;
-      const ctx = document.createElement("div");
-      ctx.className = "item-detail__context";
-      const ctxLabel = document.createElement("span");
-      ctxLabel.className = "item-detail__context-label";
-      ctxLabel.textContent = "Featured in Showcase";
-      const ctxPos = document.createElement("span");
-      ctxPos.className = "item-detail__context-pos";
-      ctxPos.textContent = pos ? `#${pos} Current Order` : "Current Showcase";
-      ctx.append(ctxLabel, ctxPos);
-      body.appendChild(ctx);
+    if (isItemPageView) {
+      const ctx = buildItemDetailShowcaseContext(item);
+      if (ctx) body.appendChild(ctx);
     }
 
     appendItemDetailOutfitsCta(body, item);
@@ -31698,6 +31740,7 @@
       mergeWardrobeFromSources();
       showcaseSourcePending = false;
       renderGrid();
+      reconcileItemDetailShowcaseBadge();
       syncOutfitSaveButtonLabel();
     } else if (!res.ok) {
       console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
