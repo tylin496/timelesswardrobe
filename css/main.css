@@ -26303,7 +26303,6 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   .account-cat-col--price {
     display: block;
     font-variant-numeric: tabular-nums;
-    text-align: right;
     color: var(--ink);
     opacity: 0.75;
   }
@@ -26319,8 +26318,6 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
   /* Restore all 8 header spans */
   .account-cat-list__header span:nth-child(n+5) { display: unset; }
 
-  /* PRICE header right-aligns to match data cell */
-  .account-cat-list__header span:nth-child(7) { text-align: right; }
 
   /* Flags: compact single-column on desktop; centred to read as utility, not PRICE suffix */
   .account-cat-flags {
