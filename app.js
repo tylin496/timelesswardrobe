@@ -3471,7 +3471,7 @@
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
       { n: futureCount,       label: "Wishlist"                          },
-      ...(totalValueFmt ? [{ n: totalValueFmt, label: "Est. Value", raw: true }] : []),
+      ...(totalValueFmt ? [{ n: totalValueFmt, label: "Acquisition Cost", raw: true }] : []),
     ];
     const desktopCols = statsData.length; /* all cells in one row at desktop */
     const setStatsCols = () => {
