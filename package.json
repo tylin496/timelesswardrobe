@@ -9,7 +9,7 @@
     "check:urls": "node scripts/check-public-urls.mjs",
     "check:id-drift": "node scripts/check-catalogue-id-drift.mjs",
     "check": "node scripts/check-safe-area-insets.mjs && node scripts/check-public-urls.mjs && node scripts/check-wardrobe-local-images.mjs && node scripts/check-catalogue-id-drift.mjs",
-    "predev": "node scripts/build-css.mjs",
+    "predev": "node scripts/center-cutouts.mjs && node scripts/generate-wardrobe-thumbs.mjs && node scripts/generate-wardrobe-cutout-thumbs.mjs && node scripts/build-css.mjs",
     "og:build": "node scripts/build-og-image.mjs",
     "images:center": "node scripts/center-cutouts.mjs",
     "images:thumbs": "node scripts/generate-wardrobe-thumbs.mjs",

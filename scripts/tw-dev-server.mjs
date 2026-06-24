@@ -681,11 +681,8 @@ const server = http.createServer((req, res) => {
 
 installCssAutoBuildWatcher();
 installThumbWatcher();
-// Startup reconcile: centre any new/uncentred cover, then regenerate any
-// thumb/cutout that drifted from main/ while the dev server was off (watcher
-// only catches live edits). All hash-gated, so this is near-instant when nothing
-// changed. queueCenterBuild chains thumb + cutout on completion.
-queueCenterBuild("startup");
+// Startup image reconcile is handled by the predev hook (runs center → thumbs →
+// cutouts before the server starts). Watcher handles live edits from here on.
 
 function listenWithFallback(port, triesLeft) {
   server.once("error", (err) => {
