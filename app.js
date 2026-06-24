@@ -3115,6 +3115,18 @@
     }
   }
 
+  function updateNotesIndicator(listPane) {
+    if (!listPane) return;
+    const active = listPane.querySelector(".account-notes-list-row[aria-selected='true']");
+    if (!active) {
+      listPane.style.setProperty("--notes-indicator-opacity", "0");
+      return;
+    }
+    listPane.style.setProperty("--notes-indicator-top", active.offsetTop + "px");
+    listPane.style.setProperty("--notes-indicator-height", active.offsetHeight + "px");
+    listPane.style.setProperty("--notes-indicator-opacity", "1");
+  }
+
   function updateTabIndicator(nav) {
     if (!nav) return;
     const active = nav.querySelector(".account-tab-nav__item[aria-current='page']");
@@ -4993,6 +5005,7 @@
           listPane.querySelectorAll(".account-notes-list-row").forEach((r) => {
             r.setAttribute("aria-selected", String(r.dataset.itemId === _accountNotesSelectedId));
           });
+          updateNotesIndicator(listPane);
           renderEditorPane(it);
         } else {
           // mobile: expand-in-place
@@ -5055,6 +5068,7 @@
         listPane.querySelectorAll(".account-notes-list-row").forEach((r) => {
           r.setAttribute("aria-selected", String(r.dataset.itemId === _accountNotesSelectedId));
         });
+        updateNotesIndicator(listPane);
       }
     }
 

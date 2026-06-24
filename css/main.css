@@ -25649,6 +25649,22 @@ body.account-collection-drawer-open .account-page-main {
   flex: 1;
   min-width: 0;
   border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  position: relative;
+}
+
+.account-notes-list-pane::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--notes-indicator-top, 0px);
+  height: var(--notes-indicator-height, 0px);
+  width: 2px;
+  background: var(--ink);
+  transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.14s;
+  opacity: var(--notes-indicator-opacity, 0);
+  pointer-events: none;
 }
 
 .account-notes-editor-pane {
@@ -25698,8 +25714,6 @@ body.account-collection-drawer-open .account-page-main {
 
 .account-notes-list-row[aria-selected="true"] {
   background: color-mix(in srgb, var(--ink) 7%, transparent);
-  border-left: 2px solid var(--ink);
-  padding-left: calc(0.6rem - 2px);
 }
 
 .account-notes-list-row__thumb {
