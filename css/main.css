@@ -7588,9 +7588,14 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
    * 0 it's at the far right ⇒ all white. Real colours, single DOM, no clone, no mask, no second masthead.
    * RISK: the stop is driven by --nav-progress (not a composited transform), so real-time per-frame
    * repaint is the open question — judged on device. Home only.
+   *
+   * GATED to `.site-header--overlay`: the sweep is a state transition (white→green), not an intro
+   * animation. It runs ONLY when the lockup starts white (hero-top overlay). When the header is
+   * already `--solid` (scrolled home) the rule drops and the lockup keeps its normal solid-green ink
+   * — no white reset, no sweep, no --nav-progress dependency. Non-home pages never match (no home-page).
    */
-  body.home-page.collection-ui--mobile-nav-open .site-title__wordmark-line,
-  body.home-page.collection-ui--mobile-nav-closing .site-title__wordmark-line {
+  body.home-page.collection-ui--mobile-nav-open .site-header--overlay .site-title__wordmark-line,
+  body.home-page.collection-ui--mobile-nav-closing .site-header--overlay .site-title__wordmark-line {
     --nav-edge: calc((1 - var(--nav-progress, 0)) * var(--nav-header-w, 100vw));
     background-image: linear-gradient(to right,
       #fff 0 var(--nav-edge), var(--tw-brand-green) var(--nav-edge) 100%);
@@ -7603,9 +7608,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     -webkit-text-fill-color: transparent;
   }
 
-  /* Monogram crest: same surface-tracking gradient, clipped to the crest by its existing mask. */
-  body.home-page.collection-ui--mobile-nav-open .site-title__mark,
-  body.home-page.collection-ui--mobile-nav-closing .site-title__mark {
+  /* Monogram crest: same surface-tracking gradient, clipped to the crest by its existing mask.
+     Same overlay gate as the wordmark — solid/green start keeps the crest green, no sweep. */
+  body.home-page.collection-ui--mobile-nav-open .site-header--overlay .site-title__mark,
+  body.home-page.collection-ui--mobile-nav-closing .site-header--overlay .site-title__mark {
     --nav-edge: calc((1 - var(--nav-progress, 0)) * var(--nav-header-w, 100vw));
     background-image: linear-gradient(to right,
       #fff 0 var(--nav-edge), var(--tw-brand-green) var(--nav-edge) 100%);
@@ -9769,13 +9775,17 @@ body.collection-ui--outfits .outfits-drawer {
   z-index: calc(var(--z-header-search-overlay, 1400) + 1);
 }
 
-/* Outfits drawer open — site masthead stays #F7F4ED (never transparent overlay). */
-body.collection-ui--outfits .site-header,
-body.collection-ui--outfits .site-header.site-header--overlay,
-body.collection-ui--outfits .site-header.site-header--solid,
-body.collection-ui--outfits .site-header.site-header--overlay:hover,
-body.collection-ui--outfits .site-header.site-header--overlay:focus-within {
-  background-color: #f7f4ed;
+/* Outfits drawer open — site masthead stays #F7F4ED (never transparent overlay). DESKTOP ONLY:
+   on mobile, Outfits is a full-screen takeover and must NOT change header appearance (scroll /
+   sidebar own it there), so this opaque-bg override is gated to ≥1025px. */
+@media (min-width: 1025px) {
+  body.collection-ui--outfits .site-header,
+  body.collection-ui--outfits .site-header.site-header--overlay,
+  body.collection-ui--outfits .site-header.site-header--solid,
+  body.collection-ui--outfits .site-header.site-header--overlay:hover,
+  body.collection-ui--outfits .site-header.site-header--overlay:focus-within {
+    background-color: #f7f4ed;
+  }
 }
 
 body.collection-ui--outfits .site-header__submenu,
@@ -10934,17 +10944,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
   box-shadow: 0 4px 14px rgba(20, 19, 18, 0.06);
 }
 
-.outfits-drawer .outfit-slot--clear-exiting {
-  pointer-events: none;
-  cursor: default;
-  transform: scale(0.86) translateY(8px);
-  opacity: 0;
-  transition:
-    transform 0.26s cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 0.22s cubic-bezier(0.32, 0.72, 0, 1);
-  transition-delay: calc(var(--outfit-slot-stagger, 0) * 40ms);
-}
-
 .outfits-drawer .outfit-slot__thumb {
   position: absolute;
   inset: 0;
@@ -12034,7 +12033,6 @@ body.tw-outfit-drag-active * {
   .outfits-drawer__sheet,
   .outfit-toast,
   .outfits-drawer .outfit-slot--dismissing,
-  .outfits-drawer .outfit-slot--clear-exiting,
   .outfits-drawer .outfit-slot {
     transition-duration: 0.01ms;
   }

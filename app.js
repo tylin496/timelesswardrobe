@@ -12915,6 +12915,20 @@
         siteHeader.classList.toggle("site-header--solid", wasScrolledSolid);
         return;
       }
+      // Mobile takeovers (Search / Outfits) are full-screen and must NOT own header appearance.
+      // They also scroll-lock the page, which zeroes window.scrollY — so re-evaluating here would
+      // wrongly flip the header (solid→overlay). Preserve whatever scroll last decided; the header
+      // re-evaluates correctly once the takeover closes and scroll is restored. Desktop is unaffected
+      // (there the flyout legitimately owns a solid header, handled in shouldUseSolidHeader).
+      const isMobileHeader = !globalThis.matchMedia?.("(min-width: 1025px)")?.matches;
+      if (
+        isMobileHeader &&
+        (document.body.classList.contains("collection-ui--header-search-open") ||
+          document.body.classList.contains("collection-ui--header-search-closing") ||
+          document.body.classList.contains("collection-ui--outfits"))
+      ) {
+        return;
+      }
       const solid = shouldUseSolidHeader();
       siteHeader.classList.toggle("site-header--overlay", !solid);
       siteHeader.classList.toggle("site-header--solid", solid);
@@ -31028,13 +31042,16 @@
         return;
       }
       const strip = els.outfitStrip || document.getElementById("outfit-strip");
-      const slots = strip ? [...strip.querySelectorAll(".outfit-slot")] : [];
-      if (slots.length) {
-        slots.forEach((s, i) => {
-          s.style.setProperty("--outfit-slot-stagger", String(i));
-          s.classList.add("outfit-slot--clear-exiting");
-        });
-        setTimeout(() => clearOutfit(), 260 + slots.length * 40 + 60);
+      if (strip && currentOutfitSlots.length) {
+        strip.style.transition = "opacity 0.22s ease, transform 0.26s cubic-bezier(0.32,0.72,0,1)";
+        strip.style.opacity = "0";
+        strip.style.transform = "scale(0.93)";
+        setTimeout(() => {
+          strip.style.transition = "";
+          strip.style.opacity = "";
+          strip.style.transform = "";
+          clearOutfit();
+        }, 340);
       } else {
         clearOutfit();
       }
