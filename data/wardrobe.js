@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — frozen catalogue seed (offline fallback + dev).
  *
- * Frozen from Supabase wardrobe_items on 2026-06-25T09:23:22.026Z.
+ * Frozen from Supabase wardrobe_items on 2026-06-25T13:05:30.077Z.
  * Regenerate: npm run db:freeze-catalogue
  *
  * Collection thesis is described in the site header. Each row uses `category` (and optional
@@ -40,11 +40,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/rolo-chain-necklace/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rolo-chain-necklace/main/2.webp",
-      "/images/wardrobe/rolo-chain-necklace/main/3.webp",
-      "/images/wardrobe/rolo-chain-necklace/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/4.webp"
     ]
   },
 
@@ -80,14 +80,14 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Pigeon's Blood Ruby",
       "secondaryColourCode": "#b7172a"
     },
-    "image": "/images/wardrobe/ruby-gypsy-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ruby-gypsy-ring/main/2.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/3.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/4.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/5.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/6.webp",
-      "/images/wardrobe/ruby-gypsy-ring/main/7.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/7.webp"
     ]
   },
 
@@ -117,16 +117,16 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/signet-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/signet-ring/main/2.webp",
-      "/images/wardrobe/signet-ring/main/3.webp",
-      "/images/wardrobe/signet-ring/main/4.webp",
-      "/images/wardrobe/signet-ring/main/5.webp",
-      "/images/wardrobe/signet-ring/main/6.webp",
-      "/images/wardrobe/signet-ring/main/7.webp",
-      "/images/wardrobe/signet-ring/main/8.webp",
-      "/images/wardrobe/signet-ring/main/9.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/8.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/9.webp"
     ]
   },
 
@@ -166,10 +166,10 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Brown Aligator Strap",
       "secondaryColourCode": "#9A4B17"
     },
-    "image": "/images/wardrobe/tank-solo/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tank-solo/main/2.webp",
-      "/images/wardrobe/tank-solo/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/3.webp"
     ]
   },
 
@@ -189,10 +189,10 @@ const WARDROBE_ITEMS = [
       "price": 374.85,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/achilles-low/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/1.webp",
     "gallery": [
-      "/images/wardrobe/achilles-low/main/2.webp",
-      "/images/wardrobe/achilles-low/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/3.webp"
     ]
   },
 
@@ -213,15 +213,15 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "USD"
     },
-    "image": "/images/wardrobe/chukka/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/1.webp",
     "gallery": [
-      "/images/wardrobe/chukka/main/2.webp",
-      "/images/wardrobe/chukka/main/3.webp",
-      "/images/wardrobe/chukka/main/4.webp",
-      "/images/wardrobe/chukka/main/5.webp",
-      "/images/wardrobe/chukka/main/6.webp",
-      "/images/wardrobe/chukka/main/7.webp",
-      "/images/wardrobe/chukka/main/8.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/8.webp"
     ]
   },
 
@@ -243,10 +243,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 6
     },
-    "image": "/images/wardrobe/pembroke/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/1.webp",
     "gallery": [
-      "/images/wardrobe/pembroke/main/2.webp",
-      "/images/wardrobe/pembroke/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/3.webp"
     ]
   },
 
@@ -267,10 +267,10 @@ const WARDROBE_ITEMS = [
       "price": 1284.65,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/navy-double-breasted-blazer/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/navy-double-breasted-blazer/main/2.webp",
-      "/images/wardrobe/navy-double-breasted-blazer/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/3.webp"
     ]
   },
 
@@ -319,13 +319,13 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Brown Lenses",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "/images/wardrobe/kingsman-0847-sunglasses/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/1.webp",
     "gallery": [
-      "/images/wardrobe/kingsman-0847-sunglasses/main/2.webp",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/3.webp",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/4.webp",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/5.webp",
-      "/images/wardrobe/kingsman-0847-sunglasses/main/6.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/6.webp"
     ]
   },
 
@@ -358,11 +358,11 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#b58659",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "/images/wardrobe/gt1-hardwood-umbrella/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/1.webp",
     "gallery": [
-      "/images/wardrobe/gt1-hardwood-umbrella/main/2.webp",
-      "/images/wardrobe/gt1-hardwood-umbrella/main/3.webp",
-      "/images/wardrobe/gt1-hardwood-umbrella/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/4.webp"
     ]
   },
 
@@ -379,13 +379,13 @@ const WARDROBE_ITEMS = [
     "metadata": {
       "basicColour": "gold"
     },
-    "image": "/images/wardrobe/wedding-bands/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/1.webp",
     "gallery": [
-      "/images/wardrobe/wedding-bands/main/2.webp",
-      "/images/wardrobe/wedding-bands/main/3.webp",
-      "/images/wardrobe/wedding-bands/main/4.webp",
-      "/images/wardrobe/wedding-bands/main/5.webp",
-      "/images/wardrobe/wedding-bands/main/6.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/6.webp"
     ]
   },
 
@@ -407,9 +407,9 @@ const WARDROBE_ITEMS = [
       "price": 2990,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/wide-straight-trousers/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/wide-straight-trousers/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/2.webp"
     ]
   },
 
@@ -432,10 +432,10 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#ffffff",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "/images/wardrobe/smoke-olive-acetate-optical/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/1.webp",
     "gallery": [
-      "/images/wardrobe/smoke-olive-acetate-optical/main/2.webp",
-      "/images/wardrobe/smoke-olive-acetate-optical/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/3.webp"
     ]
   },
 
@@ -456,11 +456,11 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/corduroy-trousers/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/corduroy-trousers/main/2.webp",
-      "/images/wardrobe/corduroy-trousers/main/3.webp",
-      "/images/wardrobe/corduroy-trousers/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/4.webp"
     ]
   },
 
@@ -480,11 +480,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 13
     },
-    "image": "/images/wardrobe/passport-cover/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/1.webp",
     "gallery": [
-      "/images/wardrobe/passport-cover/main/2.webp",
-      "/images/wardrobe/passport-cover/main/3.webp",
-      "/images/wardrobe/passport-cover/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/4.webp"
     ]
   },
 
@@ -505,11 +505,11 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Gold",
       "secondaryColourCode": "#C9A84C"
     },
-    "image": "/images/wardrobe/meisterstuck-classique-rollerball/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/1.webp",
     "gallery": [
-      "/images/wardrobe/meisterstuck-classique-rollerball/main/2.webp",
-      "/images/wardrobe/meisterstuck-classique-rollerball/main/3.webp",
-      "/images/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
     ]
   },
 
@@ -530,12 +530,12 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Gold",
       "secondaryColourCode": "#C9A84C"
     },
-    "image": "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp",
     "gallery": [
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
-      "/images/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
     ]
   },
 
@@ -556,9 +556,9 @@ const WARDROBE_ITEMS = [
       "price": 4990,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/wide-leg-jeans/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/1.webp",
     "gallery": [
-      "/images/wardrobe/wide-leg-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/2.webp"
     ]
   },
 
@@ -578,13 +578,13 @@ const WARDROBE_ITEMS = [
       "price": 28000,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/polo-bear-jumper/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/polo-bear-jumper/main/2.webp",
-      "/images/wardrobe/polo-bear-jumper/main/3.webp",
-      "/images/wardrobe/polo-bear-jumper/main/4.webp",
-      "/images/wardrobe/polo-bear-jumper/main/5.webp",
-      "/images/wardrobe/polo-bear-jumper/main/6.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/6.webp"
     ]
   },
 
@@ -624,9 +624,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/prx-quartz/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/1.webp",
     "gallery": [
-      "/images/wardrobe/prx-quartz/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/2.webp"
     ]
   },
 
@@ -663,11 +663,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/black-bay-58/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/1.webp",
     "gallery": [
-      "/images/wardrobe/black-bay-58/main/2.webp",
-      "/images/wardrobe/black-bay-58/main/3.webp",
-      "/images/wardrobe/black-bay-58/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/4.webp"
     ]
   },
 
@@ -709,10 +709,10 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#C9A84C",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "/images/wardrobe/boston-metal-frames/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/1.webp",
     "gallery": [
-      "/images/wardrobe/boston-metal-frames/main/2.webp",
-      "/images/wardrobe/boston-metal-frames/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/3.webp"
     ]
   },
 
@@ -739,12 +739,12 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 22
     },
-    "image": "/images/wardrobe/glen-check-tweed-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/glen-check-tweed-jacket/main/2.webp",
-      "/images/wardrobe/glen-check-tweed-jacket/main/3.webp",
-      "/images/wardrobe/glen-check-tweed-jacket/main/4.webp",
-      "/images/wardrobe/glen-check-tweed-jacket/main/5.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/5.webp"
     ]
   },
 
@@ -767,11 +767,11 @@ const WARDROBE_ITEMS = [
       "price": 3990,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/2.webp",
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/3.webp",
-      "/images/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
     ]
   },
 
@@ -796,15 +796,15 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 2
     },
-    "image": "/images/wardrobe/polo-coat/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/polo-coat/main/2.webp",
-      "/images/wardrobe/polo-coat/main/3.webp",
-      "/images/wardrobe/polo-coat/main/4.webp",
-      "/images/wardrobe/polo-coat/main/5.webp",
-      "/images/wardrobe/polo-coat/main/6.webp",
-      "/images/wardrobe/polo-coat/main/7.webp",
-      "/images/wardrobe/polo-coat/main/8.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/8.webp"
     ]
   },
 
@@ -830,11 +830,11 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#f0c04d",
       "secondaryBasicColour": "white"
     },
-    "image": "/images/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp",
-      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp",
-      "/images/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
     ]
   },
 
@@ -858,29 +858,29 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "grey",
-        "image": "/images/wardrobe/pleated-trousers/variants/grey/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/1.webp",
         "label": "Grey",
         "notes": "",
         "colour": "Grey",
         "gallery": [
-          "/images/wardrobe/pleated-trousers/variants/grey/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/2.webp"
         ],
         "colourCode": "#5F5F62",
         "basicColour": "grey",
-        "previewImage": "/images/wardrobe/pleated-trousers/variants/grey/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/preview.webp"
       },
       {
         "key": "beige",
-        "image": "/images/wardrobe/pleated-trousers/variants/beige/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/1.webp",
         "label": "Beige",
         "notes": "",
         "colour": "Beige",
         "gallery": [
-          "/images/wardrobe/pleated-trousers/variants/beige/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/2.webp"
         ],
         "colourCode": "#CEBEA6",
         "basicColour": "beige",
-        "previewImage": "/images/wardrobe/pleated-trousers/variants/beige/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/preview.webp"
       }
     ]
   },
@@ -930,15 +930,15 @@ const WARDROBE_ITEMS = [
       ],
       "secondaryColour": "Black Grosgrain Ribbon"
     },
-    "image": "/images/wardrobe/panama-hat/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/panama-hat/main/2.webp",
-      "/images/wardrobe/panama-hat/main/3.webp",
-      "/images/wardrobe/panama-hat/main/4.webp",
-      "/images/wardrobe/panama-hat/main/5.webp",
-      "/images/wardrobe/panama-hat/main/6.webp",
-      "/images/wardrobe/panama-hat/main/7.webp",
-      "/images/wardrobe/panama-hat/main/8.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/8.webp"
     ]
   },
 
@@ -963,10 +963,10 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Navy trim",
       "secondaryColourCode": "#303c73"
     },
-    "image": "/images/wardrobe/boat-and-tote/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/1.webp",
     "gallery": [
-      "/images/wardrobe/boat-and-tote/main/2.webp",
-      "/images/wardrobe/boat-and-tote/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/3.webp"
     ]
   },
 
@@ -1005,10 +1005,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/antony-crossbody-bag/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/1.webp",
     "gallery": [
-      "/images/wardrobe/antony-crossbody-bag/main/2.webp",
-      "/images/wardrobe/antony-crossbody-bag/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/3.webp"
     ]
   },
 
@@ -1043,10 +1043,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/american-flag-cap/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/1.webp",
     "gallery": [
-      "/images/wardrobe/american-flag-cap/main/2.webp",
-      "/images/wardrobe/american-flag-cap/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/3.webp"
     ]
   },
 
@@ -1068,9 +1068,9 @@ const WARDROBE_ITEMS = [
       "price": 225,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/three-point-gloves/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/1.webp",
     "gallery": [
-      "/images/wardrobe/three-point-gloves/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/2.webp"
     ]
   },
 
@@ -1093,10 +1093,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "green",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/helmet-bag/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/1.webp",
     "gallery": [
-      "/images/wardrobe/helmet-bag/main/2.webp",
-      "/images/wardrobe/helmet-bag/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/3.webp"
     ]
   },
 
@@ -1151,11 +1151,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/fluid-boot-cut-trousers/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/1.webp",
     "gallery": [
-      "/images/wardrobe/fluid-boot-cut-trousers/main/2.webp",
-      "/images/wardrobe/fluid-boot-cut-trousers/main/3.webp",
-      "/images/wardrobe/fluid-boot-cut-trousers/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/4.webp"
     ]
   },
 
@@ -1211,9 +1211,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/wide-leg-white-jeans/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/1.webp",
     "gallery": [
-      "/images/wardrobe/wide-leg-white-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/2.webp"
     ]
   },
 
@@ -1235,9 +1235,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/linen-pleated-shorts/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-pleated-shorts/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/2.webp"
     ]
   },
 
@@ -1259,9 +1259,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "blue",
       "priceCurrency": "TWD"
     },
-    "image": "/images/wardrobe/jwa-straight-jeans/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/1.webp",
     "gallery": [
-      "/images/wardrobe/jwa-straight-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/2.webp"
     ]
   },
 
@@ -1283,15 +1283,15 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/wayfarer-sunglasses/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/1.webp",
     "gallery": [
-      "/images/wardrobe/wayfarer-sunglasses/main/2.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/3.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/4.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/5.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/6.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/7.webp",
-      "/images/wardrobe/wayfarer-sunglasses/main/8.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/8.webp"
     ]
   },
 
@@ -1317,10 +1317,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 7
     },
-    "image": "/images/wardrobe/tassel-moccasin-loafer/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/tassel-moccasin-loafer/main/2.webp",
-      "/images/wardrobe/tassel-moccasin-loafer/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/3.webp"
     ]
   },
 
@@ -1342,12 +1342,12 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/ferret/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ferret/main/2.webp",
-      "/images/wardrobe/ferret/main/3.webp",
-      "/images/wardrobe/ferret/main/4.webp",
-      "/images/wardrobe/ferret/main/5.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/5.webp"
     ]
   },
 
@@ -1371,13 +1371,13 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 1
     },
-    "image": "/images/wardrobe/beaufort-waxed-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/beaufort-waxed-jacket/main/2.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/4.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/5.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/6.webp",
-      "/images/wardrobe/beaufort-waxed-jacket/main/7.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/7.webp"
     ]
   },
 
@@ -1400,13 +1400,13 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 20
     },
-    "image": "/images/wardrobe/balmacaan-coat/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/1.webp",
     "gallery": [
-      "/images/wardrobe/balmacaan-coat/main/2.webp",
-      "/images/wardrobe/balmacaan-coat/main/3.webp",
-      "/images/wardrobe/balmacaan-coat/main/4.webp",
-      "/images/wardrobe/balmacaan-coat/main/5.webp",
-      "/images/wardrobe/balmacaan-coat/main/6.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/6.webp"
     ]
   },
 
@@ -1431,9 +1431,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 16
     },
-    "image": "/images/wardrobe/grand-soir-eau-de-parfum/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/1.webp",
     "gallery": [
-      "/images/wardrobe/grand-soir-eau-de-parfum/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/2.webp"
     ]
   },
 
@@ -1455,9 +1455,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "__omit__",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/new-york-intense-eau-de-parfum/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/1.webp",
     "gallery": [
-      "/images/wardrobe/new-york-intense-eau-de-parfum/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/2.webp"
     ]
   },
 
@@ -1481,12 +1481,12 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Sapphire",
       "secondaryColourCode": "#1B57BC"
     },
-    "image": "/images/wardrobe/sapphire-three-stone-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/sapphire-three-stone-ring/main/2.webp",
-      "/images/wardrobe/sapphire-three-stone-ring/main/3.webp",
-      "/images/wardrobe/sapphire-three-stone-ring/main/4.webp",
-      "/images/wardrobe/sapphire-three-stone-ring/main/5.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/5.webp"
     ]
   },
 
@@ -1511,14 +1511,14 @@ const WARDROBE_ITEMS = [
       "price": 6973,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/curb-bracelet/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/1.webp",
     "gallery": [
-      "/images/wardrobe/curb-bracelet/main/2.webp",
-      "/images/wardrobe/curb-bracelet/main/3.webp",
-      "/images/wardrobe/curb-bracelet/main/4.webp",
-      "/images/wardrobe/curb-bracelet/main/5.webp",
-      "/images/wardrobe/curb-bracelet/main/6.webp",
-      "/images/wardrobe/curb-bracelet/main/7.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/7.webp"
     ]
   },
 
@@ -1538,9 +1538,9 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Light cornflower blue",
       "secondaryColourCode": "#384D87"
     },
-    "image": "/images/wardrobe/sapphire-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/1.webp",
     "gallery": [
-      "/images/wardrobe/sapphire-ring/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/2.webp"
     ]
   },
 
@@ -1583,10 +1583,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/driver-knit-zip-up-jumper/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/driver-knit-zip-up-jumper/main/2.webp",
-      "/images/wardrobe/driver-knit-zip-up-jumper/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/3.webp"
     ]
   },
 
@@ -1610,9 +1610,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 18
     },
-    "image": "/images/wardrobe/aran-cable-knit-jumper/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/aran-cable-knit-jumper/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/2.webp"
     ]
   },
 
@@ -1635,10 +1635,10 @@ const WARDROBE_ITEMS = [
       "price": 4990,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/v-neck-cardigan/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/1.webp",
     "gallery": [
-      "/images/wardrobe/v-neck-cardigan/main/2.webp",
-      "/images/wardrobe/v-neck-cardigan/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/3.webp"
     ]
   },
 
@@ -1659,11 +1659,11 @@ const WARDROBE_ITEMS = [
       "price": 357.97,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/fair-isle-vest/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/1.webp",
     "gallery": [
-      "/images/wardrobe/fair-isle-vest/main/2.webp",
-      "/images/wardrobe/fair-isle-vest/main/3.webp",
-      "/images/wardrobe/fair-isle-vest/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/4.webp"
     ]
   },
 
@@ -1684,9 +1684,9 @@ const WARDROBE_ITEMS = [
       "price": 990,
       "priceCurrency": "TWD"
     },
-    "image": "/images/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp",
     "gallery": [
-      "/images/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp"
     ]
   },
 
@@ -1720,11 +1720,11 @@ const WARDROBE_ITEMS = [
       ],
       "secondaryColour": "Silver"
     },
-    "image": "/images/wardrobe/x100vi-camera/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/1.webp",
     "gallery": [
-      "/images/wardrobe/x100vi-camera/main/2.webp",
-      "/images/wardrobe/x100vi-camera/main/3.webp",
-      "/images/wardrobe/x100vi-camera/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/4.webp"
     ]
   },
 
@@ -1746,10 +1746,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/ryoma-folding-fan/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ryoma-folding-fan/main/2.webp",
-      "/images/wardrobe/ryoma-folding-fan/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/3.webp"
     ]
   },
 
@@ -1780,12 +1780,12 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/ligne-2-lighter/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ligne-2-lighter/main/2.webp",
-      "/images/wardrobe/ligne-2-lighter/main/3.webp",
-      "/images/wardrobe/ligne-2-lighter/main/4.webp",
-      "/images/wardrobe/ligne-2-lighter/main/5.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/5.webp"
     ]
   },
 
@@ -1806,14 +1806,14 @@ const WARDROBE_ITEMS = [
       "price": 1950,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/arabesque-card-case/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/1.webp",
     "gallery": [
-      "/images/wardrobe/arabesque-card-case/main/2.webp",
-      "/images/wardrobe/arabesque-card-case/main/3.webp",
-      "/images/wardrobe/arabesque-card-case/main/4.webp",
-      "/images/wardrobe/arabesque-card-case/main/5.webp",
-      "/images/wardrobe/arabesque-card-case/main/6.webp",
-      "/images/wardrobe/arabesque-card-case/main/7.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/7.webp"
     ]
   },
 
@@ -1835,10 +1835,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 12
     },
-    "image": "/images/wardrobe/cordovan-l-zip-wallet/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cordovan-l-zip-wallet/main/2.webp",
-      "/images/wardrobe/cordovan-l-zip-wallet/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/3.webp"
     ]
   },
 
@@ -1869,9 +1869,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp"
     ]
   },
 
@@ -1895,9 +1895,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "red",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/cable-knit-polo/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cable-knit-polo/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/2.webp"
     ]
   },
 
@@ -1918,11 +1918,11 @@ const WARDROBE_ITEMS = [
       "price": 2499,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/striped-camp-collar-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/striped-camp-collar-shirt/main/2.webp",
-      "/images/wardrobe/striped-camp-collar-shirt/main/3.webp",
-      "/images/wardrobe/striped-camp-collar-shirt/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/4.webp"
     ]
   },
 
@@ -1946,9 +1946,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/breton-sailor-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/breton-sailor-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/2.webp"
     ]
   },
 
@@ -1978,9 +1978,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/fine-knit-t-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/fine-knit-t-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/2.webp"
     ]
   },
 
@@ -2004,11 +2004,11 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Cream",
       "secondaryColourCode": "#F5F1E8"
     },
-    "image": "/images/wardrobe/rugby-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rugby-shirt/main/2.webp",
-      "/images/wardrobe/rugby-shirt/main/3.webp",
-      "/images/wardrobe/rugby-shirt/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/4.webp"
     ]
   },
 
@@ -2029,9 +2029,9 @@ const WARDROBE_ITEMS = [
       "price": 407.82,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/knit-long-sleeve-polo/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/1.webp",
     "gallery": [
-      "/images/wardrobe/knit-long-sleeve-polo/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/2.webp"
     ]
   },
 
@@ -2052,9 +2052,9 @@ const WARDROBE_ITEMS = [
       "price": 2990,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/linen-camp-collar-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-camp-collar-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/2.webp"
     ]
   },
 
@@ -2078,99 +2078,99 @@ const WARDROBE_ITEMS = [
       "colourVariants": [
         {
           "key": "white",
-          "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
           "label": "White",
           "notes": "",
           "colour": "White",
           "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/white/2.webp",
-            "/images/wardrobe/ocbd-shirt/variants/white/3.webp"
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp",
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp"
           ],
           "colourCode": "#F5F5F9",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
+          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
         },
         {
           "key": "blue",
-          "image": "/images/wardrobe/ocbd-shirt/variants/blue/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp",
           "label": "Blue",
           "notes": "",
           "colour": "Blue",
           "gallery": [
-            "/images/wardrobe/ocbd-shirt/variants/blue/2.webp"
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp"
           ],
           "colourCode": "#BAC9EF",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
+          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
         },
         {
           "key": "pink-stripe",
-          "image": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
           "label": "Pink stripe",
           "notes": "",
           "colour": "Pink stripe",
           "gallery": [],
           "colourCode": "#EEE7E4",
           "basicColour": "red",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
+          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
         },
         {
           "key": "blue-striped",
-          "image": "/images/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
           "label": "Blue striped",
           "notes": "",
           "colour": "Blue striped",
           "gallery": [],
           "colourCode": "#DCE1F5",
-          "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
+          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
         }
       ]
     },
-    "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
     "colourVariants": [
       {
         "key": "white",
-        "image": "/images/wardrobe/ocbd-shirt/variants/white/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
         "label": "White",
         "notes": "",
         "colour": "White",
         "gallery": [
-          "/images/wardrobe/ocbd-shirt/variants/white/2.webp",
-          "/images/wardrobe/ocbd-shirt/variants/white/3.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp"
         ],
         "colourCode": "#F5F5F9",
-        "previewImage": "/images/wardrobe/ocbd-shirt/variants/white/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
       },
       {
         "key": "blue",
-        "image": "/images/wardrobe/ocbd-shirt/variants/blue/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp",
         "label": "Blue",
         "notes": "",
         "colour": "Blue",
         "gallery": [
-          "/images/wardrobe/ocbd-shirt/variants/blue/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp"
         ],
         "colourCode": "#BAC9EF",
-        "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
       },
       {
         "key": "pink-stripe",
-        "image": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
         "label": "Pink stripe",
         "notes": "",
         "colour": "Pink stripe",
         "gallery": [],
         "colourCode": "#EEE7E4",
         "basicColour": "red",
-        "previewImage": "/images/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
       },
       {
         "key": "blue-striped",
-        "image": "/images/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
         "label": "Blue striped",
         "notes": "",
         "colour": "Blue striped",
         "gallery": [],
         "colourCode": "#DCE1F5",
-        "previewImage": "/images/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
+        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
       }
     ]
   },
@@ -2193,10 +2193,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "grey",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/cutwork-knit-polo-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/cutwork-knit-polo-shirt/main/2.webp",
-      "/images/wardrobe/cutwork-knit-polo-shirt/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/3.webp"
     ]
   },
 
@@ -2216,15 +2216,15 @@ const WARDROBE_ITEMS = [
       "price": 6590,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/henley-knit-t-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/henley-knit-t-shirt/main/2.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/3.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/4.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/5.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/6.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/7.webp",
-      "/images/wardrobe/henley-knit-t-shirt/main/8.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/7.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/8.webp"
     ]
   },
 
@@ -2244,10 +2244,10 @@ const WARDROBE_ITEMS = [
       "price": 8590,
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/linen-loop-collar-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/linen-loop-collar-shirt/main/2.webp",
-      "/images/wardrobe/linen-loop-collar-shirt/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/3.webp"
     ]
   },
 
@@ -2267,9 +2267,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "/images/wardrobe/purl-knit-t-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/purl-knit-t-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/2.webp"
     ]
   },
 
@@ -2290,9 +2290,9 @@ const WARDROBE_ITEMS = [
       "price": 1570,
       "priceCurrency": "TWD"
     },
-    "image": "/images/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/1.webp",
     "gallery": [
-      "/images/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp"
     ]
   },
 
@@ -2336,9 +2336,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/structured-knit-polo-shirt/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/1.webp",
     "gallery": [
-      "/images/wardrobe/structured-knit-polo-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/2.webp"
     ]
   },
 
@@ -2363,11 +2363,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 4
     },
-    "image": "/images/wardrobe/golden-fleece-navy-blazer/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/1.webp",
     "gallery": [
-      "/images/wardrobe/golden-fleece-navy-blazer/main/2.webp",
-      "/images/wardrobe/golden-fleece-navy-blazer/main/3.webp",
-      "/images/wardrobe/golden-fleece-navy-blazer/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/4.webp"
     ]
   },
 
@@ -2389,14 +2389,14 @@ const WARDROBE_ITEMS = [
       "price": 79.99,
       "priceCurrency": "USD"
     },
-    "image": "/images/wardrobe/houndstooth-tweed-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/houndstooth-tweed-jacket/main/2.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/3.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/4.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/5.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/6.webp",
-      "/images/wardrobe/houndstooth-tweed-jacket/main/7.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/4.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/5.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/6.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/7.webp"
     ]
   },
 
@@ -2416,29 +2416,29 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "seal",
-        "image": "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp",
         "label": "Seal",
         "notes": "",
         "colour": "Vicenza Seal",
         "gallery": [
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
         ],
         "colourCode": "#56382e"
       },
       {
         "key": "dark-seal",
-        "image": "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/1.webp",
         "label": "Dark Seal",
         "notes": "",
         "colour": "Dark Seal",
         "gallery": [
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/2.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/3.webp",
-          "/images/wardrobe/1930s-half-belt-leather-jacket/variants/Dark Seal/4.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/2.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/3.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/4.webp"
         ],
         "colourCode": "#291F1D"
       }
@@ -2464,9 +2464,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 9
     },
-    "image": "/images/wardrobe/herringbone-tweed-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/herringbone-tweed-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/2.webp"
     ]
   },
 
@@ -2490,9 +2490,9 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Olive Trim",
       "secondaryColourCode": "#737051"
     },
-    "image": "/images/wardrobe/boa-fleece-vest/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/1.webp",
     "gallery": [
-      "/images/wardrobe/boa-fleece-vest/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/2.webp"
     ]
   },
 
@@ -2534,9 +2534,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "/images/wardrobe/basket-weave-linen-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/basket-weave-linen-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/2.webp"
     ]
   },
 
@@ -2559,11 +2559,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 21
     },
-    "image": "/images/wardrobe/ventile-harrington-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/ventile-harrington-jacket/main/2.webp",
-      "/images/wardrobe/ventile-harrington-jacket/main/3.webp",
-      "/images/wardrobe/ventile-harrington-jacket/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/4.webp"
     ]
   },
 
@@ -2585,9 +2585,9 @@ const WARDROBE_ITEMS = [
       "price": 893.32,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/safari-jacket/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/1.webp",
     "gallery": [
-      "/images/wardrobe/safari-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/2.webp"
     ]
   },
 
@@ -2611,10 +2611,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "black",
       "priceCurrency": "TWD"
     },
-    "image": "/images/wardrobe/dw-5600e/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/1.webp",
     "gallery": [
-      "/images/wardrobe/dw-5600e/main/2.webp",
-      "/images/wardrobe/dw-5600e/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/3.webp"
     ]
   },
 
@@ -2635,10 +2635,10 @@ const WARDROBE_ITEMS = [
       "price": 591,
       "priceCurrency": "CNY"
     },
-    "image": "/images/wardrobe/datejust-36-mod/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/1.webp",
     "gallery": [
-      "/images/wardrobe/datejust-36-mod/main/2.webp",
-      "/images/wardrobe/datejust-36-mod/main/4.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/4.webp"
     ]
   }
 ];

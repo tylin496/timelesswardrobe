@@ -3674,7 +3674,7 @@
           const thumb = document.createElement("img");
           thumb.className = "account-overview__activity-thumb";
           const _actCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-            || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+            || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
           thumb.src = _actCutout || String(it?.image ?? "");
           if (_actCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = String(it?.image ?? ""); };
           thumb.alt = "";
@@ -4298,7 +4298,7 @@
     const img = document.createElement("img");
     img.className = "account-cat-thumb";
     const _catCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-      || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+      || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
     const _catFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     img.src = _catCutout || _catFallback;
     if (_catCutout) img.onerror = () => { img.onerror = null; img.src = _catFallback; };
@@ -4722,7 +4722,7 @@
     const thumb = document.createElement("img");
     thumb.className = "account-playlist-thumb";
     const _plCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-      || (isLocalCatalogueItemId(it?.id) ? `/images/wardrobe/${it.id}/cutout/1.webp` : "");
+      || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
     const _plFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     thumb.src = _plCutout || _plFallback;
     if (_plCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = _plFallback; };
@@ -8482,6 +8482,7 @@
 
   const WARDROBE_TABLE = "wardrobe_items";
   const WARDROBE_IMAGE_BUCKET = "wardrobe-images";
+  const WARDROBE_R2_BASE = "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe";
 
   function isSupabaseReady() {
     return Boolean(supabaseClient?.from && supabaseClient?.storage?.from);
@@ -9674,8 +9675,25 @@
     if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
-    // main/<n> → sibling thumb/<n>; variants/<key>/<n> → nested variants/<key>/thumb/<n>.
-    // preview.webp is a swatch served as-is — never redirect it to a (nonexistent) thumb.
+
+    // R2 URL: wardrobe/<id>/main/<n> → wardrobe/<id>/thumb/<n>
+    const r2m = pathPart.match(/^https?:\/\/[^/]*\.r2\.dev\/wardrobe\/(.+)$/i);
+    if (r2m) {
+      let decoded; try { decoded = decodeURIComponent(r2m[1]); } catch { decoded = r2m[1]; }
+      const mMain = decoded.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+      if (mMain) {
+        const thumb = `${WARDROBE_R2_BASE}/${encodeURIComponent(mMain[1])}/thumb/${encodeURIComponent(mMain[2])}.webp`;
+        return query ? `${thumb}?${query}` : thumb;
+      }
+      const mVar = decoded.match(/^([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+      if (mVar && !/^preview$/i.test(mVar[3])) {
+        const thumb = `${WARDROBE_R2_BASE}/${encodeURIComponent(mVar[1])}/variants/${encodeURIComponent(mVar[2])}/thumb/${encodeURIComponent(mVar[3])}.webp`;
+        return query ? `${thumb}?${query}` : thumb;
+      }
+      return "";
+    }
+
+    // Local static path: /images/wardrobe/<id>/main/<n>
     let thumb = "";
     const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
     if (mMain) {
@@ -9694,11 +9712,9 @@
     const raw = String(url ?? "").trim();
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
-    if (!transport || !storagePathFromWardrobeImageUrl(transport)) {
-      // Local static cutouts are RGBA, which Vercel/Supabase opt reject. We ship
-      // pre-generated transparent thumbnails (~720w) under each item's `thumb/`
-      // folder; serve those for card-sized requests, originals for detail/zoom.
-      // A missing thumb falls back to the original via the cover candidate chain.
+    if (!transport || !storagePathFromWardrobeImageUrl(transport) || isR2WardrobeImageUrl(transport || raw)) {
+      // Local/R2 images: serve pre-generated thumbnails for card-sized requests;
+      // originals for detail/zoom. A missing thumb falls back via cover candidate chain.
       const thumb = localWardrobeThumbPath(transport || raw, width);
       return thumb || transport || raw;
     }
@@ -17145,9 +17161,22 @@
    * Cutouts are RGBA → served static at native size, never resized.
    */
   function wardrobeCutoutUrlFromCoverUrl(url) {
+    // R2 URL: extract decoded path from wardrobe/<id>/...
+    const r2m = String(url ?? "").match(/^https?:\/\/[^/]*\.r2\.dev\/wardrobe\/(.+)$/i);
+    if (r2m) {
+      let decoded;
+      try { decoded = decodeURIComponent(r2m[1]); } catch { decoded = r2m[1]; }
+      const mMain = decoded.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+      if (mMain) return `${WARDROBE_R2_BASE}/${encodeURIComponent(mMain[1])}/cutout/${encodeURIComponent(mMain[2])}.webp`;
+      const mVar = decoded.match(/^([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
+      if (mVar && !/^preview$/i.test(mVar[3])) {
+        return `${WARDROBE_R2_BASE}/${encodeURIComponent(mVar[1])}/variants/${encodeURIComponent(mVar[2])}/cutout/${encodeURIComponent(mVar[3])}.webp`;
+      }
+      return "";
+    }
+    // Local / Vercel static path: images/wardrobe/<id>/...
     const suffix = localWardrobePathFromUrl(url);
     if (!suffix) return "";
-    // main/<n> → sibling cutout/<n>; variants/<key>/<n> → nested variants/<key>/cutout/<n>.
     const mMain = suffix.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
     if (mMain) return `/images/wardrobe/${mMain[1]}/cutout/${mMain[2]}.webp`;
     const mVar = suffix.match(/^([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
