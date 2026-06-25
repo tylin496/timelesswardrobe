@@ -2,5 +2,9 @@ name = "timeless-wardrobe-img"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
+routes = [
+  { pattern = "img.timelesswardrobe.uk/*", zone_name = "timelesswardrobe.uk" }
+]
+
 [vars]
 R2_PUBLIC_URL = "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev"

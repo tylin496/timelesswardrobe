@@ -20257,9 +20257,6 @@ body.collection-page .collection-container > .collection-actions {
     overflow: visible;
     pointer-events: none;
     background: var(--bg);
-    transition:
-      opacity 140ms ease-out,
-      visibility 140ms ease-out;
   }
 
   body.collection-page #grid .card__price-subtle--hover {
