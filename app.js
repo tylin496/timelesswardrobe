@@ -10276,13 +10276,7 @@
 
   /** @param {Record<string, unknown> | null | undefined} data */
   function parseWardrobeAppStateRow(data) {
-    if (!data || typeof data !== "object") return { overrides: {}, hidden: [], metadata: {} };
-    const overrides =
-      data.collection_overrides &&
-      typeof data.collection_overrides === "object" &&
-      !Array.isArray(data.collection_overrides)
-        ? { .../** @type {Record<string, object>} */ (data.collection_overrides) }
-        : {};
+    if (!data || typeof data !== "object") return { hidden: [], metadata: {} };
     const hiddenRaw = Array.isArray(data.collection_hidden_ids)
       ? data.collection_hidden_ids
       : [];
@@ -10290,7 +10284,7 @@
       data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
         ? { .../** @type {Record<string, unknown>} */ (data.metadata) }
         : {};
-    return { overrides, hidden: hiddenRaw.map((x) => String(x)), metadata };
+    return { hidden: hiddenRaw.map((x) => String(x)), metadata };
   }
 
   async function fetchWardrobeAppStateFromCloud() {
