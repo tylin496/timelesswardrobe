@@ -5554,10 +5554,7 @@
       /* ignore */
     }
   }
-  /** @deprecated Legacy bookmark; dev/Vercel still resolve to the collection PLP. */
-  const COLLECTION_PAGE_PATH = "/collection.html";
   const COLLECTION_HOME_URL = COLLECTION_BASE_PATH;
-  const COLLECTION_HOME_MAIN_URL = COLLECTION_HOME_URL;
   /** PLP scroll + browse restore after PDP return, refresh, or tab discard (6h). */
   const COLLECTION_SCROLL_TTL_MS = 6 * 60 * 60 * 1000;
 
