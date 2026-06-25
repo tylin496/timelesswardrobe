@@ -20,6 +20,8 @@ npm run css:build
 
 `npm run build` also compiles CSS before deploy.
 
+**Guard:** `npm run check:css` (part of `npm run check`) rebuilds to a temp file and fails if it differs from the committed `styles.css`. This catches the two recurring mistakes — hand-editing `styles.css`, or changing `css/main.css` without re-running `css:build` — before they ship. Fix: run `npm run css:build` and commit the result.
+
 ## Cursor: disable Markdown Reading Mode
 
 This repo sets `"workbench.editorAssociations": { "*.md": "default" }` in `.vscode/settings.json` so `.md` files open as plain text, not Cursor’s rich Reading / WYSIWYG editor. Reload the window after changing editor associations. For a tab already in Reading Mode: Command Palette → **Reopen Editor With…** → **Text Editor**.
