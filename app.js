@@ -4514,7 +4514,20 @@
     summaryLabel.textContent = "Current Showcase";
     const summaryMeta = document.createElement("span");
     summaryMeta.className = "account-showcase-summary__meta";
-    summaryEl.append(summaryLabel, summaryMeta);
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "account-showcase-summary__copy";
+    copyBtn.textContent = "Copy order";
+    copyBtn.addEventListener("click", () => {
+      const items = getShowcaseItems();
+      if (!items.length) return;
+      const text = items.map((it, i) => `${i + 1}. ${it.name}`).join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => { copyBtn.textContent = "Copy order"; }, 1800);
+      });
+    });
+    summaryEl.append(summaryLabel, summaryMeta, copyBtn);
     wrapper.appendChild(summaryEl);
 
     const hint = document.createElement("p");
@@ -8116,16 +8129,9 @@
     const ts =
       String(row.updated_at ?? row.updatedAt ?? "").trim() || String(row.created_at ?? row.createdAt ?? "").trim();
     if (ts) out.updatedAt = ts;
-    {
-      const _blob = [out.id, out.brand, out.name, out.category, out.section]
-        .map((x) => String(x ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ")).join(" ");
-      const _own = String(
-        out.ownership_status ?? out.ownershipStatus ?? out.status ??
-        meta?.ownership_status ?? meta?.ownershipStatus ?? ""
-      ).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-      out.is_future = _blob.includes("future piece") || _blob.includes("future pieces") ||
-        _own.includes("future") || _own.includes("wishlist");
-    }
+    // is_future is derived from metadata.ownership_status at the merge choke
+    // point (deriveItemIsFuture in mergeWardrobeFromSources) — not stamped here,
+    // since for local/seed items only metadata survives the catalogue merge.
     return normalizeItemDerivedFields(out);
   }
 

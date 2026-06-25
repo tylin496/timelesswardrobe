@@ -24990,6 +24990,25 @@ body.account-collection-drawer-open .account-page-main {
   margin-bottom: 1.5rem;
 }
 
+.account-showcase-summary__copy {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.account-showcase-summary__copy:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
 .account-showcase-summary__label {
   font-family: var(--font-sans);
   font-size: 0.62rem;
@@ -25979,6 +25998,7 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background: inherit;
   }
 
   .account-cat-col--season,
