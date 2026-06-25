@@ -4,6 +4,10 @@
  * R2 key: wardrobe/<id>/main/1.webp  (strips leading "images/" prefix)
  * Public URL: https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/<id>/...
  *
+ * After uploading, seeds data/wardrobe.js with ?v=<md5> query params so
+ * CDN cache is busted automatically when file content changes — no Supabase
+ * updated_at touch required.
+ *
  *   node scripts/upload-images-to-r2.mjs --dry-run   # list what would be uploaded
  *   node scripts/upload-images-to-r2.mjs             # upload all files
  */
@@ -12,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createReadStream, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -58,6 +63,10 @@ function getMimeType(filePath) {
   return map[ext] || "application/octet-stream";
 }
 
+function shortHash(filePath) {
+  return createHash("md5").update(fs.readFileSync(filePath)).digest("hex").slice(0, 8);
+}
+
 async function exists(key) {
   try {
     await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
@@ -95,11 +104,16 @@ if (DRY_RUN) {
 
 let uploaded = 0, skipped = 0, failed = 0;
 const errors = [];
+// key → hash for all processed files (used to update seed)
+const hashes = new Map();
 
 for (let i = 0; i < imageFiles.length; i++) {
   const f = imageFiles[i];
   const rel = path.relative(path.join(root, "images"), f).replace(/\\/g, "/");
   const key = rel; // e.g. wardrobe/<id>/main/1.webp
+
+  const h = shortHash(f);
+  hashes.set(key, h);
 
   if (!FORCE) {
     const alreadyUp = await exists(key);
@@ -136,7 +150,23 @@ if (errors.length) {
   for (const e of errors) console.log(`  ${e.key}: ${e.error}`);
 }
 
-if (uploaded > 0 || skipped === imageFiles.length) {
-  console.log(`\nPublic URL base: ${publicUrl}/wardrobe/<id>/main/1.webp`);
-  console.log("Next: run scripts/update-seed-to-r2-urls.mjs to update data/wardrobe.js");
+// Update ?v= params in data/wardrobe.js so CDN cache busts on content change.
+const seedPath = path.join(root, "data", "wardrobe.js");
+if (hashes.size > 0 && fs.existsSync(seedPath)) {
+  let src = fs.readFileSync(seedPath, "utf8");
+  let seedChanges = 0;
+  for (const [key, hash] of hashes) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Match the R2 URL for this key, with or without an existing ?v= / query string.
+    const re = new RegExp(`(https?://[^"'\\s]*\\.r2\\.dev/${escaped})(\\?[^"'\\s]*)?`, "g");
+    const updated = src.replace(re, (_, base) => {
+      seedChanges++;
+      return `${base}?v=${hash}`;
+    });
+    src = updated;
+  }
+  if (seedChanges > 0) {
+    fs.writeFileSync(seedPath, src, "utf8");
+    console.log(`\nUpdated ${seedChanges} URL(s) in data/wardrobe.js with ?v= hashes.`);
+  }
 }

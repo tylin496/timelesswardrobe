@@ -213,7 +213,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "USD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/1.webp?v=ecf79390",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/2.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/3.webp",
@@ -243,7 +243,7 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 6
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/1.webp?v=1db2dc4d",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/2.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/3.webp"
@@ -1093,7 +1093,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "green",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/1.webp?v=aaa0d065",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/2.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/3.webp"
@@ -1317,7 +1317,7 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 7
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/1.webp?v=a1fd7afc",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/2.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/3.webp"
@@ -1481,7 +1481,7 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Sapphire",
       "secondaryColourCode": "#1B57BC"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/1.webp?v=ca6e4689",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/2.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/3.webp",
@@ -1538,7 +1538,7 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Light cornflower blue",
       "secondaryColourCode": "#384D87"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/1.webp?v=d0c9ec6f",
     "gallery": [
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/2.webp"
     ]
