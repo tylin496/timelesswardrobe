@@ -13315,7 +13315,7 @@ body.collection-page #grid .card--skeleton .card__media::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background-color: var(--media-cutout-canvas);
   background-image: var(--collection-grid-media-bg);
   background-size: cover;
@@ -13323,20 +13323,11 @@ body.collection-page #grid .card--skeleton .card__media::after {
   background-repeat: no-repeat;
   overflow: hidden;
   isolation: isolate;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 /* Collection grid: 3×4 frame; photographic plate behind cutout product PNGs. */
 #grid .card__media {
   aspect-ratio: var(--media-frame-ratio);
-  justify-content: flex-start;
-  align-items: center;
-  background-color: var(--media-cutout-canvas);
-  background-image: var(--collection-grid-media-bg);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  box-shadow: none;
 }
 
 /* Collection PLP: no image gradient — bottom chrome uses solid translucent tray only. */
@@ -13347,13 +13338,6 @@ body.collection-page #grid .card--skeleton .card__media::after {
 #grid .card__media-img.card__media-img--cover {
   position: relative;
   z-index: 0;
-  flex: 0 1 auto;
-  width: 100%;
-  height: auto;
-  max-height: 100%;
-  min-height: 0;
-  object-fit: contain;
-  object-position: top center;
   filter: var(--collection-cutout-shadow);
   transform-origin: center top;
   transition: transform 0.38s var(--ease-luxe);
@@ -13532,11 +13516,12 @@ body.collection-page #grid .card--skeleton .card__media::after {
 }
 
 .card__body {
-  padding: 0.92rem 1rem 1rem;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
-  flex: 1;
+  gap: 0.14rem;
+  flex: 0 0 auto;
+  padding: 0.62rem 0 0.7rem;
   user-select: text;
   -webkit-user-select: text;
 }
@@ -13554,14 +13539,19 @@ body.collection-page #grid .card--skeleton .card__media::after {
 }
 
 .card__title {
-  @apply mb-0.5;
+  @apply m-0;
+  order: 2;
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
-  opacity: 0.76;
-  transition: opacity 0.25s ease;
+  width: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   user-select: text;
   -webkit-user-select: text;
 }
@@ -13593,9 +13583,11 @@ body.collection-page #grid .card--skeleton .card__media::after {
 }
 
 .card__brand {
-  @apply mb-1.5;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  @apply m-0;
+  order: 1;
+  font-size: 0.56rem;
+  letter-spacing: 0.11em;
+  line-height: 1.2;
   text-transform: uppercase;
   font-weight: 500;
   color: var(--ink-muted);
@@ -13604,10 +13596,16 @@ body.collection-page #grid .card--skeleton .card__media::after {
 }
 
 .card__meta-line {
-  @apply mb-2;
-  font-size: 0.72rem;
-  line-height: 1.35;
+  @apply mt-0.5 m-0;
+  order: 3;
+  font-size: 0.62rem;
+  line-height: 1.25;
   color: var(--ink-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card__swatch-block {
@@ -13630,19 +13628,7 @@ body.collection-page #grid .card--skeleton .card__media::after {
 .card__colour-tray__inner {
   pointer-events: auto;
   box-sizing: border-box;
-  height: 80px;
-  max-height: 88px;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: var(--card-colour-tray-fill);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-/* Collection grid: swatches + CTA only — no full-width translucent bar. */
-#grid .card__colour-tray__inner {
   flex-direction: row;
   align-items: flex-end;
   justify-content: flex-start;
@@ -13651,9 +13637,6 @@ body.collection-page #grid .card--skeleton .card__media::after {
   height: auto;
   max-height: none;
   background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-top: none;
 }
 
 .card__swatch-block--tray {
@@ -14388,13 +14371,13 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 
 .card__media-img.card__media-img--cover,
 .card__media-img:not(.card__gallery-frame-img) {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   width: 100%;
   height: auto;
   max-height: 100%;
   min-height: 0;
   object-fit: contain;
-  object-position: center center;
+  object-position: top center;
   display: block;
   /* Sharper scaling when the card is composited (WebKit + cover + rounded parents). */
   transform: translateZ(0);
@@ -20443,45 +20426,6 @@ body.collection-page .collection-container > .collection-actions {
     background: linear-gradient(to top, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0) 58%);
   }
 
-  body.collection-page #grid .card__body {
-    position: relative;
-    gap: 0.14rem;
-    flex: 0 0 auto;
-    padding: 0.62rem 0 0.7rem;
-  }
-
-  body.collection-page #grid .card__brand {
-  @apply m-0;
-    order: 1;
-    font-size: 0.56rem;
-    letter-spacing: 0.11em;
-    line-height: 1.2;
-  }
-
-  body.collection-page #grid .card__title {
-  @apply m-0;
-    order: 2;
-    width: auto;
-    font-size: 0.82rem;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  body.collection-page #grid .card__meta-line {
-  @apply mt-0.5;
-    order: 3;
-    font-size: 0.62rem;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
 
   /* Hover specs/price overlay the card body — no max-height expand (avoids grid row jitter). */
   body.collection-page #grid .card__specs--hover,
