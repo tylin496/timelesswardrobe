@@ -4021,6 +4021,55 @@
     const listPane = document.createElement("div");
     listPane.className = "account-cat-list";
 
+    // --- Column resize helpers ---
+    const COL_VAR_KEYS = [null, "--acol-name", "--acol-brand", "--acol-category", "--acol-season", "--acol-year", "--acol-price", null];
+    const LS_COL_KEY = "tw-collection-col-widths";
+    function loadColWidths() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LS_COL_KEY) || "{}");
+        COL_VAR_KEYS.forEach(v => { if (v && saved[v]) document.documentElement.style.setProperty(v, saved[v]); });
+      } catch (_) {}
+    }
+    function saveColWidths() {
+      const out = {};
+      COL_VAR_KEYS.forEach(v => { if (v) out[v] = getComputedStyle(document.documentElement).getPropertyValue(v).trim(); });
+      try { localStorage.setItem(LS_COL_KEY, JSON.stringify(out)); } catch (_) {}
+    }
+    function attachColResizeHandles(hdr) {
+      const spans = hdr.querySelectorAll(".account-cat-list__header-col");
+      spans.forEach((span, idx) => {
+        const varName = COL_VAR_KEYS[idx + 1]; // +1 because COL_VAR_KEYS[0] is thumb (null)
+        if (!varName) return;
+        const handle = document.createElement("span");
+        handle.className = "account-cat-list__col-resize";
+        handle.title = "Drag to resize";
+        span.appendChild(handle);
+        handle.addEventListener("mousedown", e => {
+          e.preventDefault();
+          e.stopPropagation();
+          handle.classList.add("is-dragging");
+          const startX = e.clientX;
+          const startW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(varName)) ||
+                         span.getBoundingClientRect().width;
+          const onMove = mv => {
+            const newW = Math.max(60, startW + mv.clientX - startX);
+            document.documentElement.style.setProperty(varName, `${newW}px`);
+          };
+          const onUp = () => {
+            handle.classList.remove("is-dragging");
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            saveColWidths();
+          };
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+        // Prevent click from firing sort on the handle
+        handle.addEventListener("click", e => e.stopPropagation());
+      });
+    }
+    loadColWidths();
+
     const drawer = buildAccountEditDrawer(() => {
       _accountCollectionDrawerItemId = null;
       drawer.classList.add("account-edit-drawer--hidden");
@@ -4102,6 +4151,7 @@
         hdr.appendChild(s);
       });
       listPane.appendChild(hdr);
+      attachColResizeHandles(hdr);
 
       // Apply column sort
       if (_accountCollectionSortKey) {
