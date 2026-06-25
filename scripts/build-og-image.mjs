@@ -53,20 +53,24 @@ function loadWardrobeItems() {
   return fn();
 }
 
-// Composited cover thumb for an item: the canonical main/thumb/1.webp when present,
-// else the nested variant thumb derived from a variant-only item's cover URL.
+// Source image for an item: prefers cutout/1.webp (transparent, 720×960),
+// falls back to main/1.webp (full-res transparent source).
 function thumbFileForItem(item) {
   const id = String(item?.id ?? "").trim();
   if (id) {
-    const mainThumb = path.join(root, "images", "wardrobe", id, "thumb", "1.webp");
-    if (fs.existsSync(mainThumb)) return mainThumb;
+    const cutout = path.join(root, "images", "wardrobe", id, "cutout", "1.webp");
+    if (fs.existsSync(cutout)) return cutout;
+    const main = path.join(root, "images", "wardrobe", id, "main", "1.webp");
+    if (fs.existsSync(main)) return main;
   }
   const raw = String(item?.image ?? "").trim().split("?")[0];
   const m = raw.match(/\/images\/wardrobe\/([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
   if (m && !/^preview$/i.test(m[3])) {
     const seg = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
-    const f = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), "thumb", `${seg(m[3])}.webp`);
-    if (fs.existsSync(f)) return f;
+    const cutout = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), "cutout", `${seg(m[3])}.webp`);
+    if (fs.existsSync(cutout)) return cutout;
+    const main = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), `${seg(m[3])}.webp`);
+    if (fs.existsSync(main)) return main;
   }
   return "";
 }
@@ -165,22 +169,22 @@ if (picks.length < 5) {
   process.exit(0);
 }
 
-// Resize each slot
+// Resize each slot — contain keeps transparent cutouts from being cropped.
 const [heroBuf, s2, s3, s4, s5] = await Promise.all([
   sharp(picks[0].thumb)
-    .resize(HERO_W, HERO_H, { fit: "cover", position: sharp.strategy.attention })
+    .resize(HERO_W, HERO_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
   sharp(picks[1].thumb)
-    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
   sharp(picks[2].thumb)
-    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
   sharp(picks[3].thumb)
-    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
   sharp(picks[4].thumb)
-    .resize(CELL_W, CELL_H, { fit: "cover", position: sharp.strategy.attention })
+    .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
 ]);
 

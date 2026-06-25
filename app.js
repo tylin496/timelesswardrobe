@@ -9585,24 +9585,20 @@
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
 
-    // CDN/R2: redirect main/1-3 and variants/<c>/1-3 to their thumb counterparts.
+    // CDN: apply Worker resize for images 1-3 only (4+ served full-res, no quota used).
     const r2m = pathPart.match(/^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\/wardrobe\/(.+)$/i);
     if (r2m) {
       let dec; try { dec = decodeURIComponent(r2m[1]); } catch { dec = r2m[1]; }
-      const mMain = dec.match(/^([^/]+)\/main\/([123])\.(?:webp|png|jpe?g)$/i);
-      if (mMain) {
-        const t = `${WARDROBE_R2_BASE}/${encodeURIComponent(mMain[1])}/thumb/${mMain[2]}.webp`;
-        return query ? `${t}?${query}` : t;
-      }
-      const mVar = dec.match(/^([^/]+)\/variants\/([^/]+)\/([123])\.(?:webp|png|jpe?g)$/i);
-      if (mVar) {
-        const t = `${WARDROBE_R2_BASE}/${encodeURIComponent(mVar[1])}/variants/${encodeURIComponent(mVar[2])}/thumb/${mVar[3]}.webp`;
-        return query ? `${t}?${query}` : t;
-      }
-      return "";
+      const is123 = /^[^/]+\/(?:main|variants\/[^/]+)\/[123]\.(?:webp|png|jpe?g)$/i.test(dec);
+      if (!is123) return "";
+      const params = new URLSearchParams(query);
+      params.set("w", String(width));
+      params.set("h", String(Math.round(width * 4 / 3)));
+      params.set("fit", "contain");
+      return `${pathPart}?${params}`;
     }
 
-    // Local path: /images/wardrobe/<id>/main/<n> or variants/<c>/<n>
+    // Local path: keep thumb/ redirect for local dev.
     let thumb = "";
     const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
     if (mMain) {

@@ -1,30 +1,37 @@
-/**
- * Timeless Wardrobe — Image Proxy Worker
- *
- * Serves R2 images with on-the-fly resizing via Cloudflare Image Transformations.
- * Free plan: 5,000 unique transformations/month (cached after first hit).
- *
- * URL format:
- *   /wardrobe/<id>/main/1.webp?w=720&h=960&fit=contain
- *   /wardrobe/<id>/variants/<colour>/1.webp?w=360&fit=contain
- *
- * Query params:
- *   w    — width  (pixels)
- *   h    — height (pixels)
- *   fit  — contain (default) | cover | crop | pad
- *
- * Without w/h — returns original image from R2, no transform.
- *
- * Transparent images (cutouts): alpha is preserved when fit=contain.
- * For composited cards (beige bg), callers can pass fit=pad&background=f5f0eb.
- */
-
 const CACHE_TTL = 60 * 60 * 24 * 365; // 1 year — immutable assets
+
+// Diagnostic probe image — small known-size WebP, change w= to force a different size.
+const PROBE_KEY = "wardrobe/tank-solo/main/1.webp";
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const key = url.pathname.slice(1); // strip leading /
+
+    // ── Diagnostic endpoint ──────────────────────────────────────────────────
+    // GET /diagnostics — fetches probe image with and without cf.image to check
+    // whether Image Transformations are active on this zone.
+    if (key === "diagnostics") {
+      const base = `${(env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${PROBE_KEY}`;
+      const [orig, resized] = await Promise.all([
+        fetch(base),
+        fetch(base, { cf: { image: { width: 50, height: 50, fit: "contain", format: "webp" } } }),
+      ]);
+      const origLen = orig.headers.get("content-length");
+      const resizedLen = resized.headers.get("content-length");
+      const origType = orig.headers.get("content-type");
+      const resizedType = resized.headers.get("content-type");
+      const working = resizedLen !== null && resizedLen !== origLen;
+      return Response.json({
+        cf_image_working: working,
+        original: { content_length: origLen, content_type: origType, status: orig.status },
+        resized:  { content_length: resizedLen, content_type: resizedType, status: resized.status },
+        note: working
+          ? "cf.image is applying transforms — sizes differ."
+          : "cf.image is NOT working — sizes identical. Image Transformations may not be enabled on this zone.",
+      }, { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     if (!key.startsWith("wardrobe/")) {
       return new Response("Not found", { status: 404 });

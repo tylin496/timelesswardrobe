@@ -63,10 +63,11 @@ function buildDescription(item) {
 }
 
 function buildOgImageUrl(item) {
-  const raw = String(item.image ?? "").trim();
+  const raw = String(item.image ?? "").trim().split("?")[0]; // strip ?v= hash
   if (!raw) return `${BASE_URL}/og-image.png`;
-  // Use the composited presentation asset: main/<n> → sibling thumb/<n>;
-  // variant-cover items (variants/<key>/<n>) → nested variants/<key>/thumb/<n>.
+  // CDN URLs: use directly — no thumb/ substitution needed.
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // Local paths (dev fallback): rewrite main/ → thumb/.
   let thumb = raw;
   if (/\/main\//.test(raw)) {
     thumb = raw.replace(/\/main\//, "/thumb/");
