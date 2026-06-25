@@ -32065,9 +32065,12 @@
             savedOutfits = loadSavedOutfitsFromStorage();
             useCloudOutfits = false;
             deferredSeedSyncSnapshot = null;
-            applyShowcaseRankCacheToWardrobeBase();
-            // If no seed source produced any showcase order, the pure default
-            // view should skeleton until the deferred cloud fetch lands.
+            // Do NOT pre-seed showcase rank (bake / localStorage cache) onto the
+            // first paint: showcase order is admin-curated and lives in Supabase
+            // (runtime source of truth). Pre-seeding makes the default view paint
+            // a stale order, then re-sort when the cloud lands — the second flash.
+            // Instead leave showcase unknown so the default view holds on the
+            // skeleton until the deferred cloud fetch supplies the real order.
             showcaseSourcePending = true;
           } else {
             const excludeIds = isHybridLocalCatalogueEnabled() ? catalogueLockIdList() : [];
