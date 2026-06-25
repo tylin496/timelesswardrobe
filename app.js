@@ -3064,19 +3064,6 @@
     return valid.includes(hash) ? hash : "collection";
   }
 
-  function renderAccountTabForKey(contentEl, tabKey) {
-    contentEl.replaceChildren();
-    document.body.classList.remove("account-collection-drawer-open");
-    switch (tabKey) {
-      case "overview":   renderAccountTab_Overview(contentEl); break;
-      case "collection": renderAccountTab_Collection(contentEl); break;
-      case "showcase":   renderAccountTab_Showcase(contentEl); break;
-      case "notes":      renderAccountTab_Notes(contentEl); break;
-      case "brands":     renderAccountTab_Brands(contentEl); break;
-      default:           renderAccountTab_Collection(contentEl); break;
-    }
-  }
-
   function updateNotesIndicator(listPane) {
     if (!listPane) return;
     const active = listPane.querySelector(".account-notes-list-row[aria-selected='true']");
@@ -7040,48 +7027,6 @@
     return `${totalShown} · ${n} × ${unitShown}`;
   }
 
-  /** Item detail page — stacked lines instead of one dense parenthetical string. */
-  function appendItemDetailPrice(body, item) {
-    const p = item?.price;
-    if (!Number.isFinite(Number(p))) return;
-    const from = String(item?.priceCurrency ?? "TWD").toUpperCase();
-    const n = collectionPriceColourVariantCount(item);
-    const convertedUnit = convertPriceAmount(Number(p), from, collectionDisplayCurrency);
-    if (!Number.isFinite(convertedUnit)) return;
-
-    const unitShown = formatMoneyInCurrency(convertedUnit, collectionDisplayCurrency);
-    const totalShown = formatMoneyInCurrency(convertedUnit * n, collectionDisplayCurrency);
-    const cross = from !== collectionDisplayCurrency;
-
-    const wrap = document.createElement("p");
-    wrap.className = "item-detail__price";
-
-    const primary = document.createElement("span");
-    primary.className = "item-detail__price-primary";
-    if (n > 1) {
-      primary.textContent = totalShown;
-      const breakdown = document.createElement("span");
-      breakdown.className = "item-detail__price-breakdown";
-      breakdown.textContent = `${n} × ${unitShown}`;
-      wrap.append(primary, breakdown);
-    } else {
-      primary.textContent = unitShown;
-      wrap.appendChild(primary);
-    }
-
-    if (cross) {
-      const orig = document.createElement("span");
-      orig.className = "item-detail__price-original";
-      orig.textContent =
-        n > 1
-          ? formatMoneyInCurrency(Number(p) * n, from)
-          : formatMoneyInCurrency(Number(p), from);
-      wrap.appendChild(orig);
-    }
-
-    body.appendChild(wrap);
-  }
-
   function purchaseDateSortMs(item) {
     const s = String(item?.purchaseDate ?? "").trim();
     const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
@@ -8741,50 +8686,10 @@
   }
 
   /**
-   * Same slot can have multiple extensions ({slot}.jpg + {slot}.png) — one logical slot maps to
-   * two Storage objects which silently drift. After a successful upload, remove sibling files at
-   * the same logical slot but a different extension so the slot is single-truth.
-   *
-   * @param {string} storagePath full object path that was just uploaded (e.g. `id/main/gallery/01.png`)
-   */
-  async function deleteWardrobeImageSiblingExtensions(storagePath) {
-    if (!isSupabaseReady()) return;
-    const last = storagePath.lastIndexOf("/");
-    if (last < 0) return;
-    const dir = storagePath.slice(0, last);
-    const file = storagePath.slice(last + 1);
-    const dot = file.lastIndexOf(".");
-    if (dot <= 0) return;
-    const base = file.slice(0, dot).toLowerCase();
-    try {
-      const { data, error } = await supabaseClient.storage
-        .from(WARDROBE_IMAGE_BUCKET)
-        .list(dir, { limit: 100 });
-      if (error || !Array.isArray(data)) return;
-      const toRemove = data
-        .map((e) => String(e?.name ?? ""))
-        .filter((name) => {
-          if (!name || name === file) return false;
-          const idx = name.lastIndexOf(".");
-          if (idx <= 0) return false;
-          return name.slice(0, idx).toLowerCase() === base;
-        })
-        .map((name) => `${dir}/${name}`);
-      if (!toRemove.length) return;
-      await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).remove(toRemove);
-    } catch (err) {
-      console.warn("Could not clean sibling extensions for", storagePath, err);
-    }
-  }
-
-  /**
    * After a reorder-only save on a local catalogue item, rename the local files to canonical
    * 1.webp, 2.webp, … order so the filesystem stays in sync with the gallery sequence.
    * Only called when ALL urls are local /images/wardrobe/ paths and the dev server is running.
    */
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
-  }
 
 
   /**
@@ -8830,11 +8735,6 @@
     const stamp = path.match(/\/(\d{10,})-cover/i);
     if (stamp) return stamp[1];
     return path.replace(/^\/+/, "");
-  }
-
-  function fileBackedLocalGalleryUrls(item) {
-    if (!item || typeof item !== "object") return [];
-    return itemGalleryList(item).filter((u) => isFileBackedLocalWardrobeUrl(item, u));
   }
 
   /**
@@ -9916,30 +9816,6 @@
     } catch {
       return false;
     }
-  }
-
-  /**
-   * Persist browser-only custom rows (no Supabase): `localStorage` + optional `data/custom-items.json` via dev server.
-   * When Supabase is on, canonical custom pieces live in `wardrobe_items`; drop the local duplicate list to save quota.
-   * @param {unknown[]} rows
-   * @returns {Promise<boolean>} without Supabase: `true` if project JSON was written; with Supabase: `true` after clearing redundant local cache.
-   */
-  async function commitCustomItems(rows) {
-    const list = Array.isArray(rows) ? rows : [];
-    if (isSupabaseReady()) {
-      try {
-        localStorage.removeItem(CUSTOM_ITEMS_KEY);
-      } catch {
-        /* ignore */
-      }
-      return true;
-    }
-    try {
-      localStorage.setItem(CUSTOM_ITEMS_KEY, JSON.stringify(list));
-    } catch (e) {
-      throw e;
-    }
-    return await syncCustomItemsToProjectFile(list);
   }
 
   /** Text-only row for local audit (no image URLs). */
@@ -14298,16 +14174,6 @@
     const key = String(raw ?? "").trim();
     if (key) subcategoryFilters.add(key);
     validateSubcategoryFilters();
-  }
-
-  function removeSubcategoryFilterKey(raw) {
-    const key = String(raw ?? "").trim();
-    if (!key) return;
-    const next = new Set(subcategoryFilters);
-    for (const k of [...next]) {
-      if (recordTypeDrillKeysEquivalent(k, key)) next.delete(k);
-    }
-    subcategoryFilters = next;
   }
 
   function toggleSubcategoryFilter(raw) {
@@ -20321,36 +20187,6 @@
     const key = String(variantKey ?? "").trim();
     if (idx === 0) return key ? { type: "variant_cover", key } : { type: "main_cover" };
     return key ? { type: "variant_gallery", key, index: idx } : { type: "main_gallery", index: idx };
-  }
-
-  /**
-   * @param {string} itemId
-   * @param {string} url
-   * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_gallery", key: string, index: number }} slot
-   */
-  function wardrobeMediaUrlAlreadyAtSlot(itemId, url, slot) {
-    const key = wardrobeMediaPathKey(url);
-    if (!key) return false;
-    const root = safeStorageSegment(itemId);
-    if (slot.type === "main_cover") {
-      return new RegExp(`^${escapeRegExp(root)}/main/cover\\.[^/]+$`, "i").test(key);
-    }
-    if (slot.type === "main_gallery") {
-      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return new RegExp(`^${escapeRegExp(root)}/main/gallery/${String(n).padStart(2, "0")}\\.[^/]+$`, "i").test(key);
-    }
-    const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
-    if (slot.type === "variant_cover") {
-      return new RegExp(`^${escapeRegExp(root)}/variants/${escapeRegExp(vk)}/cover\\.[^/]+$`, "i").test(key);
-    }
-    if (slot.type === "variant_gallery") {
-      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return new RegExp(
-        `^${escapeRegExp(root)}/variants/${escapeRegExp(vk)}/gallery/${String(n).padStart(2, "0")}\\.[^/]+$`,
-        "i"
-      ).test(key);
-    }
-    return false;
   }
 
   /** @param {string} url @param {string} fallback */
