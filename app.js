@@ -7615,13 +7615,6 @@
     }
   }
 
-  async function copyItemPlainTextForAi(item, opts = {}) {
-    const text = buildItemAiStylingBrief(item);
-    const btn = opts.button instanceof HTMLButtonElement ? opts.button : null;
-    const ok = await writeTextToClipboard(text, { successToast: "Copied." });
-    if (ok && btn) playItemDetailShareSuccess(btn);
-  }
-
   function buildItemShareText(item) {
     if (!item) return "";
     return buildItemCopyText(item);
@@ -7651,63 +7644,6 @@
 
   let itemDetailShareMenuDismiss = null;
 
-  function showItemShareMenu(btn, item) {
-    if (itemDetailShareMenuDismiss) { itemDetailShareMenuDismiss(); return; }
-    const url = buildItemPageUrl(item.id).toString();
-    const menu = document.createElement("div");
-    menu.className = "item-share-menu";
-    menu.setAttribute("role", "menu");
-    menu.setAttribute("aria-label", "Share options");
-    const options = [
-      {
-        label: "Copy Link",
-        action: async () => {
-          const ok = await writeTextToClipboard(url, { successToast: "Link copied." });
-          dismiss();
-          if (ok) playItemDetailShareSuccess(btn);
-        },
-      },
-      {
-        label: "Copy Item Summary",
-        action: async () => {
-          const ok = await writeTextToClipboard(buildItemAiStylingBrief(item), { successToast: "Summary copied." });
-          dismiss();
-          if (ok) playItemDetailShareSuccess(btn);
-        },
-      },
-    ];
-    for (const opt of options) {
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "item-share-menu__item";
-      row.setAttribute("role", "menuitem");
-      row.textContent = opt.label;
-      row.addEventListener("click", () => void opt.action());
-      menu.appendChild(row);
-    }
-    document.body.appendChild(menu);
-    const rect = btn.getBoundingClientRect();
-    const menuW = 180;
-    let left = rect.left + window.scrollX;
-    if (left + menuW > window.innerWidth - 8) left = rect.right + window.scrollX - menuW;
-    menu.style.top = `${rect.bottom + window.scrollY + 6}px`;
-    menu.style.left = `${left}px`;
-    btn.setAttribute("aria-expanded", "true");
-    const dismiss = () => {
-      menu.remove();
-      btn.setAttribute("aria-expanded", "false");
-      document.removeEventListener("click", outsideClick, true);
-      itemDetailShareMenuDismiss = null;
-    };
-    itemDetailShareMenuDismiss = dismiss;
-    requestAnimationFrame(() => {
-      document.addEventListener("click", outsideClick, true);
-    });
-    function outsideClick(e) {
-      if (!menu.contains(/** @type {Node} */ (e.target)) && e.target !== btn) dismiss();
-    }
-  }
-
   async function handleItemShareAction(item, btn) {
     const url = buildItemPageUrl(item.id).toString();
     const text = buildItemShareText(item);
@@ -7721,17 +7657,6 @@
     }
     const ok = await writeTextToClipboard(url, { successToast: "Link copied." });
     if (ok) playItemDetailShareSuccess(btn);
-  }
-
-  async function handleItemCopyAction(item, btn) {
-    const text = buildItemCopyText(item);
-    const ok = await writeTextToClipboard(text, { successToast: "Copied." });
-    if (ok) {
-      btn.textContent = "Copied";
-      btn.dataset.state = "copied";
-      clearTimeout(btn._copyTimer);
-      btn._copyTimer = setTimeout(() => { btn.textContent = "Copy"; btn.dataset.state = ""; }, 2000);
-    }
   }
 
   /** Previously saved Chinese clothing slots → Clothing (典藏·配件 handled in `itemSlot`). */
@@ -15225,10 +15150,6 @@
 
 
 
-  function flushHeaderSearchOverlayUiDebounceIfPending() {
-    cancelHeaderSearchOverlayUiDebounce();
-  }
-
   /** Basic colour collection filter: enabled on the collection grid (all category tabs + “All”); hidden on `item.html`. */
   function allowCollectionBasicColourFilter() {
     return Boolean(document.getElementById("grid"));
@@ -16436,10 +16357,6 @@
       return applyCollectionUiFilters(pool);
     }
     return applyCollectionUiFilters(list);
-  }
-
-  function escapeRegExp(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   /** COLLECTION card meta line — rows with colour circles on the preview use the tray instead. */
@@ -18984,62 +18901,6 @@
   }
 
   /**
-   * Export a 3×4 (or already-matching) image straight to the wardrobe frame — no UI crop.
-   * @param {File} file
-   * @returns {Promise<File>}
-   */
-  async function exportItemPhotoToCropFrame(file) {
-    const preferPng = imageSourceLooksAlphaCapable(file);
-    const canvas = document.createElement("canvas");
-    canvas.width = ITEM_PHOTO_CROP_EXPORT_WIDTH;
-    canvas.height = ITEM_PHOTO_CROP_EXPORT_HEIGHT;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("canvas");
-    applyHighQualityCanvasExport(ctx);
-    if (preferPng) ctx.clearRect(0, 0, canvas.width, canvas.height);
-    else {
-      ctx.fillStyle = "#f6f4ef";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    let source = /** @type {CanvasImageSource} */ (null);
-    /** @type {ImageBitmap | null} */
-    let bitmap = null;
-    if (typeof createImageBitmap === "function") {
-      bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-      source = bitmap;
-    } else {
-      const prepared = await prepareOrientedCropImageSource(file);
-      const img = new Image();
-      await new Promise((res, rej) => {
-        img.onload = () => res(undefined);
-        img.onerror = () => rej(new Error("Could not load image"));
-        img.src = prepared.url;
-      });
-      source = img;
-      try {
-        URL.revokeObjectURL(prepared.url);
-      } catch {
-        /* ignore */
-      }
-    }
-    try {
-      const sw = bitmap ? bitmap.width : /** @type {HTMLImageElement} */ (source).naturalWidth;
-      const sh = bitmap ? bitmap.height : /** @type {HTMLImageElement} */ (source).naturalHeight;
-      ctx.drawImage(source, 0, 0, sw, sh, 0, 0, canvas.width, canvas.height);
-    } finally {
-      bitmap?.close();
-    }
-    const mime = preferPng ? "image/png" : "image/jpeg";
-    const quality = mime === "image/jpeg" ? ITEM_PHOTO_JPEG_EXPORT_QUALITY : undefined;
-    const blob = await new Promise((res, rej) => {
-      canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not export crop"))), mime, quality);
-    });
-    const base = String(file.name || "photo").replace(/\.[^.]+$/i, "") || "photo";
-    const ext = mime === "image/png" ? ".png" : ".jpg";
-    return new File([blob], `${base}${ext}`, { type: mime, lastModified: Date.now() });
-  }
-
-  /**
    * @param {File} file
    * @returns {Promise<{ width: number, height: number }>}
    */
@@ -20203,21 +20064,6 @@
   }
 
   /**
-   * Fetch the current bytes for an existing URL before writing any new Storage slots.
-   * This protects demoted covers / shifted gallery items from being overwritten by the same save.
-   * @param {string} url
-   * @param {object} item
-   */
-  async function existingPhotoUrlToUploadFile(url, item) {
-    const source = wardrobeImageFullResolutionUrl(String(url ?? "").trim(), item);
-    const res = await fetch(source, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Could not fetch existing photo (${res.status}).`);
-    const blob = await res.blob();
-    const name = fileNameFromMediaUrl(source, "photo.jpg");
-    return new File([blob], name, { type: blob.type || "image/jpeg" });
-  }
-
-  /**
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
    * @param {(t: string, err?: boolean) => void} setMsg
@@ -20437,10 +20283,6 @@
     });
   }
 
-  /** After `QuotaExceededError`: one aggressive re-encode (still HD-class before tiny fallbacks). */
-  const QUOTA_SHRINK_MAX_SIDE = 1920;
-  const QUOTA_SHRINK_QUALITY = 0.78;
-
   /**
    * Encode for storage: under `STORAGE_IMAGE_MAX_BYTES` (decoded). Small files stay lossless as raw data URLs.
    * @param {File} file
@@ -20488,51 +20330,7 @@
     return last;
   }
 
-  /**
-   * Re-encode a `data:` image URL smaller as JPEG (used after `QuotaExceededError`).
-   * Defaults match `QUOTA_SHRINK_MAX_SIDE` / `QUOTA_SHRINK_QUALITY` (HD-class single pass).
-   * @param {string} dataUrl
-   * @param {number} [maxSide]
-   * @param {number} [quality]
-   * @returns {Promise<string>}
-   */
-  async function shrinkDataUrlForStorage(dataUrl, maxSide = QUOTA_SHRINK_MAX_SIDE, quality = QUOTA_SHRINK_QUALITY) {
-    const s = String(dataUrl ?? "").trim();
-    if (!s.startsWith("data:image")) return s;
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
-        if (!w || !h) {
-          resolve(s);
-          return;
-        }
-        const m = Math.max(w, h);
-        if (m > maxSide) {
-          const scale = maxSide / m;
-          w = Math.round(w * scale);
-          h = Math.round(h * scale);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("canvas"));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, w, h);
-        try {
-          resolve(canvas.toDataURL("image/jpeg", quality));
-        } catch (e) {
-          reject(e);
-        }
-      };
-      img.onerror = () => resolve(s);
-      img.src = s;
-    });
-  }
+
 
 
   /** Shown after `QuotaExceededError` when shrinking and retry did not help. */
