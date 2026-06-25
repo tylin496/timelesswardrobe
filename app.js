@@ -8844,106 +8844,10 @@
    * 1.webp, 2.webp, … order so the filesystem stays in sync with the gallery sequence.
    * Only called when ALL urls are local /images/wardrobe/ paths and the dev server is running.
    */
-  async function renameLocalGalleryCanonically(itemId, image, gallery) {
-    const orderedPaths = [image, ...gallery];
-    const allLocal = orderedPaths.every((u) => typeof u === "string" && u.startsWith("/images/wardrobe/"));
-    if (!allLocal) return { image, gallery };
-    try {
-      const session = supabaseClient?.auth
-        ? (await supabaseClient.auth.getSession())?.data?.session
-        : null;
-      const headers = { "Content-Type": "application/json" };
-      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
-      const res = await fetch("/api/wardrobe/rename-gallery", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ itemId, orderedPaths }),
-      });
-      if (!res.ok) return { image, gallery };
-      const data = await res.json();
-      if (!data?.ok) return { image, gallery };
-      return { image: String(data.image ?? image), gallery: Array.isArray(data.gallery) ? data.gallery : gallery };
-    } catch (err) {
-      console.warn("rename-gallery failed:", err);
-      return { image, gallery };
-    }
-  }
-
-  async function mirrorWardrobeImageFileToLocalDevServer(file, storagePath) {
-    if (!file || !storagePath) return false;
-    try {
-      const dataUrl = await fileToRawDataUrl(file);
-      const res = await fetch("/api/wardrobe/local-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storagePath, dataUrl }),
-      });
-      return res.ok;
-    } catch (err) {
-      console.warn("Could not mirror wardrobe image to local repo.", err);
-      return false;
-    }
-  }
-
-  async function saveWardrobeImageFileToLocalDevServer(file, itemId, slot) {
-    const storagePath = wardrobeImageStorageObjectPath(itemId, file, slot);
-    const dataUrl = await fileToRawDataUrl(file);
-    const res = await fetch("/api/wardrobe/local-image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ storagePath, dataUrl }),
-    });
-    if (!res.ok) throw new Error(`Local image save failed (${res.status})`);
-    return `/images/wardrobe/${storagePath}`;
-  }
-
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
   }
 
-  function supabaseStorageErrorStatus(error) {
-    const candidates = [
-      error?.statusCode,
-      error?.status,
-      error?.code,
-      error?.originalError?.status,
-      error?.originalError?.statusCode,
-    ];
-    for (const c of candidates) {
-      const n = Number(String(c ?? "").match(/\d{3}/)?.[0] ?? NaN);
-      if (Number.isFinite(n)) return n;
-    }
-    return 0;
-  }
-
-  function shouldRetrySupabaseStorageUpload(error) {
-    if (!error) return false;
-    const status = supabaseStorageErrorStatus(error);
-    if (status === 408 || status === 409 || status === 425 || status === 429 || status >= 500) return true;
-    if (status >= 400 && status < 500) return false;
-    const msg = formatSupabaseUserMessage(error).toLowerCase();
-    return /network|fetch|timeout|timed out|temporary|temporarily|econnreset|etimedout|socket|failed to fetch/.test(msg);
-  }
-
-  async function uploadWardrobeImageFileWithRetry(path, file, uploadOptions) {
-    const maxAttempts = 3;
-    let lastError = null;
-    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      let error = null;
-      try {
-        ({ error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).upload(path, file, uploadOptions));
-      } catch (err) {
-        error = err;
-      }
-      if (!error) return null;
-      lastError = error;
-      if (attempt >= maxAttempts || !shouldRetrySupabaseStorageUpload(error)) break;
-      const wait = 450 * 2 ** (attempt - 1) + Math.round(Math.random() * 250);
-      console.warn(`Supabase Storage upload retry ${attempt + 1}/${maxAttempts} for ${path}`, error);
-      await sleep(wait);
-    }
-    return lastError;
-  }
 
   /**
    * @param {File} file
@@ -8978,7 +8882,6 @@
     }
 
     const { url } = await res.json();
-    await mirrorWardrobeImageFileToLocalDevServer(file, path);
     return url || "";
   }
 
@@ -25451,11 +25354,6 @@
           } catch (uploadErr) {
             setMsg(String(uploadErr?.message || uploadErr || "Upload failed — check network and try again."), true);
             return;
-          }
-          if (isLocalCatalogueItemId(id) && image && (!hadNewPhotoFiles || isTwLocalDevHost())) {
-            const renamed = await renameLocalGalleryCanonically(id, image, gallery);
-            image = renamed.image;
-            gallery = renamed.gallery;
           }
         } else {
           setMsg(
