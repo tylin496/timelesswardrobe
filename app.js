@@ -23603,6 +23603,33 @@
       }
       els.grid.replaceChildren(firstFrag);
 
+      // Stagger-reveal first 6 cards: hold images behind skeleton bg until all
+      // are ready (or 3s), then fade in one by one with index-based delay.
+      (function staggerFirstCards() {
+        const STAGGER_COUNT = 6;
+        const STAGGER_STEP = 0.1; // seconds between each card
+        const TIMEOUT = 3000;
+        const cards = [...els.grid.querySelectorAll(".card")].slice(0, STAGGER_COUNT);
+        if (!cards.length) return;
+        cards.forEach((c) => c.classList.add("is-cover-pending"));
+        const imgs = cards.map((c) => c.querySelector(".card__media-img"));
+        const waitForImg = (img) =>
+          new Promise((resolve) => {
+            if (!img) return resolve();
+            if (img.classList.contains("card__media-img--loaded")) return resolve();
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+        const timeout = new Promise((r) => setTimeout(r, TIMEOUT));
+        Promise.race([Promise.all(imgs.map(waitForImg)), timeout]).then(() => {
+          cards.forEach((card, i) => {
+            card.style.setProperty("--cover-stagger-delay", `${(i * STAGGER_STEP).toFixed(2)}s`);
+            card.classList.remove("is-cover-pending");
+          });
+        });
+      })();
+
       const appendChunked = (startAt) => {
         if (!els.grid || renderToken !== gridRenderChunkToken) return;
         if (startAt >= sorted.length) return;

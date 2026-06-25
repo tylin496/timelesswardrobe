@@ -14301,6 +14301,18 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
   opacity: 1;
 }
 
+/* First 6 cards: hold behind skeleton bg until all ready, then stagger fade in. */
+#grid .card.is-cover-pending .card__media {
+  background: color-mix(in srgb, var(--line) 50%, var(--bg));
+}
+#grid .card.is-cover-pending .card__media-img.card__media-img--loaded {
+  opacity: 0;
+  transition: none;
+}
+#grid .card:not(.is-cover-pending) .card__media-img.card__media-img--loaded {
+  transition: opacity 0.45s ease var(--cover-stagger-delay, 0s);
+}
+
 .card__media-img.card__media-img--cover,
 .card__media-img:not(.card__gallery-frame-img) {
   flex: 0 1 auto;
