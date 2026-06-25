@@ -20524,6 +20524,15 @@ body.collection-page .collection-container > .collection-actions {
 
 }
 
+@media (min-width: 901px) and (max-width: 1024px) {
+  body.collection-page #grid.grid,
+  body.collection-page #grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 42px;
+    column-gap: 1px;
+  }
+}
+
 @media (min-width: 721px) and (max-width: 1100px) {
   body.theme-catalogue:not(.item-page):not(.collection-ui--search-results-plp):not(.collection-page) #main {
     max-width: none;
