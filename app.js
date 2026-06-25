@@ -11399,7 +11399,6 @@
         } catch {
           return;
         }
-        noteCollectionEntryFromHomePage();
       },
       { capture: true }
     );
@@ -11413,7 +11412,7 @@
     if (hero.dataset.twHeroCollectionTapWired === "1") return;
     hero.dataset.twHeroCollectionTapWired = "1";
 
-    const href = appendCollectionFromHomeQuery(collectionHrefForBrowseState());
+    const href = collectionHrefForBrowseState();
 
     const isHeroChromeTarget = (/** @type {EventTarget | null} */ target) => {
       if (!(target instanceof Element)) return false;
@@ -11428,7 +11427,6 @@
       if (e.defaultPrevented) return;
       if (hero.classList.contains("is-hero-dragging")) return;
       if (isHeroChromeTarget(e.target)) return;
-      noteCollectionEntryFromHomePage();
       globalThis.location.href = href;
     });
   }
@@ -15909,9 +15907,7 @@
   }
 
   function navigateToCollectionSeason(seasonToken) {
-    if (isHomePageContext()) noteCollectionEntryFromHomePage();
-    let href = collectionSeasonHref(seasonToken);
-    if (isHomePageContext()) href = appendCollectionFromHomeQuery(href);
+    const href = collectionSeasonHref(seasonToken);
     try {
       globalThis.location.assign(href);
     } catch {
@@ -21588,14 +21584,6 @@
   }
 
   /** No-op stubs: `?from=home` force-replay was removed (learned-once is now the single rule). */
-  function appendCollectionFromHomeQuery(href) {
-    return href;
-  }
-  function noteCollectionEntryFromHomePage() {}
-  function consumeCollectionEntryFromHomePage() {
-    return false;
-  }
-
   /** @param {HTMLElement} media */
   function isFirstGridSwipeGalleryCard(media) {
     const grid = document.getElementById("grid");
@@ -27273,9 +27261,7 @@
   }
 
   function navigateToCollectionMain(overrides = {}) {
-    if (isHomePageContext()) noteCollectionEntryFromHomePage();
-    let href = collectionHrefForBrowseState(overrides);
-    if (isHomePageContext()) href = appendCollectionFromHomeQuery(href);
+    const href = collectionHrefForBrowseState(overrides);
     try {
       globalThis.location.assign(href);
     } catch {
