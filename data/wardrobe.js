@@ -858,7 +858,7 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "grey",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/1.webp?v=7a25d8ad",
         "label": "Grey",
         "notes": "",
         "colour": "Grey",
@@ -871,7 +871,7 @@ const WARDROBE_ITEMS = [
       },
       {
         "key": "beige",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/1.webp?v=d1937749",
         "label": "Beige",
         "notes": "",
         "colour": "Beige",
@@ -2078,7 +2078,7 @@ const WARDROBE_ITEMS = [
       "colourVariants": [
         {
           "key": "white",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
           "label": "White",
           "notes": "",
           "colour": "White",
@@ -2091,7 +2091,7 @@ const WARDROBE_ITEMS = [
         },
         {
           "key": "blue",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
           "label": "Blue",
           "notes": "",
           "colour": "Blue",
@@ -2103,7 +2103,7 @@ const WARDROBE_ITEMS = [
         },
         {
           "key": "pink-stripe",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
           "label": "Pink stripe",
           "notes": "",
           "colour": "Pink stripe",
@@ -2114,7 +2114,7 @@ const WARDROBE_ITEMS = [
         },
         {
           "key": "blue-striped",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
+          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
           "label": "Blue striped",
           "notes": "",
           "colour": "Blue striped",
@@ -2124,11 +2124,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
+    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
     "colourVariants": [
       {
         "key": "white",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
         "label": "White",
         "notes": "",
         "colour": "White",
@@ -2141,7 +2141,7 @@ const WARDROBE_ITEMS = [
       },
       {
         "key": "blue",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
         "label": "Blue",
         "notes": "",
         "colour": "Blue",
@@ -2153,7 +2153,7 @@ const WARDROBE_ITEMS = [
       },
       {
         "key": "pink-stripe",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
         "label": "Pink stripe",
         "notes": "",
         "colour": "Pink stripe",
@@ -2164,7 +2164,7 @@ const WARDROBE_ITEMS = [
       },
       {
         "key": "blue-striped",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
         "label": "Blue striped",
         "notes": "",
         "colour": "Blue striped",
