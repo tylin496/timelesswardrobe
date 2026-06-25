@@ -20710,9 +20710,6 @@
         try {
           if (isSupabaseReady()) {
             url = await uploadWardrobeImageFileToCloud(plan.source.file, itemId, plan.slot);
-            if (isLocalCatalogueItemId(itemId) && isTwLocalDevHost()) {
-              await saveWardrobeImageFileToLocalDevServer(plan.source.file, itemId, plan.slot);
-            }
           } else {
             url = await fileToStorageDataUrl(plan.source.file, { preferJpeg: i > 0 });
           }
