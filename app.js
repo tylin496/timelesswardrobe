@@ -65,15 +65,7 @@
   /** Thin-arm × — search, drawers, mobile shell (see `--tw-dismiss-icon-*` in main.css). */
   const HEADER_DISMISS_ICON_HTML = '<span class="site-mobile-shell__close-icon" aria-hidden="true"></span>';
 
-  /** Split collection rows merged into one id — remap saved outfit lines. */
-  const LEGACY_OUTFIT_ITEM_TO_SLOT = new Map([
-    ["uniqlo-ocbd-shirt-blue", { itemId: "ocbd-shirt", colourKey: "blue" }],
-    ["uniqlo-ocbd-shirt-white", { itemId: "ocbd-shirt", colourKey: "white" }],
-    ["uniqlo-ocbd-shirt-pink-stripe", { itemId: "ocbd-shirt", colourKey: "pink-stripe" }],
-    ["uniqlo-ocbd-shirt-blue-striped", { itemId: "ocbd-shirt", colourKey: "blue-striped" }],
-    ["uniqlo-tuck-trousers-grey", { itemId: "pleated-trousers", colourKey: "grey" }],
-    ["uniqlo-tuck-trousers-beige", { itemId: "pleated-trousers", colourKey: "beige" }],
-  ]);
+
 
   function slugItemName(name) {
     return String(name ?? "")
@@ -2316,18 +2308,11 @@
       let itemId = raw.trim();
       if (!itemId) return null;
       itemId = resolveCanonicalItemId(itemId);
-      const leg = LEGACY_OUTFIT_ITEM_TO_SLOT.get(itemId);
-      if (leg) return { itemId: leg.itemId, colourKey: leg.colourKey };
       return { itemId };
     }
     if (typeof raw === "object" && raw.itemId != null) {
       let itemId = resolveCanonicalItemId(String(raw.itemId).trim());
       let colourKey = String(raw.colourKey ?? raw.colorKey ?? "").trim();
-      const leg = LEGACY_OUTFIT_ITEM_TO_SLOT.get(itemId);
-      if (leg) {
-        itemId = leg.itemId;
-        if (!colourKey) colourKey = String(leg.colourKey ?? "").trim();
-      }
       if (!itemId) return null;
       return colourKey ? { itemId, colourKey } : { itemId };
     }
