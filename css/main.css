@@ -13339,12 +13339,6 @@ body.collection-page #grid .card--skeleton .card__media::after {
   position: relative;
   z-index: 0;
   filter: var(--collection-cutout-shadow);
-  transform-origin: center top;
-  transition: transform 0.38s var(--ease-luxe);
-}
-
-#grid .card:hover .card__media-img.card__media-img--cover {
-  transform: scale(1.02);
 }
 
 /* Gallery frames — edge-to-edge crop (not cut-out contain). */
