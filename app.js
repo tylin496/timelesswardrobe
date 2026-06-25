@@ -9390,6 +9390,8 @@
     const raw = String(url ?? "").trim();
     if (!raw) return "";
     if (raw.startsWith("blob:") || raw.startsWith("data:")) return raw;
+    // CDN URL is already in its final form — preserve ?v= cache-bust hash from seed.
+    if (isR2WardrobeImageUrl(raw)) return raw;
     const existing = storagePathFromWardrobeImageUrl(raw);
     if (existing) {
       // Supabase URL whose object path matches a file we ship locally — redirect to
