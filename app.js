@@ -9859,9 +9859,6 @@
     applySeasonNavFromLocalStorage();
   }
 
-  /** When true, `wardrobe_app_state` still uses pre-rename `archive_*` columns (migration not applied). */
-  let wardrobeAppStateUsesLegacyColumns = false;
-
   function wardrobeAppStateColumnMissingError(err) {
     const msg = String(err?.message ?? err ?? "");
     const code = String(err?.code ?? "");
@@ -9886,18 +9883,6 @@
   }
 
   /** @param {Record<string, unknown> | null | undefined} data */
-  function detectWardrobeAppStateColumnMode(data) {
-    if (!data || typeof data !== "object") return wardrobeAppStateUsesLegacyColumns;
-    if (
-      Object.prototype.hasOwnProperty.call(data, "collection_overrides") ||
-      Object.prototype.hasOwnProperty.call(data, "collection_hidden_ids")
-    ) {
-      return false;
-    }
-    return wardrobeAppStateUsesLegacyColumns;
-  }
-
-  /** @param {Record<string, unknown> | null | undefined} data */
   function parseWardrobeAppStateRow(data) {
     if (!data || typeof data !== "object") return { hidden: [], metadata: {} };
     const hiddenRaw = Array.isArray(data.collection_hidden_ids)
@@ -9916,15 +9901,9 @@
       .select("*")
       .eq("id", "default")
       .maybeSingle();
-    if (!res.error) {
-      wardrobeAppStateUsesLegacyColumns = detectWardrobeAppStateColumnMode(
-        /** @type {Record<string, unknown>} */ (res.data)
-      );
-      return res;
-    }
+    if (!res.error) return res;
     if (!wardrobeAppStateFetchShouldTryLegacy(res.error)) return res;
 
-    wardrobeAppStateUsesLegacyColumns = true;
     const legacyRes = await supabaseClient
       .from("wardrobe_app_state")
       .select("collection_overrides, collection_hidden_ids")
@@ -9952,16 +9931,6 @@
       wardrobeAppStateSupportsMetadata = false;
       row = buildRow(false);
       ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
-    }
-    if (error && wardrobeAppStateColumnMissingError(error)) {
-      wardrobeAppStateUsesLegacyColumns = !wardrobeAppStateUsesLegacyColumns;
-      row = buildRow();
-      ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
-      if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
-        wardrobeAppStateSupportsMetadata = false;
-        row = buildRow(false);
-        ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
-      }
     }
     if (error) throw error;
 
