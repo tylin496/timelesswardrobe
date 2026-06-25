@@ -46,6 +46,8 @@ const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 const bucket = process.env.R2_BUCKET || "wardrobe-images";
 const publicUrl = (process.env.R2_PUBLIC_URL || "").replace(/\/$/, "");
 const cdnUrl = (process.env.R2_CDN_URL || "https://img.timelesswardrobe.uk").replace(/\/$/, "");
+const cfApiToken = process.env.CF_API_TOKEN || "";
+const cfZoneId = process.env.CF_ZONE_ID || "";
 
 if (!accountId || !accessKeyId || !secretAccessKey) {
   console.error("Missing R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY in .env");
@@ -149,6 +151,28 @@ console.log(`\n\nDone: ${uploaded} uploaded, ${skipped} skipped (already exist),
 if (errors.length) {
   console.log("\nErrors:");
   for (const e of errors) console.log(`  ${e.key}: ${e.error}`);
+}
+
+// Purge Cloudflare cache for all uploaded (overwritten) stable-path keys.
+if (uploaded > 0 && cfApiToken && cfZoneId) {
+  const urls = [...hashes.keys()].map((key) => `${cdnUrl}/${key}`);
+  const BATCH = 30;
+  let purged = 0;
+  for (let i = 0; i < urls.length; i += BATCH) {
+    const batch = urls.slice(i, i + BATCH);
+    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/purge_cache`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${cfApiToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ files: batch }),
+    });
+    const json = await res.json();
+    if (json.success) purged += batch.length;
+    else console.warn("  CF purge error:", JSON.stringify(json.errors));
+  }
+  console.log(`\nPurged ${purged} Cloudflare cache entries.`);
+} else if (uploaded > 0 && (!cfApiToken || !cfZoneId)) {
+  console.log("\n⚠ CF_API_TOKEN / CF_ZONE_ID not set — skipping Cloudflare cache purge.");
+  console.log("  Add them to .env to auto-purge after upload.");
 }
 
 // Update ?v= params in data/wardrobe.js so CDN cache busts on content change.
