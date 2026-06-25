@@ -10321,43 +10321,28 @@
     if (!isSupabaseReady()) return;
     const updated_at = new Date().toISOString();
     const hidden = [...collectionHiddenState];
-    // RETIRED layer: always persist an empty overrides map so the dead column
-    // drains to {} and can never re-grow. See docs/ARCHITECTURE.md → Audit Matrix.
-    const overrides = {};
     const metadata = wardrobeAppMetadataState;
 
-    const buildRow = (legacy, includeMetadata = wardrobeAppStateSupportsMetadata) => {
-      const row = legacy
-        ? {
-            id: "default",
-            collection_overrides: overrides,
-            collection_hidden_ids: hidden,
-            updated_at,
-          }
-        : {
-            id: "default",
-            collection_overrides: overrides,
-            collection_hidden_ids: hidden,
-            updated_at,
-          };
+    const buildRow = (includeMetadata = wardrobeAppStateSupportsMetadata) => {
+      const row = { id: "default", collection_overrides: {}, collection_hidden_ids: hidden, updated_at };
       if (includeMetadata) row.metadata = metadata;
       return row;
     };
 
-    let row = buildRow(wardrobeAppStateUsesLegacyColumns);
+    let row = buildRow();
     let { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
     if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
       wardrobeAppStateSupportsMetadata = false;
-      row = buildRow(wardrobeAppStateUsesLegacyColumns, false);
+      row = buildRow(false);
       ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
     }
     if (error && wardrobeAppStateColumnMissingError(error)) {
       wardrobeAppStateUsesLegacyColumns = !wardrobeAppStateUsesLegacyColumns;
-      row = buildRow(wardrobeAppStateUsesLegacyColumns);
+      row = buildRow();
       ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
       if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
         wardrobeAppStateSupportsMetadata = false;
-        row = buildRow(wardrobeAppStateUsesLegacyColumns, false);
+        row = buildRow(false);
         ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
       }
     }
@@ -10369,10 +10354,8 @@
     const parsed = parseWardrobeAppStateRow(/** @type {Record<string, unknown>} */ (verify.data));
     const expectHidden = [...hidden].map((x) => String(x)).sort();
     const gotHidden = [...parsed.hidden].map((x) => String(x)).sort();
-    const expectOverrides = JSON.stringify(overrides ?? {});
-    const gotOverrides = JSON.stringify(parsed.overrides ?? {});
-    if (expectOverrides !== gotOverrides || expectHidden.join("|") !== gotHidden.join("|")) {
-      throw new Error("Cloud app-state write did not persist collection overrides/hidden ids.");
+    if (expectHidden.join("|") !== gotHidden.join("|")) {
+      throw new Error("Cloud app-state write did not persist collection hidden ids.");
     }
     if (wardrobeAppStateSupportsMetadata) {
       const expectMetadata = JSON.stringify(metadata ?? {});
