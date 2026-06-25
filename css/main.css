@@ -694,21 +694,8 @@ html {
   }
 }
 
-:focus-visible {
-  outline: 1px solid var(--accent);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
-}
-
 #main:focus {
   outline: none;
-}
-
-#main:focus-visible {
-  outline: 1px solid var(--accent);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
-  border-radius: var(--radius);
 }
 
 body {
@@ -1328,7 +1315,6 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 .site-title__primary:focus-visible {
-  outline-offset: 0.28rem;
   border-radius: 2px;
 }
 
@@ -2136,7 +2122,6 @@ body.home-page .site-header--scroll-driven::before {
 .site-header__saved-btn:focus-visible,
 .site-header__menu-btn:focus-visible,
 .site-header__collection-back:focus-visible {
-  outline-offset: 1px;
 }
 
 /* Item PDP — return to collection (mobile / compact header only). */
@@ -2902,7 +2887,6 @@ body.collection-page
 }
 
 .items-toolbar__active-chip__remove:focus-visible {
-  outline-offset: 1px;
 }
 
 .items-toolbar__active-chips-clear {
@@ -3414,7 +3398,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 .site-header__search-category-card:focus-visible {
-  outline-offset: 4px;
   border-radius: 2px;
 }
 
@@ -6456,7 +6439,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-header__search-wrap .site-header__search-category-card:focus-visible {
-    outline-offset: 3px;
     border-radius: 0;
   }
 
@@ -6701,7 +6683,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-header__search-trending-row:focus-visible,
   .site-header__search-recent-row:focus-visible {
-    outline-offset: 2px;
     border-radius: 8px;
   }
 
@@ -6928,8 +6909,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   }
 
   .site-mobile-shell__tool:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 55%, transparent);
-    outline-offset: 2px;
   }
 
   .site-mobile-shell__tool--board .site-header__outfits-label {
@@ -7479,8 +7458,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   .site-mobile-shell__submenu-back:focus-visible,
   .site-mobile-shell__submenu-close:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--tw-brand-signature-navy, #163229) 55%, transparent);
-    outline-offset: 2px;
   }
 
   .site-mobile-nav__back-chevron {
@@ -8049,7 +8026,6 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 }
 
 .filters__search-clear:focus-visible {
-  outline-offset: 1px;
 }
 
 .filters__search-clear-icon {
@@ -8333,7 +8309,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .season-strip__tab:focus-visible {
-  outline-offset: 3px;
 }
 
 .items-toolbar {
@@ -8495,7 +8470,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .items-toolbar__brand-story-toggle:focus-visible {
-  outline-offset: 3px;
   border-radius: 2px;
 }
 
@@ -8912,7 +8886,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__view-toggle-btn:focus-visible {
-  outline-offset: -2px;
   z-index: 1;
 }
 
@@ -9130,7 +9103,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__select:focus-visible {
-  outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
 
@@ -9632,7 +9604,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .collection-filter-drawer__done:focus-visible {
-  outline-offset: 3px;
 }
 
 /* Scroll lock while drawers are open is applied in JS (position:fixed + restored scrollY). */
@@ -10252,7 +10223,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 }
 
 .outfits-drawer__close:focus-visible {
-  outline: 2px solid var(--tw-brand-signature-navy, #163229);
 }
 
 /* Hero section is no longer used — always hidden */
@@ -10385,7 +10355,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 }
 
 .outfits-drawer__cta:focus-visible {
-  outline: 2px solid var(--tw-brand-signature-navy, #163229);
 }
 
 .outfits-drawer__clear-all {
@@ -10419,7 +10388,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 }
 
 .outfits-drawer__clear-all:focus-visible {
-  outline: 2px solid var(--tw-brand-signature-navy, #163229);
 }
 
 .outfits-drawer__clear-all[hidden] {
@@ -11880,7 +11848,6 @@ body.tw-outfit-drag-active * {
 }
 
 .outfits-drawer .saved-card__ctrl:focus-visible {
-  outline: 2px solid var(--tw-brand-signature-navy, #163229);
 }
 
 .outfits-drawer .saved-card__ctrl--danger {
@@ -11892,7 +11859,6 @@ body.tw-outfit-drag-active * {
 }
 
 .outfits-drawer .saved-card__ctrl--danger:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--sb-danger) 55%, var(--tw-brand-signature-navy, #163229));
 }
 
 /* ── Icon-only action buttons (replace text VIEW/EDIT/DELETE) ──────────── */
@@ -11940,8 +11906,6 @@ body.tw-outfit-drag-active * {
 }
 
 .outfits-drawer .saved-card__icon-btn:focus-visible {
-  outline: 2px solid var(--tw-brand-signature-navy, #163229);
-  outline-offset: 1px;
 }
 
 .outfits-drawer .saved-card__icon-btn--danger {
@@ -12069,7 +12033,6 @@ body.tw-outfit-drag-active * {
 }
 
 .category-nav__tab:focus-visible {
-  outline-offset: 3px;
 }
 
 .category-drill {
@@ -12325,7 +12288,6 @@ input[type="search"]:focus-visible,
 .item-detail__form input[type="date"]:focus-visible,
 .item-detail__form input[type="number"]:focus-visible,
 .item-detail__form textarea:focus-visible {
-  outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
 
@@ -12750,7 +12712,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .field--block textarea:focus-visible {
-  outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
@@ -12841,7 +12802,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .outfit-slot:focus-within {
-  outline-offset: 1px;
 }
 
 .outfit-slot--dragging {
@@ -12947,7 +12907,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .field--inline input:focus-visible {
-  outline-offset: 1px;
 }
 
 .outfit-toast[hidden],
@@ -13399,7 +13358,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
-  outline: 2px solid rgba(255, 255, 255, 0.72);
 }
 
 .card__body {
@@ -13464,7 +13422,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 .card__title--opens-detail:focus-visible {
-  outline-offset: 3px;
   border-radius: 4px;
 }
 
@@ -14310,7 +14267,6 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 }
 
 .card__gallery-thumb:focus-visible {
-  outline-offset: 1px;
 }
 
 .card__gallery-thumb.is-active {
@@ -14714,8 +14670,6 @@ body.item-page:has(.item-detail__root--edit) {
 }
 
 .item-detail__gallery-thumb:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ink) 38%, transparent);
-  outline-offset: 3px;
 }
 
 .item-detail__gallery-thumb img {
@@ -17423,7 +17377,6 @@ dialog.item-photo-crop-dialog[open] {
 }
 
 .item-photo-crop__nudge-btn:focus-visible {
-  outline: 2px solid var(--ink);
 }
 
 .item-photo-crop__nudge-btn:active {
@@ -18568,7 +18521,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-share-menu__item:focus-visible {
-  outline-offset: -2px;
 }
 
 /* Compact solo colour row */
@@ -18938,7 +18890,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__title:focus-visible {
-  outline-offset: 3px;
 }
 
 .item-detail__brand {
@@ -19195,7 +19146,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__outfits-cta:focus-visible {
-  outline-offset: 3px;
 }
 
 .item-detail__outfits-cta:disabled {
@@ -19337,7 +19287,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__notes-toggle:focus-visible {
-  outline-offset: 3px;
   border-radius: 2px;
 }
 
@@ -19544,8 +19493,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .collection-actions__copy-list:focus-visible {
-  outline: 1px solid color-mix(in srgb, var(--ink) 36%, transparent);
-  outline-offset: 0.22rem;
 }
 
 .collection-actions__copy-list:disabled {
@@ -19668,7 +19615,6 @@ body.collection-page .collection-container > .collection-actions {
 }
 
 .collection-actions__add:focus-visible {
-  outline-color: var(--tw-brand-green);
 }
 
 /* Reminder when Supabase is off — custom + collection edits are device-local */
@@ -21214,11 +21160,6 @@ body.collection-page .collection-container > .collection-actions {
     overflow: visible;
   }
 
-  #grid .card:has(:focus-visible) {
-    outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
-    outline-offset: 3px;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
-  }
 
   #grid .card--in-outfit {
     box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 88%, transparent);
@@ -21578,7 +21519,6 @@ body.home-page .home-hero__hero .home-hero__btn {
 }
 
 .home-hero__hero-arrow:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.88);
 }
 
 .home-hero__hero-arrow svg {
@@ -21620,8 +21560,6 @@ body.home-page .home-hero__hero .home-hero__btn {
 }
 
 .home-hero__hero-dot:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.75);
-  outline-offset: 3px;
 }
 
 .home-hero__hero-layer {
@@ -21957,7 +21895,6 @@ video.home-hero__hero-layer-video {
 }
 
 .home-hero__season-duo-card:focus-visible {
-  outline-offset: -2px;
   z-index: 2;
 }
 
@@ -22270,7 +22207,6 @@ video.home-hero__hero-layer-video {
 }
 
 .home-hero__division-rail-card:focus-visible {
-  outline-offset: 3px;
 }
 
 .home-hero__division-rail-media {
@@ -22543,7 +22479,6 @@ body.home-page .home-hero__band--muted {
 }
 
 .home-hero__pcard:focus-visible {
-  outline-offset: 3px;
 }
 
 .home-hero__pcard-media {
@@ -22806,7 +22741,6 @@ body.home-page #main.home-hero .home-hero__band--season {
 }
 
 .home-hero__season-tile:focus-visible {
-  outline-offset: 3px;
 }
 
 .home-hero__season-media {
