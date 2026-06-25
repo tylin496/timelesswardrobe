@@ -24991,8 +24991,8 @@ body.account-collection-drawer-open .account-page-main {
 }
 
 .account-showcase-summary__copy {
-  align-self: flex-start;
-  margin-top: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
   padding: 0.25rem 0.7rem;
   font-family: var(--font-sans);
   font-size: 0.72rem;
@@ -25027,6 +25027,8 @@ body.account-collection-drawer-open .account-page-main {
 }
 
 .account-showcase-hint {
+  display: flex;
+  align-items: center;
   font-size: 0.8rem;
   color: var(--ink-muted);
   font-style: italic;

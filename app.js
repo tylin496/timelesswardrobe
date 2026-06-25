@@ -4527,11 +4527,12 @@
         setTimeout(() => { copyBtn.textContent = "Copy order"; }, 1800);
       });
     });
-    summaryEl.append(summaryLabel, summaryMeta, copyBtn);
+    summaryEl.append(summaryLabel, summaryMeta);
     wrapper.appendChild(summaryEl);
 
     const hint = document.createElement("p");
     hint.className = "account-showcase-hint";
+    hint.appendChild(copyBtn);
     wrapper.appendChild(hint);
 
     const list = document.createElement("div");
@@ -8326,6 +8327,13 @@
     const secBasicText = itemSecondaryBasicColour(item);
     if (secBasicText) meta.secondaryBasicColour = secBasicText;
     else delete meta.secondaryBasicColour;
+
+    // Ownership status is the authored source of truth (brand = maker only).
+    if (item.is_future) meta.ownership_status = "future";
+    else {
+      delete meta.ownership_status;
+      delete meta.ownershipStatus;
+    }
 
     const metadataOut = sanitizeWardrobeMetadataForPostgres(meta);
     const colourText = String(item.colour ?? item.color ?? "").trim();
