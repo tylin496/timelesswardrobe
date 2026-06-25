@@ -178,7 +178,10 @@
   --motion-duration: 0.28s;
   --motion-duration-short: 0.22s;
   /* Wordmark offset from header content box: matches `.site-title__mark` + `.site-title__primary` gap (desktop). */
-  --site-title-mark-size: 42px;
+  /* Mark is locked to 1.2× the wordmark size at every breakpoint: update only
+     --site-wordmark-size per breakpoint and the monogram + submenu offset follow. */
+  --site-wordmark-size: clamp(0.85rem, 2.91vw, 1.8rem);
+  --site-title-mark-size: calc(var(--site-wordmark-size) * 1.2);
   --site-title-primary-gap: 0.55rem;
   /* Left edge of “TIMELESS WARDROBE” text (monogram width + gap) — legacy / mobile fallbacks. */
   --site-header-submenu-text-offset: calc(var(--site-title-mark-size) + var(--site-title-primary-gap));
@@ -296,7 +299,6 @@
 
 @media (max-width: 1024px) {
   :root {
-    --site-title-mark-size: 30px;
     --page-gutter: max(14px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
     --header-inline: 17px;
   }
@@ -1072,7 +1074,7 @@ body {
 .site-brand-wordmark .site-title__wordmark-line {
   font-family: var(--font-serif);
   font-weight: 600;
-  font-size: clamp(0.85rem, 2.91vw, 1.8rem);
+  font-size: var(--site-wordmark-size);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 0.92;
@@ -3750,7 +3752,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 
 @media (min-width: 901px) {
   :root {
-    --site-title-mark-size: 34px;
+    --site-wordmark-size: clamp(1.25rem, 1.9vw, 1.6rem);
     --site-title-primary-gap: 0.44rem;
     --space-collection-inline: var(--tw-catalogue-inline);
     --desktop-layout-max-width: var(--content-max);
@@ -4716,7 +4718,7 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
   .site-title__wordmark,
   .site-title__wordmark-line,
   .site-brand-wordmark .site-title__wordmark-line {
-    font-size: clamp(1.03rem, 1.6vw, 1.41rem);
+    font-size: var(--site-wordmark-size);
     line-height: 0.92;
   }
 
@@ -5689,6 +5691,10 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 }
 
 @media (max-width: 900px) {
+  :root {
+    --site-wordmark-size: clamp(0.9rem, 4.2vw, 1.1rem);
+  }
+
   body.theme-catalogue .site-header__search-wrap {
     background: transparent;
   }
@@ -5874,7 +5880,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-header__brand-nav {
     --site-header-mobile-row-height: 44px;
     --site-header-mobile-tool-size: 2.35rem;
-    --site-header-mobile-mark-size: 24px;
+    --site-header-mobile-mark-size: calc(var(--site-wordmark-size) * 1.2);
     --site-header-mobile-tools-gap: 0.05rem;
     --site-header-mobile-tools-reserve: calc(4 * 2.35rem + 3 * var(--site-header-mobile-tools-gap));
     display: grid;
@@ -5972,22 +5978,26 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
   .site-title__wordmark,
   .site-title__wordmark-line,
   .site-brand-wordmark .site-title__wordmark-line {
-    font-size: clamp(0.9rem, 4.2vw, 1.1rem);
+    font-size: var(--site-wordmark-size);
     letter-spacing: 0.05em;
     line-height: 1;
     white-space: nowrap;
   }
 
   @media (max-width: 390px) {
+    :root {
+      --site-wordmark-size: clamp(0.82rem, 3.8vw, 0.92rem);
+    }
+
     .site-title__wordmark,
     .site-title__wordmark-line,
     .site-brand-wordmark .site-title__wordmark-line {
-      font-size: clamp(0.82rem, 3.8vw, 0.92rem);
+      font-size: var(--site-wordmark-size);
       letter-spacing: 0.05em;
     }
 
     .site-header__brand-nav {
-      --site-header-mobile-mark-size: 24px;
+      --site-header-mobile-mark-size: calc(var(--site-wordmark-size) * 1.2);
     }
   }
 
