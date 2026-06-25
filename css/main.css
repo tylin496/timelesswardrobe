@@ -6896,20 +6896,6 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     transform: translate3d(0, 0, 0);
   }
 
-  .site-mobile-shell__logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-width: 0;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .site-mobile-shell__logo .site-title__mark {
-    width: 26px;
-    height: 26px;
-    flex-shrink: 0;
-  }
 
   .site-mobile-shell__wordmark {
     font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
@@ -13362,7 +13348,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 
 /* #grid .card__media has higher specificity (ID) — re-assert skeleton styles */
 #grid .card--skeleton .card__media {
-  background-color: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  background-color: color-mix(in srgb, var(--line) 70%, var(--bg));
   background-image: none;
 }
 
