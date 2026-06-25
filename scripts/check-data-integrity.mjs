@@ -14,9 +14,13 @@
  *      + image-folder name + URL slug). check:id-drift compares id *sets* against
  *      the lock, so a true duplicate inside the seed is silently swallowed there —
  *      this catches it. A dup means two rows fight over one folder/slug/FK target.
- *   2. Required identity fields present and non-empty: id, category, brand, name.
+ *   2. Required identity fields present and non-empty: id, category, name.
  *      A row missing one of these renders as a broken/empty card and breaks
- *      grouping and routing.
+ *      grouping and routing. `brand` is intentionally NOT required: it represents
+ *      the maker only and is legitimately empty when the maker is unknown (e.g.
+ *      aspirational/future pieces). Ownership is an independent fact stored in
+ *      metadata.ownership_status — never inferred from brand. See
+ *      [[project-ownership-status-migration]] / docs/DATA-INVARIANTS.md.
  *
  * Deferred (documented in docs/DATA-INVARIANTS.md, not yet enforced here):
  *   - showcase order integrity (unique, dense 0..N, no orphans) — needs the baked
@@ -31,7 +35,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wardrobePath = path.join(root, "data", "wardrobe.js");
 
-const REQUIRED_FIELDS = ["id", "category", "brand", "name"];
+const REQUIRED_FIELDS = ["id", "category", "name"];
 
 function loadWardrobeItems() {
   const source = fs.readFileSync(wardrobePath, "utf8");

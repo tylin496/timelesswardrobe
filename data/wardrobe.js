@@ -369,7 +369,7 @@ const WARDROBE_ITEMS = [
   {
     "id": "wedding-bands",
     "category": "Jewellery",
-    "brand": "Future Piece",
+    "brand": "",
     "name": "Wedding Bands",
     "season": "All-season",
     "colour": "Gold",
@@ -377,7 +377,8 @@ const WARDROBE_ITEMS = [
     "fabric": "Pt950 1.8 mm (bride) / 18ct YG 2 mm size 13 (groom)",
     "notes": "Inscription: spouse name · date (e.g. Edward · 29 Mai). \nTraditionally worn closest to the hand when stacked. \n\nInspired by surviving Georgian and Regency-era wedding bands, including those of Prince Edward, Duke of Kent (1767–1820) and Princess Victoria, Duchess of Kent (1786–1861).",
     "metadata": {
-      "basicColour": "gold"
+      "basicColour": "gold",
+      "ownership_status": "future"
     },
     "image": "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/1.webp?v=a078bdd0",
     "gallery": [
@@ -1466,9 +1467,9 @@ const WARDROBE_ITEMS = [
   {
     "id": "sapphire-three-stone-ring",
     "pillar": "Jewellery",
-    "section": "Future Pieces",
+    "section": "",
     "category": "Jewellery",
-    "brand": "Future Piece",
+    "brand": "Cartier",
     "name": "Sapphire Three-Stone Ring",
     "season": "All-season",
     "colour": "Platinum",
@@ -1479,7 +1480,8 @@ const WARDROBE_ITEMS = [
     "metadata": {
       "basicColour": "silver",
       "secondaryColour": "Sapphire",
-      "secondaryColourCode": "#1B57BC"
+      "secondaryColourCode": "#1B57BC",
+      "ownership_status": "future"
     },
     "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/1.webp?v=f70953f9",
     "gallery": [
@@ -1526,7 +1528,7 @@ const WARDROBE_ITEMS = [
     "id": "sapphire-ring",
     "section": "Jewellery",
     "category": "Jewellery",
-    "brand": "Future Piece",
+    "brand": "",
     "name": "Sapphire Ring",
     "season": "All-season",
     "colour": "Platinum",
@@ -1536,7 +1538,8 @@ const WARDROBE_ITEMS = [
     "notes": "Reference: Inspired by the Garrard sapphire cluster engagement ring famously chosen by Diana, Princess of Wales, in 1981.",
     "metadata": {
       "secondaryColour": "Light cornflower blue",
-      "secondaryColourCode": "#384D87"
+      "secondaryColourCode": "#384D87",
+      "ownership_status": "future"
     },
     "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/1.webp?v=1d79ca1d",
     "gallery": [
@@ -2404,14 +2407,15 @@ const WARDROBE_ITEMS = [
     "id": "1930s-half-belt-leather-jacket",
     "section": "Tailoring & Outerwear",
     "category": "Outerwear",
-    "brand": "Future Piece",
+    "brand": "Aero Leather Clothing",
     "name": "1930s Half-Belt Leather Jacket",
     "season": "A/W",
     "colour": "Vicenza Seal",
     "colourCode": "#56382e",
     "notes": "Aero Leather Clothing\n* Vicenza Seal +£90\n* Waldes Grommet Brass +£42\n* Brown Drill\n* Match Stitch\n* Ball & Chain\n* No Inside Pocket\n\n£1,182\n* 47,000～51,000 TWD",
     "metadata": {
-      "basicColour": "brown"
+      "basicColour": "brown",
+      "ownership_status": "future"
     },
     "colourVariants": [
       {

@@ -873,13 +873,19 @@
               <div class="item-edit-pair-row item-edit-select-row item-edit-pair-row--brand-name field--span2">
                 <label class="field item-edit-select-row__cell">
                   <span class="field__label">Brand</span>
-                  <input id="add-item-brand" name="brand" type="text" maxlength="120" required autocomplete="off" />
+                  <input id="add-item-brand" name="brand" type="text" maxlength="120" autocomplete="off" placeholder="Maker — leave empty if unknown" />
                 </label>
                 <label class="field item-edit-select-row__cell">
                   <span class="field__label">Name</span>
                   <input id="add-item-name" name="name" type="text" maxlength="200" required autocomplete="off" />
                 </label>
               </div>
+              <label class="field field--span2 item-edit-ownership-field">
+                <span class="item-edit-ownership-toggle">
+                  <input id="add-item-future" name="future" type="checkbox" />
+                  <span class="field__label">Future piece — not yet owned (wishlist)</span>
+                </span>
+              </label>
               <div class="item-edit-triple-row item-edit-select-row field--span2">
                 <label class="field item-edit-select-row__cell">
                   <span class="field__label">Season (optional)</span>

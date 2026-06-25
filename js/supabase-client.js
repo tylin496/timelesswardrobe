@@ -115,16 +115,12 @@ export function mapRowToItem(row) {
   if (topCv && topCv.length) {
     out.colourVariants = topCv;
   }
-  {
-    const _blob = [row.id, row.brand, row.name, row.category, row.section]
-      .map((x) => String(x ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ")).join(" ");
-    const _own = String(
-      row.ownership_status ?? row.ownershipStatus ?? row.status ??
-      meta?.ownership_status ?? meta?.ownershipStatus ?? ""
-    ).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    out.is_future = _blob.includes("future piece") || _blob.includes("future pieces") ||
-      _own.includes("future") || _own.includes("wishlist");
-  }
+  // Ownership is an authored fact in metadata.ownership_status; is_future is its
+  // projection (never inferred from brand/name text). app.js re-derives this at
+  // the catalogue merge choke point — kept here so cloud rows are consistent
+  // before merge.
+  out.is_future =
+    String(meta?.ownership_status ?? meta?.ownershipStatus ?? "").toLowerCase().trim() === "future";
   return out;
 }
 

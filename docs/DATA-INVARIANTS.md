@@ -22,7 +22,7 @@ loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` i
 |---|-----------|---------|--------|
 | 1 | Catalogue id set matches the frozen lock (ids are immutable) | `npm run check:id-drift` | `scripts/check-catalogue-id-drift.mjs` |
 | 2 | No duplicate `id` in the seed | `npm run check:data` | `scripts/check-data-integrity.mjs` |
-| 3 | Required identity fields present & non-empty (`id`, `category`, `brand`, `name`) | `npm run check:data` | `scripts/check-data-integrity.mjs` |
+| 3 | Required identity fields present & non-empty (`id`, `category`, `name`) — `brand` is the maker and may be empty when unknown; ownership is `metadata.ownership_status`, never inferred from brand | `npm run check:data` | `scripts/check-data-integrity.mjs` |
 | 4 | Every local (`/images/…`) image reference exists on disk | `npm run check:wardrobe-images` | `scripts/check-wardrobe-local-images.mjs` |
 | 5 | No legacy misspelled Vercel hostname in source | `npm run check:urls` | `scripts/check-public-urls.mjs` |
 

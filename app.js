@@ -12517,13 +12517,6 @@
   /** @type {Set<string>} */
   let subcategoryFilters = new Set();
 
-  /**
-   * When false: no record-type drill under the collection toolbar, no header hover mega-menu, and mobile skips the
-   * expandable type list — top-level taps jump straight to the full slot grid. Inline `data-subcategory-jump` links and
-   * the subcategory filter chip still work.
-   */
-  const COLLECTION_RECORD_TYPE_SUBNAV_ENABLED = true;
-
   /** Item id currently shown on the item page (for edit / delete actions). */
   let detailItemId = null;
 
@@ -15938,17 +15931,6 @@
     validateSubcategoryFilter();
 
     if (isCollectionSearchResultsMode()) {
-      document.body.classList.remove("collection-ui--division-chips");
-      document.getElementById("collection-slot-type-strip")?.remove();
-      blurActiveElementIfInsideCategoryDrill();
-      drill.hidden = true;
-      grid.hidden = true;
-      grid.innerHTML = "";
-      lastCategoryDrillStructureKey = "";
-      return;
-    }
-
-    if (!COLLECTION_RECORD_TYPE_SUBNAV_ENABLED) {
       document.body.classList.remove("collection-ui--division-chips");
       document.getElementById("collection-slot-type-strip")?.remove();
       blurActiveElementIfInsideCategoryDrill();
@@ -24571,8 +24553,8 @@
         ? String(colourVariantsBuilt[0].secondaryColourCode ?? "").trim()
         : secRead.secondaryColourCode;
 
-    if (!brand || !name || !browseSlot) {
-      setMsg("Brand, name, and section are required.", true);
+    if (!name || !browseSlot) {
+      setMsg("Name and section are required.", true);
       return;
     }
 
@@ -24619,6 +24601,7 @@
     const colourCodeTrim = String(colourCode ?? "").trim();
     const secondaryColourTrim = String(secondaryColour ?? "").trim();
     const secondaryColourCodeTrim = String(secondaryColourCode ?? "").trim();
+    const futureToggle = form.querySelector("#item-edit-future");
     const updated = {
       ...prev,
       brand,
@@ -24634,6 +24617,7 @@
       notes,
       image,
       pillar: String(prev.pillar ?? ""),
+      is_future: futureToggle instanceof HTMLInputElement ? futureToggle.checked : Boolean(prev.is_future),
     };
     if (colourTrim) {
       updated.colour = colourTrim;
@@ -25509,8 +25493,9 @@
       const brandIn = document.createElement("input");
       brandIn.type = "text";
       brandIn.id = "item-edit-brand";
-      brandIn.required = true;
+      brandIn.required = false;
       brandIn.maxLength = 120;
+      brandIn.placeholder = "Maker — leave empty if unknown";
       brandIn.value = String(item.brand ?? "");
       const nameIn = document.createElement("input");
       nameIn.type = "text";
@@ -25519,6 +25504,22 @@
       nameIn.maxLength = 200;
       nameIn.value = String(item.name ?? "");
       appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn, { variant: "brand-name" });
+
+      // Ownership status — authored domain fact (independent of brand).
+      const ownershipLab = document.createElement("label");
+      ownershipLab.className = "field field--span2 item-edit-ownership-field";
+      const ownershipToggle = document.createElement("span");
+      ownershipToggle.className = "item-edit-ownership-toggle";
+      const futureIn = document.createElement("input");
+      futureIn.type = "checkbox";
+      futureIn.id = "item-edit-future";
+      futureIn.checked = Boolean(item.is_future);
+      const futureTxt = document.createElement("span");
+      futureTxt.className = "field__label";
+      futureTxt.textContent = "Future piece — not yet owned (wishlist)";
+      ownershipToggle.append(futureIn, futureTxt);
+      ownershipLab.appendChild(ownershipToggle);
+      identityGrid.appendChild(ownershipLab);
 
       const seaSel = document.createElement("select");
       seaSel.id = "item-edit-season";
@@ -29284,10 +29285,6 @@
       const links = document.getElementById("site-header-submenu-links");
       if (!wrap || !links) return;
       if (!slot || !SLOT_OPTIONS.includes(slot)) {
-        hideHeaderSubmenu();
-        return;
-      }
-      if (!COLLECTION_RECORD_TYPE_SUBNAV_ENABLED) {
         hideHeaderSubmenu();
         return;
       }
