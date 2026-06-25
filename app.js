@@ -8139,6 +8139,31 @@
     } catch (_) {}
   }
 
+  function showcaseRankSeedMap() {
+    try {
+      const raw = localStorage.getItem(SHOWCASE_RANK_CACHE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return {};
+      return parsed;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function applyShowcaseRankCacheToWardrobeBase() {
+    const map = showcaseRankSeedMap();
+    if (!Object.keys(map).length) return;
+    for (const item of wardrobeBase) {
+      if (!item?.id) continue;
+      const rank = map[String(item.id)];
+      if (typeof rank === "number" && rank >= 0) {
+        item.showcaseOrder = rank;
+        item.metadata = { ...(item.metadata ?? {}), showcase_rank: rank };
+      }
+    }
+  }
+
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
     const seen = new Set();
@@ -10745,6 +10770,7 @@
     // collection_overrides layer removed (single-truth architecture): metadata
     // truth is wardrobeBase (seed aligned to wardrobe_items + cloud metadata
     // merge), images are local seed paths. No override patch is applied.
+    applyShowcaseRankCacheToWardrobeBase();
     const hiddenCollection = loadCollectionHiddenIds();
     const mergedBase = wardrobeBase
       .filter((row) => {
