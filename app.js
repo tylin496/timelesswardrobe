@@ -23606,10 +23606,9 @@
       // Stagger-reveal first 6 cards: hold images behind skeleton bg until all
       // are ready (or 3s), then fade in one by one with index-based delay.
       (function staggerFirstCards() {
-        const STAGGER_COUNT = 12;
         const STAGGER_STEP = 0;
         const TIMEOUT = 3000;
-        const cards = [...els.grid.querySelectorAll(".card")].slice(0, STAGGER_COUNT);
+        const cards = [...els.grid.querySelectorAll(".card")];
         if (!cards.length) return;
         cards.forEach((c) => c.classList.add("is-cover-pending"));
         const imgs = cards.map((c) => c.querySelector(".card__media-img"));
