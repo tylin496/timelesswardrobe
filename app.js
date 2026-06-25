@@ -9620,8 +9620,9 @@
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
     if (!transport || !storagePathFromWardrobeImageUrl(transport) || isR2WardrobeImageUrl(transport || raw)) {
-      // Local/R2 images: serve pre-generated thumbnails for card-sized requests;
-      // originals for detail/zoom. A missing thumb falls back via cover candidate chain.
+      // R2 images: serve full-res directly (no thumb redirect).
+      if (isR2WardrobeImageUrl(transport || raw)) return transport || raw;
+      // Local images (cutouts etc): serve pre-generated thumbnails for card-sized requests.
       const thumb = localWardrobeThumbPath(transport || raw, width);
       return thumb || transport || raw;
     }
@@ -22882,7 +22883,7 @@
     const img = document.createElement("img");
     img.className = "card__media-img card__media-img--cover";
     img.alt = imageAltForItem(cardCoverMediaItem);
-    img.loading = "lazy";
+    img.loading = cardOpts.eager ? "eager" : "lazy";
     img.decoding = "async";
     img.draggable = false;
     img.sizes = "(max-width: 900px) 50vw, 33vw";
@@ -23640,7 +23641,8 @@
       for (let i = 0; i < firstCount; i++) {
         firstFrag.appendChild(
           createCard(sorted[i], {
-            fetchPriority: i < 4 ? "high" : "auto",
+            fetchPriority: i < 8 ? "high" : "auto",
+            eager: i < 8,
             skipEnterAnimation: true,
           })
         );
@@ -23655,7 +23657,8 @@
         for (let i = startAt; i < end; i++) {
           frag.appendChild(
             createCard(sorted[i], {
-              fetchPriority: i < 4 ? "high" : "auto",
+              fetchPriority: i < 8 ? "high" : "auto",
+              eager: i < 8,
               skipEnterAnimation: true,
             })
           );
