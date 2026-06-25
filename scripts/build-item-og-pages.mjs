@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
-const BASE_URL = "https://timeless-wardrobe.vercel.app";
+const BASE_URL = "https://timelesswardrobe.uk";
 
 // ── Load wardrobe data ────────────────────────────────────────────────────────
 const wardrobeSrc = fs.readFileSync(path.join(ROOT, "data", "wardrobe.js"), "utf8");

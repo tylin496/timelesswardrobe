@@ -9,7 +9,7 @@
  *   R2_PUBLIC_URL    — e.g. https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev
  *   SUPABASE_URL     — e.g. https://xxxx.supabase.co
  *   SUPABASE_ANON_KEY
- *   ALLOWED_ORIGIN   — e.g. https://timeless-wardrobe.vercel.app (or * for dev)
+ *   ALLOWED_ORIGIN   — e.g. https://timelesswardrobe.uk (or * for dev)
  */
 
 export default {

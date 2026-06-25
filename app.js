@@ -2619,7 +2619,7 @@
   }
 
   /** Vercel production default origin. */
-  const TW_VERCEL_PRODUCTION_ORIGIN = "https://timeless-wardrobe.vercel.app";
+  const TW_VERCEL_PRODUCTION_ORIGIN = "https://timelesswardrobe.uk";
 
   let twLoginOAuthKickoff = false;
 
@@ -8998,7 +8998,7 @@
 
   /**
    * Decoded `images/wardrobe/…` suffix from a local path or any URL that contains it
-   * (e.g. https://timeless-wardrobe.vercel.app/images/wardrobe/…), else "".
+   * (e.g. https://timelesswardrobe.uk/images/wardrobe/…), else "".
    * Single source of truth for local media-path extraction.
    */
   function localWardrobePathFromUrl(url) {
