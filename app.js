@@ -75,8 +75,6 @@
     ["uniqlo-tuck-trousers-beige", { itemId: "pleated-trousers", colourKey: "beige" }],
   ]);
 
-  const LEGACY_ITEM_ID_MAP = new Map();
-
   function slugItemName(name) {
     return String(name ?? "")
       .toLowerCase()
@@ -102,7 +100,7 @@
   function resolveCanonicalItemId(id) {
     const sid = String(id ?? "").trim();
     if (!sid) return "";
-    return LEGACY_ITEM_ID_MAP.get(sid) || sid;
+    return sid;
   }
 
   function itemColourCode(item) {
@@ -9878,10 +9876,6 @@
   function rebuildItemIndex() {
     itemById.clear();
     for (const i of items) itemById.set(i.id, i);
-    for (const [oldId, newId] of LEGACY_ITEM_ID_MAP) {
-      const row = itemById.get(newId);
-      if (row) itemById.set(oldId, row);
-    }
   }
 
   function normalizeCustomItemRows(arr) {
