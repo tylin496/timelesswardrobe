@@ -23641,8 +23641,8 @@
       for (let i = 0; i < firstCount; i++) {
         firstFrag.appendChild(
           createCard(sorted[i], {
-            fetchPriority: i < 8 ? "high" : "auto",
-            eager: i < 8,
+            fetchPriority: i < 2 ? "high" : "auto",
+            eager: i < 2,
             skipEnterAnimation: true,
           })
         );
