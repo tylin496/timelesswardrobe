@@ -10423,7 +10423,9 @@
     if (!isSupabaseReady()) return;
     const updated_at = new Date().toISOString();
     const hidden = [...collectionHiddenState];
-    const overrides = collectionOverridesState;
+    // RETIRED layer: always persist an empty overrides map so the dead column
+    // drains to {} and can never re-grow. See docs/ARCHITECTURE.md → Audit Matrix.
+    const overrides = {};
     const metadata = wardrobeAppMetadataState;
 
     const buildRow = (legacy, includeMetadata = wardrobeAppStateSupportsMetadata) => {
@@ -10564,27 +10566,17 @@
     await hydrateCollectionStateFromCloud();
   }
 
+  // RETIRED — collection_overrides is a dead, redundant layer. The merge never
+  // reads it (mergeWardrobeFromSources: "No override patch is applied") and every
+  // value duplicates wardrobe_items (parity verified). These two functions are kept
+  // as inert no-ops so the remaining call sites stay harmless; the column is drained
+  // to {} by flushWardrobeAppStateToSupabase. See docs/ARCHITECTURE.md → Audit Matrix.
   function loadCollectionOverrides() {
-    return { ...collectionOverridesState };
+    return {};
   }
 
-  async function saveCollectionOverrides(map) {
-    collectionOverridesState = map && typeof map === "object" && !Array.isArray(map) ? { ...map } : {};
-    if (!isSupabaseReady()) {
-      try {
-        localStorage.setItem(ITEM_COLLECTION_OVERRIDES_KEY, JSON.stringify(collectionOverridesState));
-      } catch (e) {
-        const q = /** @type {any} */ (e);
-        if (q?.name === "QuotaExceededError" || q?.code === 22) {
-          const ex = /** @type {any} */ (new Error("quota"));
-          ex.collectionOverrides = true;
-          throw ex;
-        }
-        throw e;
-      }
-      return;
-    }
-    await flushWardrobeAppStateToSupabase();
+  async function saveCollectionOverrides(_map) {
+    // no-op: catalogue edits persist to wardrobe_items (the single truth), not here.
   }
 
   /**
