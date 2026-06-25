@@ -26173,85 +26173,6 @@
     return ed;
   }
 
-  /** 1-based position of an item within the live Showcase order, or null. */
-  function showcaseDisplayPosition(item) {
-    if (!isInShowcase(item)) return null;
-    const id = String(item?.id ?? "");
-    const idx = getShowcaseItems().findIndex((it) => String(it.id) === id);
-    return idx >= 0 ? idx + 1 : null;
-  }
-
-  /** Build the "Featured in Showcase" context block, or null if not in Showcase. */
-  function buildItemDetailShowcaseContext(item) {
-    if (!isInShowcase(item)) return null;
-    const showcaseItems = getShowcaseItems();
-    const total = showcaseItems.length;
-    const idx = showcaseItems.findIndex((it) => String(it.id) === String(item?.id ?? ""));
-    const pos = idx >= 0 ? idx + 1 : null;
-    const prevItem = idx > 0 ? showcaseItems[idx - 1] : null;
-    const nextItem = idx >= 0 && idx < total - 1 ? showcaseItems[idx + 1] : null;
-
-    const ctx = document.createElement("div");
-    ctx.className = "item-detail__context";
-
-    const ctxLabel = document.createElement("span");
-    ctxLabel.className = "item-detail__context-label";
-    ctxLabel.textContent = "Showcase";
-
-    const ctxPos = document.createElement("span");
-    ctxPos.className = "item-detail__context-pos";
-    ctxPos.textContent = pos && total ? `${pos} / ${total}` : "";
-
-    const ctxNav = document.createElement("span");
-    ctxNav.className = "item-detail__context-nav";
-
-    const prevA = document.createElement("a");
-    prevA.className = "item-detail__context-nav-btn";
-    prevA.setAttribute("aria-label", prevItem ? `Previous: ${prevItem.brand} ${prevItem.name}` : "No previous item");
-    prevA.textContent = "←";
-    if (prevItem) prevA.href = buildItemDetailHrefFromId(prevItem.id);
-    else prevA.setAttribute("aria-disabled", "true");
-
-    const nextA = document.createElement("a");
-    nextA.className = "item-detail__context-nav-btn";
-    nextA.setAttribute("aria-label", nextItem ? `Next: ${nextItem.brand} ${nextItem.name}` : "No next item");
-    nextA.textContent = "→";
-    if (nextItem) nextA.href = buildItemDetailHrefFromId(nextItem.id);
-    else nextA.setAttribute("aria-disabled", "true");
-
-    ctxNav.append(prevA, nextA);
-    ctx.append(ctxLabel, ctxPos, ctxNav);
-    return ctx;
-  }
-
-  /**
-   * Runtime reconciliation for the item page: after the deferred Supabase
-   * fetch lands, the showcase membership/position may have changed (cold
-   * device had no order at first paint). Patch just the context badge in
-   * place — no full re-render, so the hero/gallery don't reflow or re-fade.
-   */
-  function reconcileItemDetailShowcaseBadge() {
-    const root = document.getElementById("item-detail-root");
-    if (!root || !itemDetailIsPageRoot(root)) return;
-    if (!isTwEditorUser()) return;
-    const item = detailItemId ? itemById.get(String(detailItemId)) : null;
-    if (!item) return;
-    const body = root.querySelector(".item-detail__body");
-    if (!body) return;
-    const existing = body.querySelector(".item-detail__context");
-    const fresh = buildItemDetailShowcaseContext(item);
-    if (!fresh) {
-      existing?.remove();
-      return;
-    }
-    if (existing) {
-      existing.replaceWith(fresh);
-      return;
-    }
-    const cta = body.querySelector(".item-detail__outfits-cta-wrap");
-    if (cta) body.insertBefore(fresh, cta);
-    else body.appendChild(fresh);
-  }
 
   function renderItemDetailContent(root, item, opts = {}) {
     const edit = Boolean(opts.edit) && canUseItemDetailEdit();
@@ -27179,12 +27100,6 @@
     }
 
     if (dl.children.length) body.appendChild(dl);
-
-    // ── Showcase context (editor only) ───────────────────────────────────────
-    if (isItemPageView && isTwEditorUser()) {
-      const ctx = buildItemDetailShowcaseContext(item);
-      if (ctx) body.appendChild(ctx);
-    }
 
     appendItemDetailOutfitsCta(body, item);
 
@@ -31615,7 +31530,6 @@
     if (--_deferredCollectionPending <= 0) {
       _deferredCollectionPending = 0;
       renderGrid();
-      reconcileItemDetailShowcaseBadge();
       syncOutfitSaveButtonLabel();
     }
   }

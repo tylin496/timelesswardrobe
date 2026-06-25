@@ -13192,6 +13192,9 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   position: relative;
   z-index: 0;
   filter: var(--collection-cutout-shadow);
+  height: 100%;
+  max-height: none;
+  flex: none;
 }
 
 /* Gallery frames — edge-to-edge crop (not cut-out contain). */
@@ -18593,62 +18596,6 @@ a.item-detail__breadcrumb-current {
 
 .item-detail__acquired-twd {
   opacity: 0.65;
-}
-
-/* ── Showcase context strip ─────────────────────────────────────────────────── */
-.item-detail__context {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: clamp(1rem, 2vw, 1.4rem);
-}
-
-.item-detail__context-label {
-  font-family: var(--font-sans);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  opacity: 0.45;
-}
-
-.item-detail__context-pos {
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
-  color: var(--ink-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.item-detail__context-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  margin-left: 0.2rem;
-}
-
-.item-detail__context-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  color: var(--ink-muted);
-  text-decoration: none;
-  border-radius: 50%;
-  transition: background 0.15s, color 0.15s;
-}
-
-.item-detail__context-nav-btn:hover {
-  background: color-mix(in srgb, var(--ink-muted) 10%, transparent);
-  color: var(--ink);
-}
-
-.item-detail__context-nav-btn[aria-disabled="true"] {
-  opacity: 0.25;
-  pointer-events: none;
 }
 
 /* ── Collection Note essay ──────────────────────────────────────────────────── */
