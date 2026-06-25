@@ -2416,7 +2416,7 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "seal",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp",
+        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp?v=4cdf40c6",
         "label": "Seal",
         "notes": "",
         "colour": "Vicenza Seal",
