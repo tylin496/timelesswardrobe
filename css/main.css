@@ -20215,7 +20215,7 @@ body.collection-page .collection-container > .collection-actions {
   @apply mt-0;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     row-gap: 42px;
-    column-gap: 1px;
+    column-gap: 0;
     padding-top: 0;
   }
 
@@ -20919,15 +20919,15 @@ body.collection-page .collection-container > .collection-actions {
   body.collection-page:not(.collection-view--compact) #grid,
   body.collection-page:not(.collection-view--compact) #grid.grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1px;
+    column-gap: 0;
     row-gap: 1.15rem;
-    gap: 1.15rem 1px;
+    gap: 1.15rem 0;
   }
 
   body.collection-page #grid.grid {
-    column-gap: 1px;
+    column-gap: 0;
     row-gap: 1.15rem;
-    gap: 1.15rem 1px;
+    gap: 1.15rem 0;
   }
 
   #grid .card__body {
@@ -20993,9 +20993,9 @@ body.collection-page .collection-container > .collection-actions {
   body.collection-page #grid.grid,
   body.collection-page #grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 1px;
+    column-gap: 0;
     row-gap: 42px;
-    gap: 42px 1px;
+    gap: 42px 0;
   }
 }
 
