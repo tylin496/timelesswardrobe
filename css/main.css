@@ -13256,7 +13256,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 .card--skeleton {
   pointer-events: none;
   animation: none;
-  box-shadow: 0 4px 18px var(--card-shadow);
 }
 
 .card--skeleton .card__media {
@@ -19918,10 +19917,6 @@ body.collection-page .collection-container > .collection-actions {
     padding-right: var(--space-page-inline);
     padding-top: clamp(1rem, 3.2vw, 1.35rem);
     padding-bottom: max(2.25rem, calc(1rem + env(safe-area-inset-bottom, 0px)));
-  }
-
-  .card {
-    border-radius: var(--radius-lg);
   }
 
   .card__season-chip {
