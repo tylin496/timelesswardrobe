@@ -16972,7 +16972,9 @@
     const id = String(item?.id ?? "").trim();
     const path = wardrobeImageObjectPath(url);
     if (!id || !path) return true;
-    return path === id || path.startsWith(`${id}/`);
+    // R2 URLs yield "wardrobe/<id>/…"; strip the bucket prefix before ownership check.
+    const rel = path.startsWith("wardrobe/") ? path.slice("wardrobe/".length) : path;
+    return rel === id || rel.startsWith(`${id}/`);
   }
 
   /**
