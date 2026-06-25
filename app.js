@@ -10207,17 +10207,6 @@
   let wardrobeAppMetadataState = {};
   let wardrobeAppStateSupportsMetadata = true;
 
-  function readCollectionOverridesFromLocalStorageRaw() {
-    try {
-      const raw = localStorage.getItem(ITEM_COLLECTION_OVERRIDES_KEY);
-      if (!raw) return {};
-      const p = JSON.parse(raw);
-      return p && typeof p === "object" && !Array.isArray(p) ? p : {};
-    } catch {
-      return {};
-    }
-  }
-
   function readCollectionHiddenIdsFromLocalStorageRaw() {
     try {
       const raw = localStorage.getItem(COLLECTION_HIDDEN_IDS_KEY);
@@ -10230,7 +10219,7 @@
     }
   }
 
-  function installCollectionStateFromPayload(overrides, hiddenIds, metadata = wardrobeAppMetadataState) {
+  function installCollectionStateFromPayload(hiddenIds, metadata = wardrobeAppMetadataState) {
     collectionHiddenState = new Set(Array.isArray(hiddenIds) ? hiddenIds.map((x) => String(x)) : []);
     wardrobeAppMetadataState =
       metadata && typeof metadata === "object" && !Array.isArray(metadata)
@@ -10243,10 +10232,7 @@
   }
 
   function hydrateCollectionStateFromLocalStorageOnly() {
-    installCollectionStateFromPayload(
-      readCollectionOverridesFromLocalStorageRaw(),
-      readCollectionHiddenIdsFromLocalStorageRaw()
-    );
+    installCollectionStateFromPayload(readCollectionHiddenIdsFromLocalStorageRaw());
     applySeasonNavFromLocalStorage();
   }
 
@@ -10400,7 +10386,6 @@
   async function hydrateCollectionStateFromCloud() {
     if (!isSupabaseReady()) return;
 
-    const lsOv = readCollectionOverridesFromLocalStorageRaw();
     const lsH = readCollectionHiddenIdsFromLocalStorageRaw();
 
     const { data, error } = await fetchWardrobeAppStateFromCloud();
@@ -10412,7 +10397,7 @@
     }
 
     if (!data) {
-      installCollectionStateFromPayload(lsOv, lsH);
+      installCollectionStateFromPayload(lsH);
       applySeasonNavFromLocalStorage();
       try {
         await flushWardrobeAppStateToSupabase();
@@ -10425,20 +10410,15 @@
     }
 
     const parsed = parseWardrobeAppStateRow(/** @type {Record<string, unknown>} */ (data));
-    let overrides = parsed.overrides;
     let hidden = parsed.hidden;
     let migrated = false;
 
-    if (!Object.keys(overrides).length && Object.keys(lsOv).length) {
-      overrides = { ...lsOv };
-      migrated = true;
-    }
     if (!hidden.length && lsH.length) {
       hidden = [...lsH];
       migrated = true;
     }
 
-    installCollectionStateFromPayload(overrides, hidden, parsed.metadata);
+    installCollectionStateFromPayload(hidden, parsed.metadata);
     applySeasonNavFromLocalStorage();
 
     if (migrated) {
@@ -10449,7 +10429,7 @@
       } catch (e) {
         console.warn("Migrate collection state to Supabase failed.", e);
       }
-    } else if (Object.keys(lsOv).length || lsH.length) {
+    } else if (lsH.length) {
       try {
         localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
         localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
