@@ -25977,6 +25977,8 @@ html.tw-account-dark body.account-page .account-notes-v2-wordcount {
     font-size: 0.77rem;
     color: var(--ink-muted);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .account-cat-col--season,
