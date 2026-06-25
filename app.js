@@ -8420,7 +8420,7 @@
 
   const WARDROBE_TABLE = "wardrobe_items";
   const WARDROBE_IMAGE_BUCKET = "wardrobe-images";
-  const WARDROBE_R2_BASE = "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe";
+  const WARDROBE_R2_BASE = "https://img.timelesswardrobe.uk/wardrobe";
 
   function isSupabaseReady() {
     return Boolean(supabaseClient?.from && supabaseClient?.storage?.from);
@@ -9414,8 +9414,8 @@
     if (m) {
       try { return decodeURIComponent(m[1]); } catch { return m[1]; }
     }
-    // Cloudflare R2 public URL (pub-*.r2.dev/<path>)
-    const r2m = s.match(/^https?:\/\/[^/]*\.r2\.dev\/(.+)$/i);
+    // CDN image origin (img.timelesswardrobe.uk or pub-*.r2.dev)
+    const r2m = s.match(/^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\/(.+)$/i);
     if (r2m) {
       try { return decodeURIComponent(r2m[1]); } catch { return r2m[1]; }
     }
@@ -9585,8 +9585,8 @@
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
 
-    // R2: redirect main/1-3 and variants/<c>/1-3 to their thumb counterparts.
-    const r2m = pathPart.match(/^https?:\/\/[^/]*\.r2\.dev\/wardrobe\/(.+)$/i);
+    // CDN/R2: redirect main/1-3 and variants/<c>/1-3 to their thumb counterparts.
+    const r2m = pathPart.match(/^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\/wardrobe\/(.+)$/i);
     if (r2m) {
       let dec; try { dec = decodeURIComponent(r2m[1]); } catch { dec = r2m[1]; }
       const mMain = dec.match(/^([^/]+)\/main\/([123])\.(?:webp|png|jpe?g)$/i);
@@ -9625,9 +9625,9 @@
     return localWardrobeThumbPath(resolved, width) || resolved;
   }
 
-  /** True when the URL is a Cloudflare R2 public URL (pub-*.r2.dev/<path>). */
+  /** True when the URL is served from the CDN image origin (img.timelesswardrobe.uk or pub-*.r2.dev). */
   function isR2WardrobeImageUrl(url) {
-    return /^https?:\/\/[^/]*\.r2\.dev\//i.test(String(url ?? "").trim().split("?")[0]);
+    return /^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\//i.test(String(url ?? "").trim().split("?")[0]);
   }
 
   /**
@@ -23608,7 +23608,7 @@
       (function staggerFirstCards() {
         const STAGGER_STEP = 0;
         const TIMEOUT = 3000;
-        const cards = [...els.grid.querySelectorAll(".card")];
+        const cards = [...els.grid.querySelectorAll(".card")].slice(0, 12);
         if (!cards.length) return;
         cards.forEach((c) => c.classList.add("is-cover-pending"));
         const imgs = cards.map((c) => c.querySelector(".card__media-img"));
