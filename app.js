@@ -9584,6 +9584,25 @@
     if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
+
+    // R2: redirect main/1-3 and variants/<c>/1-3 to their thumb counterparts.
+    const r2m = pathPart.match(/^https?:\/\/[^/]*\.r2\.dev\/wardrobe\/(.+)$/i);
+    if (r2m) {
+      let dec; try { dec = decodeURIComponent(r2m[1]); } catch { dec = r2m[1]; }
+      const mMain = dec.match(/^([^/]+)\/main\/([123])\.(?:webp|png|jpe?g)$/i);
+      if (mMain) {
+        const t = `${WARDROBE_R2_BASE}/${encodeURIComponent(mMain[1])}/thumb/${mMain[2]}.webp`;
+        return query ? `${t}?${query}` : t;
+      }
+      const mVar = dec.match(/^([^/]+)\/variants\/([^/]+)\/([123])\.(?:webp|png|jpe?g)$/i);
+      if (mVar) {
+        const t = `${WARDROBE_R2_BASE}/${encodeURIComponent(mVar[1])}/variants/${encodeURIComponent(mVar[2])}/thumb/${mVar[3]}.webp`;
+        return query ? `${t}?${query}` : t;
+      }
+      return "";
+    }
+
+    // Local path: /images/wardrobe/<id>/main/<n> or variants/<c>/<n>
     let thumb = "";
     const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
     if (mMain) {
@@ -9603,7 +9622,6 @@
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
     const resolved = transport || raw;
-    if (isR2WardrobeImageUrl(resolved)) return resolved;
     return localWardrobeThumbPath(resolved, width) || resolved;
   }
 
