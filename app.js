@@ -4532,7 +4532,8 @@
 
     const hint = document.createElement("p");
     hint.className = "account-showcase-hint";
-    hint.appendChild(copyBtn);
+    const hintText = document.createElement("span");
+    hint.append(hintText, copyBtn);
     wrapper.appendChild(hint);
 
     const list = document.createElement("div");
@@ -4555,7 +4556,7 @@
     function renderPlaylist() {
       list.replaceChildren();
       const showcaseItems = getShowcaseItems();
-      hint.textContent = showcaseItems.length ? "Drag to reorder · changes save immediately" : "";
+      hintText.textContent = showcaseItems.length ? "Drag to reorder · changes save immediately" : "";
 
       // Summary meta: "4 pieces · Last modified 2d ago"
       if (showcaseItems.length) {
@@ -20403,8 +20404,9 @@
     const photoHost = document.getElementById("add-item-photos");
     const photoSlots =
       photoHost instanceof HTMLElement ? readItemEditPhotoManager(photoHost).slots : [];
-    if (!brand || !name || !browseSlot) {
-      showAddItemFormMsg("Fill required fields (brand, name, section).", true);
+    const isFuture = Boolean(document.getElementById("add-item-future")?.checked);
+    if (!name || !browseSlot) {
+      showAddItemFormMsg("Fill required fields (name, section).", true);
       return;
     }
     if (!isSupabaseReady()) {
@@ -20452,6 +20454,7 @@
       gallery: galleryDeduped,
       notes,
       pillar: "",
+      is_future: isFuture,
     };
     if (colourCodeTrim) newItem.colourCode = colourCodeTrim;
     if (secondaryColourVal) newItem.secondaryColour = secondaryColourVal;
