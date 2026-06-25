@@ -10201,8 +10201,6 @@
   }
 
   /** In-memory collection state; persisted to Supabase when configured (else localStorage). */
-  /** @type {Record<string, object>} */
-  let collectionOverridesState = {};
   /** @type {Set<string>} */
   let collectionHiddenState = new Set();
   /** @type {Record<string, unknown>} */
@@ -10233,8 +10231,6 @@
   }
 
   function installCollectionStateFromPayload(overrides, hiddenIds, metadata = wardrobeAppMetadataState) {
-    collectionOverridesState =
-      overrides && typeof overrides === "object" && !Array.isArray(overrides) ? { ...overrides } : {};
     collectionHiddenState = new Set(Array.isArray(hiddenIds) ? hiddenIds.map((x) => String(x)) : []);
     wardrobeAppMetadataState =
       metadata && typeof metadata === "object" && !Array.isArray(metadata)
