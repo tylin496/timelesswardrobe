@@ -5543,13 +5543,6 @@
   const PRICE_CURRENCY_CODES = ["TWD", "USD", "JPY", "CNY"];
   const COLLECTION_SORT_MODES = ["default", "price-asc", "price-desc", "date-desc", "date-asc"];
   const COLLECTION_DEFAULT_SORT_MODE = "default";
-  const COLLECTION_SORT_LABELS = {
-    default: "Archive order",
-    "date-desc": "Newest",
-    "date-asc": "Oldest",
-    "price-asc": "Price low–high",
-    "price-desc": "Price high–low",
-  };
   /** Basic colour collection filter: uses stored `basicColour` only when set; otherwise infers from colour / fabric / codes. */
   const BASIC_COLOUR_FILTER_KEY = "timeless-wardrobe-basic-colour-v1";
 
@@ -17460,9 +17453,6 @@
     mediaEl.appendChild(strip);
   }
 
-  const OUTFIT_ADDED_TOAST_MS = 2400;
-  const OUTFIT_ADDED_TOAST_EXIT_MS = 320;
-
   const TOAST_ICON_SVG = {
     success: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>`,
     error: `<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>`,
@@ -27728,8 +27718,6 @@
     syncHeaderFlyoutDimTop();
   }
 
-  const TW_MOTION_MS = 280;
-  const TW_SEARCH_MOTION_MS = 220;
   const TW_MOBILE_SEARCH_MOTION_MS = 400;
 
   function twPrefersReducedMotion() {
