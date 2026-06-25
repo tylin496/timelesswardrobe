@@ -799,7 +799,6 @@ body {
   line-height: 1.15;
   text-transform: none;
   -webkit-font-smoothing: antialiased;
-  animation: tlw-fade-in 0.72s var(--ease-luxe) both;
 }
 
 /* Tier 1 content column — utility ethos + nav row share the same left/right inset at every width. */
