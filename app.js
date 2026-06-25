@@ -4049,8 +4049,7 @@
           e.stopPropagation();
           handle.classList.add("is-dragging");
           const startX = e.clientX;
-          const startW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(varName)) ||
-                         span.getBoundingClientRect().width;
+          const startW = span.getBoundingClientRect().width;
           const onMove = mv => {
             const newW = Math.max(60, startW + mv.clientX - startX);
             document.documentElement.style.setProperty(varName, `${newW}px`);
