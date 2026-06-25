@@ -83,7 +83,7 @@ export default {
       httpMetadata: { contentType: file.type || "image/webp" },
     });
 
-    const publicUrl = `${(env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${safePath}`;
+    const publicUrl = `${(env.R2_CDN_URL || env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${safePath}`;
     return new Response(JSON.stringify({ url: publicUrl, path: safePath }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
