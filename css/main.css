@@ -8545,41 +8545,16 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
   width: 100%;
 }
 
-/* Category-drill switch: editorial fade-up cascade — eyebrow leads, the serif
-   title rises as the hero, the count line trails. Re-triggered from
-   renderCollectionHeading only when the heading text changes.
-   Per-element rise is tuned via --swap-rise so one keyframe covers all three. */
-@keyframes collection-heading-swap {
-  from {
-    opacity: 0;
-    transform: translate3d(0, var(--swap-rise, 10px), 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-/* Eyebrow / breadcrumb slides in from the side (horizontal) — a deliberate
-   counterpoint to the title's vertical rise below it. */
-@keyframes collection-heading-swap-x {
-  from {
-    opacity: 0;
-    transform: translate3d(var(--swap-shift, -14px), 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
+/* Category-drill switch: heading + breadcrumbs fade in only (no rise/shift).
+   Re-triggered from renderCollectionHeading when the heading text changes. */
 
 /* Only newly-appended crumbs animate, not the stable "COLLECTION /" base.
    JS marks each new crumb span/button with this class. */
 .collection-heading__crumb--entering {
-  animation: collection-heading-swap-x 0.2s var(--ease-luxe) backwards;
+  animation: tlw-fade-in 0.2s var(--ease-luxe) backwards;
 }
 .collection-heading__crumb-sep--entering {
-  animation: collection-heading-swap-x 0.2s var(--ease-luxe) backwards;
+  animation: tlw-fade-in 0.2s var(--ease-luxe) backwards;
 }
 .collection-heading.collection-heading--swapping .collection-heading__title,
 .collection-heading.collection-heading--swapping .items-toolbar__page-title {
@@ -13347,7 +13322,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 .skeleton-line {
   position: relative;
   overflow: hidden;
-  background: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  background: color-mix(in srgb, var(--line) 70%, var(--bg));
 }
 
 .card--skeleton .card__media::after,
@@ -13359,10 +13334,10 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--bg-elevated) 70%, transparent) 50%,
+    color-mix(in srgb, var(--bg) 38%, transparent) 50%,
     transparent 100%
   );
-  animation: tlw-skeleton-shimmer 1.25s ease-in-out infinite;
+  animation: tlw-skeleton-shimmer 2.2s ease-in-out infinite;
 }
 
 .skeleton-line {
