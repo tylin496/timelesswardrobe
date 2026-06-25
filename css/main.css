@@ -13291,8 +13291,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 /* Cold deep-link skeleton — placeholder cards while the deferred showcase
-   fetch lands (no bake, no cache). Reuses .card / .card__media / .card__body
-   layout so the grid geometry matches the real cards exactly. */
+   fetch lands (no bake, no cache). */
 .card--skeleton {
   pointer-events: none;
   animation: none;
@@ -13304,15 +13303,13 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   border-color: color-mix(in srgb, var(--line) 92%, transparent);
 }
 
-.card--skeleton .card__media,
-.skeleton-line {
+.card--skeleton .card__media {
   position: relative;
   overflow: hidden;
   background: color-mix(in srgb, var(--line) 70%, var(--bg));
 }
 
-.card--skeleton .card__media::after,
-.skeleton-line::after {
+.card--skeleton .card__media::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -13324,20 +13321,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
     transparent 100%
   );
   animation: tlw-skeleton-shimmer 2.2s ease-in-out infinite;
-}
-
-.skeleton-line {
-  height: 0.7rem;
-  border-radius: var(--radius-sm, 4px);
-}
-
-.skeleton-line--brand {
-  width: 38%;
-  margin-bottom: 0.5rem;
-}
-
-.skeleton-line--title {
-  width: 68%;
 }
 
 @keyframes tlw-skeleton-shimmer {
@@ -13356,9 +13339,20 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   content: "";
 }
 
+/* body.collection-page #grid .card__media::after (spec 122) sets height:20% + dark
+   bottom vignette and wins over the shimmer rule (spec 21). Re-assert at spec 132. */
+body.collection-page #grid .card--skeleton .card__media::after {
+  height: auto;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--bg) 38%, transparent) 50%,
+    transparent 100%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card--skeleton .card__media::after,
-  .skeleton-line::after {
+  .card--skeleton .card__media::after {
     animation: none;
   }
 }

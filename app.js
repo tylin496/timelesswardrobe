@@ -23608,14 +23608,7 @@
       card.setAttribute("aria-hidden", "true");
       const media = document.createElement("div");
       media.className = "card__media";
-      const body = document.createElement("div");
-      body.className = "card__body";
-      const brand = document.createElement("div");
-      brand.className = "skeleton-line skeleton-line--brand";
-      const title = document.createElement("div");
-      title.className = "skeleton-line skeleton-line--title";
-      body.append(brand, title);
-      card.append(media, body);
+      card.append(media);
       frag.appendChild(card);
     }
     els.grid.replaceChildren(frag);
