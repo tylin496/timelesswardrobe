@@ -12981,6 +12981,10 @@
       if (isFlyoutForcedSolid) {
         clearScrollDriven();
       } else if (hero && heroH > 0) {
+        // When the cursor is inside the header, skip scroll-driven inline opacity — the CSS :hover
+        // rule handles it. Without this guard, any scroll event while hovered re-sets the inline
+        // value to 0, which beats :hover (inline styles win over selectors for custom properties).
+        if (_isHeaderHovered) { clearScrollDriven(); return; }
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
         const fadeStart = heroH * 0.1;
         const fadeEnd = heroH * 0.35;
@@ -13027,13 +13031,15 @@
       siteHeader.style.removeProperty("--tw-header-fg-muted");
       siteHeader.style.removeProperty("--tw-header-monogram");
     }
-    // Hover must override scroll-driven inline styles — clear on enter, restore on leave.
-    // On leave: set target opacity without scroll-driven so the CSS transition (400ms) fires,
-    // then hand off to scroll-driven after it completes.
+    // Desktop: when cursor is inside the header (or a menu is open), the background must always be
+    // solid. CSS :hover handles opacity=1, but any scroll event re-fires update() which sets an
+    // inline --tw-header-bg-opacity that wins over :hover. _isHeaderHovered guards against that.
+    let _isHeaderHovered = false;
     let _leaveTimer = null;
-    const onHeaderEnter = () => { clearTimeout(_leaveTimer); clearScrollDriven(); };
+    const onHeaderEnter = () => { clearTimeout(_leaveTimer); _isHeaderHovered = true; clearScrollDriven(); };
     const onHeaderLeave = () => {
       clearTimeout(_leaveTimer);
+      _isHeaderHovered = false;
       if (!hero || shouldUseSolidHeader()) { update(); return; }
       const heroH = hero.offsetHeight;
       const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
