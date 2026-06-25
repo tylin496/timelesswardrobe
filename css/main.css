@@ -13320,7 +13320,8 @@ body.collection-page #grid .card--skeleton .card__media::after {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  overflow: hidden;
+  /* clip: same visual clipping as hidden but no scroll container, so wheel events reach the page */
+  overflow: clip;
   isolation: isolate;
 }
 
