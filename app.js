@@ -4846,6 +4846,24 @@
     sortSel.addEventListener("change", () => { _accountNotesSort = sortSel.value; refreshNotesList(); });
     toolbar.appendChild(sortSel);
 
+    const copyAllBtn = document.createElement("button");
+    copyAllBtn.type = "button";
+    copyAllBtn.className = "account-notes-copy-all-btn";
+    copyAllBtn.textContent = "Copy all";
+    copyAllBtn.addEventListener("click", () => {
+      const items = getFilteredItems();
+      const text = items
+        .filter((it) => String(it?.notes ?? "").trim())
+        .map((it) => buildNotesCopyText(it))
+        .join("\n\n---\n\n");
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyAllBtn.textContent = "Copied!";
+        setTimeout(() => { copyAllBtn.textContent = "Copy all"; }, 2000);
+      }).catch(() => {});
+    });
+    toolbar.appendChild(copyAllBtn);
+
     wrapper.appendChild(toolbar);
 
     // ── Body: list pane + editor pane ────────────────────────────────────────────
@@ -5018,21 +5036,9 @@
       updateWC();
       textarea.addEventListener("input", updateWC);
 
-      const copyBtn = document.createElement("button");
-      copyBtn.className = "account-notes-editor__copy-btn";
-      copyBtn.type = "button";
-      copyBtn.textContent = "Copy";
-      copyBtn.addEventListener("click", () => {
-        const text = buildNotesCopyText(it);
-        navigator.clipboard.writeText(text).then(() => {
-          copyBtn.textContent = "Copied!";
-          setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
-        }).catch(() => {});
-      });
-
       const footer = document.createElement("div");
       footer.className = "account-notes-editor__footer";
-      footer.append(wordCountEl, copyBtn, statusEl);
+      footer.append(wordCountEl, statusEl);
 
       editorPane.append(textarea, footer);
     }
@@ -5127,22 +5133,7 @@
               textarea.style.height = `${textarea.scrollHeight}px`;
               textarea.focus();
             });
-            const mobileCopyBtn = document.createElement("button");
-            mobileCopyBtn.className = "account-notes-editor__copy-btn";
-            mobileCopyBtn.type = "button";
-            mobileCopyBtn.textContent = "Copy";
-            mobileCopyBtn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              const text = buildNotesCopyText(it);
-              navigator.clipboard.writeText(text).then(() => {
-                mobileCopyBtn.textContent = "Copied!";
-                setTimeout(() => { mobileCopyBtn.textContent = "Copy"; }, 2000);
-              }).catch(() => {});
-            });
-            const mobileFooter = document.createElement("div");
-            mobileFooter.className = "account-notes-editor__footer";
-            mobileFooter.append(statusEl, mobileCopyBtn);
-            mobileBody.append(textarea, mobileFooter);
+            mobileBody.append(statusEl, textarea);
           }
         }
       });
