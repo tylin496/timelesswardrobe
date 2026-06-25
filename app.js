@@ -9264,6 +9264,8 @@
     const isWardrobeMedia =
       Boolean(storagePathFromWardrobeImageUrl(raw)) || /^\/images\/wardrobe\//i.test(pathKey);
     if (!isWardrobeMedia) return raw;
+    // R2 URLs carry a ?v= content hash in the seed — no cb token needed.
+    if (isR2WardrobeImageUrl(raw)) return raw;
     const token = wardrobeImageCacheBustToken(item) || wardrobeImageCacheBustTokenFromPath(raw);
     if (!token) return raw;
     try {
@@ -9582,25 +9584,6 @@
     if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
-
-    // R2 URL: wardrobe/<id>/main/<n> → wardrobe/<id>/thumb/<n>
-    const r2m = pathPart.match(/^https?:\/\/[^/]*\.r2\.dev\/wardrobe\/(.+)$/i);
-    if (r2m) {
-      let decoded; try { decoded = decodeURIComponent(r2m[1]); } catch { decoded = r2m[1]; }
-      const mMain = decoded.match(/^([^/]+)\/main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-      if (mMain) {
-        const thumb = `${WARDROBE_R2_BASE}/${encodeURIComponent(mMain[1])}/thumb/${encodeURIComponent(mMain[2])}.webp`;
-        return query ? `${thumb}?${query}` : thumb;
-      }
-      const mVar = decoded.match(/^([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-      if (mVar && !/^preview$/i.test(mVar[3])) {
-        const thumb = `${WARDROBE_R2_BASE}/${encodeURIComponent(mVar[1])}/variants/${encodeURIComponent(mVar[2])}/thumb/${encodeURIComponent(mVar[3])}.webp`;
-        return query ? `${thumb}?${query}` : thumb;
-      }
-      return "";
-    }
-
-    // Local static path: /images/wardrobe/<id>/main/<n>
     let thumb = "";
     const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
     if (mMain) {
@@ -9619,47 +9602,9 @@
     const raw = String(url ?? "").trim();
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
-    if (!transport || !storagePathFromWardrobeImageUrl(transport) || isR2WardrobeImageUrl(transport || raw)) {
-      // R2 images: serve full-res directly (no thumb redirect).
-      if (isR2WardrobeImageUrl(transport || raw)) return transport || raw;
-      // Local images (cutouts etc): serve pre-generated thumbnails for card-sized requests.
-      const thumb = localWardrobeThumbPath(transport || raw, width);
-      return thumb || transport || raw;
-    }
-    const w = Math.max(1, Math.floor(width));
-    const h = Math.max(1, Math.floor(height));
-    let u;
-    try {
-      u = new URL(transport);
-    } catch {
-      return raw;
-    }
-    const bucket = WARDROBE_IMAGE_BUCKET;
-    const objectNeedle = `/storage/v1/object/public/${bucket}/`;
-    const renderNeedle = `/storage/v1/render/image/public/${bucket}/`;
-    if (u.pathname.includes(objectNeedle)) {
-      u.pathname = u.pathname.replace(objectNeedle, renderNeedle);
-    } else if (!u.pathname.includes(renderNeedle)) {
-      return raw;
-    }
-    u.searchParams.set("width", String(w));
-    u.searchParams.set("height", String(h));
-    const resizeMode = transformOpts?.resize === "contain" ? "contain" : "cover";
-    u.searchParams.set("resize", resizeMode);
-
-    const quality = transformOpts?.quality;
-    const q =
-      typeof quality === "number" && Number.isFinite(quality)
-        ? Math.min(100, Math.max(20, Math.round(quality)))
-        : 72;
-    u.searchParams.set("quality", String(q));
-
-    const zoom = transformOpts?.zoom;
-    if (typeof zoom === "number" && Number.isFinite(zoom) && zoom > 1 && zoom <= 3) {
-      u.searchParams.set("zoom", String(zoom));
-    }
-
-    return withWardrobeImageCacheBust(u.href, /** @type {any} */ (transformOpts?.item));
+    const resolved = transport || raw;
+    if (isR2WardrobeImageUrl(resolved)) return resolved;
+    return localWardrobeThumbPath(resolved, width) || resolved;
   }
 
   /** True when the URL is a Cloudflare R2 public URL (pub-*.r2.dev/<path>). */
