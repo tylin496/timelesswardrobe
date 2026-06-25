@@ -26206,6 +26206,7 @@
   function reconcileItemDetailShowcaseBadge() {
     const root = document.getElementById("item-detail-root");
     if (!root || !itemDetailIsPageRoot(root)) return;
+    if (!isTwEditorUser()) return;
     const item = detailItemId ? itemById.get(String(detailItemId)) : null;
     if (!item) return;
     const body = root.querySelector(".item-detail__body");
@@ -27152,8 +27153,8 @@
 
     if (dl.children.length) body.appendChild(dl);
 
-    // ── Showcase context (item page only) ────────────────────────────────────
-    if (isItemPageView) {
+    // ── Showcase context (editor only) ───────────────────────────────────────
+    if (isItemPageView && isTwEditorUser()) {
       const ctx = buildItemDetailShowcaseContext(item);
       if (ctx) body.appendChild(ctx);
     }
