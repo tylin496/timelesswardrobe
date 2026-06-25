@@ -8110,27 +8110,6 @@
   };
 
 
-  /** @param {object} item */
-  function editorialPrioritySource(item) {
-    const id = String(item?.id ?? "").trim();
-    const globalMap =
-      typeof WARDROBE_EDITORIAL_PRIORITIES !== "undefined" && WARDROBE_EDITORIAL_PRIORITIES
-        ? WARDROBE_EDITORIAL_PRIORITIES[id]
-        : null;
-    const meta =
-      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
-    return { globalMap, meta, item };
-  }
-
-  /** 2 = hero, 1 = archive core, 0 = normal. */
-  /** 2 = hero, 1 = notable, 0 = normal — homepage curation only. */
-  function itemFeaturedRank(item) {
-    const { globalMap, meta, item: row } = editorialPrioritySource(item);
-    const raw = row?.featured_rank ?? meta?.featured_rank ?? globalMap?.featured_rank;
-    const n = Number(raw);
-    return n === 2 || n === 1 ? n : 0;
-  }
-
   // ── Showcase / Archive ──────────────────────────────────────────────────────
   // Source of truth: metadata.showcase_rank on each wardrobe_items row.
   // Absent / null = Archive. Integer ≥ 0 = Showcase position (always dense: 0, 1, 2, …).
@@ -10157,19 +10136,6 @@
     return await syncCustomItemsToProjectFile(list);
   }
 
-  function downloadCustomItemsJsonForRepo() {
-    const rows = loadCustomItems();
-    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
-    const a = document.createElement("a");
-    const u = URL.createObjectURL(blob);
-    a.href = u;
-    a.download = "custom-items.json";
-    a.rel = "noopener";
-    a.click();
-    URL.revokeObjectURL(u);
-    showToast("Save as data/custom-items.json in the project to version custom pieces.");
-  }
-
   /** Text-only row for local audit (no image URLs). */
   function itemToLocalTextRecord(item) {
     if (!item || item.id == null) return null;
@@ -10374,34 +10340,6 @@
     document.getElementById("local-data-download-text-json")?.addEventListener("click", () => {
       downloadWardrobeTextLocalJson();
     });
-  }
-
-  /** Push merged custom rows (browser + file) into `data/custom-items.json` when `npm run dev` is running. */
-  async function pullBrowserCustomItemsIntoProjectFile() {
-    const rows = isSupabaseReady() ? loadLocalStorageCustomOnly() : loadCustomItems();
-    let synced = false;
-    try {
-      if (isSupabaseReady()) {
-        synced = await syncCustomItemsToProjectFile(rows);
-      } else {
-        synced = await commitCustomItems(rows);
-      }
-    } catch (e) {
-      console.warn(e);
-      showToast("Could not update browser storage — check space or privacy settings.");
-      return;
-    }
-    if (synced) {
-      mergeWardrobeFromSources();
-      if (document.getElementById("grid")) {
-        initFilters();
-        onOutfitChange();
-        renderGrid();
-      }
-      showToast("Browser custom pieces are now saved in data/custom-items.json.");
-    } else {
-      showToast("Start the app with npm run dev from the project folder, then try again.");
-    }
   }
 
   function readSeasonNavFromLocalStorage() {
@@ -21625,13 +21563,6 @@
     closeAdd?.addEventListener("click", () => addDlg?.close());
     addDlg?.addEventListener("click", (e) => {
       if (e.target === addDlg) addDlg.close();
-    });
-
-    document.getElementById("add-item-export-custom-json")?.addEventListener("click", () => {
-      downloadCustomItemsJsonForRepo();
-    });
-    document.getElementById("add-item-sync-custom-to-project")?.addEventListener("click", () => {
-      void pullBrowserCustomItemsIntoProjectFile();
     });
 
     resetAddItemMeasurementBlock();

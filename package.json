@@ -20,7 +20,6 @@
     "gallery:sync": "node scripts/sync-wardrobe-gallery.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "dev:monitor": "node scripts/tw-dev-monitor.mjs",
-    "export:wardrobe-json": "node scripts/export_wardrobe_json.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
     "db:bake-showcase": "node scripts/build-showcase-order.mjs",
