@@ -13298,14 +13298,7 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   box-shadow: 0 4px 18px var(--card-shadow);
 }
 
-.card--skeleton:hover {
-  box-shadow: 0 4px 18px var(--card-shadow);
-  border-color: color-mix(in srgb, var(--line) 92%, transparent);
-}
-
 .card--skeleton .card__media {
-  position: relative;
-  overflow: hidden;
   background: color-mix(in srgb, var(--line) 70%, var(--bg));
 }
 
