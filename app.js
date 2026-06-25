@@ -7451,8 +7451,6 @@
     return lines.join("\n");
   }
 
-  let itemDetailShareMenuDismiss = null;
-
   async function handleItemShareAction(item, btn) {
     const url = buildItemPageUrl(item.id).toString();
     const text = buildItemShareText(item);
@@ -10085,6 +10083,21 @@
     return Array.isArray(items) ? items.slice() : [];
   }
 
+  /**
+   * Ownership is an authored domain fact stored in `metadata.ownership_status`
+   * ("future" = aspirational/not yet owned; absent = owned). `is_future` is its
+   * projection — derived here, never an independent stored field, and never
+   * inferred from `brand`/`name` text. Derived at the merge choke point so it
+   * holds for every load path (cloud rows, seed rows after the metadata merge,
+   * and custom rows) uniformly.
+   */
+  function deriveItemIsFuture(item) {
+    const meta =
+      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    const status = String(meta?.ownership_status ?? meta?.ownershipStatus ?? "").toLowerCase().trim();
+    return status === "future";
+  }
+
   function mergeWardrobeFromSources() {
     // collection_overrides layer removed (single-truth architecture): metadata
     // truth is wardrobeBase (seed aligned to wardrobe_items + cloud metadata
@@ -10121,8 +10134,9 @@
       const slot = itemSlot(row2);
       const canon = recordCategoryForDrill(row2, slot);
       const raw = String(row2.category ?? "").trim();
-      if (raw === canon) return normalizeItemDerivedFields(row2);
-      return normalizeItemDerivedFields({ ...row2, category: canon });
+      const out = raw === canon ? normalizeItemDerivedFields(row2) : normalizeItemDerivedFields({ ...row2, category: canon });
+      out.is_future = deriveItemIsFuture(out);
+      return out;
     });
     rebuildItemIndex();
     rebuildWardrobeSearchIndex();
