@@ -10521,19 +10521,6 @@
     await hydrateCollectionStateFromCloud();
   }
 
-  // RETIRED — collection_overrides is a dead, redundant layer. The merge never
-  // reads it (mergeWardrobeFromSources: "No override patch is applied") and every
-  // value duplicates wardrobe_items (parity verified). These two functions are kept
-  // as inert no-ops so the remaining call sites stay harmless; the column is drained
-  // to {} by flushWardrobeAppStateToSupabase. See docs/ARCHITECTURE.md → Audit Matrix.
-  function loadCollectionOverrides() {
-    return {};
-  }
-
-  async function saveCollectionOverrides(_map) {
-    // no-op: catalogue edits persist to wardrobe_items (the single truth), not here.
-  }
-
   /**
    * Full in-memory row for cloud upsert when editing a catalogue (non-custom) piece.
    * @param {object} prev
@@ -20981,16 +20968,6 @@
         await mirrorLocalCustomItemsToProjectFile();
       }
 
-      try {
-        const all = loadCollectionOverrides();
-        if (Object.prototype.hasOwnProperty.call(all, sid)) {
-          delete all[sid];
-          await saveCollectionOverrides(all);
-        }
-      } catch (e) {
-        console.warn(e);
-      }
-
       const hidden = loadCollectionHiddenIds();
       hidden.add(sid);
       await saveCollectionHiddenIds(hidden);
@@ -25647,19 +25624,6 @@
             } catch (imgErr) {
               console.warn("Image cleanup after local catalogue save (continuing):", imgErr);
             }
-            try {
-              const allOv = loadCollectionOverrides();
-              const patchOv = { ...patch };
-              delete patchOv.metadata;
-              delete patchOv.category;
-              // Persist media patch for local-catalogue rows: this is the most recent editor intent
-              // and must win over stale seed/cloud merges until next explicit edit/backup.
-              patchOv.__mediaEditedAt = Date.now();
-              allOv[id] = patchOv;
-              await saveCollectionOverrides(allOv);
-            } catch (ovErr) {
-              console.warn("Could not persist collection override for local catalogue row.", ovErr);
-            }
             savedRowForPin = displayAfterSave;
             collectionCloudRowSaved = true;
             collectionSavedAsOverride = true;
@@ -25681,25 +25645,6 @@
               : Date.now()
           );
           upsertWardrobeBaseRowInMemory(mergedLocal);
-          try {
-            const allOv = loadCollectionOverrides();
-            const patchOv = { ...patch };
-            delete patchOv.metadata;
-            delete patchOv.category;
-            delete patchOv.__mediaEditedAt;
-            // Carry forward a prior media edit (reorder/upload) so a text-only save
-            // doesn't silently lose the gallery order before the next git commit.
-            const prevOv = allOv[id];
-            if (prevOv?.__mediaEditedAt) {
-              patchOv.__mediaEditedAt = prevOv.__mediaEditedAt;
-              if (prevOv.image && !patchOv.image) patchOv.image = prevOv.image;
-              if (prevOv.gallery && !patchOv.gallery) patchOv.gallery = prevOv.gallery;
-            }
-            allOv[id] = patchOv;
-            await saveCollectionOverrides(allOv);
-          } catch (ovErr) {
-            console.warn("Could not persist collection override for local catalogue row.", ovErr);
-          }
           collectionSavedAsOverride = true;
           savedRowForPin = mergedLocal;
         }
@@ -25716,15 +25661,6 @@
           );
           collectionCloudRowSaved = true;
           upsertWardrobeBaseRowInMemory(saved);
-          try {
-            const allOv = loadCollectionOverrides();
-            if (Object.prototype.hasOwnProperty.call(allOv, id)) {
-              delete allOv[id];
-              await saveCollectionOverrides(allOv);
-            }
-          } catch (clearOvErr) {
-            console.warn("Could not clear stale collection override after cloud save.", clearOvErr);
-          }
           cloudBackedCustomItems = [
             saved,
             ...cloudBackedCustomItems.filter((x) => String(x?.id ?? "") !== String(saved.id)),
