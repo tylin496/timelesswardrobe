@@ -23487,17 +23487,8 @@
     });
   }
 
-  /**
-   * Cold deep-link to /collection with no showcase order yet (no bake, no
-   * cache) and the deferred cloud fetch still in flight, in the pure default
-   * view. Show a skeleton rather than flashing the full catalogue.
-   */
   function collectionShowcaseViewPendingSkeleton() {
-    if (!showcaseSourcePending) return false;
-    if (collectionSortMode !== "default") return false;
-    if (narrowingFiltersActive()) return false; // category nav / search / colour / brand / subcat
-    if (String(seasonNavFilter ?? "").trim()) return false;
-    return !items.some((it) => isInShowcase(it));
+    return false;
   }
 
   function renderCollectionGridSkeleton() {
