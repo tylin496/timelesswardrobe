@@ -160,6 +160,11 @@ const picks = resolveItems();
 console.log(`[og-build] hero: ${picks[0]?.id}`);
 console.log(`[og-build] supporting: ${picks.slice(1).map((p) => p.id).join(", ")}`);
 
+if (picks.length < 5) {
+  console.log(`[og-build] only ${picks.length}/5 thumbs found locally — skipping og-image generation (keeping existing if present)`);
+  process.exit(0);
+}
+
 // Resize each slot
 const [heroBuf, s2, s3, s4, s5] = await Promise.all([
   sharp(picks[0].thumb)
