@@ -4,14 +4,8 @@
  *
  * For each `images/wardrobe/<item>/main/<n>.<ext>` we write
  * `images/wardrobe/<item>/cutout/<n>.webp`: the transparent main source scaled
- * to fit 360×480 — NO background composite. These are used only by the Saved
- * Outfits flatlay, where each piece sits as a clean cutout on the card's own
- * backdrop. `thumb/` (composited on background.jpg) remains the default
- * presentation asset for the grid + current-outfit strip.
- *
- * Kept small on purpose: Saved Outfits renders these pieces tiny, so 360×480 at
- * q72 is plenty. Cutouts are RGBA, so they are served static (never resized via
- * Supabase/Vercel, which reject alpha) — the native size is the display size.
+ * to fit 720×960 — NO background composite. Matches the collection grid card
+ * render size so cutouts can serve as grid covers without upscaling.
  *
  * Staleness is detected via content hashes in cutout/.manifest.json (mtime is
  * unreliable for copied/restored/batch-processed files).
@@ -30,9 +24,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WARDROBE_DIR = path.join(ROOT, "images", "wardrobe");
 const MANIFEST_FILE = ".manifest.json";
 
-const MAX_WIDTH = 360;
-const MAX_HEIGHT = 480;
-const QUALITY = 72;
+const MAX_WIDTH = 720;
+const MAX_HEIGHT = 960;
+const QUALITY = 80;
 const SOURCE_RE = /\.(webp|png|jpg|jpeg)$/i;
 
 const force = process.argv.includes("--force");
