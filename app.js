@@ -26157,16 +26157,43 @@
   /** Build the "Featured in Showcase" context block, or null if not in Showcase. */
   function buildItemDetailShowcaseContext(item) {
     if (!isInShowcase(item)) return null;
-    const pos = showcaseDisplayPosition(item);
+    const showcaseItems = getShowcaseItems();
+    const total = showcaseItems.length;
+    const idx = showcaseItems.findIndex((it) => String(it.id) === String(item?.id ?? ""));
+    const pos = idx >= 0 ? idx + 1 : null;
+    const prevItem = idx > 0 ? showcaseItems[idx - 1] : null;
+    const nextItem = idx >= 0 && idx < total - 1 ? showcaseItems[idx + 1] : null;
+
     const ctx = document.createElement("div");
     ctx.className = "item-detail__context";
+
     const ctxLabel = document.createElement("span");
     ctxLabel.className = "item-detail__context-label";
-    ctxLabel.textContent = "Featured in Showcase";
+    ctxLabel.textContent = "Showcase";
+
     const ctxPos = document.createElement("span");
     ctxPos.className = "item-detail__context-pos";
-    ctxPos.textContent = pos ? `#${pos} Current Order` : "Current Showcase";
-    ctx.append(ctxLabel, ctxPos);
+    ctxPos.textContent = pos && total ? `${pos} / ${total}` : "";
+
+    const ctxNav = document.createElement("span");
+    ctxNav.className = "item-detail__context-nav";
+
+    const prevA = document.createElement("a");
+    prevA.className = "item-detail__context-nav-btn";
+    prevA.setAttribute("aria-label", prevItem ? `Previous: ${prevItem.brand} ${prevItem.name}` : "No previous item");
+    prevA.textContent = "←";
+    if (prevItem) prevA.href = buildItemDetailHrefFromId(prevItem.id);
+    else prevA.setAttribute("aria-disabled", "true");
+
+    const nextA = document.createElement("a");
+    nextA.className = "item-detail__context-nav-btn";
+    nextA.setAttribute("aria-label", nextItem ? `Next: ${nextItem.brand} ${nextItem.name}` : "No next item");
+    nextA.textContent = "→";
+    if (nextItem) nextA.href = buildItemDetailHrefFromId(nextItem.id);
+    else nextA.setAttribute("aria-disabled", "true");
+
+    ctxNav.append(prevA, nextA);
+    ctx.append(ctxLabel, ctxPos, ctxNav);
     return ctx;
   }
 

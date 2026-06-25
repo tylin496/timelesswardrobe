@@ -18620,6 +18620,37 @@ a.item-detail__breadcrumb-current {
   font-variant-numeric: tabular-nums;
 }
 
+.item-detail__context-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: 0.2rem;
+}
+
+.item-detail__context-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  text-decoration: none;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+}
+
+.item-detail__context-nav-btn:hover {
+  background: color-mix(in srgb, var(--ink-muted) 10%, transparent);
+  color: var(--ink);
+}
+
+.item-detail__context-nav-btn[aria-disabled="true"] {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
 /* ── Collection Note essay ──────────────────────────────────────────────────── */
 .item-detail__notes-section--essay {
   margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
