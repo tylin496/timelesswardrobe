@@ -213,7 +213,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "USD"
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/chukka/main/1.webp?v=ecf79390",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/chukka/main/1.webp?v=2871fe40",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/chukka/main/2.webp?v=811ed516",
       "https://img.timelesswardrobe.uk/wardrobe/chukka/main/3.webp?v=78122578",
@@ -243,7 +243,7 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 6
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/1.webp?v=1db2dc4d",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/1.webp?v=a7cb5060",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/2.webp?v=3c10b46a",
       "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/3.webp?v=bca9b026"
@@ -1093,7 +1093,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "green",
       "priceCurrency": "JPY"
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/1.webp?v=aaa0d065",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/1.webp?v=98e926b2",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/2.webp?v=12452506",
       "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/3.webp?v=5f03a29e"
@@ -1317,7 +1317,7 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 7
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/1.webp?v=a1fd7afc",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/1.webp?v=038a2e66",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/2.webp?v=f590093c",
       "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/3.webp?v=3cb4028d"
@@ -1481,7 +1481,7 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Sapphire",
       "secondaryColourCode": "#1B57BC"
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/1.webp?v=ca6e4689",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/1.webp?v=f70953f9",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/2.webp?v=1f215a93",
       "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/3.webp?v=7384a4c9",
@@ -1538,7 +1538,7 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Light cornflower blue",
       "secondaryColourCode": "#384D87"
     },
-    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/1.webp?v=d0c9ec6f",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/1.webp?v=1d79ca1d",
     "gallery": [
       "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/2.webp?v=303fb557"
     ]
