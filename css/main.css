@@ -13153,13 +13153,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   user-select: contain;
 }
 
-.card--in-outfit {
-  box-shadow: 0 0 0 2px var(--accent), 0 4px 16px var(--card-shadow);
-}
-
-.card--in-outfit:hover {
-  box-shadow: 0 0 0 2px var(--accent), 0 8px 22px var(--card-shadow-hover);
-}
 
 
 .card__media {
@@ -20558,9 +20551,7 @@ body.collection-page .collection-container > .collection-actions {
     padding-right: 0;
   }
 
-  #grid .card--in-outfit {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
-  }
+
 
   #grid .card__media {
     display: block;
@@ -21136,14 +21127,6 @@ body.collection-page .collection-container > .collection-actions {
   }
 
 
-  #grid .card--in-outfit {
-    box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 88%, transparent);
-  }
-
-  #grid .card--in-outfit:hover {
-    transform: none;
-    box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 88%, transparent);
-  }
 
   #grid .card__media {
     border-radius: 0;

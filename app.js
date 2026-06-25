@@ -22749,8 +22749,7 @@
     const cardCoverMediaItem = ensureItemMediaCacheBust({ ...cardCoverItem });
 
     const article = document.createElement("article");
-    const outfitHighlight = inOutfit && itemEligibleForOutfit(item);
-    let cardClass = "card" + (outfitHighlight ? " card--in-outfit" : "");
+    let cardClass = "card";
     if (cardOpts.skipEnterAnimation) cardClass += " card--no-enter";
     article.className = cardClass;
     article.setAttribute("role", "listitem");
@@ -22987,10 +22986,6 @@
       const article = rows[i];
       if (!(article instanceof HTMLElement)) return false;
       if (article.dataset.itemId !== String(item.id)) return false;
-
-      const inOutfit = outfitIdSet().has(item.id);
-      const outfitHighlight = inOutfit && itemEligibleForOutfit(item);
-      article.classList.toggle("card--in-outfit", Boolean(outfitHighlight));
 
       const quick = article.querySelector(".card__outfit-add, .card__quick-outfit");
       if (!quick) continue;
