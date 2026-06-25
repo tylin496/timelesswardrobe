@@ -76,8 +76,8 @@ function isUpToDate(srcPath, outPath, thumbName, manifest) {
   return entry.srcHash === fileHash(srcPath) && entry.bgHash === BG_HASH;
 }
 
-// preview.webp is a tiny pre-made swatch (used directly as previewImage), never a thumb source.
-const isThumbSource = (f) => SOURCE_RE.test(f) && !/^preview\./i.test(f);
+// Only images 1–3 get thumbs; 4+ are fetched full-res from R2 on demand.
+const isThumbSource = (f) => SOURCE_RE.test(f) && /^[123]\./i.test(f);
 
 /**
  * Source→output dir pairs for an item. main/ thumbs are siblings (item/thumb/);

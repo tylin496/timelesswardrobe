@@ -42,8 +42,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/1.webp?v=3307c83c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/2.webp?v=8e2ac554",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/3.webp?v=64ddf0a3",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/4.webp"
     ]
   },
@@ -82,8 +82,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/1.webp?v=a2c26be2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/2.webp?v=eb990858",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/3.webp?v=89051188",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/6.webp",
@@ -119,8 +119,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/1.webp?v=8062599c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/2.webp?v=61ac92aa",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/3.webp?v=691df271",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/6.webp",
@@ -168,8 +168,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/1.webp?v=9c4f37d2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/2.webp?v=ef4773b1",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/3.webp?v=31f6fe18"
     ]
   },
 
@@ -191,8 +191,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/1.webp?v=728c4cc9",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/2.webp?v=5610a06f",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/3.webp?v=7ed44b2c"
     ]
   },
 
@@ -215,8 +215,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/1.webp?v=ecf79390",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/2.webp?v=811ed516",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/3.webp?v=78122578",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/6.webp",
@@ -245,8 +245,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/1.webp?v=1db2dc4d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/2.webp?v=3c10b46a",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/3.webp?v=bca9b026"
     ]
   },
 
@@ -269,8 +269,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/1.webp?v=1518fb8e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/2.webp?v=2707930d",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/3.webp?v=a224fa91"
     ]
   },
 
@@ -321,8 +321,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/1.webp?v=a4a82dab",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/2.webp?v=f2114b9a",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/3.webp?v=1e0b24f6",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/6.webp"
@@ -360,8 +360,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/1.webp?v=cce63c69",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/2.webp?v=8d31460c",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/3.webp?v=3b6f4979",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/4.webp"
     ]
   },
@@ -381,8 +381,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/1.webp?v=a078bdd0",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/2.webp?v=c4b0edcc",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/3.webp?v=1d828d0b",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/6.webp"
@@ -409,7 +409,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/1.webp?v=7aff502a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/2.webp?v=45b0ff57"
     ]
   },
 
@@ -434,8 +434,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/1.webp?v=89bc8742",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/2.webp?v=227c92e9",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/3.webp?v=2fe19dd7"
     ]
   },
 
@@ -458,8 +458,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/1.webp?v=8a08ed2e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/2.webp?v=bf3d4a76",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/3.webp?v=ac44c82b",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/4.webp"
     ]
   },
@@ -482,8 +482,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/1.webp?v=34d7d3c5",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/2.webp?v=e47fc100",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/3.webp?v=ce543397",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/4.webp"
     ]
   },
@@ -507,8 +507,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/1.webp?v=a54906f3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/2.webp?v=8e9d8d6e",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/3.webp?v=95a9f0c2",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
     ]
   },
@@ -532,8 +532,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp?v=a8c64932",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp?v=0b231697",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp?v=098db911",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
     ]
@@ -558,7 +558,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/1.webp?v=d3b8469f",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/2.webp?v=93f4170b"
     ]
   },
 
@@ -580,8 +580,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/1.webp?v=7683b2f3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/2.webp?v=38179fca",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/3.webp?v=d625dc47",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/6.webp"
@@ -626,7 +626,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/1.webp?v=f49dc7c2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/2.webp?v=bf574d4b"
     ]
   },
 
@@ -665,8 +665,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/1.webp?v=7e8cd682",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/2.webp?v=c561ac2f",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/3.webp?v=178286c4",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/4.webp"
     ]
   },
@@ -711,8 +711,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/1.webp?v=53f2ede6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/2.webp?v=b91e732d",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/3.webp?v=0e000b0b"
     ]
   },
 
@@ -741,8 +741,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/1.webp?v=bb5299a5",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/2.webp?v=fe915d23",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/3.webp?v=db2d376f",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/5.webp"
     ]
@@ -769,8 +769,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/1.webp?v=fa99284a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/2.webp?v=76db5222",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/3.webp?v=e21a1875",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
     ]
   },
@@ -798,8 +798,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/1.webp?v=1a5de751",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/2.webp?v=f762a82b",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/3.webp?v=b815d602",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/6.webp",
@@ -832,8 +832,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp?v=40b33d18",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp?v=05a48b2f",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp?v=493294d3",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
     ]
   },
@@ -863,7 +863,7 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Grey",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/2.webp?v=9417ad1a"
         ],
         "colourCode": "#5F5F62",
         "basicColour": "grey",
@@ -876,7 +876,7 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Beige",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/2.webp?v=00adfa19"
         ],
         "colourCode": "#CEBEA6",
         "basicColour": "beige",
@@ -932,8 +932,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/1.webp?v=8477b1b9",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/2.webp?v=769764f0",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/3.webp?v=aef9182a",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/6.webp",
@@ -965,8 +965,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/1.webp?v=3dea31a2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/2.webp?v=501907e9",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/3.webp?v=ca637eb9"
     ]
   },
 
@@ -1007,8 +1007,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/1.webp?v=55762d38",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/2.webp?v=0965e12b",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/3.webp?v=463d1e41"
     ]
   },
 
@@ -1045,8 +1045,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/1.webp?v=ffb72792",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/2.webp?v=eda327c5",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/3.webp?v=2703b9a8"
     ]
   },
 
@@ -1070,7 +1070,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/1.webp?v=d978f5e6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/2.webp?v=ace21df0"
     ]
   },
 
@@ -1095,8 +1095,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/1.webp?v=aaa0d065",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/2.webp?v=12452506",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/3.webp?v=5f03a29e"
     ]
   },
 
@@ -1153,8 +1153,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/1.webp?v=70497f3d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/2.webp?v=0a1e7200",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/3.webp?v=b6c596aa",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/4.webp"
     ]
   },
@@ -1213,7 +1213,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/1.webp?v=f6fe562c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/2.webp?v=56ffe3e1"
     ]
   },
 
@@ -1237,7 +1237,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/1.webp?v=7feba857",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/2.webp?v=506fdd57"
     ]
   },
 
@@ -1261,7 +1261,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/1.webp?v=1290763c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/2.webp?v=9f274628"
     ]
   },
 
@@ -1285,8 +1285,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/1.webp?v=a1bfb9dc",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/2.webp?v=185c5c79",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/3.webp?v=653bc08c",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/6.webp",
@@ -1319,8 +1319,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/1.webp?v=a1fd7afc",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/2.webp?v=f590093c",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/3.webp?v=3cb4028d"
     ]
   },
 
@@ -1344,8 +1344,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/1.webp?v=ea84bffd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/2.webp?v=07a31f5d",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/3.webp?v=29813214",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/5.webp"
     ]
@@ -1373,7 +1373,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/1.webp?v=11582442",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/2.webp?v=d4d4b612",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/6.webp",
@@ -1402,8 +1402,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/1.webp?v=62c85996",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/2.webp?v=f961fb64",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/3.webp?v=59ac137b",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/6.webp"
@@ -1433,7 +1433,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/1.webp?v=31e76443",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/2.webp?v=bcf2c789"
     ]
   },
 
@@ -1457,7 +1457,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/1.webp?v=bfb1a641",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/2.webp?v=253f6152"
     ]
   },
 
@@ -1483,8 +1483,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/1.webp?v=ca6e4689",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/2.webp?v=1f215a93",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/3.webp?v=7384a4c9",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/5.webp"
     ]
@@ -1513,8 +1513,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/1.webp?v=2819954a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/2.webp?v=04d8623d",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/3.webp?v=4ea4782e",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/6.webp",
@@ -1540,7 +1540,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/1.webp?v=d0c9ec6f",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/2.webp?v=303fb557"
     ]
   },
 
@@ -1585,8 +1585,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/1.webp?v=c32b4504",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/2.webp?v=7d8ec153",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/3.webp?v=7670d298"
     ]
   },
 
@@ -1612,7 +1612,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/1.webp?v=fc1870dd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/2.webp?v=43471c8b"
     ]
   },
 
@@ -1637,8 +1637,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/1.webp?v=040014ea",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/2.webp?v=1060d642",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/3.webp?v=80d1081d"
     ]
   },
 
@@ -1661,8 +1661,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/1.webp?v=7e263d17",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/2.webp?v=a6b0e6b7",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/3.webp?v=0e365b05",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/4.webp"
     ]
   },
@@ -1686,7 +1686,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp?v=b7b95c2a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp?v=9b84ebd1"
     ]
   },
 
@@ -1722,8 +1722,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/1.webp?v=38fa0a37",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/2.webp?v=c4028e79",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/3.webp?v=636e09b4",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/4.webp"
     ]
   },
@@ -1748,8 +1748,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/1.webp?v=542552a4",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/2.webp?v=eac4d409",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/3.webp?v=f01fa8ae"
     ]
   },
 
@@ -1782,8 +1782,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/1.webp?v=b6829f57",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/2.webp?v=85345f54",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/3.webp?v=a519e6b9",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/5.webp"
     ]
@@ -1808,8 +1808,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/1.webp?v=172d2ca8",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/2.webp?v=d5c965e2",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/3.webp?v=0b42f37c",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/6.webp",
@@ -1837,8 +1837,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/1.webp?v=af07983d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/2.webp?v=5aa8ea90",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/3.webp?v=5003c18c"
     ]
   },
 
@@ -1871,7 +1871,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/1.webp?v=0023117e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp?v=7a5f210f"
     ]
   },
 
@@ -1897,7 +1897,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/1.webp?v=8db6730e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/2.webp?v=6329851a"
     ]
   },
 
@@ -1920,8 +1920,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/1.webp?v=7f9ddcfd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/2.webp?v=7753cb74",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/3.webp?v=cd104a7d",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/4.webp"
     ]
   },
@@ -1948,7 +1948,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/1.webp?v=796d86af",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/2.webp?v=7a31f831"
     ]
   },
 
@@ -1980,7 +1980,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/1.webp?v=87bf7b6c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/2.webp?v=3d35a645"
     ]
   },
 
@@ -2006,8 +2006,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/1.webp?v=07820914",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/2.webp?v=c1101fe4",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/3.webp?v=e80ce5bf",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/4.webp"
     ]
   },
@@ -2031,7 +2031,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/1.webp?v=73bef4fb",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/2.webp?v=89593d1a"
     ]
   },
 
@@ -2054,7 +2054,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/1.webp?v=9cf14d04",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/2.webp?v=96d691fc"
     ]
   },
 
@@ -2083,8 +2083,8 @@ const WARDROBE_ITEMS = [
           "notes": "",
           "colour": "White",
           "gallery": [
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp",
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp"
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
           ],
           "colourCode": "#F5F5F9",
           "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
@@ -2096,7 +2096,7 @@ const WARDROBE_ITEMS = [
           "notes": "",
           "colour": "Blue",
           "gallery": [
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp"
+            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
           ],
           "colourCode": "#BAC9EF",
           "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
@@ -2133,8 +2133,8 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "White",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
         ],
         "colourCode": "#F5F5F9",
         "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
@@ -2146,7 +2146,7 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Blue",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp"
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
         ],
         "colourCode": "#BAC9EF",
         "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
@@ -2195,8 +2195,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/1.webp?v=30f66918",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/2.webp?v=a41b7545",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/3.webp?v=e079c58a"
     ]
   },
 
@@ -2218,8 +2218,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/1.webp?v=c3e10439",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/2.webp?v=731af2f3",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/3.webp?v=212e50d2",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/6.webp",
@@ -2246,8 +2246,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/1.webp?v=abcc78c7",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/2.webp?v=a09fd2de",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/3.webp?v=a919ba90"
     ]
   },
 
@@ -2269,7 +2269,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/1.webp?v=27cc0ffe",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/2.webp?v=3f9b304b"
     ]
   },
 
@@ -2292,7 +2292,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/1.webp?v=c38c0437",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp?v=40573ce0"
     ]
   },
 
@@ -2338,7 +2338,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/1.webp?v=1f838696",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/2.webp?v=bb1f16d1"
     ]
   },
 
@@ -2365,8 +2365,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/1.webp?v=da722957",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/2.webp?v=58e658f7",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/3.webp?v=5efd110e",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/4.webp"
     ]
   },
@@ -2391,8 +2391,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/1.webp?v=55f3fc65",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/2.webp?v=e784da6e",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/3.webp?v=50388298",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/4.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/5.webp",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/6.webp",
@@ -2421,8 +2421,8 @@ const WARDROBE_ITEMS = [
         "notes": "",
         "colour": "Vicenza Seal",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp?v=e92c368c",
+          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp?v=d6a7a349",
           "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
           "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
           "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
@@ -2466,7 +2466,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/1.webp?v=8844e715",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/2.webp?v=3b5971d9"
     ]
   },
 
@@ -2492,7 +2492,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/1.webp?v=767f0aac",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/2.webp?v=8092ec77"
     ]
   },
 
@@ -2536,7 +2536,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/1.webp?v=42e5202e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/2.webp?v=87338b95"
     ]
   },
 
@@ -2561,8 +2561,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/1.webp?v=f008973c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/3.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/2.webp?v=a57d3372",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/3.webp?v=0bbc95c1",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/4.webp"
     ]
   },
@@ -2587,7 +2587,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/1.webp?v=c74c2ec6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/2.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/2.webp?v=85085cbf"
     ]
   },
 
@@ -2613,8 +2613,8 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/1.webp?v=66a5c6d3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/2.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/3.webp"
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/2.webp?v=dcd03523",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/3.webp?v=8a3aa336"
     ]
   },
 
@@ -2637,7 +2637,7 @@ const WARDROBE_ITEMS = [
     },
     "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/1.webp?v=22f50376",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/2.webp",
+      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/2.webp?v=99a07a7b",
       "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/4.webp"
     ]
   }
