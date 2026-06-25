@@ -28737,7 +28737,7 @@
 
 
     function isHeaderCompactLayout() {
-      return isHeaderCompactViewport();
+      return globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false;
     }
 
     function syncMobileShellTop() {
