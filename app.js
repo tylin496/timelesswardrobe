@@ -31412,7 +31412,16 @@
         if (!cloudMeta) return { ...row };
         return { ...row, metadata: { ...(row.metadata ?? {}), ...cloudMeta } };
       }
-      return carryForwardMediaNonce(row, hit);
+      // Seed is the source of truth for catalogue image URLs (?v= cache-bust hash).
+      // Use Supabase image only when it's a genuinely different URL (admin-uploaded cover —
+      // different base path from the seed's stable main/1.webp path).
+      const merged = { ...hit };
+      if (row.image) {
+        const seedBase = String(row.image).split("?")[0];
+        const cloudBase = String(hit.image ?? "").split("?")[0];
+        if (!cloudBase || cloudBase === seedBase) merged.image = row.image;
+      }
+      return carryForwardMediaNonce(row, merged);
     });
     const have = new Set(wardrobeBase.map((r) => String(r?.id ?? "")));
     for (const [iid, row] of byId) {
