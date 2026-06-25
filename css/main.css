@@ -13213,9 +13213,6 @@ body:not(.item-page):not(.tw-page-loader-revealed) #main {
 }
 
 #grid .card {
-  /* Pure opacity fade — no rise. Thumb already signals the filter change;
-     the cards just need to appear cleanly, not draw attention to themselves. */
-  animation: tlw-fade-in 0.22s ease backwards;
 }
 
 /* Collection PLP — quick-find: layout at file end (`body.collection-view--compact`). */
@@ -13237,49 +13234,13 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   }
 }
 
-#grid .card.card--no-enter,
-#grid.grid--loaded .card {
-  animation: none;
-}
 
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--bg-elevated);
-  border: 1px solid color-mix(in srgb, var(--line) 92%, transparent);
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 4px 18px var(--card-shadow);
   -webkit-user-select: contain;
   user-select: contain;
-  transition:
-    box-shadow 0.32s var(--ease-luxe),
-    border-color 0.32s var(--ease-luxe);
-}
-
-.card:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
-  box-shadow:
-    0 10px 32px var(--card-shadow-hover),
-    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
-@supports not (border-color: color-mix(in srgb, red, blue)) {
-  .card:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 10px 32px var(--card-shadow-hover);
-  }
-}
-
-.card:hover {
-  box-shadow: 0 10px 28px var(--card-shadow-hover);
-  border-color: color-mix(in srgb, var(--line) 45%, var(--ink-muted));
-}
-
-@supports not (border-color: color-mix(in srgb, red, blue)) {
-  .card:hover {
-    border-color: var(--ink-muted);
-  }
 }
 
 .card--in-outfit {
@@ -20475,17 +20436,7 @@ body.collection-page .collection-container > .collection-actions {
   }
 
   body.collection-page #grid .card {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
     contain-intrinsic-size: auto 390px;
-  }
-
-  body.collection-page #grid .card:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: transparent;
   }
 
   body.collection-page #grid .card__media {
@@ -20884,24 +20835,6 @@ body.collection-page .collection-container > .collection-actions {
     column-gap: 1px;
     row-gap: 1.15rem;
     gap: 1.15rem 1px;
-  }
-
-  #grid .card {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-  }
-
-  #grid .card:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: transparent;
-  }
-
-  #grid .card:focus-within {
-    box-shadow: none;
-    border-color: transparent;
   }
 
   #grid .card--in-outfit {
@@ -21452,22 +21385,10 @@ body.collection-page .collection-container > .collection-actions {
   }
 
   #grid .card {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
     overflow: visible;
   }
 
-  #grid .card:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: transparent;
-  }
-
   #grid .card:focus-within {
-    border-color: transparent;
-    box-shadow: none;
     outline: 2px solid color-mix(in srgb, var(--accent) 38%, transparent);
     outline-offset: 3px;
   }
@@ -23597,18 +23518,6 @@ body.tw-page-loader-revealed #grid .card {
   animation: none;
   opacity: 1;
   transform: none;
-}
-
-/* Page-enter stagger: first 8 cards fade in after the loader exits. */
-body.tw-page-loader-revealed #grid.grid--entering .card:not(.card--no-enter) {
-  animation: tlw-fade-in 0.3s ease backwards;
-  animation-delay: calc(var(--card-enter-i, 0) * 45ms);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body.tw-page-loader-revealed #grid.grid--entering .card:not(.card--no-enter) {
-    animation: none;
-  }
 }
 
 body.tw-page-loader-revealed .site-footer {

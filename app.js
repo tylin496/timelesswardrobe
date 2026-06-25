@@ -23639,7 +23639,7 @@
         firstFrag.appendChild(
           createCard(sorted[i], {
             fetchPriority: i < 4 ? "high" : "auto",
-            skipEnterAnimation: fromSkeleton || i >= 8,
+            skipEnterAnimation: true,
           })
         );
       }
@@ -31919,16 +31919,6 @@
     }
     document.body.classList.add("tw-page-loader-revealed");
     document.querySelector(".site-header")?.classList.add("site-header--entered");
-    if (isCollectionGridPage) {
-      const grid = document.getElementById("grid");
-      if (grid) {
-        grid.querySelectorAll(".card").forEach((card, i) => {
-          if (i < 8) card.style.setProperty("--card-enter-i", String(i));
-        });
-        grid.classList.add("grid--entering");
-        setTimeout(() => grid.classList.remove("grid--entering"), 1200);
-      }
-    }
   }
 
   async function bootstrap() {
