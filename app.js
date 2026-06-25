@@ -20708,10 +20708,11 @@
             : "photo";
         setMsg?.(`Uploading ${where}…`, false);
         try {
-          if (isLocalCatalogueItemId(itemId) && isTwLocalDevHost()) {
-            url = await saveWardrobeImageFileToLocalDevServer(plan.source.file, itemId, plan.slot);
-          } else if (isSupabaseReady()) {
+          if (isSupabaseReady()) {
             url = await uploadWardrobeImageFileToCloud(plan.source.file, itemId, plan.slot);
+            if (isLocalCatalogueItemId(itemId) && isTwLocalDevHost()) {
+              await saveWardrobeImageFileToLocalDevServer(plan.source.file, itemId, plan.slot);
+            }
           } else {
             url = await fileToStorageDataUrl(plan.source.file, { preferJpeg: i > 0 });
           }
