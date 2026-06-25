@@ -694,13 +694,20 @@ html {
   }
 }
 
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
 #main:focus {
   outline: none;
 }
 
 #main:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 0.4rem;
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: var(--radius);
 }
 
@@ -1321,7 +1328,6 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 .site-title__primary:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 0.28rem;
   border-radius: 2px;
 }
@@ -1393,8 +1399,6 @@ body.home-page .site-header--scroll-driven::before {
 }
 
 .site-header__season-mini-tab:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .site-header__nav-link {
@@ -2132,7 +2136,6 @@ body.home-page .site-header--scroll-driven::before {
 .site-header__saved-btn:focus-visible,
 .site-header__menu-btn:focus-visible,
 .site-header__collection-back:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -2519,8 +2522,6 @@ body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-gl
 }
 
 .site-header__search-close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* Main-page submitted search (Ralph Lauren–style PLP) */
@@ -2644,8 +2645,6 @@ body.collection-ui--mobile-nav-open .site-header__menu-btn .site-header__menu-gl
 }
 
 .collection-search-results-plp__clear:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 @media (max-width: 720px) {
@@ -2903,7 +2902,6 @@ body.collection-page
 }
 
 .items-toolbar__active-chip__remove:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -2941,8 +2939,6 @@ body.collection-page
 }
 
 .items-toolbar__active-chips-clear:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .collection-search-results-plp__pill {
@@ -3418,7 +3414,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 .site-header__search-category-card:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 4px;
   border-radius: 2px;
 }
@@ -3615,8 +3610,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 .site-header__search-trending-row:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
   border-radius: 2px;
 }
 
@@ -3735,8 +3728,6 @@ body.collection-ui--search-results-plp .items-toolbar__filter-sort-btn {
 }
 
 .site-header__search-recent-row:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
   border-radius: 2px;
 }
 
@@ -7940,8 +7931,6 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 }
 
 .filters__menu-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .filters__panel {
@@ -8060,7 +8049,6 @@ body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav
 }
 
 .filters__search-clear:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -8345,7 +8333,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .season-strip__tab:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -8469,8 +8456,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .items-toolbar__brand-story-text a.items-toolbar__brand-story-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
   border-radius: 2px;
 }
 
@@ -8510,7 +8495,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .items-toolbar__brand-story-toggle:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -8600,8 +8584,6 @@ body.collection-ui--header-search-open.collection-ui--nav-folded .site-header {
 }
 
 .collection-heading__crumb--link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .collection-heading__crumb--current {
@@ -8868,8 +8850,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__filter-sort-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .items-toolbar__filter-sort-icon {
@@ -8932,7 +8912,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__view-toggle-btn:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: -2px;
   z-index: 1;
 }
@@ -9012,8 +8991,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__filter-sort-clear:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* Active filter chips — lives in `.items-toolbar` (no separate sticky strip). */
@@ -9092,8 +9069,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .colour-filter-chip:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .colour-filter-chip__swatch {
@@ -9155,7 +9130,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .items-toolbar__select:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
@@ -9342,8 +9316,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .collection-filter-drawer__close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .collection-filter-drawer__body {
@@ -9572,8 +9544,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 .collection-filter-drawer .collection-drawer-record-type-chip:focus-visible,
 .collection-filter-drawer .collection-drawer-brand-chip:focus-visible,
 .collection-filter-drawer .colour-filter-chip:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .collection-filter-drawer__record-types[hidden] {
@@ -9662,7 +9632,6 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 }
 
 .collection-filter-drawer__done:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -10284,7 +10253,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 
 .outfits-drawer__close:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
-  outline-offset: 2px;
 }
 
 /* Hero section is no longer used — always hidden */
@@ -10418,7 +10386,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 
 .outfits-drawer__cta:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
-  outline-offset: 2px;
 }
 
 .outfits-drawer__clear-all {
@@ -10453,7 +10420,6 @@ body.collection-ui--outfits .site-header__search-megamenu-inner {
 
 .outfits-drawer__clear-all:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
-  outline-offset: 2px;
 }
 
 .outfits-drawer__clear-all[hidden] {
@@ -11915,7 +11881,6 @@ body.tw-outfit-drag-active * {
 
 .outfits-drawer .saved-card__ctrl:focus-visible {
   outline: 2px solid var(--tw-brand-signature-navy, #163229);
-  outline-offset: 2px;
 }
 
 .outfits-drawer .saved-card__ctrl--danger {
@@ -11928,7 +11893,6 @@ body.tw-outfit-drag-active * {
 
 .outfits-drawer .saved-card__ctrl--danger:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--sb-danger) 55%, var(--tw-brand-signature-navy, #163229));
-  outline-offset: 2px;
 }
 
 /* ── Icon-only action buttons (replace text VIEW/EDIT/DELETE) ──────────── */
@@ -12105,7 +12069,6 @@ body.tw-outfit-drag-active * {
 }
 
 .category-nav__tab:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -12238,8 +12201,6 @@ body.tw-outfit-drag-active * {
 }
 
 .category-drill__choice:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* Collection toolbar: circular outline pills — distinct from square filter-drawer chips */
@@ -12364,7 +12325,6 @@ input[type="search"]:focus-visible,
 .item-detail__form input[type="date"]:focus-visible,
 .item-detail__form input[type="number"]:focus-visible,
 .item-detail__form textarea:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
@@ -12466,8 +12426,6 @@ input[type="search"]:focus-visible,
 }
 
 .filter-search-chip:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .filter-search-chip__text {
@@ -12521,8 +12479,6 @@ input[type="search"]:focus-visible,
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .btn:disabled {
@@ -12794,7 +12750,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .field--block textarea:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
@@ -12886,7 +12841,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .outfit-slot:focus-within {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -12993,7 +12947,6 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .field--inline input:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -13208,6 +13161,9 @@ body.collection-page:not(.tw-page-loader-revealed) #category-drill-grid {
 }
 
 #grid .card {
+  /* Pre-promote to compositing layer so hover transitions on child elements
+     don't trigger a subpixel re-snap of the card's pixel position. */
+  transform: translateZ(0);
 }
 
 /* Collection PLP — quick-find: layout at file end (`body.collection-view--compact`). */
@@ -13444,7 +13400,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
   transform: translateY(0);
   pointer-events: auto;
   outline: 2px solid rgba(255, 255, 255, 0.72);
-  outline-offset: 2px;
 }
 
 .card__body {
@@ -13509,7 +13464,6 @@ body.collection-page #grid.grid--compact .card__gallery-nav {
 }
 
 .card__title--opens-detail:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -14245,8 +14199,6 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 }
 
 .card__swatch--pick:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .card__swatch img {
@@ -14288,8 +14240,6 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 }
 
 .card__swatch:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* Grid cover images fade in on load; --loaded is added by wireCoverImageWithFallbacks. */
@@ -14360,7 +14310,6 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
 }
 
 .card__gallery-thumb:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -14859,8 +14808,6 @@ body.item-page:has(.item-detail__root--edit) {
 }
 
 .item-detail__gallery-nav:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-detail__gallery-stage--multi .item-detail__gallery-nav {
@@ -16070,8 +16017,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 .item-image-zoom__close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -16233,8 +16178,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 .item-image-zoom__pager-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-image-zoom__pager-glyph {
@@ -16990,8 +16933,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 .item-edit-photo-tile--add.item-edit-photo-manager__upload:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-edit-photo-tile--add.item-edit-photo-manager__upload:disabled {
@@ -17048,7 +16989,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 
 .item-edit-photo-tile.is-drop-target .item-edit-photo-tile__media {
   outline: 2px solid var(--accent, #1a1a1a);
-  outline-offset: 2px;
 }
 
 .item-edit-photo-tile__img {
@@ -17125,8 +17065,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 .item-edit-photo-tile__action:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-edit-photo-tile__action:disabled {
@@ -17251,8 +17189,6 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 }
 
 .item-edit-icon-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-edit-icon-btn:disabled {
@@ -17488,7 +17424,6 @@ dialog.item-photo-crop-dialog[open] {
 
 .item-photo-crop__nudge-btn:focus-visible {
   outline: 2px solid var(--ink);
-  outline-offset: 2px;
 }
 
 .item-photo-crop__nudge-btn:active {
@@ -17997,8 +17932,6 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
 }
 
 .item-edit-colour-code-preview:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-edit-colour-code-preview--empty {
@@ -18055,8 +17988,6 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
 }
 
 .item-edit-eyedropper-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-edit-eyedropper-btn:active {
@@ -18441,8 +18372,6 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
 }
 
 .item-detail__breadcrumb-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
   border-radius: 2px;
 }
 
@@ -18524,8 +18453,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__edit-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-detail__edit-btn:disabled {
@@ -18576,8 +18503,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__share-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .item-detail__share-btn--copied {
@@ -18643,7 +18568,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-share-menu__item:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
@@ -19014,7 +18938,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__root--page .item-detail__title:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -19272,7 +19195,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__outfits-cta:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -19415,7 +19337,6 @@ a.item-detail__breadcrumb-current {
 }
 
 .item-detail__notes-toggle:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -21657,7 +21578,6 @@ body.home-page .home-hero__hero .home-hero__btn {
 
 .home-hero__hero-arrow:focus-visible {
   outline: 1px solid rgba(255, 255, 255, 0.88);
-  outline-offset: 2px;
 }
 
 .home-hero__hero-arrow svg {
@@ -22036,7 +21956,6 @@ video.home-hero__hero-layer-video {
 }
 
 .home-hero__season-duo-card:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: -2px;
   z-index: 2;
 }
@@ -22350,7 +22269,6 @@ video.home-hero__hero-layer-video {
 }
 
 .home-hero__division-rail-card:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -22624,7 +22542,6 @@ body.home-page .home-hero__band--muted {
 }
 
 .home-hero__pcard:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -22888,7 +22805,6 @@ body.home-page #main.home-hero .home-hero__band--season {
 }
 
 .home-hero__season-tile:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
