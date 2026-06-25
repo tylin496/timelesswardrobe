@@ -10867,7 +10867,9 @@
   }
 
   function mergeWardrobeFromSources() {
-    const ov = loadCollectionOverrides();
+    // collection_overrides layer removed (single-truth architecture): metadata
+    // truth is wardrobeBase (seed aligned to wardrobe_items + cloud metadata
+    // merge), images are local seed paths. No override patch is applied.
     const hiddenCollection = loadCollectionHiddenIds();
     const mergedBase = wardrobeBase
       .filter((row) => {
@@ -10876,11 +10878,7 @@
       })
       .map((row, idx) => {
         if (!row || row.id == null) return row;
-        const id = String(row.id);
-        const patch = ov[id];
-        const base =
-          patch && typeof patch === "object" ? applyCollectionOverrideToRow(row, patch) : { ...row };
-        return { ...base, __collectionOrdinal: idx };
+        return { ...row, __collectionOrdinal: idx };
       });
     slotRecordFallbackCategory = computeSlotRecordFallbackCategories(mergedBase);
     const mergedList = dedupeWardrobeRowsByCanonicalId(
