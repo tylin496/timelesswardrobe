@@ -3592,7 +3592,6 @@
 
       // Top Brands
       const topBrands = twDistinctBrandCounts()
-        .filter((b) => !b.name.toLowerCase().startsWith("future"))
         .slice(0, 10)
         .map(({ name: n, count: c }) => [n, c]);
       if (topBrands.length) {
