@@ -248,7 +248,7 @@
       }
     }
     /** A colour's gallery image must live under its own `variants/<key>/` folder. */
-    const normalizeVariantSegment = (s) => String(s ?? "").toLowerCase().replace(/\s+/g, "-");
+    const normalizeVariantSegment = (s) => { try { s = decodeURIComponent(s); } catch (_) {} return String(s ?? "").toLowerCase().replace(/\s+/g, "-"); };
     const galleryUrlIsForeignToVariant = (url, key) => {
       const p = String(url ?? "").split("?")[0];
       if (/\/main\/gallery\//.test(p)) return true;
@@ -2361,8 +2361,6 @@
   }
 
   const CUSTOM_ITEMS_KEY = "timeless-wardrobe-custom-items-v1";
-  /** Merged on top of each `wardrobeBase` row with matching `id` (this browser only). */
-  const ITEM_COLLECTION_OVERRIDES_KEY = "timeless-wardrobe-collection-overrides-v1";
   /** Seed / Supabase row ids removed from the grid in this browser only (not deleted from disk or cloud). */
   const COLLECTION_HIDDEN_IDS_KEY = "timeless-wardrobe-collection-hidden-v1";
   const SEASON_NAV_STORAGE_KEY = "timeless-wardrobe-season-nav-v1";
@@ -3035,8 +3033,6 @@
     let updated = 0;
     let failed = 0;
     const savedRows = [];
-    const overrides = loadCollectionOverrides();
-    const overrideItemIds = new Set();
     for (const { from, to } of renames) {
       const affected = items.filter((it) => String(it?.brand ?? "").trim() === from);
       for (const it of affected) {
@@ -3049,28 +3045,11 @@
           } else {
             upsertWardrobeBaseRowInMemory(next);
           }
-          const id = String(it?.id ?? "").trim();
-          if (id && isLocalCatalogueItemId(id)) {
-            const current =
-              overrides[id] && typeof overrides[id] === "object" && !Array.isArray(overrides[id])
-                ? { ...overrides[id] }
-                : {};
-            overrides[id] = { ...current, brand: to };
-            overrideItemIds.add(id);
-          }
           updated++;
         } catch (e) {
           console.warn("[account] brand rename save failed:", it?.id, e);
           failed++;
         }
-      }
-    }
-    if (overrideItemIds.size) {
-      try {
-        await saveCollectionOverrides(overrides);
-      } catch (e) {
-        console.warn("[account] brand rename override save failed:", e);
-        failed += overrideItemIds.size;
       }
     }
     if (savedRows.length && isCloudModeActive()) {
@@ -4405,13 +4384,6 @@
           const saved = await saveWardrobeItemToCloud(patch);
           upsertWardrobeBaseRowInMemory(saved);
           it[fieldKey] = newVal;
-          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
-            try {
-              const allOv = loadCollectionOverrides();
-              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), [fieldKey]: newVal };
-              await saveCollectionOverrides(allOv);
-            } catch { /* non-fatal */ }
-          }
           mergeWardrobeFromSources();
           setStatus("saved", "Saved");
         } catch (err) {
@@ -4941,13 +4913,6 @@
           const saved = await saveWardrobeItemToCloud(patch);
           upsertWardrobeBaseRowInMemory(saved);
           it.notes = newVal;
-          if (isLocalCatalogueItemId(String(it.id ?? ""))) {
-            try {
-              const allOv = loadCollectionOverrides();
-              allOv[String(it.id)] = { ...(allOv[String(it.id)] ?? {}), notes: newVal };
-              await saveCollectionOverrides(allOv);
-            } catch { /* non-fatal */ }
-          }
           mergeWardrobeFromSources();
           onStatus("saved", "Saved");
           // reflect updated word count in list row
@@ -10118,7 +10083,7 @@
   }
 
   /**
-   * One-file snapshot of browser-only state (custom rows, collection overrides, hidden ids, outfits, UI prefs).
+   * One-file snapshot of browser-only state (custom rows, hidden ids, outfits, UI prefs).
    * Does not replace Supabase sync — use when cloud is off or as an extra safety copy.
    */
   function downloadBrowserWardrobeBackupJson() {
@@ -10130,7 +10095,6 @@
       wardrobeItemsText: textLocal.items,
       wardrobeTextLocal: textLocal,
       customItems: loadCustomItems(),
-      collectionOverrides: loadCollectionOverrides(),
       collectionHiddenIds: [...loadCollectionHiddenIds()],
       outfits: {
         version: OUTFIT_STORAGE_VERSION,
@@ -17200,15 +17164,6 @@
       quality: frame.quality,
       zoom: typeof frame.zoom === "number" && frame.zoom > 1 && frame.zoom <= 3 ? frame.zoom : undefined,
     });
-  }
-
-  function withVercelImageOptimization(url, width, quality) {
-    try { if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return ""; } catch { return ""; }
-    const ALLOWED = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
-    const w = ALLOWED.find((s) => s >= Math.ceil(width)) ?? ALLOWED[ALLOWED.length - 1];
-    const q = typeof quality === "number" && Number.isFinite(quality) ? Math.min(100, Math.max(20, Math.round(quality))) : 80;
-    const encoded = url.startsWith("http") ? encodeURIComponent(url) : encodeURIComponent(url.startsWith("/") ? url : "/" + url);
-    return `/_vercel/image?url=${encoded}&w=${w}&q=${q}`;
   }
 
   /**
