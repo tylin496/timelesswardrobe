@@ -5018,9 +5018,21 @@
       updateWC();
       textarea.addEventListener("input", updateWC);
 
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "account-notes-editor__copy-btn";
+      copyBtn.type = "button";
+      copyBtn.textContent = "Copy";
+      copyBtn.addEventListener("click", () => {
+        const text = buildNotesCopyText(it);
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.textContent = "Copied!";
+          setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
+        }).catch(() => {});
+      });
+
       const footer = document.createElement("div");
       footer.className = "account-notes-editor__footer";
-      footer.append(wordCountEl, statusEl);
+      footer.append(wordCountEl, copyBtn, statusEl);
 
       editorPane.append(textarea, footer);
     }
@@ -5115,7 +5127,22 @@
               textarea.style.height = `${textarea.scrollHeight}px`;
               textarea.focus();
             });
-            mobileBody.append(statusEl, textarea);
+            const mobileCopyBtn = document.createElement("button");
+            mobileCopyBtn.className = "account-notes-editor__copy-btn";
+            mobileCopyBtn.type = "button";
+            mobileCopyBtn.textContent = "Copy";
+            mobileCopyBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const text = buildNotesCopyText(it);
+              navigator.clipboard.writeText(text).then(() => {
+                mobileCopyBtn.textContent = "Copied!";
+                setTimeout(() => { mobileCopyBtn.textContent = "Copy"; }, 2000);
+              }).catch(() => {});
+            });
+            const mobileFooter = document.createElement("div");
+            mobileFooter.className = "account-notes-editor__footer";
+            mobileFooter.append(statusEl, mobileCopyBtn);
+            mobileBody.append(textarea, mobileFooter);
           }
         }
       });
