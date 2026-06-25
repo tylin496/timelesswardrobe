@@ -22,7 +22,7 @@ const WARDROBE_ITEMS = [
     "name": "Beaufort Waxed Jacket",
     "season": "A/W",
     "colour": "Sage",
-    "colourCode": "40403C",
+    "colourCode": "#40403C",
     "fabric": "Waxed cotton",
     "size": "44",
     "purchaseDate": "2025-08-01",
@@ -144,7 +144,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "gold",
       "priceCurrency": "TWD",
       "secondaryColour": "Brown Aligator Strap",
-      "secondaryColourCode": "9A4B17"
+      "secondaryColourCode": "#9A4B17"
     }
   },
 
@@ -877,7 +877,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "red",
       "priceCurrency": "JPY",
       "secondaryColour": "Cream",
-      "secondaryColourCode": "F5F1E8"
+      "secondaryColourCode": "#F5F1E8"
     }
   },
 
@@ -1883,7 +1883,7 @@ const WARDROBE_ITEMS = [
       "basicColour": "gold",
       "priceCurrency": "TWD",
       "secondaryColour": "Pigeon's Blood Ruby",
-      "secondaryColourCode": "b7172a"
+      "secondaryColourCode": "#b7172a"
     }
   },
 
