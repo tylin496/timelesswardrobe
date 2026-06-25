@@ -21214,9 +21214,10 @@ body.collection-page .collection-container > .collection-actions {
     overflow: visible;
   }
 
-  #grid .card:focus-within {
-    outline: 2px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  #grid .card:has(:focus-visible) {
+    outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
     outline-offset: 3px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
   #grid .card--in-outfit {
