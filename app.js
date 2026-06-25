@@ -22951,14 +22951,6 @@
 
     media.appendChild(img);
 
-    const rawSe = normalizeSeason(item.season);
-    if (rawSe === "AW" || rawSe === "SS") {
-      const chip = document.createElement("span");
-      chip.className = "card__season-chip";
-      chip.textContent = rawSe === "SS" ? "S/S" : "A/W";
-      media.appendChild(chip);
-    }
-
     /** @type {HTMLButtonElement | null} */
     let outfitAddBtn = null;
     if (itemEligibleForOutfit(item)) {
