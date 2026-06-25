@@ -20524,14 +20524,6 @@ body.collection-page .collection-container > .collection-actions {
 
 }
 
-@media (min-width: 901px) and (max-width: 1024px) {
-  body.collection-page #grid.grid,
-  body.collection-page #grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 42px;
-    column-gap: 1px;
-  }
-}
 
 @media (min-width: 721px) and (max-width: 1100px) {
   body.theme-catalogue:not(.item-page):not(.collection-ui--search-results-plp):not(.collection-page) #main {
@@ -20775,16 +20767,6 @@ body.collection-page .collection-container > .collection-actions {
     padding-right: 0;
   }
 
-  /* Standard browse (“large image”): two columns on mobile; quick-find uses finale block. */
-  body.collection-page:not(.collection-view--compact) .grid,
-  body.collection-page:not(.collection-view--compact) #grid,
-  body.collection-page:not(.collection-view--compact) #grid.grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1px;
-    row-gap: 1.15rem;
-    gap: 1.15rem 1px;
-  }
-
   #grid .card--in-outfit {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
   }
@@ -20821,63 +20803,6 @@ body.collection-page .collection-container > .collection-actions {
     position: absolute;
     inset: 0;
     z-index: 1;
-  }
-
-  #grid .card__body {
-    padding: 0.36rem 0.5rem 0;
-    gap: 0.05rem;
-  }
-
-  #grid .card__title {
-  @apply m-0;
-    font-size: clamp(0.92rem, 3.4vw, 1.06rem);
-    font-weight: 600;
-    line-height: 1.14;
-  }
-
-  #grid .card__title--opens-detail:hover {
-    text-decoration: none;
-    opacity: 0.82;
-  }
-
-  #grid .card__brand {
-  @apply mt-0 mb-0.5;
-    text-transform: none;
-    letter-spacing: 0.03em;
-    font-size: 0.69rem;
-    font-weight: 450;
-    line-height: 1.2;
-    color: var(--ink-muted);
-  }
-
-  #grid .card__meta-line {
-  @apply mb-1;
-    font-size: 0.66rem;
-  }
-
-  #grid .card__price-subtle {
-  @apply mt-0.5;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--ink);
-    opacity: 1;
-  }
-
-  #grid .card__actions {
-  @apply mt-0.5;
-    border-top: none;
-    padding-top: 0.35rem;
-  }
-
-  #grid .card__outfit-add,
-  #grid .card__quick-outfit {
-    right: 0.42rem;
-    bottom: 0.42rem;
-  }
-
-  #grid .card__season-chip {
-    display: none !important;
   }
 
   /* Collection PLP mobile — tighter header stack; grid visible above the fold. */
@@ -21130,9 +21055,6 @@ body.collection-page .collection-container > .collection-actions {
   }
 
   body.collection-page #grid.grid {
-    column-gap: 1px;
-    row-gap: 1.1rem;
-    gap: 1.1rem 1px;
     padding-bottom: max(3rem, calc(1.25rem + env(safe-area-inset-bottom, 0px)));
   }
 
@@ -21172,6 +21094,92 @@ body.collection-page .collection-container > .collection-actions {
 
   body.collection-page #main {
     padding-top: var(--site-header-chrome-bottom, 82px);
+  }
+}
+
+/* Phone-only (≤599px): 2-col grid + compact card text. */
+@media (max-width: 599px) {
+  body.collection-page:not(.collection-view--compact) .grid,
+  body.collection-page:not(.collection-view--compact) #grid,
+  body.collection-page:not(.collection-view--compact) #grid.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1px;
+    row-gap: 1.15rem;
+    gap: 1.15rem 1px;
+  }
+
+  body.collection-page #grid.grid {
+    column-gap: 1px;
+    row-gap: 1.15rem;
+    gap: 1.15rem 1px;
+  }
+
+  #grid .card__body {
+    padding: 0.36rem 0.5rem 0;
+    gap: 0.05rem;
+  }
+
+  #grid .card__title {
+  @apply m-0;
+    font-size: clamp(0.92rem, 3.4vw, 1.06rem);
+    font-weight: 600;
+    line-height: 1.14;
+  }
+
+  #grid .card__title--opens-detail:hover {
+    text-decoration: none;
+    opacity: 0.82;
+  }
+
+  #grid .card__brand {
+  @apply mt-0 mb-0.5;
+    text-transform: none;
+    letter-spacing: 0.03em;
+    font-size: 0.69rem;
+    font-weight: 450;
+    line-height: 1.2;
+    color: var(--ink-muted);
+  }
+
+  #grid .card__meta-line {
+  @apply mb-1;
+    font-size: 0.66rem;
+  }
+
+  #grid .card__price-subtle {
+  @apply mt-0.5;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    opacity: 1;
+  }
+
+  #grid .card__actions {
+  @apply mt-0.5;
+    border-top: none;
+    padding-top: 0.35rem;
+  }
+
+  #grid .card__outfit-add,
+  #grid .card__quick-outfit {
+    right: 0.42rem;
+    bottom: 0.42rem;
+  }
+
+  #grid .card__season-chip {
+    display: none !important;
+  }
+}
+
+/* Tablet / half-screen (600–1024px): 3-col plate layout. */
+@media (min-width: 600px) and (max-width: 1024px) {
+  body.collection-page #grid.grid,
+  body.collection-page #grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 1px;
+    row-gap: 42px;
+    gap: 42px 1px;
   }
 }
 
