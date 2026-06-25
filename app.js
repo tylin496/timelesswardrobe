@@ -10378,7 +10378,6 @@
       applySeasonNavFromLocalStorage();
       try {
         await flushWardrobeAppStateToSupabase();
-        localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
         localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
       } catch (e) {
         console.warn("wardrobe_app_state bootstrap insert:", e);
@@ -10401,14 +10400,12 @@
     if (migrated) {
       try {
         await flushWardrobeAppStateToSupabase();
-        localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
         localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
       } catch (e) {
         console.warn("Migrate collection state to Supabase failed.", e);
       }
     } else if (lsH.length) {
       try {
-        localStorage.removeItem(ITEM_COLLECTION_OVERRIDES_KEY);
         localStorage.removeItem(COLLECTION_HIDDEN_IDS_KEY);
       } catch {
         /* ignore */
