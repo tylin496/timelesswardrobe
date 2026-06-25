@@ -8139,31 +8139,6 @@
     } catch (_) {}
   }
 
-  function showcaseRankSeedMap() {
-    try {
-      const raw = localStorage.getItem(SHOWCASE_RANK_CACHE_KEY);
-      if (!raw) return {};
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") return {};
-      return parsed;
-    } catch (_) {
-      return {};
-    }
-  }
-
-  function applyShowcaseRankCacheToWardrobeBase() {
-    const map = showcaseRankSeedMap();
-    if (!Object.keys(map).length) return;
-    for (const item of wardrobeBase) {
-      if (!item?.id) continue;
-      const rank = map[String(item.id)];
-      if (typeof rank === "number" && rank >= 0) {
-        item.showcaseOrder = rank;
-        item.metadata = { ...(item.metadata ?? {}), showcase_rank: rank };
-      }
-    }
-  }
-
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
     const seen = new Set();
@@ -9526,7 +9501,14 @@
       // Catalogue rows that still reference `.png`/`.jpg` should now serve `.webp`
       // when the converted file is on disk.
       const upgraded = lookupFrozenLocalWardrobePath(split);
-      return upgraded || split;
+      if (upgraded) return upgraded;
+      // Local files were removed after R2 migration — convert to R2 URL so the image still loads.
+      const localObjPath = localWardrobePathFromUrl(split);
+      if (localObjPath) {
+        const r2Path = localObjPath.split("/").map(encodeURIComponent).join("/");
+        return `${WARDROBE_R2_BASE}/${r2Path}`;
+      }
+      return split;
     }
     const objPath = wardrobeImageObjectPath(raw);
     if (objPath) {
@@ -10770,7 +10752,6 @@
     // collection_overrides layer removed (single-truth architecture): metadata
     // truth is wardrobeBase (seed aligned to wardrobe_items + cloud metadata
     // merge), images are local seed paths. No override patch is applied.
-    applyShowcaseRankCacheToWardrobeBase();
     const hiddenCollection = loadCollectionHiddenIds();
     const mergedBase = wardrobeBase
       .filter((row) => {
