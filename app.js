@@ -12969,8 +12969,18 @@
       // The inline opacity (higher specificity than overlay's 0 / solid's 1) drives it; while
       // `--scroll-driven` is set the ::before has no transition so it tracks scroll per-frame. Cleared
       // once fully opaque (t=1) so the solid default + its 400ms transition take over cleanly.
+      //
+      // Exception: when solid is forced by the mega menu or desktop search flyout (not by scroll),
+      // clear scroll-driven so the CSS opacity (1 from site-header--solid) takes over — otherwise
+      // the stale/zero inline value makes the header transparent while the flyout is open.
+      const isDesktopHeader = globalThis.matchMedia?.("(min-width: 1025px)")?.matches;
+      const isFlyoutForcedSolid =
+        document.body.classList.contains("collection-ui--header-submenu-open") ||
+        (isDesktopHeader && document.body.classList.contains("collection-ui--header-search-open"));
       const heroH = hero ? hero.offsetHeight : 0;
-      if (hero && heroH > 0) {
+      if (isFlyoutForcedSolid) {
+        clearScrollDriven();
+      } else if (hero && heroH > 0) {
         const scrollY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
         const fadeStart = heroH * 0.1;
         const fadeEnd = heroH * 0.35;
