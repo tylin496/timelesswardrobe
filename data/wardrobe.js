@@ -40,11 +40,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/1.webp?v=3307c83c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/rolo-chain-necklace/main/1.webp?v=3307c83c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/2.webp?v=8e2ac554",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/3.webp?v=64ddf0a3",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rolo-chain-necklace/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/rolo-chain-necklace/main/2.webp?v=8e2ac554",
+      "https://img.timelesswardrobe.uk/wardrobe/rolo-chain-necklace/main/3.webp?v=64ddf0a3",
+      "https://img.timelesswardrobe.uk/wardrobe/rolo-chain-necklace/main/4.webp"
     ]
   },
 
@@ -80,14 +80,14 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Pigeon's Blood Ruby",
       "secondaryColourCode": "#b7172a"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/1.webp?v=a2c26be2",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/1.webp?v=a2c26be2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/2.webp?v=eb990858",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/3.webp?v=89051188",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ruby-gypsy-ring/main/7.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/2.webp?v=eb990858",
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/3.webp?v=89051188",
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/ruby-gypsy-ring/main/7.webp"
     ]
   },
 
@@ -117,16 +117,16 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/1.webp?v=8062599c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/1.webp?v=8062599c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/2.webp?v=61ac92aa",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/3.webp?v=691df271",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/8.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/signet-ring/main/9.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/2.webp?v=61ac92aa",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/3.webp?v=691df271",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/8.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/signet-ring/main/9.webp"
     ]
   },
 
@@ -166,10 +166,10 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Brown Aligator Strap",
       "secondaryColourCode": "#9A4B17"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/1.webp?v=9c4f37d2",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/tank-solo/main/1.webp?v=9c4f37d2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/2.webp?v=ef4773b1",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tank-solo/main/3.webp?v=31f6fe18"
+      "https://img.timelesswardrobe.uk/wardrobe/tank-solo/main/2.webp?v=ef4773b1",
+      "https://img.timelesswardrobe.uk/wardrobe/tank-solo/main/3.webp?v=31f6fe18"
     ]
   },
 
@@ -189,10 +189,10 @@ const WARDROBE_ITEMS = [
       "price": 374.85,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/1.webp?v=728c4cc9",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/achilles-low/main/1.webp?v=728c4cc9",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/2.webp?v=5610a06f",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/achilles-low/main/3.webp?v=7ed44b2c"
+      "https://img.timelesswardrobe.uk/wardrobe/achilles-low/main/2.webp?v=5610a06f",
+      "https://img.timelesswardrobe.uk/wardrobe/achilles-low/main/3.webp?v=7ed44b2c"
     ]
   },
 
@@ -213,15 +213,15 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "USD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/1.webp?v=ecf79390",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/chukka/main/1.webp?v=ecf79390",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/2.webp?v=811ed516",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/3.webp?v=78122578",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/chukka/main/8.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/2.webp?v=811ed516",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/3.webp?v=78122578",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/chukka/main/8.webp"
     ]
   },
 
@@ -243,10 +243,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 6
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/1.webp?v=1db2dc4d",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/1.webp?v=1db2dc4d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/2.webp?v=3c10b46a",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pembroke/main/3.webp?v=bca9b026"
+      "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/2.webp?v=3c10b46a",
+      "https://img.timelesswardrobe.uk/wardrobe/pembroke/main/3.webp?v=bca9b026"
     ]
   },
 
@@ -267,10 +267,10 @@ const WARDROBE_ITEMS = [
       "price": 1284.65,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/1.webp?v=1518fb8e",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/navy-double-breasted-blazer/main/1.webp?v=1518fb8e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/2.webp?v=2707930d",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/navy-double-breasted-blazer/main/3.webp?v=a224fa91"
+      "https://img.timelesswardrobe.uk/wardrobe/navy-double-breasted-blazer/main/2.webp?v=2707930d",
+      "https://img.timelesswardrobe.uk/wardrobe/navy-double-breasted-blazer/main/3.webp?v=a224fa91"
     ]
   },
 
@@ -319,13 +319,13 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Brown Lenses",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/1.webp?v=a4a82dab",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/1.webp?v=a4a82dab",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/2.webp?v=f2114b9a",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/3.webp?v=1e0b24f6",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kingsman-0847-sunglasses/main/6.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/2.webp?v=f2114b9a",
+      "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/3.webp?v=1e0b24f6",
+      "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/kingsman-0847-sunglasses/main/6.webp"
     ]
   },
 
@@ -358,11 +358,11 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#b58659",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/1.webp?v=cce63c69",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/gt1-hardwood-umbrella/main/1.webp?v=cce63c69",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/2.webp?v=8d31460c",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/3.webp?v=3b6f4979",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/gt1-hardwood-umbrella/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/gt1-hardwood-umbrella/main/2.webp?v=8d31460c",
+      "https://img.timelesswardrobe.uk/wardrobe/gt1-hardwood-umbrella/main/3.webp?v=3b6f4979",
+      "https://img.timelesswardrobe.uk/wardrobe/gt1-hardwood-umbrella/main/4.webp"
     ]
   },
 
@@ -379,13 +379,13 @@ const WARDROBE_ITEMS = [
     "metadata": {
       "basicColour": "gold"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/1.webp?v=a078bdd0",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/1.webp?v=a078bdd0",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/2.webp?v=c4b0edcc",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/3.webp?v=1d828d0b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wedding-bands/main/6.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/2.webp?v=c4b0edcc",
+      "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/3.webp?v=1d828d0b",
+      "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wedding-bands/main/6.webp"
     ]
   },
 
@@ -407,9 +407,9 @@ const WARDROBE_ITEMS = [
       "price": 2990,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/1.webp?v=7aff502a",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/wide-straight-trousers/main/1.webp?v=7aff502a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-straight-trousers/main/2.webp?v=45b0ff57"
+      "https://img.timelesswardrobe.uk/wardrobe/wide-straight-trousers/main/2.webp?v=45b0ff57"
     ]
   },
 
@@ -432,10 +432,10 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#ffffff",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/1.webp?v=89bc8742",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/smoke-olive-acetate-optical/main/1.webp?v=89bc8742",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/2.webp?v=227c92e9",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/smoke-olive-acetate-optical/main/3.webp?v=2fe19dd7"
+      "https://img.timelesswardrobe.uk/wardrobe/smoke-olive-acetate-optical/main/2.webp?v=227c92e9",
+      "https://img.timelesswardrobe.uk/wardrobe/smoke-olive-acetate-optical/main/3.webp?v=2fe19dd7"
     ]
   },
 
@@ -456,11 +456,11 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/1.webp?v=8a08ed2e",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/corduroy-trousers/main/1.webp?v=8a08ed2e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/2.webp?v=bf3d4a76",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/3.webp?v=ac44c82b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/corduroy-trousers/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/corduroy-trousers/main/2.webp?v=bf3d4a76",
+      "https://img.timelesswardrobe.uk/wardrobe/corduroy-trousers/main/3.webp?v=ac44c82b",
+      "https://img.timelesswardrobe.uk/wardrobe/corduroy-trousers/main/4.webp"
     ]
   },
 
@@ -480,11 +480,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 13
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/1.webp?v=34d7d3c5",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/passport-cover/main/1.webp?v=34d7d3c5",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/2.webp?v=e47fc100",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/3.webp?v=ce543397",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/passport-cover/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/passport-cover/main/2.webp?v=e47fc100",
+      "https://img.timelesswardrobe.uk/wardrobe/passport-cover/main/3.webp?v=ce543397",
+      "https://img.timelesswardrobe.uk/wardrobe/passport-cover/main/4.webp"
     ]
   },
 
@@ -505,11 +505,11 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Gold",
       "secondaryColourCode": "#C9A84C"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/1.webp?v=a54906f3",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-classique-rollerball/main/1.webp?v=a54906f3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/2.webp?v=8e9d8d6e",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/3.webp?v=95a9f0c2",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-classique-rollerball/main/2.webp?v=8e9d8d6e",
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-classique-rollerball/main/3.webp?v=95a9f0c2",
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-classique-rollerball/main/4.webp"
     ]
   },
 
@@ -530,12 +530,12 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Gold",
       "secondaryColourCode": "#C9A84C"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp?v=a8c64932",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-legrand-ballpoint-pen/main/1.webp?v=a8c64932",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp?v=0b231697",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp?v=098db911",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-legrand-ballpoint-pen/main/2.webp?v=0b231697",
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-legrand-ballpoint-pen/main/3.webp?v=098db911",
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-legrand-ballpoint-pen/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/meisterstuck-legrand-ballpoint-pen/main/5.webp"
     ]
   },
 
@@ -556,9 +556,9 @@ const WARDROBE_ITEMS = [
       "price": 4990,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/1.webp?v=d3b8469f",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/wide-leg-jeans/main/1.webp?v=d3b8469f",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-jeans/main/2.webp?v=93f4170b"
+      "https://img.timelesswardrobe.uk/wardrobe/wide-leg-jeans/main/2.webp?v=93f4170b"
     ]
   },
 
@@ -578,13 +578,13 @@ const WARDROBE_ITEMS = [
       "price": 28000,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/1.webp?v=7683b2f3",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/1.webp?v=7683b2f3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/2.webp?v=38179fca",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/3.webp?v=d625dc47",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-bear-jumper/main/6.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/2.webp?v=38179fca",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/3.webp?v=d625dc47",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-bear-jumper/main/6.webp"
     ]
   },
 
@@ -624,9 +624,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/1.webp?v=f49dc7c2",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/prx-quartz/main/1.webp?v=f49dc7c2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/prx-quartz/main/2.webp?v=bf574d4b"
+      "https://img.timelesswardrobe.uk/wardrobe/prx-quartz/main/2.webp?v=bf574d4b"
     ]
   },
 
@@ -663,11 +663,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/1.webp?v=7e8cd682",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/black-bay-58/main/1.webp?v=7e8cd682",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/2.webp?v=c561ac2f",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/3.webp?v=178286c4",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/black-bay-58/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/black-bay-58/main/2.webp?v=c561ac2f",
+      "https://img.timelesswardrobe.uk/wardrobe/black-bay-58/main/3.webp?v=178286c4",
+      "https://img.timelesswardrobe.uk/wardrobe/black-bay-58/main/4.webp"
     ]
   },
 
@@ -709,10 +709,10 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#C9A84C",
       "secondaryBasicColour": "__omit__"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/1.webp?v=53f2ede6",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/boston-metal-frames/main/1.webp?v=53f2ede6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/2.webp?v=b91e732d",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boston-metal-frames/main/3.webp?v=0e000b0b"
+      "https://img.timelesswardrobe.uk/wardrobe/boston-metal-frames/main/2.webp?v=b91e732d",
+      "https://img.timelesswardrobe.uk/wardrobe/boston-metal-frames/main/3.webp?v=0e000b0b"
     ]
   },
 
@@ -739,12 +739,12 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 22
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/1.webp?v=bb5299a5",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/glen-check-tweed-jacket/main/1.webp?v=bb5299a5",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/2.webp?v=fe915d23",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/3.webp?v=db2d376f",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/glen-check-tweed-jacket/main/5.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/glen-check-tweed-jacket/main/2.webp?v=fe915d23",
+      "https://img.timelesswardrobe.uk/wardrobe/glen-check-tweed-jacket/main/3.webp?v=db2d376f",
+      "https://img.timelesswardrobe.uk/wardrobe/glen-check-tweed-jacket/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/glen-check-tweed-jacket/main/5.webp"
     ]
   },
 
@@ -767,11 +767,11 @@ const WARDROBE_ITEMS = [
       "price": 3990,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/1.webp?v=fa99284a",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/rib-knit-roll-neck-jumper/main/1.webp?v=fa99284a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/2.webp?v=76db5222",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/3.webp?v=e21a1875",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/rib-knit-roll-neck-jumper/main/2.webp?v=76db5222",
+      "https://img.timelesswardrobe.uk/wardrobe/rib-knit-roll-neck-jumper/main/3.webp?v=e21a1875",
+      "https://img.timelesswardrobe.uk/wardrobe/rib-knit-roll-neck-jumper/main/4.webp"
     ]
   },
 
@@ -796,15 +796,15 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 2
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/1.webp?v=1a5de751",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/1.webp?v=1a5de751",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/2.webp?v=f762a82b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/3.webp?v=b815d602",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/polo-coat/main/8.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/2.webp?v=f762a82b",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/3.webp?v=b815d602",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/polo-coat/main/8.webp"
     ]
   },
 
@@ -830,11 +830,11 @@ const WARDROBE_ITEMS = [
       "secondaryColourCode": "#f0c04d",
       "secondaryBasicColour": "white"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp?v=40b33d18",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/cricket-cable-knit-jumper-vest/main/1.webp?v=40b33d18",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp?v=05a48b2f",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp?v=493294d3",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/cricket-cable-knit-jumper-vest/main/2.webp?v=05a48b2f",
+      "https://img.timelesswardrobe.uk/wardrobe/cricket-cable-knit-jumper-vest/main/3.webp?v=493294d3",
+      "https://img.timelesswardrobe.uk/wardrobe/cricket-cable-knit-jumper-vest/main/4.webp"
     ]
   },
 
@@ -858,29 +858,29 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "grey",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/1.webp?v=7a25d8ad",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/grey/1.webp?v=7a25d8ad",
         "label": "Grey",
         "notes": "",
         "colour": "Grey",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/2.webp?v=9417ad1a"
+          "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/grey/2.webp?v=9417ad1a"
         ],
         "colourCode": "#5F5F62",
         "basicColour": "grey",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/grey/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/grey/preview.webp"
       },
       {
         "key": "beige",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/1.webp?v=d1937749",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/beige/1.webp?v=d1937749",
         "label": "Beige",
         "notes": "",
         "colour": "Beige",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/2.webp?v=00adfa19"
+          "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/beige/2.webp?v=00adfa19"
         ],
         "colourCode": "#CEBEA6",
         "basicColour": "beige",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/pleated-trousers/variants/beige/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/pleated-trousers/variants/beige/preview.webp"
       }
     ]
   },
@@ -930,15 +930,15 @@ const WARDROBE_ITEMS = [
       ],
       "secondaryColour": "Black Grosgrain Ribbon"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/1.webp?v=8477b1b9",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/1.webp?v=8477b1b9",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/2.webp?v=769764f0",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/3.webp?v=aef9182a",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/panama-hat/main/8.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/2.webp?v=769764f0",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/3.webp?v=aef9182a",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/panama-hat/main/8.webp"
     ]
   },
 
@@ -963,10 +963,10 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Navy trim",
       "secondaryColourCode": "#303c73"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/1.webp?v=3dea31a2",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/boat-and-tote/main/1.webp?v=3dea31a2",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/2.webp?v=501907e9",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boat-and-tote/main/3.webp?v=ca637eb9"
+      "https://img.timelesswardrobe.uk/wardrobe/boat-and-tote/main/2.webp?v=501907e9",
+      "https://img.timelesswardrobe.uk/wardrobe/boat-and-tote/main/3.webp?v=ca637eb9"
     ]
   },
 
@@ -1005,10 +1005,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/1.webp?v=55762d38",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/antony-crossbody-bag/main/1.webp?v=55762d38",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/2.webp?v=0965e12b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/antony-crossbody-bag/main/3.webp?v=463d1e41"
+      "https://img.timelesswardrobe.uk/wardrobe/antony-crossbody-bag/main/2.webp?v=0965e12b",
+      "https://img.timelesswardrobe.uk/wardrobe/antony-crossbody-bag/main/3.webp?v=463d1e41"
     ]
   },
 
@@ -1043,10 +1043,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/1.webp?v=ffb72792",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/american-flag-cap/main/1.webp?v=ffb72792",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/2.webp?v=eda327c5",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/american-flag-cap/main/3.webp?v=2703b9a8"
+      "https://img.timelesswardrobe.uk/wardrobe/american-flag-cap/main/2.webp?v=eda327c5",
+      "https://img.timelesswardrobe.uk/wardrobe/american-flag-cap/main/3.webp?v=2703b9a8"
     ]
   },
 
@@ -1068,9 +1068,9 @@ const WARDROBE_ITEMS = [
       "price": 225,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/1.webp?v=d978f5e6",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/three-point-gloves/main/1.webp?v=d978f5e6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/three-point-gloves/main/2.webp?v=ace21df0"
+      "https://img.timelesswardrobe.uk/wardrobe/three-point-gloves/main/2.webp?v=ace21df0"
     ]
   },
 
@@ -1093,10 +1093,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "green",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/1.webp?v=aaa0d065",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/1.webp?v=aaa0d065",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/2.webp?v=12452506",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/helmet-bag/main/3.webp?v=5f03a29e"
+      "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/2.webp?v=12452506",
+      "https://img.timelesswardrobe.uk/wardrobe/helmet-bag/main/3.webp?v=5f03a29e"
     ]
   },
 
@@ -1151,11 +1151,11 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/1.webp?v=70497f3d",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/fluid-boot-cut-trousers/main/1.webp?v=70497f3d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/2.webp?v=0a1e7200",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/3.webp?v=b6c596aa",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fluid-boot-cut-trousers/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/fluid-boot-cut-trousers/main/2.webp?v=0a1e7200",
+      "https://img.timelesswardrobe.uk/wardrobe/fluid-boot-cut-trousers/main/3.webp?v=b6c596aa",
+      "https://img.timelesswardrobe.uk/wardrobe/fluid-boot-cut-trousers/main/4.webp"
     ]
   },
 
@@ -1211,9 +1211,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/1.webp?v=f6fe562c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/wide-leg-white-jeans/main/1.webp?v=f6fe562c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wide-leg-white-jeans/main/2.webp?v=56ffe3e1"
+      "https://img.timelesswardrobe.uk/wardrobe/wide-leg-white-jeans/main/2.webp?v=56ffe3e1"
     ]
   },
 
@@ -1235,9 +1235,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/1.webp?v=7feba857",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/linen-pleated-shorts/main/1.webp?v=7feba857",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-pleated-shorts/main/2.webp?v=506fdd57"
+      "https://img.timelesswardrobe.uk/wardrobe/linen-pleated-shorts/main/2.webp?v=506fdd57"
     ]
   },
 
@@ -1259,9 +1259,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "blue",
       "priceCurrency": "TWD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/1.webp?v=1290763c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/jwa-straight-jeans/main/1.webp?v=1290763c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/jwa-straight-jeans/main/2.webp?v=9f274628"
+      "https://img.timelesswardrobe.uk/wardrobe/jwa-straight-jeans/main/2.webp?v=9f274628"
     ]
   },
 
@@ -1283,15 +1283,15 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/1.webp?v=a1bfb9dc",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/1.webp?v=a1bfb9dc",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/2.webp?v=185c5c79",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/3.webp?v=653bc08c",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/wayfarer-sunglasses/main/8.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/2.webp?v=185c5c79",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/3.webp?v=653bc08c",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/wayfarer-sunglasses/main/8.webp"
     ]
   },
 
@@ -1317,10 +1317,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 7
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/1.webp?v=a1fd7afc",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/1.webp?v=a1fd7afc",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/2.webp?v=f590093c",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/tassel-moccasin-loafer/main/3.webp?v=3cb4028d"
+      "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/2.webp?v=f590093c",
+      "https://img.timelesswardrobe.uk/wardrobe/tassel-moccasin-loafer/main/3.webp?v=3cb4028d"
     ]
   },
 
@@ -1342,12 +1342,12 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/1.webp?v=ea84bffd",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ferret/main/1.webp?v=ea84bffd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/2.webp?v=07a31f5d",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/3.webp?v=29813214",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ferret/main/5.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/ferret/main/2.webp?v=07a31f5d",
+      "https://img.timelesswardrobe.uk/wardrobe/ferret/main/3.webp?v=29813214",
+      "https://img.timelesswardrobe.uk/wardrobe/ferret/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/ferret/main/5.webp"
     ]
   },
 
@@ -1371,13 +1371,13 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 1
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/1.webp?v=11582442",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/1.webp?v=11582442",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/2.webp?v=d4d4b612",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/beaufort-waxed-jacket/main/7.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/2.webp?v=d4d4b612",
+      "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/beaufort-waxed-jacket/main/7.webp"
     ]
   },
 
@@ -1400,13 +1400,13 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 20
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/1.webp?v=62c85996",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/1.webp?v=62c85996",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/2.webp?v=f961fb64",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/3.webp?v=59ac137b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/balmacaan-coat/main/6.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/2.webp?v=f961fb64",
+      "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/3.webp?v=59ac137b",
+      "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/balmacaan-coat/main/6.webp"
     ]
   },
 
@@ -1431,9 +1431,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 16
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/1.webp?v=31e76443",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/grand-soir-eau-de-parfum/main/1.webp?v=31e76443",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/grand-soir-eau-de-parfum/main/2.webp?v=bcf2c789"
+      "https://img.timelesswardrobe.uk/wardrobe/grand-soir-eau-de-parfum/main/2.webp?v=bcf2c789"
     ]
   },
 
@@ -1455,9 +1455,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "__omit__",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/1.webp?v=bfb1a641",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/new-york-intense-eau-de-parfum/main/1.webp?v=bfb1a641",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/new-york-intense-eau-de-parfum/main/2.webp?v=253f6152"
+      "https://img.timelesswardrobe.uk/wardrobe/new-york-intense-eau-de-parfum/main/2.webp?v=253f6152"
     ]
   },
 
@@ -1481,12 +1481,12 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Sapphire",
       "secondaryColourCode": "#1B57BC"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/1.webp?v=ca6e4689",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/1.webp?v=ca6e4689",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/2.webp?v=1f215a93",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/3.webp?v=7384a4c9",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-three-stone-ring/main/5.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/2.webp?v=1f215a93",
+      "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/3.webp?v=7384a4c9",
+      "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/sapphire-three-stone-ring/main/5.webp"
     ]
   },
 
@@ -1511,14 +1511,14 @@ const WARDROBE_ITEMS = [
       "price": 6973,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/1.webp?v=2819954a",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/1.webp?v=2819954a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/2.webp?v=04d8623d",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/3.webp?v=4ea4782e",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/curb-bracelet/main/7.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/2.webp?v=04d8623d",
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/3.webp?v=4ea4782e",
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/curb-bracelet/main/7.webp"
     ]
   },
 
@@ -1538,9 +1538,9 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Light cornflower blue",
       "secondaryColourCode": "#384D87"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/1.webp?v=d0c9ec6f",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/1.webp?v=d0c9ec6f",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/sapphire-ring/main/2.webp?v=303fb557"
+      "https://img.timelesswardrobe.uk/wardrobe/sapphire-ring/main/2.webp?v=303fb557"
     ]
   },
 
@@ -1583,10 +1583,10 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/1.webp?v=c32b4504",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/driver-knit-zip-up-jumper/main/1.webp?v=c32b4504",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/2.webp?v=7d8ec153",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/driver-knit-zip-up-jumper/main/3.webp?v=7670d298"
+      "https://img.timelesswardrobe.uk/wardrobe/driver-knit-zip-up-jumper/main/2.webp?v=7d8ec153",
+      "https://img.timelesswardrobe.uk/wardrobe/driver-knit-zip-up-jumper/main/3.webp?v=7670d298"
     ]
   },
 
@@ -1610,9 +1610,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 18
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/1.webp?v=fc1870dd",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/aran-cable-knit-jumper/main/1.webp?v=fc1870dd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/aran-cable-knit-jumper/main/2.webp?v=43471c8b"
+      "https://img.timelesswardrobe.uk/wardrobe/aran-cable-knit-jumper/main/2.webp?v=43471c8b"
     ]
   },
 
@@ -1635,10 +1635,10 @@ const WARDROBE_ITEMS = [
       "price": 4990,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/1.webp?v=040014ea",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/v-neck-cardigan/main/1.webp?v=040014ea",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/2.webp?v=1060d642",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/v-neck-cardigan/main/3.webp?v=80d1081d"
+      "https://img.timelesswardrobe.uk/wardrobe/v-neck-cardigan/main/2.webp?v=1060d642",
+      "https://img.timelesswardrobe.uk/wardrobe/v-neck-cardigan/main/3.webp?v=80d1081d"
     ]
   },
 
@@ -1659,11 +1659,11 @@ const WARDROBE_ITEMS = [
       "price": 357.97,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/1.webp?v=7e263d17",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/fair-isle-vest/main/1.webp?v=7e263d17",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/2.webp?v=a6b0e6b7",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/3.webp?v=0e365b05",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fair-isle-vest/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/fair-isle-vest/main/2.webp?v=a6b0e6b7",
+      "https://img.timelesswardrobe.uk/wardrobe/fair-isle-vest/main/3.webp?v=0e365b05",
+      "https://img.timelesswardrobe.uk/wardrobe/fair-isle-vest/main/4.webp"
     ]
   },
 
@@ -1684,9 +1684,9 @@ const WARDROBE_ITEMS = [
       "price": 990,
       "priceCurrency": "TWD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp?v=b7b95c2a",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/kataaze-knit-mock-neck-jumper/main/1.webp?v=b7b95c2a",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp?v=9b84ebd1"
+      "https://img.timelesswardrobe.uk/wardrobe/kataaze-knit-mock-neck-jumper/main/2.webp?v=9b84ebd1"
     ]
   },
 
@@ -1720,11 +1720,11 @@ const WARDROBE_ITEMS = [
       ],
       "secondaryColour": "Silver"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/1.webp?v=38fa0a37",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/x100vi-camera/main/1.webp?v=38fa0a37",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/2.webp?v=c4028e79",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/3.webp?v=636e09b4",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/x100vi-camera/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/x100vi-camera/main/2.webp?v=c4028e79",
+      "https://img.timelesswardrobe.uk/wardrobe/x100vi-camera/main/3.webp?v=636e09b4",
+      "https://img.timelesswardrobe.uk/wardrobe/x100vi-camera/main/4.webp"
     ]
   },
 
@@ -1746,10 +1746,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "brown",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/1.webp?v=542552a4",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ryoma-folding-fan/main/1.webp?v=542552a4",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/2.webp?v=eac4d409",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ryoma-folding-fan/main/3.webp?v=f01fa8ae"
+      "https://img.timelesswardrobe.uk/wardrobe/ryoma-folding-fan/main/2.webp?v=eac4d409",
+      "https://img.timelesswardrobe.uk/wardrobe/ryoma-folding-fan/main/3.webp?v=f01fa8ae"
     ]
   },
 
@@ -1780,12 +1780,12 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/1.webp?v=b6829f57",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ligne-2-lighter/main/1.webp?v=b6829f57",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/2.webp?v=85345f54",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/3.webp?v=a519e6b9",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ligne-2-lighter/main/5.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/ligne-2-lighter/main/2.webp?v=85345f54",
+      "https://img.timelesswardrobe.uk/wardrobe/ligne-2-lighter/main/3.webp?v=a519e6b9",
+      "https://img.timelesswardrobe.uk/wardrobe/ligne-2-lighter/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/ligne-2-lighter/main/5.webp"
     ]
   },
 
@@ -1806,14 +1806,14 @@ const WARDROBE_ITEMS = [
       "price": 1950,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/1.webp?v=172d2ca8",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/1.webp?v=172d2ca8",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/2.webp?v=d5c965e2",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/3.webp?v=0b42f37c",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/arabesque-card-case/main/7.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/2.webp?v=d5c965e2",
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/3.webp?v=0b42f37c",
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/arabesque-card-case/main/7.webp"
     ]
   },
 
@@ -1835,10 +1835,10 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "JPY",
       "showcase_rank": 12
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/1.webp?v=af07983d",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/cordovan-l-zip-wallet/main/1.webp?v=af07983d",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/2.webp?v=5aa8ea90",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cordovan-l-zip-wallet/main/3.webp?v=5003c18c"
+      "https://img.timelesswardrobe.uk/wardrobe/cordovan-l-zip-wallet/main/2.webp?v=5aa8ea90",
+      "https://img.timelesswardrobe.uk/wardrobe/cordovan-l-zip-wallet/main/3.webp?v=5003c18c"
     ]
   },
 
@@ -1869,9 +1869,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/1.webp?v=0023117e",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/1.webp?v=0023117e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp?v=7a5f210f"
+      "https://img.timelesswardrobe.uk/wardrobe/rib-knit-polo-shirt-dark-chocolate/main/2.webp?v=7a5f210f"
     ]
   },
 
@@ -1895,9 +1895,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "red",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/1.webp?v=8db6730e",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/cable-knit-polo/main/1.webp?v=8db6730e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cable-knit-polo/main/2.webp?v=6329851a"
+      "https://img.timelesswardrobe.uk/wardrobe/cable-knit-polo/main/2.webp?v=6329851a"
     ]
   },
 
@@ -1918,11 +1918,11 @@ const WARDROBE_ITEMS = [
       "price": 2499,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/1.webp?v=7f9ddcfd",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/striped-camp-collar-shirt/main/1.webp?v=7f9ddcfd",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/2.webp?v=7753cb74",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/3.webp?v=cd104a7d",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/striped-camp-collar-shirt/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/striped-camp-collar-shirt/main/2.webp?v=7753cb74",
+      "https://img.timelesswardrobe.uk/wardrobe/striped-camp-collar-shirt/main/3.webp?v=cd104a7d",
+      "https://img.timelesswardrobe.uk/wardrobe/striped-camp-collar-shirt/main/4.webp"
     ]
   },
 
@@ -1946,9 +1946,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/1.webp?v=796d86af",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/breton-sailor-shirt/main/1.webp?v=796d86af",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/breton-sailor-shirt/main/2.webp?v=7a31f831"
+      "https://img.timelesswardrobe.uk/wardrobe/breton-sailor-shirt/main/2.webp?v=7a31f831"
     ]
   },
 
@@ -1978,9 +1978,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/1.webp?v=87bf7b6c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/fine-knit-t-shirt/main/1.webp?v=87bf7b6c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/fine-knit-t-shirt/main/2.webp?v=3d35a645"
+      "https://img.timelesswardrobe.uk/wardrobe/fine-knit-t-shirt/main/2.webp?v=3d35a645"
     ]
   },
 
@@ -2004,11 +2004,11 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Cream",
       "secondaryColourCode": "#F5F1E8"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/1.webp?v=07820914",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/rugby-shirt/main/1.webp?v=07820914",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/2.webp?v=c1101fe4",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/3.webp?v=e80ce5bf",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rugby-shirt/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/rugby-shirt/main/2.webp?v=c1101fe4",
+      "https://img.timelesswardrobe.uk/wardrobe/rugby-shirt/main/3.webp?v=e80ce5bf",
+      "https://img.timelesswardrobe.uk/wardrobe/rugby-shirt/main/4.webp"
     ]
   },
 
@@ -2029,9 +2029,9 @@ const WARDROBE_ITEMS = [
       "price": 407.82,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/1.webp?v=73bef4fb",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/knit-long-sleeve-polo/main/1.webp?v=73bef4fb",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/knit-long-sleeve-polo/main/2.webp?v=89593d1a"
+      "https://img.timelesswardrobe.uk/wardrobe/knit-long-sleeve-polo/main/2.webp?v=89593d1a"
     ]
   },
 
@@ -2052,9 +2052,9 @@ const WARDROBE_ITEMS = [
       "price": 2990,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/1.webp?v=9cf14d04",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/linen-camp-collar-shirt/main/1.webp?v=9cf14d04",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-camp-collar-shirt/main/2.webp?v=96d691fc"
+      "https://img.timelesswardrobe.uk/wardrobe/linen-camp-collar-shirt/main/2.webp?v=96d691fc"
     ]
   },
 
@@ -2078,99 +2078,99 @@ const WARDROBE_ITEMS = [
       "colourVariants": [
         {
           "key": "white",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
+          "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
           "label": "White",
           "notes": "",
           "colour": "White",
           "gallery": [
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
+            "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
+            "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
           ],
           "colourCode": "#F5F5F9",
-          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
+          "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/preview.webp"
         },
         {
           "key": "blue",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
+          "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
           "label": "Blue",
           "notes": "",
           "colour": "Blue",
           "gallery": [
-            "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
+            "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
           ],
           "colourCode": "#BAC9EF",
-          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
+          "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/preview.webp"
         },
         {
           "key": "pink-stripe",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
+          "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
           "label": "Pink stripe",
           "notes": "",
           "colour": "Pink stripe",
           "gallery": [],
           "colourCode": "#EEE7E4",
           "basicColour": "red",
-          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
+          "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
         },
         {
           "key": "blue-striped",
-          "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
+          "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
           "label": "Blue striped",
           "notes": "",
           "colour": "Blue striped",
           "gallery": [],
           "colourCode": "#DCE1F5",
-          "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
+          "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
     "colourVariants": [
       {
         "key": "white",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/1.webp?v=16bc038f",
         "label": "White",
         "notes": "",
         "colour": "White",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
+          "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/2.webp?v=614dafb8",
+          "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/3.webp?v=1eac91d7"
         ],
         "colourCode": "#F5F5F9",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/white/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/white/preview.webp"
       },
       {
         "key": "blue",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/1.webp?v=ab88969b",
         "label": "Blue",
         "notes": "",
         "colour": "Blue",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
+          "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/2.webp?v=bbb5ed27"
         ],
         "colourCode": "#BAC9EF",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue/preview.webp"
       },
       {
         "key": "pink-stripe",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/pink-stripe/1.webp?v=d08ae990",
         "label": "Pink stripe",
         "notes": "",
         "colour": "Pink stripe",
         "gallery": [],
         "colourCode": "#EEE7E4",
         "basicColour": "red",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/pink-stripe/preview.webp"
       },
       {
         "key": "blue-striped",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue-striped/1.webp?v=20e855e7",
         "label": "Blue striped",
         "notes": "",
         "colour": "Blue striped",
         "gallery": [],
         "colourCode": "#DCE1F5",
-        "previewImage": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
+        "previewImage": "https://img.timelesswardrobe.uk/wardrobe/ocbd-shirt/variants/blue-striped/preview.webp"
       }
     ]
   },
@@ -2193,10 +2193,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "grey",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/1.webp?v=30f66918",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/cutwork-knit-polo-shirt/main/1.webp?v=30f66918",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/2.webp?v=a41b7545",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/cutwork-knit-polo-shirt/main/3.webp?v=e079c58a"
+      "https://img.timelesswardrobe.uk/wardrobe/cutwork-knit-polo-shirt/main/2.webp?v=a41b7545",
+      "https://img.timelesswardrobe.uk/wardrobe/cutwork-knit-polo-shirt/main/3.webp?v=e079c58a"
     ]
   },
 
@@ -2216,15 +2216,15 @@ const WARDROBE_ITEMS = [
       "price": 6590,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/1.webp?v=c3e10439",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/1.webp?v=c3e10439",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/2.webp?v=731af2f3",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/3.webp?v=212e50d2",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/7.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/henley-knit-t-shirt/main/8.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/2.webp?v=731af2f3",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/3.webp?v=212e50d2",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/7.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/henley-knit-t-shirt/main/8.webp"
     ]
   },
 
@@ -2244,10 +2244,10 @@ const WARDROBE_ITEMS = [
       "price": 8590,
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/1.webp?v=abcc78c7",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/linen-loop-collar-shirt/main/1.webp?v=abcc78c7",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/2.webp?v=a09fd2de",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/linen-loop-collar-shirt/main/3.webp?v=a919ba90"
+      "https://img.timelesswardrobe.uk/wardrobe/linen-loop-collar-shirt/main/2.webp?v=a09fd2de",
+      "https://img.timelesswardrobe.uk/wardrobe/linen-loop-collar-shirt/main/3.webp?v=a919ba90"
     ]
   },
 
@@ -2267,9 +2267,9 @@ const WARDROBE_ITEMS = [
       "basicColour": "white",
       "priceCurrency": "JPY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/1.webp?v=27cc0ffe",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/purl-knit-t-shirt/main/1.webp?v=27cc0ffe",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/purl-knit-t-shirt/main/2.webp?v=3f9b304b"
+      "https://img.timelesswardrobe.uk/wardrobe/purl-knit-t-shirt/main/2.webp?v=3f9b304b"
     ]
   },
 
@@ -2290,9 +2290,9 @@ const WARDROBE_ITEMS = [
       "price": 1570,
       "priceCurrency": "TWD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/1.webp?v=c38c0437",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/1.webp?v=c38c0437",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp?v=40573ce0"
+      "https://img.timelesswardrobe.uk/wardrobe/rib-knit-polo-shirt-dusty-ice-blue/main/2.webp?v=40573ce0"
     ]
   },
 
@@ -2336,9 +2336,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/1.webp?v=1f838696",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/structured-knit-polo-shirt/main/1.webp?v=1f838696",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/structured-knit-polo-shirt/main/2.webp?v=bb1f16d1"
+      "https://img.timelesswardrobe.uk/wardrobe/structured-knit-polo-shirt/main/2.webp?v=bb1f16d1"
     ]
   },
 
@@ -2363,11 +2363,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 4
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/1.webp?v=da722957",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/golden-fleece-navy-blazer/main/1.webp?v=da722957",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/2.webp?v=58e658f7",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/3.webp?v=5efd110e",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/golden-fleece-navy-blazer/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/golden-fleece-navy-blazer/main/2.webp?v=58e658f7",
+      "https://img.timelesswardrobe.uk/wardrobe/golden-fleece-navy-blazer/main/3.webp?v=5efd110e",
+      "https://img.timelesswardrobe.uk/wardrobe/golden-fleece-navy-blazer/main/4.webp"
     ]
   },
 
@@ -2389,14 +2389,14 @@ const WARDROBE_ITEMS = [
       "price": 79.99,
       "priceCurrency": "USD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/1.webp?v=55f3fc65",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/1.webp?v=55f3fc65",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/2.webp?v=e784da6e",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/3.webp?v=50388298",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/4.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/5.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/6.webp",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/houndstooth-tweed-jacket/main/7.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/2.webp?v=e784da6e",
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/3.webp?v=50388298",
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/4.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/5.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/6.webp",
+      "https://img.timelesswardrobe.uk/wardrobe/houndstooth-tweed-jacket/main/7.webp"
     ]
   },
 
@@ -2416,29 +2416,29 @@ const WARDROBE_ITEMS = [
     "colourVariants": [
       {
         "key": "seal",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp?v=4cdf40c6",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/1.webp?v=4cdf40c6",
         "label": "Seal",
         "notes": "",
         "colour": "Vicenza Seal",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp?v=e92c368c",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp?v=d6a7a349",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/2.webp?v=e92c368c",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/3.webp?v=d6a7a349",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/4.webp",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/5.webp",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Seal/6.webp"
         ],
         "colourCode": "#56382e"
       },
       {
         "key": "dark-seal",
-        "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/1.webp",
+        "image": "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/1.webp",
         "label": "Dark Seal",
         "notes": "",
         "colour": "Dark Seal",
         "gallery": [
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/2.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/3.webp",
-          "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/4.webp"
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/2.webp",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/3.webp",
+          "https://img.timelesswardrobe.uk/wardrobe/1930s-half-belt-leather-jacket/variants/Dark%20Seal/4.webp"
         ],
         "colourCode": "#291F1D"
       }
@@ -2464,9 +2464,9 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "USD",
       "showcase_rank": 9
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/1.webp?v=8844e715",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/herringbone-tweed-jacket/main/1.webp?v=8844e715",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/herringbone-tweed-jacket/main/2.webp?v=3b5971d9"
+      "https://img.timelesswardrobe.uk/wardrobe/herringbone-tweed-jacket/main/2.webp?v=3b5971d9"
     ]
   },
 
@@ -2490,9 +2490,9 @@ const WARDROBE_ITEMS = [
       "secondaryColour": "Olive Trim",
       "secondaryColourCode": "#737051"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/1.webp?v=767f0aac",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/boa-fleece-vest/main/1.webp?v=767f0aac",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/boa-fleece-vest/main/2.webp?v=8092ec77"
+      "https://img.timelesswardrobe.uk/wardrobe/boa-fleece-vest/main/2.webp?v=8092ec77"
     ]
   },
 
@@ -2534,9 +2534,9 @@ const WARDROBE_ITEMS = [
         }
       ]
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/1.webp?v=42e5202e",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/basket-weave-linen-jacket/main/1.webp?v=42e5202e",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/basket-weave-linen-jacket/main/2.webp?v=87338b95"
+      "https://img.timelesswardrobe.uk/wardrobe/basket-weave-linen-jacket/main/2.webp?v=87338b95"
     ]
   },
 
@@ -2559,11 +2559,11 @@ const WARDROBE_ITEMS = [
       "priceCurrency": "CNY",
       "showcase_rank": 21
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/1.webp?v=f008973c",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/ventile-harrington-jacket/main/1.webp?v=f008973c",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/2.webp?v=a57d3372",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/3.webp?v=0bbc95c1",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/ventile-harrington-jacket/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/ventile-harrington-jacket/main/2.webp?v=a57d3372",
+      "https://img.timelesswardrobe.uk/wardrobe/ventile-harrington-jacket/main/3.webp?v=0bbc95c1",
+      "https://img.timelesswardrobe.uk/wardrobe/ventile-harrington-jacket/main/4.webp"
     ]
   },
 
@@ -2585,9 +2585,9 @@ const WARDROBE_ITEMS = [
       "price": 893.32,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/1.webp?v=c74c2ec6",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/safari-jacket/main/1.webp?v=c74c2ec6",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/safari-jacket/main/2.webp?v=85085cbf"
+      "https://img.timelesswardrobe.uk/wardrobe/safari-jacket/main/2.webp?v=85085cbf"
     ]
   },
 
@@ -2611,10 +2611,10 @@ const WARDROBE_ITEMS = [
       "basicColour": "black",
       "priceCurrency": "TWD"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/1.webp?v=66a5c6d3",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/dw-5600e/main/1.webp?v=66a5c6d3",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/2.webp?v=dcd03523",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/dw-5600e/main/3.webp?v=8a3aa336"
+      "https://img.timelesswardrobe.uk/wardrobe/dw-5600e/main/2.webp?v=dcd03523",
+      "https://img.timelesswardrobe.uk/wardrobe/dw-5600e/main/3.webp?v=8a3aa336"
     ]
   },
 
@@ -2635,10 +2635,10 @@ const WARDROBE_ITEMS = [
       "price": 591,
       "priceCurrency": "CNY"
     },
-    "image": "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/1.webp?v=22f50376",
+    "image": "https://img.timelesswardrobe.uk/wardrobe/datejust-36-mod/main/1.webp?v=22f50376",
     "gallery": [
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/2.webp?v=99a07a7b",
-      "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/datejust-36-mod/main/4.webp"
+      "https://img.timelesswardrobe.uk/wardrobe/datejust-36-mod/main/2.webp?v=99a07a7b",
+      "https://img.timelesswardrobe.uk/wardrobe/datejust-36-mod/main/4.webp"
     ]
   }
 ];

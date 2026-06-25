@@ -2,7 +2,7 @@
 /**
  * Upload images/wardrobe/ to R2 bucket (wardrobe-images).
  * R2 key: wardrobe/<id>/main/1.webp  (strips leading "images/" prefix)
- * Public URL: https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev/wardrobe/<id>/...
+ * CDN URL: https://img.timelesswardrobe.uk/wardrobe/<id>/...
  *
  * After uploading, seeds data/wardrobe.js with ?v=<md5> query params so
  * CDN cache is busted automatically when file content changes — no Supabase
@@ -45,6 +45,7 @@ const accessKeyId = process.env.R2_ACCESS_KEY_ID;
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 const bucket = process.env.R2_BUCKET || "wardrobe-images";
 const publicUrl = (process.env.R2_PUBLIC_URL || "").replace(/\/$/, "");
+const cdnUrl = (process.env.R2_CDN_URL || "https://img.timelesswardrobe.uk").replace(/\/$/, "");
 
 if (!accountId || !accessKeyId || !secretAccessKey) {
   console.error("Missing R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY in .env");
@@ -96,7 +97,7 @@ if (DRY_RUN) {
   console.log("\n[dry-run] First 20 keys that would be uploaded:");
   for (const f of imageFiles.slice(0, 20)) {
     const rel = path.relative(path.join(root, "images"), f).replace(/\\/g, "/");
-    console.log(`  wardrobe-images/${rel}  →  ${publicUrl}/${rel}`);
+    console.log(`  wardrobe-images/${rel}  →  ${cdnUrl}/${rel}`);
   }
   if (imageFiles.length > 20) console.log(`  ... and ${imageFiles.length - 20} more`);
   process.exit(0);
@@ -157,11 +158,13 @@ if (hashes.size > 0 && fs.existsSync(seedPath)) {
   let seedChanges = 0;
   for (const [key, hash] of hashes) {
     const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    // Match the R2 URL for this key, with or without an existing ?v= / query string.
-    const re = new RegExp(`(https?://[^"'\\s]*\\.r2\\.dev/${escaped})(\\?[^"'\\s]*)?`, "g");
+    // Match CDN or direct R2 URL for this key, with or without an existing ?v= / query string.
+    const re = new RegExp(`(https?://(?:[^"'\\s]*\\.r2\\.dev|img\\.timelesswardrobe\\.uk)/${escaped})(\\?[^"'\\s]*)?`, "g");
     const updated = src.replace(re, (_, base) => {
+      // Always rewrite base to CDN origin and refresh ?v=
+      const cdnBase = base.replace(/^https?:\/\/[^/]+/, cdnUrl);
       seedChanges++;
-      return `${base}?v=${hash}`;
+      return `${cdnBase}?v=${hash}`;
     });
     src = updated;
   }
