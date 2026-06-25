@@ -7859,7 +7859,8 @@
     return SLOT_ACCESSORIES;
   }
 
-  function itemSlot(item) {
+  /** Full category→slot mapping. Called once per item at load time; use itemSlot() at render time. */
+  function computeSlotFromItem(item) {
     if (!item) return SLOT_CLOTHING;
     const rawCat = String(item.category ?? "").trim();
     const season = String(item.season ?? "");
@@ -7925,6 +7926,11 @@
     return SLOT_CLOTHING;
   }
 
+  /** Reads the pre-stamped slot field. Real items always have slot set by mergeWardrobeFromSources. */
+  function itemSlot(item) {
+    return (item && item.slot) || SLOT_CLOTHING;
+  }
+
   function computeSlotRecordFallbackCategories(seedRows) {
     const out = /** @type {Record<string, string>} */ ({});
     for (const slot of SLOT_OPTIONS) {
@@ -7935,7 +7941,7 @@
         if (!c) continue;
         if (Object.prototype.hasOwnProperty.call(LEGACY_UNSPEC_CATEGORY_TO_SLOT, c)) continue;
         const probe = { ...row, category: c };
-        if (itemSlot(probe) !== slot) continue;
+        if (computeSlotFromItem(probe) !== slot) continue;
         if (SLOT_OPTIONS.includes(c)) continue;
         if (c === "Clothing" || c === "Accessories") continue;
         names.add(c);
@@ -10568,11 +10574,11 @@
             slotRecordFallbackCategory[slotForOld] || STATIC_RECORD_FALLBACK_BY_SLOT[slotForOld] || "Tops",
         };
       }
-      const slot = itemSlot(row2);
+      const slot = computeSlotFromItem(row2);
       const canon = recordCategoryForDrill(row2, slot);
       const raw = String(row2.category ?? "").trim();
-      if (raw === canon) return normalizeItemDerivedFields(row2);
-      return normalizeItemDerivedFields({ ...row2, category: canon });
+      const base = raw === canon ? row2 : { ...row2, category: canon };
+      return normalizeItemDerivedFields({ ...base, slot });
     });
     rebuildItemIndex();
     rebuildWardrobeSearchIndex();
@@ -16234,7 +16240,7 @@
     if (!keys.includes(fall)) keys = sortRecordTypeKeysForSlot(slot, [fall, ...keys]);
     if (prev && !keys.includes(prev)) {
       const probe = { category: prev, season: "" };
-      if (itemSlot(probe) === slot && prev !== slot && !SLOT_OPTIONS.includes(prev)) {
+      if (computeSlotFromItem(probe) === slot && prev !== slot && !SLOT_OPTIONS.includes(prev)) {
         keys = sortRecordTypeKeysForSlot(slot, [...keys, prev]);
       }
     }
@@ -16269,7 +16275,7 @@
     const tryCat = (cat) => {
       const c = String(cat ?? "").trim();
       if (!c) return false;
-      return itemSlot({ ...base, category: c, season: sn }) === slot;
+      return computeSlotFromItem({ ...base, category: c, season: sn }) === slot;
     };
 
     if (pref && tryCat(pref)) return pref;
@@ -24367,11 +24373,6 @@
     else openOutfitsDrawer();
   }
 
-  /** @deprecated alias */
-  function syncOutfitBuilderPanel() {
-    syncOutfitsUi();
-  }
-
   function renderOutfitStrip() {
     if (!els.outfitStrip) return;
     const animateEntrance = outfitStripEntranceOnNextRender;
@@ -24383,7 +24384,7 @@
     }
     if (boardEmpty) {
       clearOutfitPointerDragState();
-      syncOutfitBuilderPanel();
+      syncOutfitsUi();
       return;
     }
 
@@ -24503,7 +24504,7 @@
       els.outfitStrip.appendChild(slot);
     });
     playOutfitStripFlipAnimation();
-    syncOutfitBuilderPanel();
+    syncOutfitsUi();
     refreshOutfitRailScroller();
   }
 
@@ -31400,7 +31401,7 @@
       useCloudOutfits = true;
       renderOutfitStrip();
       renderSavedOutfits();
-      syncOutfitBuilderPanel();
+      syncOutfitsUi();
       syncOutfitSaveButtonLabel();
     } else {
       const outfitsErr = String(outfitsRes.error || "").trim();
@@ -31431,7 +31432,7 @@
       if (document.getElementById("outfit-strip") || document.getElementById("outfits-drawer")) {
         renderOutfitStrip();
         renderSavedOutfits();
-        syncOutfitBuilderPanel();
+        syncOutfitsUi();
       }
       syncOutfitSaveButtonLabel();
     } else {
@@ -31901,7 +31902,7 @@
       if (!hasOutfitsUi) {
         renderOutfitStrip();
         renderSavedOutfits();
-        syncOutfitBuilderPanel();
+        syncOutfitsUi();
       }
       consumeAndRestoreCollectionListScroll();
       if (document.getElementById("local-data-risk-banner")) {
