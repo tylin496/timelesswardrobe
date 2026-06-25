@@ -3385,10 +3385,10 @@
     wrapper.className = "account-overview";
 
     const allItems = items;
-    const ownedItems = allItems.filter((it) => !isFuturePiece(it));
+    const ownedItems = allItems.filter((it) => !it.is_future);
     const showcaseCount = ownedItems.filter((it) => isInShowcase(it)).length;
     const notesCount = ownedItems.filter((it) => String(it?.notes ?? "").trim()).length;
-    const futureCount = allItems.filter((it) => isFuturePiece(it)).length;
+    const futureCount = allItems.filter((it) => it.is_future).length;
     const noNotesCount = ownedItems.filter((it) => !String(it?.notes ?? "").trim()).length;
     const noPriceCount = ownedItems.filter((it) => {
       const p = it?.price ?? it?.metadata?.price;
@@ -4069,16 +4069,16 @@
         if (c  && String(it?.category ?? "").trim() !== c) return false;
         if (s  && String(it?.season   ?? "").trim() !== s) return false;
         if (st === "showcase"  && !isInShowcase(it)) return false;
-        if (st === "wishlist"  && !isFuturePiece(it)) return false;
+        if (st === "wishlist"  && !it.is_future) return false;
         if (st === "has-notes" && !String(it?.notes ?? "").trim()) return false;
-        if (st === "no-notes"  && (String(it?.notes ?? "").trim() || isFuturePiece(it))) return false;
+        if (st === "no-notes"  && (String(it?.notes ?? "").trim() || it.is_future)) return false;
         if (st === "no-price") {
           const p = it?.price ?? it?.metadata?.price;
-          if ((p !== undefined && p !== null && p !== "") || isFuturePiece(it)) return false;
+          if ((p !== undefined && p !== null && p !== "") || it.is_future) return false;
         }
-        if (st === "no-date"    && (String(it?.purchaseDate ?? "").trim() || isFuturePiece(it))) return false;
-        if (st === "no-fabric"  && (String(it?.fabric ?? "").trim() || isFuturePiece(it))) return false;
-        if (st === "no-measure" && ((Array.isArray(it?.measurementRows) && it.measurementRows.length) || isFuturePiece(it))) return false;
+        if (st === "no-date"    && (String(it?.purchaseDate ?? "").trim() || it.is_future)) return false;
+        if (st === "no-fabric"  && (String(it?.fabric ?? "").trim() || it.is_future)) return false;
+        if (st === "no-measure" && ((Array.isArray(it?.measurementRows) && it.measurementRows.length) || it.is_future)) return false;
         if (q) {
           const hay = [it?.name, it?.brand, it?.category, it?.season, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
           if (!hay.includes(q)) return false;
@@ -4333,7 +4333,7 @@
       f.title = "In Showcase";
       flags.appendChild(f);
     }
-    if (!String(it?.notes ?? "").trim() && !isFuturePiece(it)) {
+    if (!String(it?.notes ?? "").trim() && !it.is_future) {
       const f = document.createElement("span");
       f.className = "account-cat-flag account-cat-flag--warn";
       f.textContent = "No notes";
@@ -4627,7 +4627,7 @@
         const qLow = q.trim().toLowerCase();
         const candidates = items.filter((it) => {
           if (isInShowcase(it)) return false;
-          if (isFuturePiece(it)) return false;
+          if (it.is_future) return false;
           if (qLow) {
             const hay = [it?.name, it?.brand, it?.category, it?.id].map((x) => String(x ?? "").toLowerCase()).join(" ");
             if (!hay.includes(qLow)) return false;
@@ -4852,7 +4852,7 @@
     function getFilteredItems() {
       const q = _accountNotesSearch.trim().toLowerCase();
       const filtered = items.filter((it) => {
-        if (isFuturePiece(it)) return false;
+        if (it.is_future) return false;
         const hasNote = Boolean(String(it?.notes ?? "").trim());
         if (_accountNotesFilter === "with-notes" && !hasNote) return false;
         if (_accountNotesFilter === "no-notes"   && hasNote)  return false;
@@ -8222,45 +8222,6 @@
     return ka.localeCompare(kb, undefined, { sensitivity: "base" });
   }
 
-  function normalizeEditorialArchiveText(raw) {
-    return String(raw ?? "")
-      .trim()
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/&/g, " and ")
-      .replace(/[^a-z0-9]+/g, " ")
-      .replace(/\band\b/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function editorialArchiveItemText(item) {
-    return normalizeEditorialArchiveText(
-      [item?.id, item?.brand, item?.name, item?.category, item?.section].map((x) => String(x ?? "")).join(" ")
-    );
-  }
-
-  function isFuturePiece(item) {
-    const meta =
-      item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
-    const text = editorialArchiveItemText({
-      id: item?.id,
-      brand: item?.brand,
-      name: item?.name,
-      category: item?.category,
-      section: item?.section,
-    });
-    const ownership = normalizeEditorialArchiveText(
-      item?.ownership_status ?? item?.ownershipStatus ?? item?.status ?? meta?.ownership_status ?? meta?.ownershipStatus
-    );
-    return (
-      text.includes("future piece") ||
-      text.includes("future pieces") ||
-      ownership.includes("future") ||
-      ownership.includes("wishlist")
-    );
-  }
-
   function editorialRecordCategoryRank(item) {
     const c = recordCategoryForDrill(item, itemSlot(item));
     if (!c) return 900;
@@ -8287,7 +8248,7 @@
     const archive = [];
     const future  = [];
     for (const item of Array.isArray(list) ? list : []) {
-      if (isFuturePiece(item)) {
+      if (item.is_future) {
         future.push(item);
       } else if (isInShowcase(item)) {
         ordered.push(item);
@@ -8488,6 +8449,16 @@
     const ts =
       String(row.updated_at ?? row.updatedAt ?? "").trim() || String(row.created_at ?? row.createdAt ?? "").trim();
     if (ts) out.updatedAt = ts;
+    {
+      const _blob = [out.id, out.brand, out.name, out.category, out.section]
+        .map((x) => String(x ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ")).join(" ");
+      const _own = String(
+        out.ownership_status ?? out.ownershipStatus ?? out.status ??
+        meta?.ownership_status ?? meta?.ownershipStatus ?? ""
+      ).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      out.is_future = _blob.includes("future piece") || _blob.includes("future pieces") ||
+        _own.includes("future") || _own.includes("wishlist");
+    }
     return normalizeItemDerivedFields(out);
   }
 
@@ -26976,7 +26947,7 @@
   }
 
   function appendItemDetailRelated(root, item) {
-    const owned = items.filter((it) => it.id !== item.id && !isFuturePiece(it));
+    const owned = items.filter((it) => it.id !== item.id && !it.is_future);
     const byBrand = owned.filter((it) => it.brand === item.brand).slice(0, 6);
     const brandIds = new Set(byBrand.map((it) => it.id));
     const byCatExact = owned.filter((it) => it.category === item.category && !brandIds.has(it.id));

@@ -115,6 +115,16 @@ export function mapRowToItem(row) {
   if (topCv && topCv.length) {
     out.colourVariants = topCv;
   }
+  {
+    const _blob = [row.id, row.brand, row.name, row.category, row.section]
+      .map((x) => String(x ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ")).join(" ");
+    const _own = String(
+      row.ownership_status ?? row.ownershipStatus ?? row.status ??
+      meta?.ownership_status ?? meta?.ownershipStatus ?? ""
+    ).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    out.is_future = _blob.includes("future piece") || _blob.includes("future pieces") ||
+      _own.includes("future") || _own.includes("wishlist");
+  }
   return out;
 }
 
