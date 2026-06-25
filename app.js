@@ -11470,135 +11470,6 @@
     });
   }
 
-  const HOME_DIVISION_RAIL_SLOTS = [SLOT_CLOTHING, SLOT_ACCESSORIES, SLOT_WATCHES, SLOT_FRAGRANCE];
-
-  /**
-   * Random pieces per browse division — gallery frames only.
-   * @param {object[]} pool
-   * @param {{ perDivision?: number, maxTotal?: number }} [options]
-   */
-  function pickHomeDivisionRailPlans(pool, options = {}) {
-    const perDivision = typeof options.perDivision === "number" ? options.perDivision : 3;
-    const maxTotal = typeof options.maxTotal === "number" ? options.maxTotal : 14;
-    const list = Array.isArray(pool) ? pool : [];
-    /** @type {Set<string>} */
-    const reservedItemIds =
-      options.excludeItemIds instanceof Set
-        ? options.excludeItemIds
-        : new Set(
-            (Array.isArray(options.excludeItemIds) ? options.excludeItemIds : [])
-              .map((id) => String(id ?? "").trim())
-              .filter(Boolean)
-          );
-    /** @type {{ item: object, displaySrc: string, slot: string }[]} */
-    const plans = [];
-    /** @type {Set<string>} */
-    const usedItemIds = new Set(reservedItemIds);
-    /** @type {Set<string>} */
-    const usedUrls = new Set();
-    /** Prefer unique browse categories before allowing repeats. */
-    /** @type {Set<string>} */
-    const usedCategoryKeys = new Set();
-
-    for (const slot of HOME_DIVISION_RAIL_SLOTS) {
-      const targetPerDivision = Math.max(1, perDivision);
-      const candidates = list.filter((it) => {
-        const id = String(it?.id ?? "").trim();
-        if (!id || usedItemIds.has(id)) return false;
-        if (itemSlot(it) !== slot) return false;
-        return homeEditorialGalleryPool(it).length > 0;
-      });
-      shuffleArrayInPlace(candidates);
-      /** @type {typeof candidates} */
-      const deferredSameCategory = [];
-
-      for (const item of candidates) {
-        if (plans.filter((p) => p.slot === slot).length >= targetPerDivision) break;
-        const recKey = String(recordCategoryForDrill(item, slot) ?? "")
-          .trim()
-          .toLowerCase();
-        const categoryKey = `${slot}::${recKey || "__unknown__"}`;
-        if (usedCategoryKeys.has(categoryKey)) {
-          deferredSameCategory.push(item);
-          continue;
-        }
-        const galleryPool = homeEditorialGalleryPool(item);
-        const available = galleryPool.filter((u) => !usedUrls.has(u));
-        const pickFrom = available.length ? available : galleryPool;
-        const displaySrc =
-          pickWeightedHomeEditorialGalleryUrl(pickFrom, homeEditorialCoverSrc(item)) || pickFrom[0] || "";
-        if (!displaySrc) continue;
-        const id = String(item.id ?? "").trim();
-        usedItemIds.add(id);
-        usedUrls.add(displaySrc);
-        usedCategoryKeys.add(categoryKey);
-        plans.push({ item, displaySrc, slot });
-      }
-
-      if (plans.filter((p) => p.slot === slot).length < targetPerDivision) {
-        for (const item of deferredSameCategory) {
-          if (plans.filter((p) => p.slot === slot).length >= targetPerDivision) break;
-          const galleryPool = homeEditorialGalleryPool(item);
-          const available = galleryPool.filter((u) => !usedUrls.has(u));
-          const pickFrom = available.length ? available : galleryPool;
-          const displaySrc =
-            pickWeightedHomeEditorialGalleryUrl(pickFrom, homeEditorialCoverSrc(item)) || pickFrom[0] || "";
-          if (!displaySrc) continue;
-          const id = String(item.id ?? "").trim();
-          usedItemIds.add(id);
-          usedUrls.add(displaySrc);
-          plans.push({ item, displaySrc, slot });
-        }
-      }
-    }
-
-    shuffleArrayInPlace(plans);
-    return plans.slice(0, maxTotal);
-  }
-
-  /** @param {{ item: object, displaySrc: string, slot: string }} plan */
-  function buildHomeDivisionRailCard(plan) {
-    const { item, displaySrc, slot } = plan;
-    const recKey = recordCategoryForDrill(item, slot);
-    const label = friendlyRecordCategory(recKey) || recordTypeDisplayLabel(recKey) || categoryDisplayLabel(slot);
-
-    const a = document.createElement("a");
-    a.href = buildItemDetailHrefFromId(item.id);
-    a.draggable = false;
-    a.className = "home-hero__division-rail-card";
-    a.setAttribute("role", "listitem");
-    a.setAttribute(
-      "aria-label",
-      `${displayNameWithoutLeadingColour(item)} — ${label} in ${categoryDisplayLabel(slot)}`
-    );
-
-    const media = document.createElement("div");
-    media.className = "home-hero__division-rail-media";
-    const img = document.createElement("img");
-    img.className = "home-hero__division-rail-img";
-    img.alt = imageAltForItem(item);
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.draggable = false;
-    media.appendChild(img);
-    wireHomeEditorialCardImage(img, item, displaySrc, {
-      host: media,
-      missingClass: "home-hero__division-rail-media--missing",
-      coverRenderWidth: HOME_DIVISION_RAIL_RENDER.width,
-      coverRenderHeight: HOME_DIVISION_RAIL_RENDER.height,
-      coverRenderQuality: HOME_DIVISION_RAIL_RENDER.quality,
-      coverRenderResize: HOME_DIVISION_RAIL_RENDER.resize,
-    });
-
-    const cap = document.createElement("span");
-    cap.className = "home-hero__division-rail-label";
-    cap.textContent = String(label).trim().toUpperCase();
-
-    a.appendChild(media);
-    a.appendChild(cap);
-    return a;
-  }
-
   /** @param {HTMLElement} scroller */
   function prepareHomeHorizontalRailScroller(scroller) {
     scroller.querySelectorAll("img").forEach((img) => {
@@ -11609,36 +11480,9 @@
     });
   }
 
-  /** @param {HTMLElement} scroller */
-  function resolveHomeHorizontalRailScrollEl(scroller) {
-    if (!(scroller instanceof HTMLElement)) return scroller;
-    const isDivisionRail =
-      scroller.id === "home-hero-division-rail" || scroller.classList.contains("home-hero__division-rail-scroller");
-    if (!isDivisionRail) return scroller;
-    const wrap = scroller.parentElement;
-    if (!(wrap instanceof HTMLElement) || !wrap.classList.contains("home-hero__division-rail-scroller-wrap")) {
-      return scroller;
-    }
-    if (globalThis.matchMedia?.("(max-width: 900px)")?.matches ?? false) return wrap;
-    return scroller;
-  }
-
-  /** Division rail: mobile scrolls the wrap; desktop scrolls the scroller — listen to both. */
   /** @param {HTMLElement} scroller @returns {HTMLElement[]} */
   function homeHorizontalRailScrollTargets(scroller) {
     if (!(scroller instanceof HTMLElement)) return [];
-    if (!isDivisionRailScroller(scroller)) {
-      const el = resolveHomeHorizontalRailScrollEl(scroller);
-      return el instanceof HTMLElement ? [el] : [];
-    }
-    const wrap = scroller.parentElement;
-    if (
-      wrap instanceof HTMLElement &&
-      wrap.classList.contains("home-hero__division-rail-scroller-wrap") &&
-      wrap !== scroller
-    ) {
-      return [scroller, wrap];
-    }
     return [scroller];
   }
 
@@ -11675,10 +11519,7 @@
     scroller.dataset.horizontalRailWired = "1";
 
     /** @returns {HTMLElement} */
-    const getScrollEl = () => {
-      const el = resolveHomeHorizontalRailScrollEl(scroller);
-      return el instanceof HTMLElement ? el : scroller;
-    };
+    const getScrollEl = () => scroller;
 
     scroller.addEventListener(
       "dragstart",
@@ -11735,11 +11576,7 @@
     function syncThumb() {
       const el = getScrollEl();
       if (!(thumb instanceof HTMLElement) || !(track instanceof HTMLElement) || el.scrollWidth <= 0) return;
-      const thumbFracMin = isDivisionRailScroller(scroller)
-        ? 0.5
-        : isOutfitStripRailScroller(scroller)
-          ? 0.12
-          : 0.25;
+      const thumbFracMin = isOutfitStripRailScroller(scroller) ? 0.12 : 0.25;
       const thumbFrac = Math.max(thumbFracMin, el.clientWidth / el.scrollWidth);
       const ratio = scrollRatio();
       thumb.style.width = `${thumbFrac * 100}%`;
@@ -12040,21 +11877,6 @@
   }
 
   /** @param {object[]} pool @param {{ excludeItemIds?: Iterable<string> | Set<string> }} [options] */
-  function mountHomeDivisionRail(pool, options = {}) {
-    const scroller = document.getElementById("home-hero-division-rail");
-    if (!scroller) return;
-    const plans = pickHomeDivisionRailPlans(pool, options);
-    scroller.replaceChildren();
-    for (const plan of plans) {
-      scroller.appendChild(buildHomeDivisionRailCard(plan));
-    }
-    wireHomeHorizontalRailScroller(scroller);
-    scroller.querySelectorAll("img").forEach((img) => {
-      if (img.complete) return;
-      img.addEventListener("load", () => refreshHomeHorizontalRailScroller(scroller), { once: true });
-    });
-  }
-
   /**
    * @param {HTMLImageElement} img
    * @param {object} item
@@ -12395,8 +12217,6 @@
     const highlightItemIds = new Set(
       highlightItems.map((it) => String(it?.id ?? "").trim()).filter(Boolean)
     );
-    mountHomeDivisionRail(items, { excludeItemIds: highlightItemIds });
-
     syncCategoryTabUI();
   }
 
@@ -16561,13 +16381,6 @@
       quality: 82,
       resize: /** @type {const} */ ("cover"),
     },
-  });
-
-  const HOME_DIVISION_RAIL_RENDER = Object.freeze({
-    width: 400,
-    height: 500,
-    quality: 82,
-    resize: /** @type {const} */ ("cover"),
   });
 
   const HEADER_SUBMENU_PREVIEW_RENDER = Object.freeze({
@@ -22923,10 +22736,6 @@
   }
 
   /** @param {HTMLElement} scroller */
-  function isDivisionRailScroller(scroller) {
-    return scroller.id === "home-hero-division-rail" || scroller.classList.contains("home-hero__division-rail-scroller");
-  }
-
   function outfitDragLayoutFlipMs() {
     return isOutfitDragMobileUi() ? 160 : 220;
   }
