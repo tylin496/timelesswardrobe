@@ -1,14 +1,7 @@
 #!/usr/bin/env node
 /**
- * Align data/wardrobe.js metadata to the live online truth
- * (wardrobe_items + collection_overrides), WITHOUT changing any local image URL.
- *
- * Why: the seed is a frozen snapshot but the cloud keeps changing, so the seed's
- * metadata drifts. db:freeze-catalogue only reads wardrobe_items and never sees
- * collection_overrides (admin edits like the "Future Piece" marker live there), so
- * those edits never reach the seed. This pipeline re-derives each piece's metadata
- * the way the running app does, but keeps image / gallery / colourVariants from the
- * existing seed (images are local-first and admin-maintained).
+ * Align data/wardrobe.js metadata to wardrobe_items (single truth), WITHOUT
+ * changing any image URL (image / gallery / colourVariants come from existing seed).
  *
  *   node scripts/align_seed_from_supabase.mjs --dry-run   # show metadata diffs only
  *   node scripts/align_seed_from_supabase.mjs             # write data/wardrobe.js
@@ -42,7 +35,6 @@ function loadEnvFile() {
 /** Read the existing seed array out of data/wardrobe.js without importing it. */
 function loadExistingSeed(wardrobeJsPath) {
   const src = fs.readFileSync(wardrobeJsPath, "utf8");
-  // The file ends with `const WARDROBE_ITEMS = [ … ];` and no export.
   const items = new Function(`${src}\n;return typeof WARDROBE_ITEMS !== "undefined" ? WARDROBE_ITEMS : null;`)();
   if (!Array.isArray(items)) throw new Error("Could not parse WARDROBE_ITEMS from data/wardrobe.js");
   return items;
@@ -74,28 +66,13 @@ if (!rows || !rows.length) {
   process.exit(1);
 }
 
-const { data: stateRow, error: stateErr } = await client
-  .from("wardrobe_app_state")
-  .select("collection_overrides")
-  .limit(1)
-  .maybeSingle();
-if (stateErr) {
-  console.error("Fetch wardrobe_app_state failed:", stateErr.message);
-  process.exit(1);
-}
-const overrides =
-  stateRow && stateRow.collection_overrides && typeof stateRow.collection_overrides === "object"
-    ? stateRow.collection_overrides
-    : {};
-
 const aligned = [];
 const allDiffs = [];
 for (const row of rows) {
   const id = String(row.id ?? "").trim();
   if (!id) continue;
   const local = localById.get(id) || null;
-  const patch = overrides[id] || null;
-  const next = alignedSeedItem(row, patch, local);
+  const next = alignedSeedItem(row, null, local); // no patch: wardrobe_items is single truth
   if (!next) continue;
   aligned.push(next);
   if (local) {
@@ -107,7 +84,7 @@ for (const row of rows) {
 }
 
 // Report.
-console.log(`wardrobe_items: ${rows.length}  |  overrides: ${Object.keys(overrides).length}  |  seed pieces: ${localSeed.length}`);
+console.log(`wardrobe_items: ${rows.length}  |  seed pieces: ${localSeed.length}`);
 console.log(`Pieces with metadata changes: ${allDiffs.length}\n`);
 for (const { id, diffs } of allDiffs) {
   console.log(`• ${id}`);
