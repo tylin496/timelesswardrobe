@@ -20538,7 +20538,8 @@ body.collection-page .collection-container > .collection-actions {
 }
 
 @media (max-width: 1024px) {
-  body.collection-page #grid .card__price-subtle--hover {
+  body.collection-page #grid .card__price-subtle--hover,
+  body.collection-page #grid .card__specs--hover {
     display: none;
   }
 }
