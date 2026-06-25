@@ -12930,6 +12930,13 @@
       return scrollY >= heroH * 0.16;
     };
 
+    // Desktop guard: while the cursor is inside the header (or a menu is open), the background must
+    // stay solid. CSS :hover sets opacity=1, but any scroll re-fires update() with an inline
+    // --tw-header-bg-opacity that beats :hover. Declared BEFORE update() so the first init-time
+    // update() can read it without a temporal-dead-zone ReferenceError (which was blanking the
+    // home hero — update() throws on the hero branch before the carousel is built).
+    let _isHeaderHovered = false;
+
     const update = () => {
       syncHeights();
       // During the mobile nav, bail out of scroll-driving so inline --tw-header-bg-opacity never
@@ -13031,10 +13038,6 @@
       siteHeader.style.removeProperty("--tw-header-fg-muted");
       siteHeader.style.removeProperty("--tw-header-monogram");
     }
-    // Desktop: when cursor is inside the header (or a menu is open), the background must always be
-    // solid. CSS :hover handles opacity=1, but any scroll event re-fires update() which sets an
-    // inline --tw-header-bg-opacity that wins over :hover. _isHeaderHovered guards against that.
-    let _isHeaderHovered = false;
     let _leaveTimer = null;
     const onHeaderEnter = () => { clearTimeout(_leaveTimer); _isHeaderHovered = true; clearScrollDriven(); };
     const onHeaderLeave = () => {
