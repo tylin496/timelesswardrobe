@@ -938,11 +938,6 @@ body {
   initial-value: 0;
 }
 
-/* Run once on load — re-applying `animation` after search close caused a visible header jump. */
-.site-header:not(.site-header--entered) {
-  animation: tlw-fade-up 0.58s var(--ease-luxe) backwards;
-}
-
 .site-header.site-header--entered {
   animation: none;
   transform: none;
@@ -13187,9 +13182,10 @@ main {
     max(3.25rem, calc(1.25rem + env(safe-area-inset-bottom, 0px)));
 }
 
-/* Skip when intro loader already revealed main (avoids a second full-page fade on collection). */
-body:not(.item-page):not(.tw-page-loader-revealed) #main {
-  animation: tlw-fade-in 0.5s var(--ease-luxe) 0.08s both;
+/* PLP entrance: only heading + category grid fade in together. */
+body.collection-page:not(.tw-page-loader-revealed) #collection-heading,
+body.collection-page:not(.tw-page-loader-revealed) #category-drill-grid {
+  animation: tlw-fade-in 0.5s var(--ease-luxe) both;
 }
 
 /* Desktop PLP: collection uses `.collection-container`; other catalogue pages use main padding. */
