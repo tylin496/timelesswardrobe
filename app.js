@@ -7844,8 +7844,12 @@
     return SLOT_ACCESSORIES;
   }
 
-  /** Full category→slot mapping. Called once per item at load time; use itemSlot() at render time. */
-  function computeSlotFromItem(item) {
+  /**
+   * Single source of truth: the nav slot is derived live from `category`
+   * (with `season` as a last-resort tiebreak). Not stored on the item — storing
+   * it would create a second truth that drifts when `category` is edited.
+   */
+  function itemSlot(item) {
     if (!item) return SLOT_CLOTHING;
     const rawCat = String(item.category ?? "").trim();
     const season = String(item.season ?? "");
@@ -7911,11 +7915,6 @@
     return SLOT_CLOTHING;
   }
 
-  /** Reads the pre-stamped slot field. Real items always have slot set by mergeWardrobeFromSources. */
-  function itemSlot(item) {
-    return (item && item.slot) || SLOT_CLOTHING;
-  }
-
   function computeSlotRecordFallbackCategories(seedRows) {
     const out = /** @type {Record<string, string>} */ ({});
     for (const slot of SLOT_OPTIONS) {
@@ -7926,7 +7925,7 @@
         if (!c) continue;
         if (Object.prototype.hasOwnProperty.call(LEGACY_UNSPEC_CATEGORY_TO_SLOT, c)) continue;
         const probe = { ...row, category: c };
-        if (computeSlotFromItem(probe) !== slot) continue;
+        if (itemSlot(probe) !== slot) continue;
         if (SLOT_OPTIONS.includes(c)) continue;
         if (c === "Clothing" || c === "Accessories") continue;
         names.add(c);
@@ -10559,11 +10558,11 @@
             slotRecordFallbackCategory[slotForOld] || STATIC_RECORD_FALLBACK_BY_SLOT[slotForOld] || "Tops",
         };
       }
-      const slot = computeSlotFromItem(row2);
+      const slot = itemSlot(row2);
       const canon = recordCategoryForDrill(row2, slot);
       const raw = String(row2.category ?? "").trim();
-      const base = raw === canon ? row2 : { ...row2, category: canon };
-      return normalizeItemDerivedFields({ ...base, slot });
+      if (raw === canon) return normalizeItemDerivedFields(row2);
+      return normalizeItemDerivedFields({ ...row2, category: canon });
     });
     rebuildItemIndex();
     rebuildWardrobeSearchIndex();
@@ -16225,7 +16224,7 @@
     if (!keys.includes(fall)) keys = sortRecordTypeKeysForSlot(slot, [fall, ...keys]);
     if (prev && !keys.includes(prev)) {
       const probe = { category: prev, season: "" };
-      if (computeSlotFromItem(probe) === slot && prev !== slot && !SLOT_OPTIONS.includes(prev)) {
+      if (itemSlot(probe) === slot && prev !== slot && !SLOT_OPTIONS.includes(prev)) {
         keys = sortRecordTypeKeysForSlot(slot, [...keys, prev]);
       }
     }
@@ -16260,7 +16259,7 @@
     const tryCat = (cat) => {
       const c = String(cat ?? "").trim();
       if (!c) return false;
-      return computeSlotFromItem({ ...base, category: c, season: sn }) === slot;
+      return itemSlot({ ...base, category: c, season: sn }) === slot;
     };
 
     if (pref && tryCat(pref)) return pref;
@@ -28630,34 +28629,6 @@
     }
   }
 
-  /** Desktop (wider than 900px): scroll direction toggles `collection-ui--nav-folded` (hides branding shell). Search stays in the expanded header with filters — no floating magnifier while folded. Disabled: desktop PLP keeps a fixed, full-height header on scroll (no fold/shrink). */
-  const ENABLE_COLLECTION_NAV_SCROLL_FOLD = false;
-
-  let collectionNavScrollFoldLastY = 0;
-  let collectionNavScrollFoldTicking = false;
-  /** Ignore scroll-fold toggles while header collapse reflow settles (prevents flash). */
-  let collectionNavScrollFoldLockUntil = 0;
-
-  function syncCollectionNavScrollFoldAnchor() {
-    collectionNavScrollFoldLastY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-  }
-
-  function applyCollectionNavFolded(fold) {
-    const folded = document.body.classList.contains("collection-ui--nav-folded");
-    if (folded === fold) return;
-    collectionNavScrollFoldLockUntil = performance.now() + 380;
-    if (fold) document.body.classList.add("collection-ui--nav-folded");
-    else document.body.classList.remove("collection-ui--nav-folded");
-    requestAnimationFrame(() => {
-      syncCollectionNavScrollFoldAnchor();
-      syncCollectionPageChromeInset();
-      requestAnimationFrame(() => {
-        syncCollectionNavScrollFoldAnchor();
-        syncCollectionPageChromeInset();
-      });
-    });
-  }
-
   function initCardSelectionContainment() {
     const grid = document.getElementById("grid");
     if (!grid) return;
@@ -28678,69 +28649,8 @@
     document.addEventListener("mouseup", () => { anchorCard = null; });
   }
 
-  /** Scroll fold: hide desktop header chrome while scrolling down on the collection page (`#filters-nav` removed — optional menu state kept for compatibility). */
   function initCollectionNavScrollFold() {
-    if (!ENABLE_COLLECTION_NAV_SCROLL_FOLD) {
-      document.body.classList.remove("collection-ui--nav-folded");
-      return;
-    }
-    if (!document.getElementById("grid")) return;
-    const filtersNav = document.getElementById("filters-nav");
-    const body = document.body;
-
-    function onScrollNavFold() {
-      if (collectionNavScrollFoldTicking) return;
-      collectionNavScrollFoldTicking = true;
-      requestAnimationFrame(() => {
-        try {
-          collectionNavScrollFoldTicking = false;
-          if (isFiltersNarrowViewport()) {
-            body.classList.remove("collection-ui--nav-folded");
-            collectionNavScrollFoldLastY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-            return;
-          }
-          if (body.classList.contains("collection-ui--header-search-open")) {
-            body.classList.remove("collection-ui--nav-folded");
-            collectionNavScrollFoldLastY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-            return;
-          }
-          if (body.classList.contains("collection-ui--header-submenu-open")) {
-            body.classList.remove("collection-ui--nav-folded");
-            collectionNavScrollFoldLastY = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-            return;
-          }
-          const y = globalThis.scrollY ?? globalThis.pageYOffset ?? 0;
-          if (performance.now() < collectionNavScrollFoldLockUntil) {
-            syncCollectionNavScrollFoldAnchor();
-            return;
-          }
-          /** PLP filters / chips: header collapse shifts layout and retriggers scroll (bounce loop). */
-          if (categoryNavFilter || narrowingFiltersActive()) {
-            applyCollectionNavFolded(false);
-            return;
-          }
-          const dy = y - collectionNavScrollFoldLastY;
-          if (filtersNav?.classList.contains("filters--menu-open")) {
-            applyCollectionNavFolded(false);
-            return;
-          }
-          const folded = body.classList.contains("collection-ui--nav-folded");
-          if (y < 160) {
-            if (folded) applyCollectionNavFolded(false);
-          } else if (dy > 20) {
-            if (!folded) applyCollectionNavFolded(true);
-          } else if (dy < -18) {
-            if (folded) applyCollectionNavFolded(false);
-          }
-          syncCollectionNavScrollFoldAnchor();
-        } catch {
-          /* ignore */
-        }
-      });
-    }
-
-    globalThis.addEventListener("scroll", onScrollNavFold, { passive: true });
-    onScrollNavFold();
+    document.body.classList.remove("collection-ui--nav-folded");
   }
 
   function initOutfitVariantDialog() {
