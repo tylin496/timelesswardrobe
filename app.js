@@ -9069,21 +9069,26 @@
    * @param {string} localUrl
    * @param {number} width
    */
-  function localWardrobeThumbPath(localUrl, width) {
+  function localWardrobeThumbPath(localUrl, width, height, transformOpts = {}) {
     if (!(typeof width === "number" && width > 0 && width <= WARDROBE_THUMB_MAX_REQUEST_WIDTH)) return "";
+    const targetHeight = typeof height === "number" && height > 0 ? height : Math.round(width * 4 / 3);
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
 
-    // CDN: apply Worker resize for images 1-3 only (4+ served full-res, no quota used).
+    // CDN: apply Worker resize to every wardrobe frame used in cards/carousels.
+    // Collection gallery paths can be full-resolution uploads; loading them raw is
+    // enough to push mobile browsers over their image decode memory ceiling.
     const r2m = pathPart.match(/^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\/wardrobe\/(.+)$/i);
     if (r2m) {
       let dec; try { dec = decodeURIComponent(r2m[1]); } catch { dec = r2m[1]; }
-      const is123 = /^[^/]+\/(?:main|variants\/[^/]+)\/[123]\.(?:webp|png|jpe?g)$/i.test(dec);
-      if (!is123) return "";
+      const isWardrobeImage = /\.(?:webp|png|jpe?g)$/i.test(dec);
+      if (!isWardrobeImage) return "";
       const params = new URLSearchParams(query);
       params.set("w", String(width));
-      params.set("h", String(Math.round(width * 4 / 3)));
-      params.set("fit", "contain");
+      params.set("h", String(targetHeight));
+      params.set("fit", transformOpts?.resize === "cover" ? "cover" : "contain");
+      const q = Number(transformOpts?.quality);
+      if (Number.isFinite(q) && q >= 20 && q <= 95) params.set("q", String(Math.round(q)));
       return `${pathPart}?${params}`;
     }
 
@@ -9107,7 +9112,7 @@
     if (!raw) return raw;
     const transport = resolveWardrobeImageTransportUrl(raw, transformOpts?.item);
     const resolved = transport || raw;
-    return localWardrobeThumbPath(resolved, width) || resolved;
+    return localWardrobeThumbPath(resolved, width, height, transformOpts) || resolved;
   }
 
   /** True when the URL is served from the CDN image origin (img.timelesswardrobe.uk or pub-*.r2.dev). */

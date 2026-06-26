@@ -39,6 +39,8 @@ export default {
 
     const w = parseInt(url.searchParams.get("w") || "0") || undefined;
     const h = parseInt(url.searchParams.get("h") || "0") || undefined;
+    const qRaw = parseInt(url.searchParams.get("q") || "0", 10) || undefined;
+    const q = qRaw && qRaw >= 20 && qRaw <= 95 ? qRaw : undefined;
     const fit = url.searchParams.get("fit") || "contain";
     const bg = url.searchParams.get("background") || undefined;
 
@@ -49,6 +51,7 @@ export default {
       height: h,
       fit,
       format: "webp",
+      ...(q ? { quality: q } : {}),
       ...(bg ? { background: `#${bg.replace(/^#/, "")}` } : {}),
     } : undefined;
 
