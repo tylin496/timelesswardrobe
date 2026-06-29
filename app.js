@@ -20139,7 +20139,15 @@
       photoHost instanceof HTMLElement ? readItemEditPhotoManager(photoHost).slots : [];
     const isFuture = Boolean(form.querySelector("#item-edit-future")?.checked);
     if (!name || !browseSlot) {
-      showAddItemFormMsg("Fill required fields (name, section).", true);
+      if (!name) {
+        const nameEl = form.querySelector("#item-edit-name");
+        showAddItemFormMsg("Name is required.", true);
+        nameEl?.focus();
+      } else {
+        const sectionEl = form.querySelector("#item-edit-browse-slot");
+        showAddItemFormMsg("Section is required.", true);
+        sectionEl?.focus();
+      }
       return;
     }
     if (!isSupabaseReady()) {
@@ -30961,6 +30969,9 @@
     if (isStandaloneItemPage) {
       normalizeLegacyItemPagePath();
       initItemDetailRootDelegates();
+      globalThis.addEventListener("beforeunload", (e) => {
+        if (itemEditDirty) { e.preventDefault(); e.returnValue = ""; }
+      });
       initFilters();
       syncOutfitSaveButtonLabel();
       installItemPageBackNavigation();
