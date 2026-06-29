@@ -30,6 +30,7 @@
   /* Editorial neutrals — refined text ladder for richer contrast hierarchy. */
   --bg: var(--tw-brand-ivory);
   --bg-elevated: var(--tw-brand-ivory);
+  --paper: var(--bg);
   --ink: #1a2f28;
   --ink-muted: #5f6f68;
   --ink-faint: #7f8d87;
