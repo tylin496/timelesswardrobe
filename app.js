@@ -30653,8 +30653,7 @@
             ? 70
             : isItemPdpPage
               ? 0
-              /* TEMP(perceived-latency A/B): home main-reveal node cut — loader/hero/timing untouched. Revert to 70. */
-              : 0;
+              : 70;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
