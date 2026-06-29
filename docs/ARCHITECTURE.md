@@ -6,9 +6,10 @@ today**, with file:line anchors you can verify. When it goes stale, fix it — t
 doc is load-bearing.
 
 Companion docs: [DATA-CONTRACT.md](DATA-CONTRACT.md) (per-field ownership,
-editability, sort rules), [DATA-INVARIANTS.md](DATA-INVARIANTS.md) (what's
-guaranteed about the data + how to verify), [SUPABASE.md](SUPABASE.md)
-(cloud tables/auth), [CONVENTIONS.md](CONVENTIONS.md) (CSS/design system).
+editability, sort rules), [DEBUG-RUNBOOK.md](DEBUG-RUNBOOK.md) (symptom→layer
+table), [DATA-INVARIANTS.md](DATA-INVARIANTS.md) (what's guaranteed about the
+data + how to verify), [SUPABASE.md](SUPABASE.md) (cloud tables/auth),
+[CONVENTIONS.md](CONVENTIONS.md) (CSS/design system).
 
 ## The one-paragraph model
 
