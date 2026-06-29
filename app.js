@@ -7961,12 +7961,9 @@
       }
     }
 
-    await Promise.all(saves);
-    // Write the localStorage rank cache from the just-saved order so the very
-    // next first paint (e.g. navigating straight to /collection on this device)
-    // is already correct — no deploy, no wait for the post-paint Supabase fetch.
-    // Supabase remains the source of truth; this only fast-paths the editor's
-    // own device. Other devices pick it up via refreshHybridCloudAfterCollectionPaint.
+    // Optimistic update: in-memory state is already mutated above, so render
+    // immediately without waiting for cloud round-trips. The playlist and
+    // collection grid respond on drop, not after saves complete.
     try {
       const map = /** @type {Record<string, number>} */ ({});
       orderedItems.forEach((it, i) => {
@@ -7977,6 +7974,9 @@
     } catch (_) {}
     wardrobeRevision += 1;
     renderGrid();
+
+    // Persist to cloud in the background — don't block callers.
+    Promise.all(saves).catch((err) => console.error("[showcase] save failed:", err));
   }
 
   /** Add item to end of Showcase. No-op if already present. */
