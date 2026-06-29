@@ -15403,6 +15403,11 @@ html.tw-account-dark body.account-page .account-filter-chip[aria-pressed="true"]
   border-color: var(--ink);
 }
 
+/* Filter select: warm-ivory chevron in dark mode (base is hardcoded #888 → too cold) */
+html.tw-account-dark body.account-page .account-filter-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23998f80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
 /* Fix double-dimmed labels (opacity stacked on top of muted color) */
 html.tw-account-dark body.account-page .account-overview__stat-sub,
 html.tw-account-dark body.account-page .account-overview__activity-ts {
