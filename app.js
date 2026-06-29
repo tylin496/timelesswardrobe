@@ -30164,10 +30164,21 @@
       const hit = byId.get(id);
       if (!hit) return { ...row };
       if (isLocalCatalogueItemId(row.id)) {
-        // Keep local media but merge cloud metadata (e.g. showcase_rank, notes overrides).
+        // Merge cloud metadata. If the user uploaded a replacement cover via the Edit
+        // form the cloud image will be an R2 URL — a genuinely different path from the
+        // seed's local path — so honour it instead of reverting to the seed.
         const cloudMeta = hit?.metadata && typeof hit.metadata === "object" ? hit.metadata : null;
-        if (!cloudMeta) return { ...row };
-        return { ...row, metadata: { ...(row.metadata ?? {}), ...cloudMeta } };
+        const base = {
+          ...row,
+          ...(cloudMeta ? { metadata: { ...(row.metadata ?? {}), ...cloudMeta } } : {}),
+        };
+        const cloudImageBase = String(hit.image ?? "").split("?")[0];
+        const seedImageBase = String(row.image ?? "").split("?")[0];
+        if (cloudImageBase && isR2WardrobeImageUrl(cloudImageBase) && cloudImageBase !== seedImageBase) {
+          const cloudGallery = Array.isArray(hit.gallery) && hit.gallery.length ? hit.gallery : undefined;
+          return carryForwardMediaNonce(row, { ...base, image: hit.image, ...(cloudGallery ? { gallery: cloudGallery } : {}) });
+        }
+        return base;
       }
       // Seed is the source of truth for catalogue image URLs (?v= cache-bust hash).
       // Use Supabase image only when it's a genuinely different URL (admin-uploaded cover —
