@@ -20034,7 +20034,7 @@
       return;
     }
 
-    const isCustom = sid.startsWith("custom-");
+    const isCustom = isCustomWardrobeItemId(sid);
 
     currentOutfitSlots = currentOutfitSlots.filter((s) => s.itemId !== sid);
 
@@ -21985,6 +21985,10 @@
     if (!id) return false;
     if (id.startsWith("custom-")) return true;
     return !isLocalCatalogueItemId(id);
+  }
+
+  function isCustomWardrobeItemId(id) {
+    return isCustomWardrobeItem({ id });
   }
 
   function compareGridItems(a, b) {
@@ -24219,7 +24223,7 @@
     if (!id) return;
     const prev = itemById.get(id);
     if (!prev) return;
-    const isCustom = String(id).startsWith("custom-");
+    const isCustom = isCustomWardrobeItemId(id);
     if (!isSupabaseReady()) {
       setMsg(CLOUD_WRITE_REQUIRED_MESSAGE, true);
       showToast(CLOUD_WRITE_REQUIRED_MESSAGE);
@@ -25097,7 +25101,7 @@
     const identitySec = createItemEditSection("Identity", { pathHeading: true });
     const identityGrid = identitySec.grid;
     const initialVariants = getItemColourVariants(item);
-    const isCustomPiece = allowVariants && String(item.id ?? "").startsWith("custom-");
+    const isCustomPiece = allowVariants && isCustomWardrobeItem(item);
     const colourSec = createItemEditSection("Colour");
     const colourGrid = colourSec.grid;
     const materialSec = createItemEditSection("Material & fit");
@@ -25827,7 +25831,7 @@
       mountItemEditFormSections(formScroll, item, {
         editPreviewCol,
         itemForMedia,
-        allowVariants: String(item.id ?? "").startsWith("custom-"),
+        allowVariants: isCustomWardrobeItem(item),
       });
       const formFooter = document.createElement("div");
       formFooter.className = "item-edit-form-footer";

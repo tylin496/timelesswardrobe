@@ -24,6 +24,7 @@ loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` i
 | 2 | No duplicate `id` in the seed | `npm run check:data` | `scripts/check-data-integrity.mjs` |
 | 3 | Required identity fields present & non-empty (`id`, `category`, `name`) — `brand` is the maker and may be empty when unknown; ownership is `metadata.ownership_status`, never inferred from brand | `npm run check:data` | `scripts/check-data-integrity.mjs` |
 | 4 | No legacy misspelled Vercel hostname in source | `npm run check:urls` | `scripts/check-public-urls.mjs` |
+| 5 | Showcase order: no duplicate `showcase_order`, no null order when `showcase_at` set, no orphan IDs | `npm run check:showcase` | `scripts/check-showcase-order.mjs` |
 
 ### What a failure means
 
@@ -38,13 +39,16 @@ loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` i
   category grouping / routing. Fill the field in `data/wardrobe.js`.
 - **#4 bad hostname** — the legacy misspelled Vercel hostname (the `timless…` typo,
   missing the `e`) leaked into source. Fix it, or allowlist if it's documentation.
+- **#5 showcase order** — duplicate ranks or null order means the Showcase grid renders
+  in an undefined order. Orphan IDs point to deleted catalogue items. Fix in Supabase
+  directly or via the Showcase admin UI.
 
 ## Layer map (which check guards which layer)
 
 ```
 seed catalogue (data/wardrobe.js)  → #1 id drift · #2 dup id · #3 fields
 public URLs / hostnames            → #4
-showcase order (Supabase → bake)   → NOT YET CHECKED (see below)
+showcase order (Supabase)          → #5
 ```
 
 ## Deferred — known gaps, not oversights
@@ -52,9 +56,6 @@ showcase order (Supabase → bake)   → NOT YET CHECKED (see below)
 These are real invariants we want, but they can't run inside the network-free,
 committed-data `check:data`. Pick them up when the matching layer is worked on.
 
-- **Showcase order integrity** (unique ranks, dense `0..N`, no orphan ids, no missing
-  curated pieces). Needs the baked `dist/data/showcase-order.js` (a build artifact) or
-  a live Supabase read. Belongs with the showcase/Supabase migration work, not here.
 - **No cloud-hosted cutout cover.** 去背 covers must be local-only (resize on R2
   breaks alpha). Needs the cover-path convention wired in before it can be asserted.
 

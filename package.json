@@ -19,6 +19,7 @@
     "og:items": "node scripts/build-item-og-pages.mjs",
     "dev": "node scripts/tw-dev-server.mjs",
     "dev:monitor": "node scripts/tw-dev-monitor.mjs",
+    "check:showcase": "node scripts/check-showcase-order.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs"
   },
