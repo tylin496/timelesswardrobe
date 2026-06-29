@@ -14697,6 +14697,9 @@ body.item-page:has(.item-detail__root--edit) {
   display: block;
   width: 100%;
   aspect-ratio: var(--media-frame-ratio);
+  /* In the capped, scrollable column flex would otherwise shrink each thumb,
+     distorting its aspect ratio; keep full size so the strip scrolls instead. */
+  flex-shrink: 0;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
   border-radius: 2px;

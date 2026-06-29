@@ -16863,6 +16863,7 @@
     thumbsEl.hidden = !multi;
     stageEl.classList.toggle("item-detail__gallery-stage--multi", multi);
 
+    let thumbRailSyncRetries = 0;
     const syncGalleryThumbRailHeight = () => {
       if (thumbsEl.hidden) {
         galleryEl.style.removeProperty("--item-detail-gallery-stage-h");
@@ -16876,8 +16877,15 @@
       }
       const h = Math.round(stageEl.getBoundingClientRect().height);
       if (h > 0) {
+        thumbRailSyncRetries = 0;
         galleryEl.style.setProperty("--item-detail-gallery-stage-h", `${h}px`);
         thumbsEl.style.maxHeight = `${h}px`;
+      } else if (thumbRailSyncRetries < 12) {
+        /* Stage not laid out yet (page-reveal anim / cached hero whose `load`
+           never fires). Retry until it measures, else the thumb strip runs
+           full-height and overshoots the image, leaving the body column short. */
+        thumbRailSyncRetries += 1;
+        setTimeout(syncGalleryThumbRailHeight, 60);
       }
     };
 
@@ -17106,6 +17114,12 @@
         syncGalleryThumbRailHeight();
         requestAnimationFrame(syncGalleryThumbRailHeight);
       });
+      /* Cached hero fires no `load`; the rAF can run mid page-reveal before the
+         stage has a height. Sync now if the image is already decoded, and re-poll
+         on the same 80/280ms cadence the rest of the item page uses. */
+      if (heroImgEl.complete) syncGalleryThumbRailHeight();
+      setTimeout(syncGalleryThumbRailHeight, 80);
+      setTimeout(syncGalleryThumbRailHeight, 280);
       /* Hero carousel already uses the same horizontal swipe — skip thumb-rail nudge (reads as “swipe left” on previews). */
       if (!pdpMobileCarousel) {
         wireItemDetailGalleryThumbHint(galleryEl, thumbsEl);
