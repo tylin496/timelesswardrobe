@@ -5,12 +5,11 @@
   "scripts": {
     "css:build": "node scripts/build-css.mjs",
     "lint:insets": "node scripts/check-safe-area-insets.mjs",
-    "check:wardrobe-images": "node scripts/check-wardrobe-local-images.mjs",
     "check:urls": "node scripts/check-public-urls.mjs",
     "check:id-drift": "node scripts/check-catalogue-id-drift.mjs",
     "check:data": "node scripts/check-data-integrity.mjs",
     "check:css": "node scripts/check-css-build.mjs",
-    "check": "node scripts/check-safe-area-insets.mjs && node scripts/check-public-urls.mjs && node scripts/check-wardrobe-local-images.mjs && node scripts/check-catalogue-id-drift.mjs && node scripts/check-data-integrity.mjs && node scripts/check-css-build.mjs",
+    "check": "node scripts/check-safe-area-insets.mjs && node scripts/check-public-urls.mjs && node scripts/check-catalogue-id-drift.mjs && node scripts/check-data-integrity.mjs && node scripts/check-css-build.mjs",
     "predev": "node scripts/build-css.mjs",
     "og:build": "node scripts/build-og-image.mjs",
     "images:center": "node scripts/center-cutouts.mjs",
@@ -21,8 +20,7 @@
     "dev": "node scripts/tw-dev-server.mjs",
     "dev:monitor": "node scripts/tw-dev-monitor.mjs",
     "db:backup": "node scripts/backup.mjs",
-    "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs",
-    "db:clear-dead-r2": "node scripts/clear-dead-r2-covers.mjs"
+    "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8"

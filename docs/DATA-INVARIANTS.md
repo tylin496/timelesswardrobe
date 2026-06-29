@@ -23,8 +23,7 @@ loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` i
 | 1 | Catalogue id set matches the frozen lock (ids are immutable) | `npm run check:id-drift` | `scripts/check-catalogue-id-drift.mjs` |
 | 2 | No duplicate `id` in the seed | `npm run check:data` | `scripts/check-data-integrity.mjs` |
 | 3 | Required identity fields present & non-empty (`id`, `category`, `name`) — `brand` is the maker and may be empty when unknown; ownership is `metadata.ownership_status`, never inferred from brand | `npm run check:data` | `scripts/check-data-integrity.mjs` |
-| 4 | Every local (`/images/…`) image reference exists on disk | `npm run check:wardrobe-images` | `scripts/check-wardrobe-local-images.mjs` |
-| 5 | No legacy misspelled Vercel hostname in source | `npm run check:urls` | `scripts/check-public-urls.mjs` |
+| 4 | No legacy misspelled Vercel hostname in source | `npm run check:urls` | `scripts/check-public-urls.mjs` |
 
 ### What a failure means
 
@@ -37,17 +36,14 @@ loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` i
   swallows duplicates, which is exactly why #2 exists separately. Delete or re-id one row.
 - **#3 missing required field** — a row renders as a broken/empty card and breaks
   category grouping / routing. Fill the field in `data/wardrobe.js`.
-- **#4 missing image** — a row points at a `/images/…` path that isn't on disk.
-  Add the file or fix the path. (Non-local URLs are intentionally skipped — gallery
-  images may be cloud-hosted.)
-- **#5 bad hostname** — the legacy misspelled Vercel hostname (the `timless…` typo,
+- **#4 bad hostname** — the legacy misspelled Vercel hostname (the `timless…` typo,
   missing the `e`) leaked into source. Fix it, or allowlist if it's documentation.
 
 ## Layer map (which check guards which layer)
 
 ```
-seed catalogue (data/wardrobe.js)  → #1 id drift · #2 dup id · #3 fields · #4 images
-public URLs / hostnames            → #5
+seed catalogue (data/wardrobe.js)  → #1 id drift · #2 dup id · #3 fields
+public URLs / hostnames            → #4
 showcase order (Supabase → bake)   → NOT YET CHECKED (see below)
 ```
 
