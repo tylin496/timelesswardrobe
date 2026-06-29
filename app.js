@@ -8134,7 +8134,7 @@
   });
 
   const WARDROBE_TABLE = "wardrobe_items";
-  const WARDROBE_IMAGE_BUCKET = "wardrobe-images";
+
   const WARDROBE_R2_BASE = "https://img.timelesswardrobe.uk/wardrobe";
 
   function isSupabaseReady() {
@@ -8991,16 +8991,6 @@
   function storagePathFromWardrobeImageUrl(url) {
     const s = String(url ?? "").trim().split("?")[0];
     if (!s || !/^https?:\/\//i.test(s)) return "";
-    // Supabase Storage public/signed URL
-    const esc = WARDROBE_IMAGE_BUCKET.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const re = new RegExp(
-      `/storage/v1/(?:object/public|object/sign|render/image/public)/${esc}/(.+)$`,
-      "i"
-    );
-    const m = s.match(re);
-    if (m) {
-      try { return decodeURIComponent(m[1]); } catch { return m[1]; }
-    }
     // CDN image origin (img.timelesswardrobe.uk or pub-*.r2.dev)
     const r2m = s.match(/^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\/(.+)$/i);
     if (r2m) {

@@ -42,6 +42,18 @@ export default {
     if (!verifyRes.ok) {
       return new Response("Unauthorized", { status: 401, headers: corsHeaders });
     }
+    const user = await verifyRes.json();
+    const email = user?.email ?? "";
+
+    // Check editor allowlist
+    const editorRes = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/wardrobe_editors?email=eq.${encodeURIComponent(email)}&select=email&limit=1`,
+      { headers: { Authorization: `Bearer ${token}`, apikey: env.SUPABASE_ANON_KEY } }
+    );
+    const editors = editorRes.ok ? await editorRes.json() : [];
+    if (!Array.isArray(editors) || !editors.length) {
+      return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    }
 
     // DELETE — remove an object from R2
     if (request.method === "DELETE") {
