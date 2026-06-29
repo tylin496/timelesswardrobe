@@ -26738,6 +26738,25 @@
     renderItemDetailContent(root, item, { edit: allowEdit });
   }
 
+  /**
+   * After the deferred cloud fetch lands on the item page, re-render the item
+   * content with the now-fresh data (notes, showcase rank, cloud metadata).
+   * Skip if the user is in edit mode — re-rendering would clobber their changes.
+   */
+  function reconcileItemDetailPageAfterCloudFetch() {
+    const root = itemDetailMountRoot();
+    if (!root || !itemDetailIsPageRoot(root)) return;
+    if (root.querySelector(".item-edit-form")) return; // edit mode active — don't clobber
+    const route = parseItemPageRoute();
+    const pageId = String(route.id ?? "").trim();
+    if (!pageId) return;
+    const canonical = resolveCanonicalItemId(pageId);
+    const item = itemById.get(canonical) || itemById.get(pageId);
+    if (!item) return;
+    root.innerHTML = "";
+    renderItemDetailContent(root, item, { edit: false });
+  }
+
   function syncCategoryTabUI() {
     const filter = String(categoryNavFilter ?? "").trim();
     const subF = subcategoryFiltersKey();
@@ -30430,6 +30449,7 @@
       mergeWardrobeFromSources();
       showcaseSourcePending = false;
       _commitCollectionRender();
+      reconcileItemDetailPageAfterCloudFetch();
     } else if (!res.ok) {
       console.warn("Supabase wardrobe_items (hybrid extras):", res.error);
       showcaseSourcePending = false;
