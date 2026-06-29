@@ -318,8 +318,8 @@ of risk as items 1–8 above.
 | 1 | `isFuturePiece` (#1) | ✅ DONE Jun 2026 | `deriveItemIsFuture` reads `ownership_status` |
 | 2 | `startsWith("future")` (#6) | ✅ DONE Jun 2026 | Brand index pre-filtered by `is_future` |
 | 3 | `normalizeSeason` `"all"` trap (#5) | ✅ DONE Jun 2026 | Replaced `includes("all")` with explicit prefix checks |
-| 4 | `itemSlot` (#2) + `recordCategoryForDrill` (#3) | ⏳ Migration needed | Add `slot` + `record_category` fields to DB + seed |
-| 5 | `editorialHeroVisualScore` (#4) | ⏳ Blocked on #4 | Use structured `slot`/`record_category` once available |
+| 4 | `itemSlot` (#2) + `recordCategoryForDrill` (#3) | 🚫 Cancelled | Catalogue is a closed one-per-category set; categories frozen; no practical risk |
+| 5 | `editorialHeroVisualScore` (#4) | 🚫 Cancelled | Depends on slot/record_category which are cancelled |
 | 6 | `startsWith("custom-")` (#7) | ⚠️ Safe for now | Add `source` field to remove ID-prefix coupling |
 | 7 | Search bonuses (#8) | ⚠️ Acceptable | Move to record-category weight table |
 | 8 | UI state strings (#9–11) | Low urgency | Extract to constants objects |
