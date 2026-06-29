@@ -5,9 +5,10 @@ without reading `app.js` (32k lines) end to end. It describes **what the code do
 today**, with file:line anchors you can verify. When it goes stale, fix it — this
 doc is load-bearing.
 
-Companion docs: [DATA-INVARIANTS.md](DATA-INVARIANTS.md) (what's guaranteed about
-the data + how to verify), [SUPABASE.md](SUPABASE.md) (cloud tables/auth),
-[CONVENTIONS.md](CONVENTIONS.md) (CSS/design system).
+Companion docs: [DATA-CONTRACT.md](DATA-CONTRACT.md) (per-field ownership,
+editability, sort rules), [DATA-INVARIANTS.md](DATA-INVARIANTS.md) (what's
+guaranteed about the data + how to verify), [SUPABASE.md](SUPABASE.md)
+(cloud tables/auth), [CONVENTIONS.md](CONVENTIONS.md) (CSS/design system).
 
 ## The one-paragraph model
 
