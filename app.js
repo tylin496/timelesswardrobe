@@ -25877,7 +25877,7 @@
       const matStrip = document.createElement("div");
       matStrip.className = "item-edit-triple-row item-edit-spec-strip field--span2";
       appendItemEditField(matStrip, "Material (optional)", fabIn, { width: "compact" });
-      appendItemEditField(matStrip, "Specs / weight (optional)", wtIn, { width: "compact" });
+      appendItemEditField(matStrip, "Specs (optional)", wtIn, { width: "compact" });
       appendItemEditField(matStrip, "Size (optional)", sizeIn, { width: "compact" });
       materialGrid.appendChild(matStrip);
       wireTextareaAutosize(fabIn);
@@ -25994,11 +25994,10 @@
           "Save a copy as a new custom piece (same photos and fields; name gets “ (copy)”) — opens the copy here for editing.",
       });
       dupBtn.id = "item-detail-duplicate";
-      const saveBtn = createItemEditIconButton(
-        "item-edit-icon-btn--primary item-edit-icon-btn--lg item-detail-save",
-        TW_ITEM_EDIT_ICON.save,
-        "Save changes",
-        { title: "Save changes (⌘ Enter or Ctrl+Enter)", submit: true }
+      const saveBtn = createItemEditTextButton(
+        "item-edit-text-btn--primary item-detail-save",
+        "Save",
+        { title: "Save changes (⌘ Enter or Ctrl+Enter)", submit: true, bare: true }
       );
       const delBtn = createItemEditTextButton(
         "tw-admin-only item-detail-delete item-edit-text-btn--danger-subtle",
