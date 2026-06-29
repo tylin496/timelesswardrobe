@@ -7048,7 +7048,11 @@
 
   /** Price + optional structured measurements (see `metadata.measurementRows`). */
   function normalizeItemDerivedFields(item) {
-    return normalizeMeasurementFields(normalizeItemPriceFields(item));
+    let out = normalizeMeasurementFields(normalizeItemPriceFields(item));
+    if (out && !String(out.image ?? "").trim() && out.colourVariants?.[0]?.image) {
+      out = { ...out, image: String(out.colourVariants[0].image) };
+    }
+    return out;
   }
 
   function convertPriceAmount(amount, fromC, toC) {
