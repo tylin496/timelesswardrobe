@@ -30748,7 +30748,7 @@
             ? 70
             : isItemPdpPage
               ? 0
-              : 70;
+              : 0;
     const elapsed = () => performance.now() - startedAt;
     await twSleep(Math.max(0, logoInMs - elapsed()));
     await twSleep(Math.max(0, minMs - elapsed()));
