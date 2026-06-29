@@ -9635,32 +9635,6 @@
     };
   }
 
-  function persistAllWardrobeTextToLocalStorage() {
-    const payload = buildWardrobeTextLocalPayload();
-    try {
-      localStorage.setItem(WARDROBE_TEXT_LOCAL_KEY, JSON.stringify(payload));
-    } catch (e) {
-      console.warn(e);
-      showToast("Could not save to localStorage — storage may be full.");
-      return;
-    }
-    showToast(`Saved text for ${payload.rowCount} pieces to localStorage (${WARDROBE_TEXT_LOCAL_KEY}).`);
-  }
-
-  function downloadWardrobeTextLocalJson() {
-    const payload = buildWardrobeTextLocalPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-    const a = document.createElement("a");
-    const u = URL.createObjectURL(blob);
-    a.href = u;
-    const stamp = new Date().toISOString().slice(0, 10);
-    a.download = `timeless-wardrobe-text-local-${stamp}.json`;
-    a.rel = "noopener";
-    a.click();
-    URL.revokeObjectURL(u);
-    showToast(`Downloaded text for ${payload.rowCount} pieces — edit in data/local/ or apply with npm run db:apply-local-text.`);
-  }
-
   /**
    * One-file snapshot of browser-only state (custom rows, hidden ids, outfits, UI prefs).
    * Does not replace Supabase sync — use when cloud is off or as an extra safety copy.
@@ -9751,8 +9725,6 @@
   }
 
   /** @type {boolean} */
-  let wardrobeTextLocalExportWired = false;
-  /** @type {boolean} */
   let wardrobePlainListCopyWired = false;
 
   function installWardrobeTextLocalExportActions() {
@@ -9763,15 +9735,6 @@
       });
     }
     syncCopyFilteredListButton();
-    if (!isTwAdminMode()) return;
-    if (wardrobeTextLocalExportWired) return;
-    wardrobeTextLocalExportWired = true;
-    document.getElementById("local-data-text-to-localstorage")?.addEventListener("click", () => {
-      persistAllWardrobeTextToLocalStorage();
-    });
-    document.getElementById("local-data-download-text-json")?.addEventListener("click", () => {
-      downloadWardrobeTextLocalJson();
-    });
   }
 
   function readSeasonNavFromLocalStorage() {
