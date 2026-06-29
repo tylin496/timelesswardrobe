@@ -12312,6 +12312,8 @@
 
   /** Item id currently shown on the item page (for edit / delete actions). */
   let detailItemId = null;
+  /** True once the user has changed any field in the item edit form without saving. */
+  let itemEditDirty = false;
 
   const els = {
     grid: document.getElementById("grid"),
@@ -20231,17 +20233,10 @@
       ];
 
       mergeWardrobeFromSources();
-      initFilters();
-      renderGrid();
-      // Re-mount fresh fields (dynamic builder; native form.reset() not applicable)
-      const addFormScroll = form.querySelector(".item-edit-form-scroll");
-      if (addFormScroll instanceof HTMLElement) {
-        addFormScroll.innerHTML = "";
-        mountItemEditFormSections(addFormScroll, {}, { allowVariants: false });
-      }
-      showAddItemFormMsg("Saved to Supabase.", false);
-      showToast("Saved to cloud.");
       document.getElementById("add-item-dialog")?.close();
+      // Bridge Add → Edit: land on the new piece's item page already in edit mode,
+      // so the user continues straight into photos/measurements (mirrors duplicate flow).
+      globalThis.location.assign(buildItemPageUrl(savedCloudItem.id, { edit: true }).toString());
       return;
     } catch (err) {
       console.warn(err);
@@ -22556,6 +22551,8 @@
       layout: getCollectionCountLineLayout(n, seasonalTotal, gridSearchNorm),
     });
     els.grid.hidden = n === 0;
+    const gridEmptyEl = document.getElementById("grid-empty");
+    if (gridEmptyEl) gridEmptyEl.hidden = n !== 0;
     applyCollectionViewMode();
     syncFilterSearchFieldDomPlacement();
     syncCollectionSearchResultsPlpUi();
@@ -24754,6 +24751,7 @@
         renderGrid();
       }
     }
+    itemEditDirty = false;
     const next = itemById.get(id);
     const mount = itemDetailMountRoot();
     const onItemPage = Boolean(mount && itemDetailIsPageRoot(mount));
@@ -24984,21 +24982,27 @@
     row.className = "item-edit-pair-row item-edit-select-row field--span2";
     if (opts.variant === "brand-name") row.classList.add("item-edit-pair-row--brand-name");
 
-    const leftLab = document.createElement("label");
-    leftLab.className = "field item-edit-select-row__cell";
-    const leftSpan = document.createElement("span");
-    leftSpan.className = "field__label";
-    leftSpan.textContent = leftLabel;
-    leftLab.append(leftSpan, leftChild);
+    const makeCell = (labelText, child, required) => {
+      const lab = document.createElement("label");
+      lab.className = "field item-edit-select-row__cell";
+      const span = document.createElement("span");
+      span.className = "field__label";
+      span.textContent = labelText;
+      if (required) {
+        const mark = document.createElement("abbr");
+        mark.className = "field__required-mark";
+        mark.title = "Required";
+        mark.textContent = "*";
+        span.appendChild(mark);
+      }
+      lab.append(span, child);
+      return lab;
+    };
 
-    const rightLab = document.createElement("label");
-    rightLab.className = "field item-edit-select-row__cell";
-    const rightSpan = document.createElement("span");
-    rightSpan.className = "field__label";
-    rightSpan.textContent = rightLabel;
-    rightLab.append(rightSpan, rightChild);
-
-    row.append(leftLab, rightLab);
+    row.append(
+      makeCell(leftLabel, leftChild, opts.leftRequired),
+      makeCell(rightLabel, rightChild, opts.rightRequired)
+    );
     grid.appendChild(row);
   }
 
@@ -25019,25 +25023,33 @@
     midLabel,
     midChild,
     rightLabel,
-    rightChild
+    rightChild,
+    opts = {}
   ) {
     const row = document.createElement("div");
     row.className = "item-edit-triple-row item-edit-select-row field--span2";
 
-    const makeCell = (labelText, child) => {
+    const makeCell = (labelText, child, required) => {
       const lab = document.createElement("label");
       lab.className = "field item-edit-select-row__cell";
       const span = document.createElement("span");
       span.className = "field__label";
       span.textContent = labelText;
+      if (required) {
+        const mark = document.createElement("abbr");
+        mark.className = "field__required-mark";
+        mark.title = "Required";
+        mark.textContent = "*";
+        span.appendChild(mark);
+      }
       lab.append(span, child);
       return lab;
     };
 
     row.append(
-      makeCell(leftLabel, leftChild),
-      makeCell(midLabel, midChild),
-      makeCell(rightLabel, rightChild)
+      makeCell(leftLabel, leftChild, opts.leftRequired),
+      makeCell(midLabel, midChild, opts.midRequired),
+      makeCell(rightLabel, rightChild, opts.rightRequired)
     );
     grid.appendChild(row);
   }
@@ -25122,7 +25134,7 @@
     nameIn.required = true;
     nameIn.maxLength = 200;
     nameIn.value = String(item.name ?? "");
-    appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn, { variant: "brand-name" });
+    appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn, { variant: "brand-name", rightRequired: true });
 
     // Ownership status — authored domain fact (independent of brand).
     const ownershipLab = document.createElement("label");
@@ -25182,7 +25194,8 @@
       "Section",
       catSel,
       "Type",
-      recordTypeSel
+      recordTypeSel,
+      { midRequired: true }
     );
 
     const photosFieldWrap = document.createElement("div");
@@ -25190,7 +25203,7 @@
     photosFieldWrap.id = "item-edit-photos-field";
     const photosLabel = document.createElement("span");
     photosLabel.className = "field__label";
-    photosLabel.textContent = "Photos";
+    photosLabel.textContent = `Photos (up to ${ITEM_EDIT_PHOTO_MAX})`;
     const photosHost = document.createElement("div");
     photosHost.id = "item-edit-photos";
     if (!initialVariants) {
@@ -25833,6 +25846,8 @@
         itemForMedia,
         allowVariants: isCustomWardrobeItem(item),
       });
+      itemEditDirty = false;
+      formScroll.addEventListener("input", () => { itemEditDirty = true; }, { once: true });
       const formFooter = document.createElement("div");
       formFooter.className = "item-edit-form-footer";
 
@@ -26639,6 +26654,8 @@
           return;
         }
         if (t?.closest("#item-detail-cancel-edit")) {
+          if (itemEditDirty && !confirm("Discard unsaved changes?")) return;
+          itemEditDirty = false;
           const it = itemById.get(detailItemId);
           if (it) {
             renderItemDetailContent(mount, it, { edit: false });
@@ -27319,6 +27336,9 @@
       document.getElementById("collection-filter-drawer-done")?.addEventListener("click", () => closeCollectionFilterDrawer());
       document.getElementById("collection-filter-clear-all")?.addEventListener("click", () => {
         clearCollectionDrawerFilters();
+      });
+      document.getElementById("grid-empty-clear")?.addEventListener("click", () => {
+        resetAllCollectionFilters();
       });
       if (document.body.dataset.twFilterDrawerEscapeWired !== "1") {
         document.body.dataset.twFilterDrawerEscapeWired = "1";

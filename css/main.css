@@ -12241,6 +12241,12 @@ body.tw-outfit-drag-active * {
   text-transform: uppercase;
   color: var(--ink-muted);
 }
+.field__required-mark {
+  margin-left: 0.2em;
+  color: var(--accent, currentColor);
+  text-decoration: none;
+  font-style: normal;
+}
 
 select,
 input[type="search"],
@@ -13153,6 +13159,33 @@ body.collection-page:not(.tw-page-loader-revealed) #category-drill-grid {
   /* Pre-promote to compositing layer so hover transitions on child elements
      don't trigger a subpixel re-snap of the card's pixel position. */
   transform: translateZ(0);
+}
+
+.grid-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 1rem;
+  text-align: center;
+}
+.grid-empty__msg {
+  font-size: 0.9rem;
+  color: var(--ink-quiet);
+}
+.grid-empty__clear {
+  font-size: 0.82rem;
+  padding: 0.45rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 2rem;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.grid-empty__clear:hover {
+  border-color: var(--ink-quiet);
 }
 
 /* Collection PLP — quick-find: layout at file end (`body.collection-view--compact`). */
