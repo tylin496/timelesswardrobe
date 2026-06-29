@@ -8497,7 +8497,7 @@
   }
 
   /**
-   * Readable object path under `wardrobe-images` (Supabase Storage file browser).
+   * Object path for the R2 wardrobe bucket.
    * `{itemId}/` = one wardrobe row; `main/` = row cover + gallery; `variants/` = per colour key.
    *
    * @param {string} itemId
@@ -19902,7 +19902,7 @@
     if (/row-level security|violates row-level security policy|permission denied/i.test(detail)) {
       return (
         `Cloud upload failed (${context}): ${detail}. ` +
-        "Check Supabase Storage bucket policy for `wardrobe-images` (INSERT/UPDATE/SELECT for current role)."
+        "Check the R2 upload worker auth — the worker must receive a valid Supabase JWT (Bearer token)."
       );
     }
     return `Cloud upload failed (${context}): ${detail}`;
