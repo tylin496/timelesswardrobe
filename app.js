@@ -20196,39 +20196,39 @@
   async function handleAddItemSubmit(ev) {
     ev.preventDefault();
     const form = /** @type {HTMLFormElement} */ (ev.target);
-    const brand = document.getElementById("add-item-brand")?.value?.trim() || "";
-    const name = document.getElementById("add-item-name")?.value?.trim() || "";
-    const browseSlot = document.getElementById("add-item-category")?.value || "";
-    const recordPick = document.getElementById("add-item-record-type")?.value?.trim() || "";
-    const season = normalizeStoredItemSeason(document.getElementById("add-item-season")?.value?.trim() || "");
+    const brand = form.querySelector("#item-edit-brand")?.value?.trim() || "";
+    const name = form.querySelector("#item-edit-name")?.value?.trim() || "";
+    const browseSlot = form.querySelector("#item-edit-browse-slot")?.value || "";
+    const recordPick = form.querySelector("#item-edit-record-type")?.value?.trim() || "";
+    const season = normalizeStoredItemSeason(form.querySelector("#item-edit-season")?.value?.trim() || "");
     const category = resolveCategoryForBrowseSlot(browseSlot, recordPick, season, {});
-    const colourVal = itemEditColourNameCommittedValue(document.getElementById("add-item-colour"));
-    const colourCodeInput = itemEditColourCodeCommittedValue(document.getElementById("add-item-colour-code"));
+    const colourVal = itemEditColourNameCommittedValue(form.querySelector("#item-edit-colour"));
+    const colourCodeInput = itemEditColourCodeCommittedValue(form.querySelector("#item-edit-colour-code"));
     const addSecRead = readItemEditSecondaryColourFieldValues(
-      document.getElementById("add-item-secondary-colour"),
-      document.getElementById("add-item-secondary-colour-code")
+      form.querySelector("#item-edit-secondary-colour"),
+      form.querySelector("#item-edit-secondary-colour-code")
     );
     const secondaryColourVal = addSecRead.secondaryColour;
     const secondaryColourCodeInput = addSecRead.secondaryColourCode;
-    const fabric = document.getElementById("add-item-fabric")?.value?.trim() || "";
-    const weight = document.getElementById("add-item-weight")?.value?.trim() || "";
-    const size = document.getElementById("add-item-size")?.value?.trim() || "";
-    const mRows = readMeasurementRowsFromEditor(document.getElementById("add-item-measured-dims-block"));
-    const measureUnit = parseMeasurementUnitInput(document.getElementById("add-item-measurement-unit")?.value);
+    const fabric = form.querySelector("#item-edit-fabric")?.value?.trim() || "";
+    const weight = form.querySelector("#item-edit-weight")?.value?.trim() || "";
+    const size = form.querySelector("#item-edit-size")?.value?.trim() || "";
+    const mRows = readMeasurementRowsFromEditor(form.querySelector("#item-edit-measured-dims-block"));
+    const measureUnit = parseMeasurementUnitInput(form.querySelector("#item-edit-measurement-unit")?.value);
     const measuredDimensions = mRows.length ? measurementRowsToSummaryString(mRows, measureUnit) : "";
     const purchaseDate = joinPurchaseDateFromForm(
-      document.getElementById("add-item-purchase-date")?.value?.trim() || ""
+      form.querySelector("#item-edit-purchase-date")?.value?.trim() || ""
     );
-    const priceRaw = document.getElementById("add-item-price")?.value?.trim() || "";
+    const priceRaw = form.querySelector("#item-edit-price")?.value?.trim() || "";
     const priceCur =
-      String(document.getElementById("add-item-price-currency")?.value ?? "TWD").trim().toUpperCase() || "TWD";
+      String(form.querySelector("#item-edit-price-currency")?.value ?? "TWD").trim().toUpperCase() || "TWD";
     let priceVal = parsePriceFormValue(priceRaw);
     if (!Number.isFinite(priceVal) || priceVal < 0) priceVal = null;
-    const notes = document.getElementById("add-item-notes")?.value?.trim() || "";
-    const photoHost = document.getElementById("add-item-photos");
+    const notes = form.querySelector("#item-edit-notes")?.value?.trim() || "";
+    const photoHost = form.querySelector("#item-edit-photos");
     const photoSlots =
       photoHost instanceof HTMLElement ? readItemEditPhotoManager(photoHost).slots : [];
-    const isFuture = Boolean(document.getElementById("add-item-future")?.checked);
+    const isFuture = Boolean(form.querySelector("#item-edit-future")?.checked);
     if (!name || !browseSlot) {
       showAddItemFormMsg("Fill required fields (name, section).", true);
       return;
@@ -20260,7 +20260,7 @@
     const colourTrim = String(colourVal ?? "").trim();
     const colourCodeTrim = String(colourCodeInput ?? "").trim();
     const secondaryColourCodeTrim = String(secondaryColourCodeInput ?? "").trim();
-    const rawBasicPick = String(document.getElementById("add-item-basic-colour")?.value ?? "").trim();
+    const rawBasicPick = String(form.querySelector("#item-edit-basic-colour")?.value ?? "").trim();
     const newItem = {
       id: newId,
       brand,
@@ -20289,7 +20289,7 @@
     } else if (basicPick) {
       newItem.basicColour = basicPick;
     }
-    const rawSecBasicPick = String(document.getElementById("add-item-secondary-basic-colour")?.value ?? "").trim();
+    const rawSecBasicPick = String(form.querySelector("#item-edit-secondary-basic-colour")?.value ?? "").trim();
     const secBasicPick = parseBasicColourSelectValue(rawSecBasicPick);
     if (
       hasSecondaryColourFields({
@@ -20326,8 +20326,12 @@
       mergeWardrobeFromSources();
       initFilters();
       renderGrid();
-      form.reset();
-      resetAddItemMeasurementBlock();
+      // Re-mount fresh fields (dynamic builder; native form.reset() not applicable)
+      const addFormScroll = form.querySelector(".item-edit-form-scroll");
+      if (addFormScroll instanceof HTMLElement) {
+        addFormScroll.innerHTML = "";
+        mountItemEditFormSections(addFormScroll, {}, { allowVariants: false });
+      }
       showAddItemFormMsg("Saved to Supabase.", false);
       showToast("Saved to cloud.");
       document.getElementById("add-item-dialog")?.close();
@@ -20460,74 +20464,37 @@
     if (!isTwAdminMode()) return;
     if (addItemFormWired) return;
     const form = document.getElementById("add-item-form");
-    const cat = document.getElementById("add-item-category");
-    const recordSel = document.getElementById("add-item-record-type");
-    if (!form || !cat || !recordSel) return;
+    if (!form) return;
+    const formScroll = form.querySelector(".item-edit-form-scroll");
+    if (!formScroll) return;
     addItemFormWired = true;
-    const addItemPriceIn = document.getElementById("add-item-price");
-    if (addItemPriceIn instanceof HTMLInputElement) wirePriceAmountInput(addItemPriceIn);
-    const addItemPriceCur = document.getElementById("add-item-price-currency");
-    if (addItemPriceCur instanceof HTMLSelectElement) {
-      addItemPriceCur.replaceChildren();
-      for (const c of PRICE_CURRENCY_CODES) {
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = c;
-        if (c === "TWD") o.selected = true;
-        addItemPriceCur.appendChild(o);
-      }
-    }
-    const addItemNotes = document.getElementById("add-item-notes");
-    if (addItemNotes instanceof HTMLTextAreaElement) wireTextareaAutosize(addItemNotes);
-    resetAddItemPhotoManager();
-    cat.innerHTML = "";
-    for (const c of SLOT_OPTIONS) {
-      const o = document.createElement("option");
-      o.value = c;
-      o.textContent = categoryDisplayLabel(c);
-      cat.appendChild(o);
-    }
 
-    function syncAddItemRecordTypes(preferRecordType = "") {
-      fillItemEditRecordTypeSelect(recordSel, cat.value, preferRecordType);
-    }
+    // Mount the shared form fields (same builder as Edit form)
+    mountItemEditFormSections(/** @type {HTMLElement} */ (formScroll), {}, { allowVariants: false });
 
     function applyCurrentBrowseContextToAddItemForm() {
       const slot = String(categoryNavFilter ?? "").trim();
+      const catSel = /** @type {HTMLSelectElement | null} */ (form.querySelector("#item-edit-browse-slot"));
+      const recordSel = /** @type {HTMLSelectElement | null} */ (form.querySelector("#item-edit-record-type"));
+      if (!catSel || !recordSel) return;
       if (!slot || !SLOT_OPTIONS.includes(slot)) {
-        syncAddItemRecordTypes("");
+        fillItemEditRecordTypeSelect(recordSel, catSel.value, "");
         return;
       }
-      cat.value = slot;
+      catSel.value = slot;
       const prefer = subcategoryFilters.size === 1 ? [...subcategoryFilters][0] : "";
-      syncAddItemRecordTypes(prefer);
+      fillItemEditRecordTypeSelect(recordSel, slot, prefer);
     }
-    cat.addEventListener("change", () => syncAddItemRecordTypes(""));
-    syncAddItemRecordTypes();
 
     form.addEventListener("submit", (e) => void handleAddItemSubmit(e));
 
-    const { syncAddPrimaryPreview, syncAddSecondaryBasicVisibility } = wireAddItemFormColourFields();
-
-    form.addEventListener("reset", () => {
-      requestAnimationFrame(() => {
-        showAddItemFormMsg("", false);
-        syncAddItemRecordTypes();
-        resetAddItemMeasurementBlock();
-        resetAddItemPhotoManager();
-        const secBlock = document
-          .getElementById("add-item-secondary-colour-mount")
-          ?.querySelector(".item-edit-secondary-colour-block");
-        resetItemEditSecondaryColourBlock(/** @type {HTMLElement} */ (secBlock));
-        const addBasic = document.getElementById("add-item-basic-colour");
-        if (addBasic instanceof HTMLSelectElement) {
-          refillBasicColourSelectOptions(addBasic, "");
-          const getFields = basicColourAutoFieldSources.get(addBasic);
-          if (typeof getFields === "function") syncItemEditBasicColourAutoDisplay(addBasic, getFields());
-        }
-        syncAddPrimaryPreview();
-        syncAddSecondaryBasicVisibility();
-      });
+    // Reset: re-mount fresh fields rather than relying on native form.reset()
+    const resetBtn = form.querySelector("#add-item-reset");
+    resetBtn?.addEventListener("click", () => {
+      showAddItemFormMsg("", false);
+      /** @type {HTMLElement} */ (formScroll).innerHTML = "";
+      mountItemEditFormSections(/** @type {HTMLElement} */ (formScroll), {}, { allowVariants: false });
+      form.querySelector("#item-edit-brand")?.focus();
     });
 
     const addDlg = document.getElementById("add-item-dialog");
@@ -20548,17 +20515,13 @@
       }
       openAdd?.setAttribute("aria-expanded", "true");
       queueMicrotask(() => {
-        document.getElementById("add-item-brand")?.focus();
-        resetAddItemMeasurementBlock();
-        resetAddItemPhotoManager();
+        form.querySelector("#item-edit-brand")?.focus();
       });
     });
     closeAdd?.addEventListener("click", () => addDlg?.close());
     addDlg?.addEventListener("click", (e) => {
       if (e.target === addDlg) addDlg.close();
     });
-
-    resetAddItemMeasurementBlock();
   }
 
   function openRequestedAddItemDialog() {
@@ -25207,6 +25170,613 @@
   }
 
 
+  /**
+   * Build and mount the shared item form fields (Identity, Colour, Material & fit,
+   * Acquisition, Notes, Measurements) into `formScroll`.
+   *
+   * Used by both the Edit form (inside renderItemDetailContent) and the Add Item
+   * form (inside initAddItemForm).
+   *
+   * @param {HTMLElement} formScroll - The `.item-edit-form-scroll` container to populate.
+   * @param {object} item - Existing item data (use `{}` for Add).
+   * @param {{ editPreviewCol?: HTMLElement|null, itemForMedia?: object, allowVariants?: boolean }} [opts]
+   */
+  function mountItemEditFormSections(formScroll, item, opts = {}) {
+    const editPreviewCol = opts.editPreviewCol ?? null;
+    const itemForMedia = opts.itemForMedia ?? item ?? {};
+    const allowVariants = Boolean(opts.allowVariants);
+    item = item ?? {};
+
+    const identitySec = createItemEditSection("Identity", { pathHeading: true });
+    const identityGrid = identitySec.grid;
+    const initialVariants = getItemColourVariants(item);
+    const isCustomPiece = allowVariants && String(item.id ?? "").startsWith("custom-");
+    const colourSec = createItemEditSection("Colour");
+    const colourGrid = colourSec.grid;
+    const materialSec = createItemEditSection("Material & fit");
+    const materialGrid = materialSec.grid;
+    const acquisitionSec = createItemEditSection("Acquisition");
+    const acquisitionGrid = acquisitionSec.grid;
+
+    const brandIn = document.createElement("input");
+    brandIn.type = "text";
+    brandIn.id = "item-edit-brand";
+    brandIn.required = false;
+    brandIn.maxLength = 120;
+    brandIn.placeholder = "Maker — leave empty if unknown";
+    brandIn.value = String(item.brand ?? "");
+    const nameIn = document.createElement("input");
+    nameIn.type = "text";
+    nameIn.id = "item-edit-name";
+    nameIn.required = true;
+    nameIn.maxLength = 200;
+    nameIn.value = String(item.name ?? "");
+    appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn, { variant: "brand-name" });
+
+    // Ownership status — authored domain fact (independent of brand).
+    const ownershipLab = document.createElement("label");
+    ownershipLab.className = "field field--span2 item-edit-ownership-field";
+    const ownershipToggle = document.createElement("span");
+    ownershipToggle.className = "item-edit-ownership-toggle";
+    const futureIn = document.createElement("input");
+    futureIn.type = "checkbox";
+    futureIn.id = "item-edit-future";
+    futureIn.checked = Boolean(item.is_future);
+    const futureTxt = document.createElement("span");
+    futureTxt.className = "field__label";
+    futureTxt.textContent = "Future piece";
+    ownershipToggle.append(futureIn, futureTxt);
+    ownershipLab.appendChild(ownershipToggle);
+    identityGrid.appendChild(ownershipLab);
+
+    const seaSel = document.createElement("select");
+    seaSel.id = "item-edit-season";
+    const seasonRows = [
+      { value: "All-season", label: "All seasons" },
+      { value: "A/W", label: "A/W" },
+      { value: "S/S", label: "S/S" },
+    ];
+    const curSe = String(item.season ?? "").trim();
+    const curPick = curSe === "A/W" || curSe === "S/S" ? curSe : "All-season";
+    for (const row of seasonRows) {
+      const o = document.createElement("option");
+      o.value = row.value;
+      o.textContent = row.label;
+      if (row.value === curPick) o.selected = true;
+      seaSel.appendChild(o);
+    }
+    const catSel = document.createElement("select");
+    catSel.id = "item-edit-browse-slot";
+    catSel.required = true;
+    const rawCat = String(item.category ?? "").trim();
+    const slotPick = SLOT_OPTIONS.includes(rawCat) ? rawCat : itemSlot(item);
+    for (const c of SLOT_OPTIONS) {
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = categoryDisplayLabel(c);
+      if (c === slotPick) o.selected = true;
+      catSel.appendChild(o);
+    }
+    const recordTypeSel = document.createElement("select");
+    recordTypeSel.id = "item-edit-record-type";
+    recordTypeSel.className = "item-edit-record-type-select";
+    recordTypeSel.title =
+      'Same labels as the collection "type" strip — controls filtering and default browse order.';
+    const currentRecKey = recordCategoryForDrill(item, slotPick);
+    fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
+    appendItemEditTripleSelectRow(
+      identityGrid,
+      "Season (optional)",
+      seaSel,
+      "Section",
+      catSel,
+      "Type",
+      recordTypeSel
+    );
+
+    const photosFieldWrap = document.createElement("div");
+    photosFieldWrap.className = "field field--span2 item-edit-photos-field";
+    photosFieldWrap.id = "item-edit-photos-field";
+    const photosLabel = document.createElement("span");
+    photosLabel.className = "field__label";
+    photosLabel.textContent = "Photos";
+    const photosHost = document.createElement("div");
+    photosHost.id = "item-edit-photos";
+    if (!initialVariants) {
+      mountItemEditPhotoManager(photosHost, {
+        item: itemForMedia,
+        coverUrl: String(itemForMedia.image ?? "").trim(),
+        galleryUrls: resolvedItemGalleryList(itemForMedia),
+        uploadLabel: "Upload photos",
+        onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
+      });
+      syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
+    }
+    photosFieldWrap.appendChild(photosLabel);
+    photosFieldWrap.appendChild(photosHost);
+    photosFieldWrap.hidden = Boolean(initialVariants);
+    identityGrid.appendChild(photosFieldWrap);
+
+    function refreshIdentityBrowsePath() {
+      identitySec.heading.replaceChildren(
+        buildCollectionBrowseBreadcrumbNav(catSel.value, recordTypeSel.value)
+      );
+    }
+
+    catSel.addEventListener("change", () => {
+      fillItemEditRecordTypeSelect(recordTypeSel, catSel.value, recordTypeSel.value);
+      refreshIdentityBrowsePath();
+    });
+    recordTypeSel.addEventListener("change", refreshIdentityBrowsePath);
+    refreshIdentityBrowsePath();
+
+    /** @type {HTMLElement | null} */
+    let colourSingleField = null;
+
+    const colourBlock = document.createElement("div");
+    colourBlock.className = "field--span2 item-edit-single-colour-block";
+    colourBlock.hidden = Boolean(initialVariants);
+
+    const colourNameInput = document.createElement("input");
+    colourNameInput.type = "text";
+    colourNameInput.id = "item-edit-colour";
+    colourNameInput.maxLength = 80;
+    colourNameInput.autocomplete = "off";
+    colourNameInput.value = String(item.colour ?? item.color ?? "");
+
+    const colourNameLab = document.createElement("label");
+    colourNameLab.className = "field";
+    const cspan = document.createElement("span");
+    cspan.className = "field__label";
+    cspan.textContent = "Primary colour (optional)";
+    colourNameLab.appendChild(cspan);
+    colourNameLab.appendChild(colourNameInput);
+
+    const colourCodeInput = document.createElement("input");
+    colourCodeInput.type = "text";
+    colourCodeInput.id = "item-edit-colour-code";
+    colourCodeInput.maxLength = 80;
+    colourCodeInput.autocomplete = "off";
+    colourCodeInput.placeholder = "#hex, SKU…";
+    colourCodeInput.value = itemColourCode(item);
+
+    const colourCodeLab = document.createElement("label");
+    colourCodeLab.className = "field";
+    const ccspan = document.createElement("span");
+    ccspan.className = "field__label";
+    ccspan.textContent = "Primary colour code (optional)";
+    const colourCodeRow = document.createElement("div");
+    colourCodeRow.className = "item-edit-colour-code-row";
+    const colourCodePreview = createItemEditColourCodePreview();
+    const colourCodeActions = document.createElement("div");
+    colourCodeActions.className = "item-edit-colour-code-row__actions";
+    colourCodeRow.append(colourCodePreview, colourCodeInput, colourCodeActions);
+    colourCodeLab.appendChild(ccspan);
+    colourCodeLab.appendChild(colourCodeRow);
+
+    /** @type {{ block: HTMLElement, panel: HTMLElement, addBtn: HTMLElement, removeBtn: HTMLElement, secNameInput: HTMLInputElement, secCodeInput: HTMLInputElement } | null} */
+    let secondaryColourMount = null;
+
+    const syncPrimaryColourPreview = wireItemEditColourCodePreview({
+      input: colourCodeInput,
+      preview: colourCodePreview,
+      colourInput: colourNameInput,
+      getSecondarySources: () =>
+        readItemEditSecondaryColourFieldValues(
+          secondaryColourMount?.secNameInput ?? null,
+          secondaryColourMount?.secCodeInput ?? null
+        ),
+    });
+
+    const itemMetaForBasic =
+      item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
+    const rawInitialBasic = String(item.basicColour ?? itemMetaForBasic?.basicColour ?? "").trim();
+    const initialBasic =
+      rawInitialBasic.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
+        ? BASIC_COLOUR_CLASSIFICATION_OMIT
+        : normalizeStoredBasicColourKey(rawInitialBasic);
+
+    const basicSel = document.createElement("select");
+    basicSel.id = "item-edit-basic-colour";
+    basicSel.className = "item-edit-basic-colour";
+    refillBasicColourSelectOptions(basicSel, initialBasic);
+    const basicLab = document.createElement("label");
+    basicLab.className = "field";
+    const bspan = document.createElement("span");
+    bspan.className = "field__label";
+    bspan.textContent = "Broad colour — primary (optional)";
+    basicLab.appendChild(bspan);
+    basicLab.appendChild(basicSel);
+
+    const basicPair = document.createElement("div");
+    basicPair.className = "item-edit-basic-colour-pair";
+
+    const syncItemBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
+      colour: itemEditColourNameForInference(colourNameInput),
+      colourCode: itemEditColourCodeCommittedValue(colourCodeInput),
+    }));
+
+    const hasInitialSecondary = Boolean(itemSecondaryColour(item) || itemSecondaryColourCode(item));
+    const rawInitialSecBasic = itemSecondaryBasicColourRaw(item);
+    const initialSecBasic =
+      rawInitialSecBasic.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
+        ? BASIC_COLOUR_CLASSIFICATION_OMIT
+        : itemSecondaryBasicColour(item);
+    const secBasicMount = createItemEditSecondaryBasicColourField(initialSecBasic, {
+      id: "item-edit-secondary-basic-colour",
+      hidden: !hasInitialSecondary,
+      getFields: () =>
+        readItemEditSecondaryColourFieldValues(
+          secondaryColourMount?.secNameInput,
+          secondaryColourMount?.secCodeInput
+        ),
+    });
+
+    function syncSecondaryBasicVisibility() {
+      const hasSec = shouldShowItemEditSecondaryBasicColour(secondaryColourMount);
+      secBasicMount.wrap.hidden = !hasSec;
+      if (hasSec) secBasicMount.sync?.();
+    }
+
+    colourNameInput.addEventListener("input", syncItemBasicAuto);
+    colourCodeInput.addEventListener("input", syncItemBasicAuto);
+
+    colourBlock.appendChild(colourNameLab);
+    colourBlock.appendChild(colourCodeLab);
+    secondaryColourMount = mountItemEditSecondaryColourBlock(
+      colourBlock,
+      {
+        secondaryColour: itemSecondaryColour(item),
+        secondaryColourCode: itemSecondaryColourCode(item),
+      },
+      {
+        nameId: "item-edit-secondary-colour",
+        codeId: "item-edit-secondary-colour-code",
+        addBtnParent: colourCodeActions,
+        onRemoved: () => {
+          syncPrimaryColourPreview();
+          syncSecondaryBasicVisibility();
+        },
+        onShown: syncSecondaryBasicVisibility,
+      }
+    );
+    secondaryColourMount.secNameInput?.addEventListener("input", () => {
+      syncPrimaryColourPreview();
+      syncSecondaryBasicVisibility();
+    });
+    secondaryColourMount.secCodeInput?.addEventListener("input", () => {
+      syncPrimaryColourPreview();
+      syncSecondaryBasicVisibility();
+    });
+    const secColourBlock = colourBlock.querySelector(".item-edit-secondary-colour-block");
+    secColourBlock?.addEventListener("change", syncSecondaryBasicVisibility);
+    basicPair.append(basicLab, secBasicMount.wrap);
+    colourBlock.appendChild(basicPair);
+    wireItemEditColourSwapButton(colourCodeActions, {
+      colourNameInput,
+      colourCodeInput,
+      basicSel,
+      secondaryMount: secondaryColourMount,
+      secBasicSel: secBasicMount.sel,
+      syncPrimaryColourPreview,
+      syncBasicAuto: syncItemBasicAuto,
+      syncSecondaryBasicVisibility,
+    });
+    syncSecondaryBasicVisibility();
+
+    if (isCustomPiece) {
+      const migrateHint = document.createElement("p");
+      migrateHint.className = "item-edit-variant-migrate-hint";
+      migrateHint.textContent =
+        "Same piece in another colour needs its own cover photo — outfits will ask which colour to use.";
+      const colourToolbar = document.createElement("div");
+      colourToolbar.className = "item-edit-toolbar item-edit-toolbar--colour";
+      const migrateBtn = createItemEditIconButton(
+        "item-edit-enable-variants",
+        TW_ITEM_EDIT_ICON.plus,
+        "Add another colour",
+        { title: "Add another colour…" }
+      );
+      colourBlock.appendChild(migrateHint);
+      colourToolbar.appendChild(migrateBtn);
+      colourBlock.appendChild(colourToolbar);
+    }
+    colourGrid.appendChild(colourBlock);
+    colourSingleField = colourBlock;
+
+    const variantsWrap = document.createElement("div");
+    variantsWrap.id = "item-edit-variants-wrap";
+    variantsWrap.className = "field field--span2 item-edit-variants-wrap";
+    if (initialVariants) {
+      variantsWrap.dataset.active = "1";
+      variantsWrap.hidden = false;
+    } else {
+      variantsWrap.dataset.active = "0";
+      variantsWrap.hidden = true;
+    }
+
+    if (initialVariants) {
+      const variantsIntro = document.createElement("p");
+      variantsIntro.className = "item-edit-variants-intro";
+      variantsIntro.textContent =
+        "This piece keeps one primary cover for the collection grid; each colour has its own variant cover. The colour strip uses an uploaded preview if set, otherwise a hex value from the colour code or name, otherwise the code text, and only then the variant cover. Keys stay fixed — use “Add another colour…” for a new option.";
+      variantsWrap.appendChild(variantsIntro);
+    }
+
+    const listEl = document.createElement("div");
+    listEl.id = "item-edit-variants-list";
+    listEl.className = "item-edit-variants-list";
+
+    const variantsToolbar = document.createElement("div");
+    variantsToolbar.className = "item-edit-toolbar item-edit-variants-toolbar";
+
+    const addVarBtn = createItemEditIconButton(
+      "item-edit-variant-add",
+      TW_ITEM_EDIT_ICON.plus,
+      "Add another colour",
+      { title: "Add another colour…" }
+    );
+    addVarBtn.hidden = !initialVariants;
+    const disableVariantsBtn = createItemEditIconButton(
+      "item-edit-variant-disable",
+      TW_ITEM_EDIT_ICON.single,
+      "Use single colour",
+      { title: "Use single colour" }
+    );
+    disableVariantsBtn.hidden = !initialVariants || !colourSingleField;
+
+    if (initialVariants) {
+      for (const v of initialVariants) {
+        appendVariantEditorRow(listEl, {
+          key: v.key,
+          label: v.label,
+          colour: v.colour ?? v.color,
+          colourCode: v.colourCode,
+          secondaryColour: v.secondaryColour,
+          secondaryColourCode: v.secondaryColourCode,
+          basicColour: v.basicColour,
+          image: v.image,
+          previewImage: v.previewImage,
+          gallery: v.gallery,
+          notes: v.notes,
+        });
+      }
+    }
+
+    variantsToolbar.append(disableVariantsBtn, addVarBtn);
+    variantsWrap.appendChild(listEl);
+    variantsWrap.appendChild(variantsToolbar);
+
+    addVarBtn.addEventListener("click", () => {
+      appendVariantEditorRow(listEl, {
+        key: newEditorVariantKey(),
+        label: "",
+        colour: "",
+        colourCode: "",
+        image: "",
+        previewImage: "",
+        gallery: [],
+        notes: "",
+      });
+      variantsWrap.dataset.active = "1";
+      variantsWrap.hidden = false;
+      addVarBtn.hidden = false;
+      disableVariantsBtn.hidden = !colourSingleField;
+    });
+
+    disableVariantsBtn.addEventListener("click", () => {
+      if (!colourSingleField) return;
+      const firstRow = listEl.querySelector(".item-edit-variant-row");
+      if (firstRow) {
+        const firstLabel = firstRow.querySelector(".item-edit-variant-label")?.value?.trim() || "";
+        const firstColour = firstRow.querySelector(".item-edit-variant-colour")?.value?.trim() || "";
+        const firstCode = firstRow.querySelector(".item-edit-variant-colour-code")?.value?.trim() || "";
+        const firstSecondary = firstRow.querySelector(".item-edit-secondary-colour")?.value?.trim() || "";
+        const firstSecondaryCode = firstRow.querySelector(".item-edit-secondary-colour-code")?.value?.trim() || "";
+        const colourNameEl = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour"));
+        const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
+        const secNameEl = /** @type {HTMLInputElement | null} */ (
+          colourSingleField.querySelector("#item-edit-secondary-colour")
+        );
+        const secCodeIn = /** @type {HTMLInputElement | null} */ (
+          colourSingleField.querySelector("#item-edit-secondary-colour-code")
+        );
+        setItemEditColourFieldValue(colourNameEl, firstColour || firstLabel || colourNameEl?.value || "");
+        setItemEditColourFieldValue(codeIn, firstCode || codeIn?.value || "");
+        setItemEditColourFieldValue(secNameEl, firstSecondary);
+        setItemEditColourFieldValue(secCodeIn, firstSecondaryCode);
+        const firstBasic = /** @type {HTMLSelectElement | null} */ (firstRow.querySelector(".item-edit-variant-basic-colour"));
+        const firstSecBasic = /** @type {HTMLSelectElement | null} */ (
+          firstRow.querySelector(".item-edit-variant-secondary-basic-colour")
+        );
+        const singleBasic = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
+        const singleSecBasic = /** @type {HTMLSelectElement | null} */ (
+          colourSingleField.querySelector("#item-edit-secondary-basic-colour")
+        );
+        if (singleBasic) {
+          refillBasicColourSelectOptions(singleBasic, parseBasicColourSelectValue(firstBasic?.value ?? "") || "");
+        }
+        if (singleSecBasic) {
+          refillBasicColourSelectOptions(singleSecBasic, parseBasicColourSelectValue(firstSecBasic?.value ?? "") || "");
+        }
+      }
+      variantsWrap.dataset.active = "0";
+      variantsWrap.hidden = true;
+      colourSingleField.hidden = false;
+      addVarBtn.hidden = true;
+      disableVariantsBtn.hidden = true;
+      const photosField = document.getElementById("item-edit-photos-field");
+      if (photosField instanceof HTMLElement) photosField.hidden = false;
+    });
+
+    if (colourSingleField) {
+      const migrateBtn = colourSingleField.querySelector(".item-edit-enable-variants");
+      migrateBtn?.addEventListener("click", () => {
+        const colourNameEl = /** @type {HTMLInputElement | null} */ (
+          colourSingleField.querySelector("#item-edit-colour")
+        );
+        const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
+        const secNameEl = /** @type {HTMLInputElement | null} */ (
+          colourSingleField.querySelector("#item-edit-secondary-colour")
+        );
+        const secCodeIn = /** @type {HTMLInputElement | null} */ (
+          colourSingleField.querySelector("#item-edit-secondary-colour-code")
+        );
+        const baseColour = colourNameEl?.value?.trim() || "";
+        const baseCode = codeIn?.value?.trim() || "";
+        const baseSecondary = secNameEl?.value?.trim() || "";
+        const baseSecondaryCode = secCodeIn?.value?.trim() || "";
+        const basicTop = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
+        const rawTop = String(basicTop?.value ?? "").trim();
+        const basicFromSingle =
+          rawTop.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT ? "" : normalizeStoredBasicColourKey(rawTop);
+        const label0 = baseColour || "Colour 1";
+        const key0 = slugVariantKeyBase(label0) || "colour-1";
+        listEl.innerHTML = "";
+        const baseSecondaryBasic = parseBasicColourSelectValue(
+          colourSingleField.querySelector("#item-edit-secondary-basic-colour")?.value ?? ""
+        );
+        appendVariantEditorRow(listEl, {
+          key: key0,
+          label: label0,
+          colour: baseColour,
+          colourCode: baseCode,
+          secondaryColour: baseSecondary,
+          secondaryColourCode: baseSecondaryCode,
+          secondaryBasicColour: baseSecondaryBasic,
+          basicColour: basicFromSingle,
+          image: String(item.image ?? ""),
+          previewImage: "",
+          gallery: itemGalleryList(item),
+          notes: "",
+        });
+        appendVariantEditorRow(listEl, {
+          key: newEditorVariantKey(),
+          label: "",
+          colour: "",
+          colourCode: "",
+          image: "",
+          previewImage: "",
+          gallery: [],
+          notes: "",
+        });
+        variantsWrap.dataset.active = "1";
+        variantsWrap.hidden = false;
+        colourSingleField.hidden = true;
+        addVarBtn.hidden = false;
+        disableVariantsBtn.hidden = false;
+        const photosField = document.getElementById("item-edit-photos-field");
+        if (photosField instanceof HTMLElement) photosField.hidden = true;
+      });
+    }
+
+    colourGrid.appendChild(variantsWrap);
+
+    const fabIn = document.createElement("textarea");
+    fabIn.id = "item-edit-fabric";
+    fabIn.className = "textarea-autosize";
+    fabIn.rows = 2;
+    fabIn.maxLength = 1000;
+    fabIn.value = String(item.fabric ?? "");
+
+    const wtIn = document.createElement("input");
+    wtIn.type = "text";
+    wtIn.id = "item-edit-weight";
+    wtIn.maxLength = 80;
+    wtIn.value = String(item.weight ?? "");
+
+    const sizeIn = document.createElement("input");
+    sizeIn.type = "text";
+    sizeIn.id = "item-edit-size";
+    sizeIn.maxLength = 120;
+    sizeIn.value = String(item.size ?? "");
+
+    const matStrip = document.createElement("div");
+    matStrip.className = "item-edit-triple-row item-edit-spec-strip field--span2";
+    appendItemEditField(matStrip, "Material (optional)", fabIn, { width: "compact" });
+    appendItemEditField(matStrip, "Specs (optional)", wtIn, { width: "compact" });
+    appendItemEditField(matStrip, "Size (optional)", sizeIn, { width: "compact" });
+    materialGrid.appendChild(matStrip);
+    wireTextareaAutosize(fabIn);
+
+    const purchaseIn = document.createElement("input");
+    purchaseIn.type = "date";
+    purchaseIn.id = "item-edit-purchase-date";
+    purchaseIn.value = splitPurchaseDateForForm(String(item.purchaseDate ?? "").trim()).date;
+
+    const priceIn = document.createElement("input");
+    priceIn.id = "item-edit-price";
+    priceIn.placeholder = "e.g. 199 or 19,900";
+    priceIn.autocomplete = "off";
+    if (Number.isFinite(Number(item.price))) priceIn.value = formatPriceAmountForInput(item.price);
+    wirePriceAmountInput(priceIn);
+    const priceCurSel = document.createElement("select");
+    priceCurSel.id = "item-edit-price-currency";
+    priceCurSel.setAttribute("aria-label", "Price currency");
+    const priceCurrencyPick = PRICE_CURRENCY_CODES.includes(String(item.priceCurrency ?? "").trim().toUpperCase())
+      ? String(item.priceCurrency).trim().toUpperCase()
+      : "TWD";
+    for (const c of PRICE_CURRENCY_CODES) {
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      if (c === priceCurrencyPick) o.selected = true;
+      priceCurSel.appendChild(o);
+    }
+
+    const acquisitionStrip = document.createElement("div");
+    acquisitionStrip.className = "item-edit-triple-row item-edit-acquisition-strip field--span2";
+    appendItemEditField(acquisitionStrip, "Purchase date (optional)", purchaseIn, { width: "compact" });
+    appendItemEditField(acquisitionStrip, "Price (optional)", priceIn, { width: "compact" });
+    appendItemEditField(acquisitionStrip, "Currency", priceCurSel, { width: "compact" });
+    acquisitionGrid.appendChild(acquisitionStrip);
+
+    formScroll.appendChild(identitySec.section);
+    formScroll.appendChild(colourSec.section);
+    formScroll.appendChild(materialSec.section);
+    formScroll.appendChild(acquisitionSec.section);
+
+    const notesSec = createItemEditSection("Notes");
+    const notesLab = document.createElement("label");
+    notesLab.className = "field field--block item-edit-section__block-field";
+    const notesTa = document.createElement("textarea");
+    notesTa.id = "item-edit-notes";
+    notesTa.className = "textarea-autosize";
+    notesTa.rows = 2;
+    notesTa.maxLength = 2000;
+    notesTa.setAttribute("aria-label", "Notes (optional)");
+    notesTa.placeholder = "Care, fit notes, provenance…";
+    notesTa.value = String(item.notes ?? "");
+    notesLab.appendChild(notesTa);
+    wireTextareaAutosize(notesTa);
+    notesSec.grid.appendChild(notesLab);
+    formScroll.appendChild(notesSec.section);
+
+    const measSec = createItemEditSection("Measurements");
+    const measHeadingRow = document.createElement("div");
+    measHeadingRow.className =
+      "item-edit-section__heading-row item-edit-section__heading-row--with-unit";
+    const measUnitHost = document.createElement("div");
+    measUnitHost.className = "item-edit-section__heading-unit";
+    measSec.section.replaceChild(measHeadingRow, measSec.heading);
+    measHeadingRow.append(measSec.heading, measUnitHost);
+    const measWrap = document.createElement("div");
+    measWrap.className = "field field--block item-edit-measurements-wrap item-edit-section__block-field";
+    const measBlockHost = document.createElement("div");
+    measBlockHost.id = "item-edit-measured-dims-block";
+    measBlockHost.className = "item-edit-measured-dims-host";
+    measBlockHost.setAttribute("role", "group");
+    measBlockHost.setAttribute("aria-label", "Measurements (optional)");
+    measWrap.appendChild(measBlockHost);
+    measSec.grid.appendChild(measWrap);
+    formScroll.appendChild(measSec.section);
+    mountMeasurementRowsEditor(measBlockHost, getMeasurementRowsForEditor(item), {
+      unitSelectId: "item-edit-measurement-unit",
+      initialUnit: getMeasurementUnit(item),
+      unitHost: measUnitHost,
+    });
+  }
+
   function renderItemDetailContent(root, item, opts = {}) {
     const edit = Boolean(opts.edit) && canUseItemDetailEdit();
     const isPageEdit = edit && root.classList.contains("item-detail__root--page");
@@ -25347,595 +25917,11 @@
       const formScroll = document.createElement("div");
       formScroll.className = "item-edit-form-scroll";
 
-      const identitySec = createItemEditSection("Identity", { pathHeading: true });
-      const identityGrid = identitySec.grid;
-      const initialVariants = getItemColourVariants(item);
-      const isCustomPiece = String(item.id ?? "").startsWith("custom-");
-      const colourSec = createItemEditSection("Colour");
-      const colourGrid = colourSec.grid;
-      const materialSec = createItemEditSection("Material & fit");
-      const materialGrid = materialSec.grid;
-      const acquisitionSec = createItemEditSection("Acquisition");
-      const acquisitionGrid = acquisitionSec.grid;
-
-
-      const brandIn = document.createElement("input");
-      brandIn.type = "text";
-      brandIn.id = "item-edit-brand";
-      brandIn.required = false;
-      brandIn.maxLength = 120;
-      brandIn.placeholder = "Maker — leave empty if unknown";
-      brandIn.value = String(item.brand ?? "");
-      const nameIn = document.createElement("input");
-      nameIn.type = "text";
-      nameIn.id = "item-edit-name";
-      nameIn.required = true;
-      nameIn.maxLength = 200;
-      nameIn.value = String(item.name ?? "");
-      appendItemEditSelectRow(identityGrid, "Brand", brandIn, "Name", nameIn, { variant: "brand-name" });
-
-      // Ownership status — authored domain fact (independent of brand).
-      const ownershipLab = document.createElement("label");
-      ownershipLab.className = "field field--span2 item-edit-ownership-field";
-      const ownershipToggle = document.createElement("span");
-      ownershipToggle.className = "item-edit-ownership-toggle";
-      const futureIn = document.createElement("input");
-      futureIn.type = "checkbox";
-      futureIn.id = "item-edit-future";
-      futureIn.checked = Boolean(item.is_future);
-      const futureTxt = document.createElement("span");
-      futureTxt.className = "field__label";
-      futureTxt.textContent = "Future piece";
-      ownershipToggle.append(futureIn, futureTxt);
-      ownershipLab.appendChild(ownershipToggle);
-      identityGrid.appendChild(ownershipLab);
-
-      const seaSel = document.createElement("select");
-      seaSel.id = "item-edit-season";
-      const seasonRows = [
-        { value: "All-season", label: "All seasons" },
-        { value: "A/W", label: "A/W" },
-        { value: "S/S", label: "S/S" },
-      ];
-      const curSe = String(item.season ?? "").trim();
-      const curPick = curSe === "A/W" || curSe === "S/S" ? curSe : "All-season";
-      for (const row of seasonRows) {
-        const o = document.createElement("option");
-        o.value = row.value;
-        o.textContent = row.label;
-        if (row.value === curPick) o.selected = true;
-        seaSel.appendChild(o);
-      }
-      const catSel = document.createElement("select");
-      catSel.id = "item-edit-browse-slot";
-      catSel.required = true;
-      const rawCat = String(item.category ?? "").trim();
-      const slotPick = SLOT_OPTIONS.includes(rawCat) ? rawCat : itemSlot(item);
-      for (const c of SLOT_OPTIONS) {
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = categoryDisplayLabel(c);
-        if (c === slotPick) o.selected = true;
-        catSel.appendChild(o);
-      }
-      const recordTypeSel = document.createElement("select");
-      recordTypeSel.id = "item-edit-record-type";
-      recordTypeSel.className = "item-edit-record-type-select";
-      recordTypeSel.title =
-        'Same labels as the collection "type" strip — controls filtering and default browse order.';
-      const currentRecKey = recordCategoryForDrill(item, slotPick);
-      fillItemEditRecordTypeSelect(recordTypeSel, slotPick, currentRecKey);
-      appendItemEditTripleSelectRow(
-        identityGrid,
-        "Season (optional)",
-        seaSel,
-        "Section",
-        catSel,
-        "Type",
-        recordTypeSel
-      );
-
-      const photosFieldWrap = document.createElement("div");
-      photosFieldWrap.className = "field field--span2 item-edit-photos-field";
-      photosFieldWrap.id = "item-edit-photos-field";
-      const photosLabel = document.createElement("span");
-      photosLabel.className = "field__label";
-      photosLabel.textContent = "Photos";
-      const photosHost = document.createElement("div");
-      photosHost.id = "item-edit-photos";
-      if (!initialVariants) {
-        mountItemEditPhotoManager(photosHost, {
-          item: itemForMedia,
-          coverUrl: String(itemForMedia.image ?? "").trim(),
-          galleryUrls: resolvedItemGalleryList(itemForMedia),
-          uploadLabel: "Upload photos",
-          onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
-        });
-        syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
-      }
-      photosFieldWrap.appendChild(photosLabel);
-      photosFieldWrap.appendChild(photosHost);
-      photosFieldWrap.hidden = Boolean(initialVariants);
-      identityGrid.appendChild(photosFieldWrap);
-
-      function refreshIdentityBrowsePath() {
-        identitySec.heading.replaceChildren(
-          buildCollectionBrowseBreadcrumbNav(catSel.value, recordTypeSel.value)
-        );
-      }
-
-      catSel.addEventListener("change", () => {
-        fillItemEditRecordTypeSelect(recordTypeSel, catSel.value, recordTypeSel.value);
-        refreshIdentityBrowsePath();
+      mountItemEditFormSections(formScroll, item, {
+        editPreviewCol,
+        itemForMedia,
+        allowVariants: String(item.id ?? "").startsWith("custom-"),
       });
-      recordTypeSel.addEventListener("change", refreshIdentityBrowsePath);
-      refreshIdentityBrowsePath();
-
-      /** @type {HTMLElement | null} */
-      let colourSingleField = null;
-
-      const colourBlock = document.createElement("div");
-      colourBlock.className = "field--span2 item-edit-single-colour-block";
-      colourBlock.hidden = Boolean(initialVariants);
-
-      const colourNameInput = document.createElement("input");
-      colourNameInput.type = "text";
-      colourNameInput.id = "item-edit-colour";
-      colourNameInput.maxLength = 80;
-      colourNameInput.autocomplete = "off";
-      colourNameInput.value = String(item.colour ?? item.color ?? "");
-
-      const colourNameLab = document.createElement("label");
-      colourNameLab.className = "field";
-      const cspan = document.createElement("span");
-      cspan.className = "field__label";
-      cspan.textContent = "Primary colour (optional)";
-      colourNameLab.appendChild(cspan);
-      colourNameLab.appendChild(colourNameInput);
-
-      const colourCodeInput = document.createElement("input");
-      colourCodeInput.type = "text";
-      colourCodeInput.id = "item-edit-colour-code";
-      colourCodeInput.maxLength = 80;
-      colourCodeInput.autocomplete = "off";
-      colourCodeInput.placeholder = "#hex, SKU…";
-      colourCodeInput.value = itemColourCode(item);
-
-      const colourCodeLab = document.createElement("label");
-      colourCodeLab.className = "field";
-      const ccspan = document.createElement("span");
-      ccspan.className = "field__label";
-      ccspan.textContent = "Primary colour code (optional)";
-      const colourCodeRow = document.createElement("div");
-      colourCodeRow.className = "item-edit-colour-code-row";
-      const colourCodePreview = createItemEditColourCodePreview();
-      const colourCodeActions = document.createElement("div");
-      colourCodeActions.className = "item-edit-colour-code-row__actions";
-      colourCodeRow.append(colourCodePreview, colourCodeInput, colourCodeActions);
-      colourCodeLab.appendChild(ccspan);
-      colourCodeLab.appendChild(colourCodeRow);
-      const syncPrimaryColourPreview = wireItemEditColourCodePreview({
-        input: colourCodeInput,
-        preview: colourCodePreview,
-        colourInput: colourNameInput,
-        getSecondarySources: () =>
-          readItemEditSecondaryColourFieldValues(
-            form.querySelector("#item-edit-secondary-colour"),
-            form.querySelector("#item-edit-secondary-colour-code")
-          ),
-      });
-
-      const itemMetaForBasic =
-        item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata) ? item.metadata : null;
-      const rawInitialBasic = String(item.basicColour ?? itemMetaForBasic?.basicColour ?? "").trim();
-      const initialBasic =
-        rawInitialBasic.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
-          ? BASIC_COLOUR_CLASSIFICATION_OMIT
-          : normalizeStoredBasicColourKey(rawInitialBasic);
-
-      const basicSel = document.createElement("select");
-      basicSel.id = "item-edit-basic-colour";
-      basicSel.className = "item-edit-basic-colour";
-      refillBasicColourSelectOptions(basicSel, initialBasic);
-      const basicLab = document.createElement("label");
-      basicLab.className = "field";
-      const bspan = document.createElement("span");
-      bspan.className = "field__label";
-      bspan.textContent = "Broad colour — primary (optional)";
-      basicLab.appendChild(bspan);
-      basicLab.appendChild(basicSel);
-
-      const basicPair = document.createElement("div");
-      basicPair.className = "item-edit-basic-colour-pair";
-
-      const syncItemBasicAuto = wireItemEditBasicColourAutoDisplay(basicSel, () => ({
-        colour: itemEditColourNameForInference(colourNameInput),
-        colourCode: itemEditColourCodeCommittedValue(colourCodeInput),
-      }));
-
-      /** @type {{ block: HTMLElement, panel: HTMLElement, addBtn: HTMLElement, removeBtn: HTMLElement, secNameInput: HTMLInputElement, secCodeInput: HTMLInputElement } | null} */
-      let secondaryColourMount = null;
-
-      const hasInitialSecondary = Boolean(itemSecondaryColour(item) || itemSecondaryColourCode(item));
-      const rawInitialSecBasic = itemSecondaryBasicColourRaw(item);
-      const initialSecBasic =
-        rawInitialSecBasic.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT
-          ? BASIC_COLOUR_CLASSIFICATION_OMIT
-          : itemSecondaryBasicColour(item);
-      const secBasicMount = createItemEditSecondaryBasicColourField(initialSecBasic, {
-        id: "item-edit-secondary-basic-colour",
-        hidden: !hasInitialSecondary,
-        getFields: () =>
-          readItemEditSecondaryColourFieldValues(
-            secondaryColourMount?.secNameInput,
-            secondaryColourMount?.secCodeInput
-          ),
-      });
-
-      function syncSecondaryBasicVisibility() {
-        const hasSec = shouldShowItemEditSecondaryBasicColour(secondaryColourMount);
-        secBasicMount.wrap.hidden = !hasSec;
-        if (hasSec) secBasicMount.sync?.();
-      }
-
-      colourNameInput.addEventListener("input", syncItemBasicAuto);
-      colourCodeInput.addEventListener("input", syncItemBasicAuto);
-
-      colourBlock.appendChild(colourNameLab);
-      colourBlock.appendChild(colourCodeLab);
-      secondaryColourMount = mountItemEditSecondaryColourBlock(
-        colourBlock,
-        {
-          secondaryColour: itemSecondaryColour(item),
-          secondaryColourCode: itemSecondaryColourCode(item),
-        },
-        {
-          nameId: "item-edit-secondary-colour",
-          codeId: "item-edit-secondary-colour-code",
-          addBtnParent: colourCodeActions,
-          onRemoved: () => {
-            syncPrimaryColourPreview();
-            syncSecondaryBasicVisibility();
-          },
-          onShown: syncSecondaryBasicVisibility,
-        }
-      );
-      secondaryColourMount.secNameInput?.addEventListener("input", () => {
-        syncPrimaryColourPreview();
-        syncSecondaryBasicVisibility();
-      });
-      secondaryColourMount.secCodeInput?.addEventListener("input", () => {
-        syncPrimaryColourPreview();
-        syncSecondaryBasicVisibility();
-      });
-      const secColourBlock = colourBlock.querySelector(".item-edit-secondary-colour-block");
-      secColourBlock?.addEventListener("change", syncSecondaryBasicVisibility);
-      basicPair.append(basicLab, secBasicMount.wrap);
-      colourBlock.appendChild(basicPair);
-      wireItemEditColourSwapButton(colourCodeActions, {
-        colourNameInput,
-        colourCodeInput,
-        basicSel,
-        secondaryMount: secondaryColourMount,
-        secBasicSel: secBasicMount.sel,
-        syncPrimaryColourPreview,
-        syncBasicAuto: syncItemBasicAuto,
-        syncSecondaryBasicVisibility,
-      });
-      syncSecondaryBasicVisibility();
-
-      if (isCustomPiece) {
-        const migrateHint = document.createElement("p");
-        migrateHint.className = "item-edit-variant-migrate-hint";
-        migrateHint.textContent =
-          "Same piece in another colour needs its own cover photo — outfits will ask which colour to use.";
-        const colourToolbar = document.createElement("div");
-        colourToolbar.className = "item-edit-toolbar item-edit-toolbar--colour";
-        const migrateBtn = createItemEditIconButton(
-          "item-edit-enable-variants",
-          TW_ITEM_EDIT_ICON.plus,
-          "Add another colour",
-          { title: "Add another colour…" }
-        );
-        colourBlock.appendChild(migrateHint);
-        colourToolbar.appendChild(migrateBtn);
-        colourBlock.appendChild(colourToolbar);
-      }
-      colourGrid.appendChild(colourBlock);
-      colourSingleField = colourBlock;
-
-      const variantsWrap = document.createElement("div");
-      variantsWrap.id = "item-edit-variants-wrap";
-      variantsWrap.className = "field field--span2 item-edit-variants-wrap";
-      if (initialVariants) {
-        variantsWrap.dataset.active = "1";
-        variantsWrap.hidden = false;
-      } else {
-        variantsWrap.dataset.active = "0";
-        variantsWrap.hidden = true;
-      }
-
-      if (initialVariants) {
-        const variantsIntro = document.createElement("p");
-        variantsIntro.className = "item-edit-variants-intro";
-        variantsIntro.textContent =
-          "This piece keeps one primary cover for the collection grid; each colour has its own variant cover. The colour strip uses an uploaded preview if set, otherwise a hex value from the colour code or name, otherwise the code text, and only then the variant cover. Keys stay fixed — use “Add another colour…” for a new option.";
-        variantsWrap.appendChild(variantsIntro);
-      }
-
-      const listEl = document.createElement("div");
-      listEl.id = "item-edit-variants-list";
-      listEl.className = "item-edit-variants-list";
-
-      const variantsToolbar = document.createElement("div");
-      variantsToolbar.className = "item-edit-toolbar item-edit-variants-toolbar";
-
-      const addVarBtn = createItemEditIconButton(
-        "item-edit-variant-add",
-        TW_ITEM_EDIT_ICON.plus,
-        "Add another colour",
-        { title: "Add another colour…" }
-      );
-      addVarBtn.hidden = !initialVariants;
-      const disableVariantsBtn = createItemEditIconButton(
-        "item-edit-variant-disable",
-        TW_ITEM_EDIT_ICON.single,
-        "Use single colour",
-        { title: "Use single colour" }
-      );
-      disableVariantsBtn.hidden = !initialVariants || !colourSingleField;
-
-      if (initialVariants) {
-        for (const v of initialVariants) {
-          appendVariantEditorRow(listEl, {
-            key: v.key,
-            label: v.label,
-            colour: v.colour ?? v.color,
-            colourCode: v.colourCode,
-            secondaryColour: v.secondaryColour,
-            secondaryColourCode: v.secondaryColourCode,
-            basicColour: v.basicColour,
-            image: v.image,
-            previewImage: v.previewImage,
-            gallery: v.gallery,
-            notes: v.notes,
-          });
-        }
-      }
-
-      variantsToolbar.append(disableVariantsBtn, addVarBtn);
-      variantsWrap.appendChild(listEl);
-      variantsWrap.appendChild(variantsToolbar);
-
-      addVarBtn.addEventListener("click", () => {
-        appendVariantEditorRow(listEl, {
-          key: newEditorVariantKey(),
-          label: "",
-          colour: "",
-          colourCode: "",
-          image: "",
-          previewImage: "",
-          gallery: [],
-          notes: "",
-        });
-        variantsWrap.dataset.active = "1";
-        variantsWrap.hidden = false;
-        addVarBtn.hidden = false;
-        disableVariantsBtn.hidden = !colourSingleField;
-      });
-
-      disableVariantsBtn.addEventListener("click", () => {
-        if (!colourSingleField) return;
-        const firstRow = listEl.querySelector(".item-edit-variant-row");
-        if (firstRow) {
-          const firstLabel = firstRow.querySelector(".item-edit-variant-label")?.value?.trim() || "";
-          const firstColour = firstRow.querySelector(".item-edit-variant-colour")?.value?.trim() || "";
-          const firstCode = firstRow.querySelector(".item-edit-variant-colour-code")?.value?.trim() || "";
-          const firstSecondary = firstRow.querySelector(".item-edit-secondary-colour")?.value?.trim() || "";
-          const firstSecondaryCode = firstRow.querySelector(".item-edit-secondary-colour-code")?.value?.trim() || "";
-          const colourNameEl = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour"));
-          const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
-          const secNameEl = /** @type {HTMLInputElement | null} */ (
-            colourSingleField.querySelector("#item-edit-secondary-colour")
-          );
-          const secCodeIn = /** @type {HTMLInputElement | null} */ (
-            colourSingleField.querySelector("#item-edit-secondary-colour-code")
-          );
-          setItemEditColourFieldValue(colourNameEl, firstColour || firstLabel || colourNameEl?.value || "");
-          setItemEditColourFieldValue(codeIn, firstCode || codeIn?.value || "");
-          setItemEditColourFieldValue(secNameEl, firstSecondary);
-          setItemEditColourFieldValue(secCodeIn, firstSecondaryCode);
-          const firstBasic = /** @type {HTMLSelectElement | null} */ (firstRow.querySelector(".item-edit-variant-basic-colour"));
-          const firstSecBasic = /** @type {HTMLSelectElement | null} */ (
-            firstRow.querySelector(".item-edit-variant-secondary-basic-colour")
-          );
-          const singleBasic = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
-          const singleSecBasic = /** @type {HTMLSelectElement | null} */ (
-            colourSingleField.querySelector("#item-edit-secondary-basic-colour")
-          );
-          if (singleBasic) {
-            refillBasicColourSelectOptions(singleBasic, parseBasicColourSelectValue(firstBasic?.value ?? "") || "");
-          }
-          if (singleSecBasic) {
-            refillBasicColourSelectOptions(singleSecBasic, parseBasicColourSelectValue(firstSecBasic?.value ?? "") || "");
-          }
-        }
-        variantsWrap.dataset.active = "0";
-        variantsWrap.hidden = true;
-        colourSingleField.hidden = false;
-        addVarBtn.hidden = true;
-        disableVariantsBtn.hidden = true;
-        const photosField = document.getElementById("item-edit-photos-field");
-        if (photosField instanceof HTMLElement) photosField.hidden = false;
-      });
-
-      if (colourSingleField) {
-        const migrateBtn = colourSingleField.querySelector(".item-edit-enable-variants");
-        migrateBtn?.addEventListener("click", () => {
-          const colourNameEl = /** @type {HTMLInputElement | null} */ (
-            colourSingleField.querySelector("#item-edit-colour")
-          );
-          const codeIn = /** @type {HTMLInputElement | null} */ (colourSingleField.querySelector("#item-edit-colour-code"));
-          const secNameEl = /** @type {HTMLInputElement | null} */ (
-            colourSingleField.querySelector("#item-edit-secondary-colour")
-          );
-          const secCodeIn = /** @type {HTMLInputElement | null} */ (
-            colourSingleField.querySelector("#item-edit-secondary-colour-code")
-          );
-          const baseColour = colourNameEl?.value?.trim() || "";
-          const baseCode = codeIn?.value?.trim() || "";
-          const baseSecondary = secNameEl?.value?.trim() || "";
-          const baseSecondaryCode = secCodeIn?.value?.trim() || "";
-          const basicTop = /** @type {HTMLSelectElement | null} */ (colourSingleField.querySelector("#item-edit-basic-colour"));
-          const rawTop = String(basicTop?.value ?? "").trim();
-          const basicFromSingle =
-            rawTop.toLowerCase() === BASIC_COLOUR_CLASSIFICATION_OMIT ? "" : normalizeStoredBasicColourKey(rawTop);
-          const label0 = baseColour || "Colour 1";
-          const key0 = slugVariantKeyBase(label0) || "colour-1";
-          listEl.innerHTML = "";
-          const baseSecondaryBasic = parseBasicColourSelectValue(
-            colourSingleField.querySelector("#item-edit-secondary-basic-colour")?.value ?? ""
-          );
-          appendVariantEditorRow(listEl, {
-            key: key0,
-            label: label0,
-            colour: baseColour,
-            colourCode: baseCode,
-            secondaryColour: baseSecondary,
-            secondaryColourCode: baseSecondaryCode,
-            secondaryBasicColour: baseSecondaryBasic,
-            basicColour: basicFromSingle,
-            image: String(item.image ?? ""),
-            previewImage: "",
-            gallery: itemGalleryList(item),
-            notes: "",
-          });
-          appendVariantEditorRow(listEl, {
-            key: newEditorVariantKey(),
-            label: "",
-            colour: "",
-            colourCode: "",
-            image: "",
-            previewImage: "",
-            gallery: [],
-            notes: "",
-          });
-          variantsWrap.dataset.active = "1";
-          variantsWrap.hidden = false;
-          colourSingleField.hidden = true;
-          addVarBtn.hidden = false;
-          disableVariantsBtn.hidden = false;
-          const photosField = document.getElementById("item-edit-photos-field");
-          if (photosField instanceof HTMLElement) photosField.hidden = true;
-        });
-      }
-
-      colourGrid.appendChild(variantsWrap);
-
-      const fabIn = document.createElement("textarea");
-      fabIn.id = "item-edit-fabric";
-      fabIn.className = "textarea-autosize";
-      fabIn.rows = 2;
-      fabIn.maxLength = 1000;
-      fabIn.value = String(item.fabric ?? "");
-
-      const wtIn = document.createElement("input");
-      wtIn.type = "text";
-      wtIn.id = "item-edit-weight";
-      wtIn.maxLength = 80;
-      wtIn.value = String(item.weight ?? "");
-
-      const sizeIn = document.createElement("input");
-      sizeIn.type = "text";
-      sizeIn.id = "item-edit-size";
-      sizeIn.maxLength = 120;
-      sizeIn.value = String(item.size ?? "");
-
-      const matStrip = document.createElement("div");
-      matStrip.className = "item-edit-triple-row item-edit-spec-strip field--span2";
-      appendItemEditField(matStrip, "Material (optional)", fabIn, { width: "compact" });
-      appendItemEditField(matStrip, "Specs (optional)", wtIn, { width: "compact" });
-      appendItemEditField(matStrip, "Size (optional)", sizeIn, { width: "compact" });
-      materialGrid.appendChild(matStrip);
-      wireTextareaAutosize(fabIn);
-
-      const purchaseIn = document.createElement("input");
-      purchaseIn.type = "date";
-      purchaseIn.id = "item-edit-purchase-date";
-      purchaseIn.value = splitPurchaseDateForForm(String(item.purchaseDate ?? "").trim()).date;
-
-      const priceIn = document.createElement("input");
-      priceIn.id = "item-edit-price";
-      priceIn.placeholder = "e.g. 199 or 19,900";
-      priceIn.autocomplete = "off";
-      if (Number.isFinite(Number(item.price))) priceIn.value = formatPriceAmountForInput(item.price);
-      wirePriceAmountInput(priceIn);
-      const priceCurSel = document.createElement("select");
-      priceCurSel.id = "item-edit-price-currency";
-      priceCurSel.setAttribute("aria-label", "Price currency");
-      const priceCurrencyPick = PRICE_CURRENCY_CODES.includes(String(item.priceCurrency ?? "").trim().toUpperCase())
-        ? String(item.priceCurrency).trim().toUpperCase()
-        : "TWD";
-      for (const c of PRICE_CURRENCY_CODES) {
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = c;
-        if (c === priceCurrencyPick) o.selected = true;
-        priceCurSel.appendChild(o);
-      }
-
-      const acquisitionStrip = document.createElement("div");
-      acquisitionStrip.className = "item-edit-triple-row item-edit-acquisition-strip field--span2";
-      appendItemEditField(acquisitionStrip, "Purchase date (optional)", purchaseIn, { width: "compact" });
-      appendItemEditField(acquisitionStrip, "Price (optional)", priceIn, { width: "compact" });
-      appendItemEditField(acquisitionStrip, "Currency", priceCurSel, { width: "compact" });
-      acquisitionGrid.appendChild(acquisitionStrip);
-
-      formScroll.appendChild(identitySec.section);
-      formScroll.appendChild(colourSec.section);
-      formScroll.appendChild(materialSec.section);
-      formScroll.appendChild(acquisitionSec.section);
-
-      const notesSec = createItemEditSection("Notes");
-      const notesLab = document.createElement("label");
-      notesLab.className = "field field--block item-edit-section__block-field";
-      const notesTa = document.createElement("textarea");
-      notesTa.id = "item-edit-notes";
-      notesTa.className = "textarea-autosize";
-      notesTa.rows = 2;
-      notesTa.maxLength = 2000;
-      notesTa.setAttribute("aria-label", "Notes (optional)");
-      notesTa.placeholder = "Care, fit notes, provenance…";
-      notesTa.value = String(item.notes ?? "");
-      notesLab.appendChild(notesTa);
-      wireTextareaAutosize(notesTa);
-      notesSec.grid.appendChild(notesLab);
-      formScroll.appendChild(notesSec.section);
-
-      const measSec = createItemEditSection("Measurements");
-      const measHeadingRow = document.createElement("div");
-      measHeadingRow.className =
-        "item-edit-section__heading-row item-edit-section__heading-row--with-unit";
-      const measUnitHost = document.createElement("div");
-      measUnitHost.className = "item-edit-section__heading-unit";
-      measSec.section.replaceChild(measHeadingRow, measSec.heading);
-      measHeadingRow.append(measSec.heading, measUnitHost);
-      const measWrap = document.createElement("div");
-      measWrap.className = "field field--block item-edit-measurements-wrap item-edit-section__block-field";
-      const measBlockHost = document.createElement("div");
-      measBlockHost.id = "item-edit-measured-dims-block";
-      measBlockHost.className = "item-edit-measured-dims-host";
-      measBlockHost.setAttribute("role", "group");
-      measBlockHost.setAttribute("aria-label", "Measurements (optional)");
-      measWrap.appendChild(measBlockHost);
-      measSec.grid.appendChild(measWrap);
-      formScroll.appendChild(measSec.section);
-      mountMeasurementRowsEditor(measBlockHost, getMeasurementRowsForEditor(item), {
-        unitSelectId: "item-edit-measurement-unit",
-        initialUnit: getMeasurementUnit(item),
-        unitHost: measUnitHost,
-      });
-
       const formFooter = document.createElement("div");
       formFooter.className = "item-edit-form-footer";
 
