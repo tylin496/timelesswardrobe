@@ -51,6 +51,14 @@ Companion: [ARCHITECTURE.md](ARCHITECTURE.md) (data flow), [DATA-CONTRACT.md](DA
 
 ## Network / Supabase bugs
 
+> All cloud reads/writes live in **two homes** — the **Data access surface** in
+> [ARCHITECTURE.md](ARCHITECTURE.md#data-access-surface--where-all-cloud-io-lives):
+> `js/supabase-client.js` (outfits CRUD + the hydration fetch) and a set of raw
+> `supabaseClient.from(...)` calls in app.js (wardrobe_items writes, app_state,
+> outfit_items unlink, storage deletes). If a bug is "did this reach the cloud?",
+> start there. Image *uploads* are the exception — they go to the R2 worker, not
+> Supabase (see below).
+
 | Symptom | Layer | First anchor | Notes |
 |---|---|---|---|
 | Edits not persisting to cloud | API | `saveWardrobeItemToCloud` app.js:9553 | Check browser network tab for failed upsert. Auth token may be expired; RLS may block the write. |

@@ -52,10 +52,59 @@ Anchors: `wardrobeBase` declared [app.js:7170](../app.js); built from
 | Image / gallery URLs | **seed only** | regenerate pipeline | yes (seed paths win) |
 | Editable metadata (notes, price, measurements, season…) | Supabase `wardrobe_items` | yes (editor → upsert full row) | yes (merged into wardrobeBase) |
 | Hidden rows | `wardrobe_app_state.collection_hidden_ids` | yes | **yes** (filtered out) |
-| Curated grid order | `wardrobe_items.showcase_order` → baked `showcase-order.js` | yes (Account → Showcase) | order only |
-| ~~Per-field overrides~~ | ~~`wardrobe_app_state.collection_overrides`~~ | — | **no — dead, see below** |
+| Curated grid order | `wardrobe_items.showcase_order` (live Supabase fetch) | yes (Account → Showcase) | order only |
+| ~~Per-field overrides~~ | ~~`wardrobe_app_state.collection_overrides`~~ | — | **no — column dropped Jun 2026** |
 
-## Audit Matrix — `collection_overrides` (2026-06-26)
+## Data access surface — where all cloud I/O lives
+
+Cloud I/O has **two homes**, and the split is asymmetric (a half-built
+Repository). A cold session debugging "did this reach the cloud?" should look
+*only* in these two places — there are no Supabase calls anywhere else in the
+catalogue code.
+
+### Home 1 — `js/supabase-client.js` (the module, imported as `api`)
+
+A real Repository module. Takes a `client`, returns data; no app state. Owns:
+- **Outfits — full CRUD** (all via edge functions): `fetchOutfits`,
+  `fetchOutfitBySlugOrId`, `insertOutfitWithItems`, `updateOutfitWithItems`,
+  `deleteOutfitById`, `createOutfitViaEdgeFunction`, `mutateOutfitViaEdgeFunction`,
+  `duplicateOutfitViaEdgeFunction`.
+- **wardrobe_items READ** (deferred hydration): `fetchWardrobeItems(client, excludeIds)`.
+- Client + normalizer: `createBrowserClient`, `mapRowToItem`.
+
+### Home 2 — raw `supabaseClient.from(...)` inside `app.js`
+
+These never moved into the module. Each mixes a Supabase call with in-memory
+state mutation, which is why they're still inline:
+
+| Table / store | Function (app.js) | Op |
+|---|---|---|
+| `wardrobe_items` | `loadWardrobeItemsFromCloud` | READ all (boot, non-hybrid) |
+| `wardrobe_items` | `saveWardrobeItemToCloud` | **WRITE** (upsert, `onConflict:"id"`) — the one canonical write; payload filtered to `WARDROBE_ITEMS_UPSERT_KEYS_UK` (fields outside it are silently dropped) |
+| `wardrobe_items` | `deleteWardrobePieceFromBrowser` | DELETE one row |
+| `wardrobe_items` | `resolveOutfitSlotsForCloudSave` | SELECT id (existence check before outfit save) |
+| `wardrobe_app_state` | `fetchWardrobeAppStateFromCloud` | READ the single `id="default"` row |
+| `wardrobe_app_state` | `flushWardrobeAppStateToSupabase` | WRITE (upsert) + read-back verify |
+| `wardrobe_app_state` | `hydrateCollectionStateFromCloud` | READ at boot + one-time migration WRITE |
+| `outfit_items` | `unlinkCloudOutfitsReferencingWardrobeItem` | DELETE links when a piece is deleted |
+| Storage (image bucket) | `deleteWardrobeImageUrlFromCloud` / `deleteWardrobeItemImagesFromCloud` | DELETE objects |
+
+**Completing the Repository (roadmap Step 9)** = lifting the Home-2 calls into
+`js/supabase-client.js` next to the outfit functions, leaving the state-mutation
+orchestration behind in app.js. Not yet done — the asymmetry above is the current
+truth, not the target.
+
+**Not Supabase at all (separate boundaries, don't conflate):**
+- Image **uploads** → Cloudflare **R2 worker** (`uploadWardrobeImageFileToCloud` →
+  `R2_UPLOAD_WORKER_URL`), never Supabase Storage.
+- `localStorage` (custom items, hidden-ids cache, season nav) = offline-resilience layer.
+
+## Audit Matrix — `collection_overrides` (2026-06-26; column dropped Jun 30 2026)
+
+> **Status update (Jun 30 2026):** the `collection_overrides` column has since been
+> **dropped** from `wardrobe_app_state` (migration `20260630120000_drop_unused_columns.sql`).
+> The narrative below is retained as the historical record of *why* it was safe to drop.
+
 
 `wardrobe_app_state` (single row, `id="default"`) has two jsonb columns. They were
 introduced together ("cloud sync for hybrid catalogue edits", renamed from
