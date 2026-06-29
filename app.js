@@ -7905,19 +7905,6 @@
     return showcaseRank(item) >= 0;
   }
 
-  const SHOWCASE_RANK_CACHE_KEY = "tw:showcase-rank-v1";
-
-  function saveShowcaseRankCache(normalizedRows) {
-    try {
-      const map = /** @type {Record<string, number>} */ ({});
-      for (const row of normalizedRows) {
-        const rank = row?.metadata?.showcase_rank;
-        if (typeof rank === "number" && rank >= 0 && row?.id) map[String(row.id)] = rank;
-      }
-      localStorage.setItem(SHOWCASE_RANK_CACHE_KEY, JSON.stringify(map));
-    } catch (_) {}
-  }
-
   /** Current Showcase items from loaded wardrobe, sorted by showcase_rank. */
   function getShowcaseItems() {
     const seen = new Set();
@@ -7962,16 +7949,7 @@
     }
 
     // Optimistic update: in-memory state is already mutated above, so render
-    // immediately without waiting for cloud round-trips. The playlist and
-    // collection grid respond on drop, not after saves complete.
-    try {
-      const map = /** @type {Record<string, number>} */ ({});
-      orderedItems.forEach((it, i) => {
-        const id = String(it?.id ?? "").trim();
-        if (id) map[id] = i;
-      });
-      localStorage.setItem(SHOWCASE_RANK_CACHE_KEY, JSON.stringify(map));
-    } catch (_) {}
+    // immediately without waiting for cloud round-trips.
     wardrobeRevision += 1;
     renderGrid();
 
@@ -30415,7 +30393,6 @@
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       }
       mergeWardrobeBaseWithFetchedCloudRows(normalized);
-      saveShowcaseRankCache(normalized);
       mergeWardrobeFromSources();
       showcaseSourcePending = false;
       _commitCollectionRender();
