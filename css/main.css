@@ -19233,9 +19233,12 @@ a.item-detail__breadcrumb-current {
     position: sticky;
     bottom: 0;
     z-index: 20;
+    /* width: auto lets negative margins expand the element past width:100% */
+    width: auto;
     margin-top: 1.5rem;
-    margin-left: calc(-1 * max(var(--content-inline), env(safe-area-inset-left, 0px)));
-    margin-right: calc(-1 * max(var(--content-inline), env(safe-area-inset-right, 0px)));
+    /* Bleed = page inline padding + .item-detail__body inline padding (0.15rem each side) */
+    margin-left: calc(-1 * (max(var(--content-inline), env(safe-area-inset-left, 0px)) + 0.15rem));
+    margin-right: calc(-1 * (max(var(--content-inline), env(safe-area-inset-right, 0px)) + 0.15rem));
     padding-top: 0.7rem;
     padding-left: max(var(--content-inline), env(safe-area-inset-left, 0px));
     padding-right: max(var(--content-inline), env(safe-area-inset-right, 0px));
@@ -19247,6 +19250,17 @@ a.item-detail__breadcrumb-current {
   .item-detail__root--page .item-detail__outfits-cta {
     height: 48px;
     min-height: 48px;
+  }
+}
+
+/* At ≤720px, item-page-main uses --space-page-inline (not --content-inline),
+   so the bleed must match to reach the viewport edges symmetrically. */
+@media (max-width: 720px) {
+  .item-detail__root--page .item-detail__outfits-cta-wrap {
+    margin-left: calc(-1 * (max(var(--space-page-inline), env(safe-area-inset-left, 0px)) + 0.15rem));
+    margin-right: calc(-1 * (max(var(--space-page-inline), env(safe-area-inset-right, 0px)) + 0.15rem));
+    padding-left: max(var(--space-page-inline), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--space-page-inline), env(safe-area-inset-right, 0px));
   }
 }
 
