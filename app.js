@@ -9022,15 +9022,10 @@
    */
   function normalizeItemMediaUrlsForCloudPersistence(item) {
     if (!item || typeof item !== "object" || !isSupabaseReady()) return item;
-    const id = String(item.id ?? "").trim();
-    const ref = { id };
     const toPublic = (url) => {
       const raw = String(url ?? "").trim();
       if (!raw) return "";
-      if (/^https?:\/\//i.test(raw.split("?")[0])) return raw.split("?")[0];
-      const path = wardrobeStoragePathFromMediaUrl(raw);
-      if (!path) return raw;
-      return supabasePublicObjectUrlForWardrobePath(path, ref).split("?")[0] || raw;
+      return raw.split("?")[0];
     };
     const image = toPublic(item.image);
     const gallery = itemGalleryList(item).map(toPublic).filter(Boolean);
@@ -9044,25 +9039,6 @@
     return String(globalThis.APP_CONFIG?.SUPABASE_URL ?? globalThis.__TW_SUPABASE_URL__ ?? "")
       .trim()
       .replace(/\/$/, "");
-  }
-
-  /**
-   * Public object URL for a wardrobe storage path (used to resize local `/images/wardrobe/…` via Supabase render).
-   * @param {string} storagePath
-   * @param {object} [item]
-   */
-  function supabasePublicObjectUrlForWardrobePath(storagePath, item) {
-    const base = getSupabaseProjectOrigin();
-    const path = String(storagePath ?? "").trim().replace(/^\/+/, "");
-    if (!base || !path) return "";
-    const encoded = path
-      .split("/")
-      .map((seg) => encodeURIComponent(seg))
-      .join("/");
-    return withWardrobeImageCacheBust(
-      `${base}/storage/v1/object/public/${WARDROBE_IMAGE_BUCKET}/${encoded}`,
-      item
-    );
   }
 
   /**
@@ -9100,11 +9076,6 @@
         return `${WARDROBE_R2_BASE}/${r2Path}`;
       }
       return split;
-    }
-    const objPath = wardrobeImageObjectPath(raw);
-    if (objPath) {
-      const cloud = supabasePublicObjectUrlForWardrobePath(objPath, item);
-      if (cloud) return cloud;
     }
     return withWardrobeImageCacheBust(raw, item);
   }
