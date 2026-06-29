@@ -3649,12 +3649,12 @@
         left.append(mkTitle("Recently Added"), addedList);
       }
 
-      // Recently Updated Notes — sorted by updatedAt when available, else purchaseDate
+      // Recently Updated Notes — sorted by notesUpdatedAt, then updatedAt, then purchaseDate
       const recentNotes = ownedItems
         .filter((it) => String(it?.notes ?? "").trim())
         .sort((a, b) => {
-          const at = a?.updatedAt ?? a?.purchaseDate ?? "";
-          const bt = b?.updatedAt ?? b?.purchaseDate ?? "";
+          const at = a?.notesUpdatedAt ?? a?.updatedAt ?? a?.purchaseDate ?? "";
+          const bt = b?.notesUpdatedAt ?? b?.updatedAt ?? b?.purchaseDate ?? "";
           return bt.localeCompare(at);
         })
         .slice(0, 8);
@@ -3692,7 +3692,8 @@
           const note = String(it?.notes ?? "").trim();
           preview.textContent = note.length > 90 ? note.slice(0, 90) + "…" : note;
 
-          const ts = it?.updatedAt ? formatRelativeTime(it.updatedAt) : "";
+          const tsRaw = it?.notesUpdatedAt ?? it?.updatedAt ?? "";
+          const ts = tsRaw ? formatRelativeTime(tsRaw) : "";
           if (ts) {
             const tsEl = document.createElement("span");
             tsEl.className = "account-overview__activity-ts";
@@ -3704,7 +3705,7 @@
           entry.append(thumb, info);
           notesList.appendChild(entry);
         }
-        const hasTimestamps = recentNotes.some((it) => it?.updatedAt);
+        const hasTimestamps = recentNotes.some((it) => it?.notesUpdatedAt ?? it?.updatedAt);
         right.append(mkTitle(hasTimestamps ? "Recently Updated Notes" : "Recent Notes"), notesList);
       }
 
@@ -4851,8 +4852,8 @@
       });
       return filtered.sort((a, b) => {
         if (_accountNotesSort === "updated") {
-          const au = a?.updatedAt ?? a?.purchaseDate ?? "";
-          const bu = b?.updatedAt ?? b?.purchaseDate ?? "";
+          const au = a?.notesUpdatedAt ?? a?.updatedAt ?? a?.purchaseDate ?? "";
+          const bu = b?.notesUpdatedAt ?? b?.updatedAt ?? b?.purchaseDate ?? "";
           if (au !== bu) return bu.localeCompare(au); // desc
         }
         if (_accountNotesSort === "longest") {
@@ -4893,10 +4894,11 @@
         if (newVal === oldVal) return;
         onStatus("saving", "Saving…");
         try {
-          const patch = { ...it, notes: newVal };
+          const patch = { ...it, notes: newVal, notesUpdatedAt: new Date().toISOString() };
           const saved = await saveWardrobeItemToCloud(patch);
           upsertWardrobeBaseRowInMemory(saved);
           it.notes = newVal;
+          it.notesUpdatedAt = saved.notesUpdatedAt ?? patch.notesUpdatedAt;
           mergeWardrobeFromSources();
           onStatus("saved", "Saved");
           // reflect updated word count in list row
@@ -5029,10 +5031,11 @@
       brandEl.className = "account-notes-v2-brand";
       brandEl.textContent = String(it?.brand ?? "").trim();
       info.append(nameRow, brandEl);
-      if (it?.updatedAt) {
+      const noteTs = it?.notesUpdatedAt ?? it?.updatedAt ?? "";
+      if (noteTs) {
         const tsEl = document.createElement("div");
         tsEl.className = "account-notes-list-row__ts";
-        tsEl.textContent = formatRelativeTime(it.updatedAt);
+        tsEl.textContent = formatRelativeTime(noteTs);
         info.appendChild(tsEl);
       }
 
@@ -8103,6 +8106,7 @@
       image: String(row.image ?? "").trim(),
       gallery: normalizeGalleryFromDb(row.gallery),
       notes: String(row.notes ?? ""),
+      notesUpdatedAt: row.notes_updated_at ? new Date(row.notes_updated_at).toISOString() : null,
       metadata: row.metadata ?? null,
       createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
       updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
@@ -8207,6 +8211,7 @@
     "image",
     "gallery",
     "notes",
+    "notes_updated_at",
     "metadata",
     "showcase_order",
     "showcase_at",
@@ -8231,6 +8236,7 @@
     "image",
     "gallery",
     "notes",
+    "notes_updated_at",
     "metadata",
     "showcase_order",
     "showcase_at",
@@ -8357,6 +8363,7 @@
       image: String(item.image ?? "").trim(),
       gallery: Array.isArray(item.gallery) ? item.gallery : [],
       notes: String(item.notes ?? ""),
+      notes_updated_at: item.notesUpdatedAt ?? item.notes_updated_at ?? null,
       metadata: metadataOut,
       showcase_order: typeof item.showcaseOrder === "number" ? item.showcaseOrder : null,
       showcase_at: item.showcaseAt ?? null,
