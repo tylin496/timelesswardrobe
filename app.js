@@ -8750,7 +8750,7 @@
   }
 
   /**
-   * Upload a repo-local `/images/wardrobe/…` file to Supabase Storage (frozen catalogue save).
+   * Upload a repo-local `/images/wardrobe/…` file to R2 (frozen catalogue save).
    * @param {string} itemId
    * @param {string} url
    * @param {{ type: "main_cover" } | { type: "main_gallery", index: number }} slot
@@ -8776,7 +8776,7 @@
   }
 
   /**
-   * Before frozen catalogue cloud save: push any remaining local paths to Storage.
+   * Before frozen catalogue cloud save: push any remaining local paths to R2.
    * @param {string} itemId
    * @param {string} image
    * @param {string[]} gallery
@@ -8828,7 +8828,7 @@
     return Boolean(s) && /^\/images\/wardrobe\//i.test(s) && primaryCoverUrlBelongsToItem(item, s);
   }
 
-  /** Bust browser/CDN cache for Supabase Storage wardrobe images (same path after upsert). */
+  /** Bust browser/CDN cache for wardrobe images (same R2 path after upsert). */
   function wardrobeImageCacheBustToken(item) {
     if (!item || typeof item !== "object") return "";
     const o = /** @type {any} */ (item);
@@ -8916,7 +8916,7 @@
     return next;
   }
 
-  /** Ensure Supabase Storage URLs get a `cb` token when loading edit / detail views. */
+  /** Ensure wardrobe media URLs get a `cb` cache-bust token when loading edit / detail views. */
   function ensureItemMediaCacheBust(item) {
     if (!item || typeof item !== "object") return item;
     const o = /** @type {any} */ (item);
@@ -9054,15 +9054,13 @@
     if (isR2WardrobeImageUrl(raw)) return raw;
     const existing = storagePathFromWardrobeImageUrl(raw);
     if (existing) {
-      // Supabase URL whose object path matches a file we ship locally — redirect to
-      // the static CDN (saves Storage egress). Also follows `.png` → `.webp` swaps.
+      // Supabase Storage URL (legacy) — redirect to local file if available, else strip query.
       const localHit = lookupFrozenLocalWardrobePath(`/images/wardrobe/${existing}`);
       if (localHit) return localHit;
       return withWardrobeImageCacheBust(raw.split("?")[0], item);
     }
-    // Local /images/wardrobe/... ships in the Vercel deploy — serve from the static
-    // CDN (free egress) rather than rewriting to Supabase Storage. Upload filenames
-    // carry their own timestamp suffix, so no cache-bust query is needed.
+    // Local /images/wardrobe/... — serve from the static CDN or convert to R2 URL.
+    // Upload filenames carry their own timestamp suffix, so no cache-bust query is needed.
     if (/^\/?images\/wardrobe\//i.test(raw)) {
       const split = raw.split("?")[0];
       // Catalogue rows that still reference `.png`/`.jpg` should now serve `.webp`
@@ -9107,9 +9105,8 @@
   }
 
   /**
-   * Request a resized wardrobe image via Supabase Storage image rendering (no-op for non-bucket URLs).
+   * Request a resized wardrobe image — R2 CDN resize for R2 URLs, local thumb redirect for local paths.
    * Uses imgproxy-style `zoom` when provided (>1) for a tighter centre crop before fitting `width`×`height`.
-   * @see https://supabase.com/docs/guides/storage/serving/image-transformations
    * @param {string} url
    * @param {number} width
    * @param {number} height
