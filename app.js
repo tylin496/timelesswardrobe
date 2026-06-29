@@ -3431,10 +3431,10 @@
     const statsGrid = document.createElement("div");
     statsGrid.className = "account-overview__stats";
     const statsData = [
-      { n: allItems.length,   label: "Pieces", sub: futureCount ? `${ownedItems.length} owned · ${futureCount} wishlist` : null },
+      { n: allItems.length,   label: "Pieces", sub: futureCount ? `${ownedItems.length} owned · ${futureCount} future` : null },
       { n: showcaseCount,     label: "In Showcase", sub: `${showcasePct}%` },
       { n: notesCount,        label: "With Notes",  sub: `${notesPct}%`    },
-      { n: futureCount,       label: "Wishlist"                          },
+      { n: futureCount,       label: "Future pieces"                     },
       ...(totalValueFmt ? [{ n: totalValueFmt, label: "Acquisition Cost", raw: true }] : []),
     ];
     const desktopCols = statsData.length; /* all cells in one row at desktop */
@@ -3903,7 +3903,7 @@
     const catSel    = makeSelect("Category", allCategories, _accountCollectionCategory);
     const seasonSel = makeSelect("Season",   allSeasons,    _accountCollectionSeason);
     const statusSel = makeSelect("Status", [], _accountCollectionStatus);
-    for (const [v, lbl] of [["showcase","Showcase"],["wishlist","Wishlist"],["has-notes","Has Notes"],["no-notes","Missing Notes"],["no-price","Missing Price"],["no-date","Missing Date"],["no-fabric","Missing Material"],["no-measure","Missing Measurements"]]) {
+    for (const [v, lbl] of [["showcase","Showcase"],["wishlist","Future pieces"],["has-notes","Has Notes"],["no-notes","Missing Notes"],["no-price","Missing Price"],["no-date","Missing Date"],["no-fabric","Missing Material"],["no-measure","Missing Measurements"]]) {
       const opt = document.createElement("option");
       opt.value = v; opt.textContent = lbl;
       statusSel.appendChild(opt);
@@ -25329,7 +25329,7 @@
       futureIn.checked = Boolean(item.is_future);
       const futureTxt = document.createElement("span");
       futureTxt.className = "field__label";
-      futureTxt.textContent = "Future piece — not yet owned (wishlist)";
+      futureTxt.textContent = "Future piece";
       ownershipToggle.append(futureIn, futureTxt);
       ownershipLab.appendChild(ownershipToggle);
       identityGrid.appendChild(ownershipLab);
