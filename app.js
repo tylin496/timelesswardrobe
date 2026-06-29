@@ -9109,26 +9109,12 @@
     return withWardrobeImageCacheBust(raw, item);
   }
 
-  /** Original Storage object URL (no imgproxy width/height) — for crop / download source. */
+  /** Full-resolution URL for crop / download source. R2 URLs are already final. */
   function wardrobeImageFullResolutionUrl(url, item) {
     const raw = String(url ?? "").trim();
     if (!raw) return "";
-    const path = storagePathFromWardrobeImageUrl(raw);
-    if (!path) return withWardrobeImageCacheBust(raw.split("?")[0], item);
-    try {
-      const u = new URL(raw);
-      const bucket = WARDROBE_IMAGE_BUCKET;
-      const encodedPath = path
-        .split("/")
-        .map((seg) => encodeURIComponent(seg))
-        .join("/");
-      u.pathname = `/storage/v1/object/public/${bucket}/${encodedPath}`;
-      u.search = "";
-      u.hash = "";
-      return withWardrobeImageCacheBust(u.href, item);
-    } catch {
-      return withWardrobeImageCacheBust(raw.split("?")[0], item);
-    }
+    if (isR2WardrobeImageUrl(raw)) return raw.split("?")[0];
+    return withWardrobeImageCacheBust(raw.split("?")[0], item);
   }
 
   /**
@@ -9247,36 +9233,25 @@
     const path = wardrobeStoragePathFromMediaUrl(url);
     if (!path) return false;
 
-    // R2-hosted images live in Cloudflare R2, not Supabase Storage — route the
-    // delete to the upload worker's authenticated DELETE handler.
-    if (isR2WardrobeImageUrl(url)) {
-      try {
-        const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
-        const session = refreshed?.data?.session ?? (supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null);
-        const token = session?.access_token || "";
-        if (!token) throw new Error("Not authenticated.");
-        const res = await fetch(R2_UPLOAD_WORKER_URL, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ path }),
-        });
-        if (!res.ok) {
-          const msg = await res.text().catch(() => String(res.status));
-          throw new Error(`R2 delete failed: ${msg}`);
-        }
-        return true;
-      } catch (err) {
-        console.warn("Could not delete wardrobe image from R2.", err);
-        return false;
+    try {
+      const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
+      const session = refreshed?.data?.session ?? (supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null);
+      const token = session?.access_token || "";
+      if (!token) throw new Error("Not authenticated.");
+      const res = await fetch(R2_UPLOAD_WORKER_URL, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => String(res.status));
+        throw new Error(`R2 delete failed: ${msg}`);
       }
-    }
-
-    const { error } = await supabaseClient.storage.from(WARDROBE_IMAGE_BUCKET).remove([path]);
-    if (error) {
-      console.warn("Could not delete wardrobe image from Supabase Storage.", error);
+      return true;
+    } catch (err) {
+      console.warn("Could not delete wardrobe image from R2.", err);
       return false;
     }
-    return true;
   }
 
   function wardrobeImageUrlStillReferencedByOtherItems(url, excludeItemId) {
