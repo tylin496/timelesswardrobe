@@ -13908,11 +13908,13 @@
     const t = normalizeSearch(token);
     if (!t || t.length < 4 || !/^[a-z0-9]+$/.test(t)) return false;
 
+    // Allow 2 edits only for longer words — short words (≤5 chars) with 2 edits are too different.
+    const maxSameLen = t.length >= 6 ? 2 : 1;
     const words = hay.split(/[^a-z0-9]+/);
     for (const w of words) {
       if (!w) continue;
       if (w.length === t.length) {
-        if (stringsWithinEditDistance(t, w, 2)) return true;
+        if (stringsWithinEditDistance(t, w, maxSameLen)) return true;
       } else if (Math.abs(w.length - t.length) === 1) {
         if (stringsWithinEditDistance(t, w, 1)) return true;
       }
@@ -14171,6 +14173,15 @@
         const titleWords = haystackWordTokens(bundle.nameNorm);
         if (tok.length >= 4 && titleWords.some((w) => w.startsWith(tok))) {
           score += 380;
+          matched = true;
+          allTokensInTitle = false;
+        } else if (tok.length >= 4 && searchTokenFuzzyMatchesHaystackNorm(bundle.nameNorm, tok)) {
+          // Typo in item name — score above min threshold so single-token fuzzy queries surface.
+          score += 300;
+          matched = true;
+          allTokensInTitle = false;
+        } else if (tok.length >= 4 && searchTokenFuzzyMatchesHaystackNorm(bundle.brandNorm, tok)) {
+          score += 200;
           matched = true;
           allTokensInTitle = false;
         } else if (searchTokenMatchesHaystackNorm(bundle.hayFull, tok)) {
