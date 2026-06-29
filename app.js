@@ -7890,13 +7890,13 @@
 
 
   // ── Showcase / Archive ──────────────────────────────────────────────────────
-  // Source of truth: metadata.showcase_rank on each wardrobe_items row.
-  // Absent / null = Archive. Integer ≥ 0 = Showcase position (always dense: 0, 1, 2, …).
+  // Source of truth: wardrobe_items.showcase_order (DB column; migration 20260622).
+  // Absent / null = Archive. Integer ≥ 0 = Showcase position (sparse: 0, 10, 20, …).
 
-  /** Returns 0-based Showcase position, or -1 if item is not in Showcase. */
+  /** Returns showcase_order value, or -1 if item is not in Showcase. */
   function showcaseRank(item) {
-    // Prefer dedicated column (showcase_order); fall back to metadata for seed/legacy items.
     if (typeof item?.showcaseOrder === "number" && item.showcaseOrder >= 0) return item.showcaseOrder;
+    // Legacy fallback: pre-migration rows may still carry metadata.showcase_rank.
     const r = item?.metadata?.showcase_rank;
     return typeof r === "number" && Number.isInteger(r) && r >= 0 ? r : -1;
   }
@@ -7920,8 +7920,8 @@
   }
 
   /**
-   * Assign dense ranks 0, 1, 2, … to orderedItems and persist changed items.
-   * Also clears showcase_rank for any Showcase item not present in orderedItems.
+   * Assign sparse ranks 0, 10, 20, … to orderedItems and persist changed items.
+   * Clears showcase_order for any Showcase item not present in orderedItems.
    * @param {object[]} orderedItems  — full desired Showcase order
    * @returns {Promise<void>}
    */
@@ -7932,18 +7932,15 @@
     const nowIso = new Date().toISOString();
     orderedItems.forEach((item, i) => {
       const sparseOrder = i * 10;
-      const rankUnchanged = item.showcaseOrder === sparseOrder || (item.showcaseOrder == null && item?.metadata?.showcase_rank === i);
-      if (rankUnchanged && item.showcaseAt) return;
+      if (item.showcaseOrder === sparseOrder && item.showcaseAt) return;
       if (!item.showcaseAt) item.showcaseAt = nowIso;
       item.showcaseOrder = sparseOrder;
-      item.metadata = { ...(item.metadata ?? {}), showcase_rank: i };
       saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
     });
 
     for (const item of itemById.values()) {
       if (isInShowcase(item) && !orderedIds.has(String(item.id))) {
         item.showcaseOrder = null;
-        item.metadata = { ...(item.metadata ?? {}), showcase_rank: null };
         saves.push(saveWardrobeItemToCloud(item).then((saved) => upsertWardrobeBaseRowInMemory(saved)));
       }
     }
