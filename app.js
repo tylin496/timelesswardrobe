@@ -6461,8 +6461,17 @@
     for (const x of raw) {
       if (!x || typeof x !== "object") continue;
       const label = String(/** @type {any} */ (x).label ?? /** @type {any} */ (x).name ?? "").trim();
-      const value = String(/** @type {any} */ (x).value ?? /** @type {any} */ (x).cm ?? "").trim();
-      const unit = String(/** @type {any} */ (x).unit ?? "").trim().toLowerCase();
+      let value = String(/** @type {any} */ (x).value ?? /** @type {any} */ (x).cm ?? "").trim();
+      let unit = String(/** @type {any} */ (x).unit ?? "").trim().toLowerCase();
+      // Strip embedded unit suffix from value (e.g. "5.55 mm" → value="5.55", unit="mm").
+      // Applies whether or not a unit field is already present — avoids double-display in the editor.
+      for (const u of MEASUREMENT_UNITS) {
+        if (value.toLowerCase().endsWith(" " + u)) {
+          value = value.slice(0, -(u.length + 1)).trimEnd();
+          if (!unit) unit = u;
+          break;
+        }
+      }
       if (label || value) out.push({ label, value, ...(unit ? { unit } : {}) });
     }
     return out;
