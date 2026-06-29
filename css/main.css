@@ -703,6 +703,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: clip;
+  overscroll-behavior-x: none;
   font-family: var(--font-sans);
   font-optical-sizing: auto;
   font-size: 0.9375rem;
