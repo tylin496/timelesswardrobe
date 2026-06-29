@@ -19,31 +19,11 @@ internal UI state last.
 
 ## Critical — core business logic on data fields
 
-### 1. `isFuturePiece()` — wishlist/ownership detection via text scan
+### 1. ~~`isFuturePiece()` — wishlist/ownership detection via text scan~~ ✅ RESOLVED
 
-**File:** `app.js:8283`
-
-```js
-text.includes("future piece") ||
-text.includes("future pieces") ||
-ownership.includes("future") ||
-ownership.includes("wishlist")
-```
-
-**Why it exists:** No `ownership_status` enum was enforced at ingestion; items
-entered with free-text values like `"future piece"`, `"wishlist"`, `"future"`.
-The function scans a normalised blob built from brand + name + category + section
-plus the raw `ownership_status` / `ownershipStatus` / `status` field.
-
-**Business logic?** Yes. Return value gates every owned-item count, the brand
-tab count, collection filter, notes tab filter, "no-notes" / "no-price" /
-"no-date" / "no-fabric" / "no-measure" filters, and the related-items pool.
-A false-negative silently inflates owned counts and exposes wishlist items in
-public-facing views.
-
-**Replacement:** Add `ownership_status` as an explicit enum column
-(`"owned" | "future" | "sold"`) enforced at write time. `isFuturePiece()` becomes
-a one-liner `item.ownership_status === "future"`.
+**Resolved Jun 2026.** Text scan removed. `deriveItemIsFuture` (app.js:10138)
+now reads `metadata.ownership_status === "future"` only. No substring scanning.
+See [[project-ownership-status-migration]].
 
 ---
 
@@ -131,44 +111,26 @@ editorial quality.
 
 ## High — affects ranking or visible counts
 
-### 5. `normalizeSeason()` — season enum derivation from free-form strings
+### 5. `normalizeSeason()` — season enum derivation from free-form strings ✅ TRAP FIXED
 
-**File:** `app.js:10239`
+**File:** `app.js:9870`
 
-```js
-if (v.includes("spring") || v.includes("summer")) return "SS";
-if (v.includes("autumn") || v.includes("winter")) return "AW";
-if (v.includes("all")) return "ALL";
-```
+`"Fall".includes("all")` trap fixed Jun 2026: replaced `v.includes("all")` with
+`v === "all" || v.startsWith("all-") || v.startsWith("all ")`. Actual seed values
+are only `"A/W"` / `"All-season"` / `"S/S"` so the trap never fired in prod, but
+it's now closed.
 
-**Why it exists:** Season field entered as free text (`"Spring/Summer 2018"`,
-`"S/S"`, `"ss"`, etc.). Function normalises to canonical `"SS"` / `"AW"` / `"ALL"`.
-
-**Business logic?** Yes — drives season nav filter and display. The `"all"` branch
-is an accidental substring trap: a season value like `"Fall"` returns `"ALL"`.
-
-**Replacement:** Enforce a `season_code` enum (`"SS" | "AW" | "ALL"`) at write
-time. Keep `normalizeSeason()` only in the import/migration path, not as a runtime
-lookup.
+**Still present:** function still uses substring matching for spring/summer/autumn/winter.
+Not a real risk given current data, but could be eliminated by enforcing a
+`season_code` enum (`"SS" | "AW" | "ALL"`) at write time (migration-gated).
 
 ---
 
-### 6. `startsWith("future")` — brand list filter
+### 6. ~~`startsWith("future")` — brand list filter~~ ✅ RESOLVED
 
-**File:** `app.js:3646`
-
-```js
-.filter((b) => !b.name.toLowerCase().startsWith("future"))
-```
-
-**Why it exists:** Wishlist items that carry a synthetic brand starting with
-`"future"` leak into the brand index. Filter hides them.
-
-**Business logic?** Yes — a real brand whose name starts with "future" would be
-silently hidden from the brand tab.
-
-**Replacement:** Replace with `isFuturePiece()` check on the source items before
-building the brand index, not a name-prefix test.
+**Resolved Jun 2026.** Filter removed. Brand index is now built from items
+pre-filtered by `item.is_future === false` (using the structured ownership field),
+not a brand-name prefix check.
 
 ---
 
@@ -351,13 +313,13 @@ of risk as items 1–8 above.
 
 ## Summary — action priorities
 
-| Priority | Items | Action |
-|---|---|---|
-| 1 | `isFuturePiece` (#1) | Add `ownership_status` enum at write time |
-| 2 | `itemSlot` (#2) + `recordCategoryForDrill` (#3) | Add `slot` + `record_category` fields; make runtime lookups trivial |
-| 3 | `normalizeSeason` (#5) | Enforce `season_code` enum at import; demote to migration-only |
-| 4 | `startsWith("future")` brand filter (#6) | Replace with item-level ownership check |
-| 5 | `startsWith("custom-")` (#7) | Add `source` field; remove ID-prefix coupling |
-| 6 | Search bonuses (#8) | Move to record-category weight table |
-| 7 | `editorialHeroVisualScore` (#4) | Add `hero_eligible` flag or use structured slot/category |
-| 8 | UI state strings (#9–11) | Extract to constants objects (low urgency) |
+| Priority | Items | Status | Action |
+|---|---|---|---|
+| 1 | `isFuturePiece` (#1) | ✅ DONE Jun 2026 | `deriveItemIsFuture` reads `ownership_status` |
+| 2 | `startsWith("future")` (#6) | ✅ DONE Jun 2026 | Brand index pre-filtered by `is_future` |
+| 3 | `normalizeSeason` `"all"` trap (#5) | ✅ DONE Jun 2026 | Replaced `includes("all")` with explicit prefix checks |
+| 4 | `itemSlot` (#2) + `recordCategoryForDrill` (#3) | ⏳ Migration needed | Add `slot` + `record_category` fields to DB + seed |
+| 5 | `editorialHeroVisualScore` (#4) | ⏳ Blocked on #4 | Use structured `slot`/`record_category` once available |
+| 6 | `startsWith("custom-")` (#7) | ⚠️ Safe for now | Add `source` field to remove ID-prefix coupling |
+| 7 | Search bonuses (#8) | ⚠️ Acceptable | Move to record-category weight table |
+| 8 | UI state strings (#9–11) | Low urgency | Extract to constants objects |

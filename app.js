@@ -9872,7 +9872,7 @@
     const v = String(value).toLowerCase().trim();
     if (v === "ss" || v === "s/s" || v.includes("spring") || v.includes("summer")) return "SS";
     if (v === "aw" || v === "a/w" || v.includes("autumn") || v.includes("winter")) return "AW";
-    if (v.includes("all")) return "ALL";
+    if (v === "all" || v.startsWith("all-") || v.startsWith("all ")) return "ALL";
     return null;
   }
 
