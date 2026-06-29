@@ -9909,9 +9909,6 @@
   /** In-memory collection state; persisted to Supabase when configured (else localStorage). */
   /** @type {Set<string>} */
   let collectionHiddenState = new Set();
-  /** @type {Record<string, unknown>} */
-  let wardrobeAppMetadataState = {};
-  let wardrobeAppStateSupportsMetadata = true;
 
   function readCollectionHiddenIdsFromLocalStorageRaw() {
     try {
@@ -9925,12 +9922,8 @@
     }
   }
 
-  function installCollectionStateFromPayload(hiddenIds, metadata = wardrobeAppMetadataState) {
+  function installCollectionStateFromPayload(hiddenIds) {
     collectionHiddenState = new Set(Array.isArray(hiddenIds) ? hiddenIds.map((x) => String(x)) : []);
-    wardrobeAppMetadataState =
-      metadata && typeof metadata === "object" && !Array.isArray(metadata)
-        ? { .../** @type {Record<string, unknown>} */ (metadata) }
-        : {};
   }
 
   function applySeasonNavFromLocalStorage() {
@@ -9961,21 +9954,15 @@
       code === "400" ||
       code === "PGRST200" ||
       /bad request/i.test(msg) ||
-      (/collection_overrides|collection_hidden_ids/.test(msg) && /column/.test(msg))
+      (/collection_hidden_ids/.test(msg) && /column/.test(msg))
     );
   }
 
   /** @param {Record<string, unknown> | null | undefined} data */
   function parseWardrobeAppStateRow(data) {
-    if (!data || typeof data !== "object") return { hidden: [], metadata: {} };
-    const hiddenRaw = Array.isArray(data.collection_hidden_ids)
-      ? data.collection_hidden_ids
-      : [];
-    const metadata =
-      data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
-        ? { .../** @type {Record<string, unknown>} */ (data.metadata) }
-        : {};
-    return { hidden: hiddenRaw.map((x) => String(x)), metadata };
+    if (!data || typeof data !== "object") return { hidden: [] };
+    const hiddenRaw = Array.isArray(data.collection_hidden_ids) ? data.collection_hidden_ids : [];
+    return { hidden: hiddenRaw.map((x) => String(x)) };
   }
 
   async function fetchWardrobeAppStateFromCloud() {
@@ -9989,7 +9976,7 @@
 
     const legacyRes = await supabaseClient
       .from("wardrobe_app_state")
-      .select("collection_overrides, collection_hidden_ids")
+      .select("collection_hidden_ids")
       .eq("id", "default")
       .maybeSingle();
     if (!legacyRes.error) return legacyRes;
@@ -10000,21 +9987,9 @@
     if (!isSupabaseReady()) return;
     const updated_at = new Date().toISOString();
     const hidden = [...collectionHiddenState];
-    const metadata = wardrobeAppMetadataState;
+    const row = { id: "default", collection_hidden_ids: hidden, updated_at };
 
-    const buildRow = (includeMetadata = wardrobeAppStateSupportsMetadata) => {
-      const row = { id: "default", collection_overrides: {}, collection_hidden_ids: hidden, updated_at };
-      if (includeMetadata) row.metadata = metadata;
-      return row;
-    };
-
-    let row = buildRow();
-    let { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
-    if (error && wardrobeAppStateColumnMissingError(error) && /metadata/i.test(String(error.message ?? ""))) {
-      wardrobeAppStateSupportsMetadata = false;
-      row = buildRow(false);
-      ({ error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" }));
-    }
+    const { error } = await supabaseClient.from("wardrobe_app_state").upsert(row, { onConflict: "id" });
     if (error) throw error;
 
     // Verify persistence to catch silent RLS no-op writes.
@@ -10025,13 +10000,6 @@
     const gotHidden = [...parsed.hidden].map((x) => String(x)).sort();
     if (expectHidden.join("|") !== gotHidden.join("|")) {
       throw new Error("Cloud app-state write did not persist collection hidden ids.");
-    }
-    if (wardrobeAppStateSupportsMetadata) {
-      const expectMetadata = JSON.stringify(metadata ?? {});
-      const gotMetadata = JSON.stringify(parsed.metadata ?? {});
-      if (expectMetadata !== gotMetadata) {
-        throw new Error("Cloud app-state write did not persist metadata.");
-      }
     }
   }
 
@@ -10069,7 +10037,7 @@
       migrated = true;
     }
 
-    installCollectionStateFromPayload(hidden, parsed.metadata);
+    installCollectionStateFromPayload(hidden);
     applySeasonNavFromLocalStorage();
 
     if (migrated) {
