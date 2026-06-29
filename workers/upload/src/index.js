@@ -1,7 +1,7 @@
 /**
  * Timeless Wardrobe — R2 Image Upload Worker
  *
- * Accepts authenticated POST /upload requests and stores the image in R2.
+ * Accepts authenticated requests and stores/moves/removes images in R2.
  * Auth: Supabase JWT passed as Authorization: Bearer <token>.
  *
  * Env bindings (set in wrangler.toml / CF dashboard):
@@ -10,6 +10,11 @@
  *   SUPABASE_URL     — e.g. https://xxxx.supabase.co
  *   SUPABASE_ANON_KEY
  *   ALLOWED_ORIGIN   — e.g. https://timelesswardrobe.uk (or * for dev)
+ *
+ * Methods:
+ *   POST   — upload a file (multipart/form-data: file + path)
+ *   DELETE — remove an object (JSON: { path })
+ *   PATCH  — copy/rename an object (JSON: { source, dest }) — R2 has no rename; copies then deletes source
  */
 
 export default {
@@ -18,7 +23,7 @@ export default {
     const allowed = env.ALLOWED_ORIGIN || "*";
     const corsHeaders = {
       "Access-Control-Allow-Origin": allowed === "*" ? "*" : origin,
-      "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, DELETE, PATCH, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
 
@@ -26,7 +31,7 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    if (request.method !== "POST" && request.method !== "DELETE") {
+    if (request.method !== "POST" && request.method !== "DELETE" && request.method !== "PATCH") {
       return new Response("Method not allowed", { status: 405, headers: corsHeaders });
     }
 
@@ -75,7 +80,40 @@ export default {
       });
     }
 
-    // Parse form data
+    // PATCH — copy an R2 object to a new key (rename; R2 has no native rename)
+    if (request.method === "PATCH") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return new Response("Invalid JSON", { status: 400, headers: corsHeaders });
+      }
+      const { source, dest } = body ?? {};
+      if (typeof source !== "string" || !source.trim() || typeof dest !== "string" || !dest.trim()) {
+        return new Response("Missing source or dest", { status: 400, headers: corsHeaders });
+      }
+      const safeSrc = source.replace(/^\/+/, "").replace(/\.\./g, "");
+      const safeDest = dest.replace(/^\/+/, "").replace(/\.\./g, "");
+      if (safeSrc === safeDest) {
+        return new Response(JSON.stringify({ skipped: true }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const obj = await env.WARDROBE_IMAGES.get(safeSrc);
+      if (!obj) {
+        return new Response("Source not found", { status: 404, headers: corsHeaders });
+      }
+      const bytes = await obj.arrayBuffer();
+      await env.WARDROBE_IMAGES.put(safeDest, bytes, { httpMetadata: obj.httpMetadata });
+      await env.WARDROBE_IMAGES.delete(safeSrc);
+      return new Response(JSON.stringify({ moved: { from: safeSrc, to: safeDest } }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // POST — upload a file
     let formData;
     try {
       formData = await request.formData();

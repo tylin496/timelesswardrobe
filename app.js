@@ -8137,6 +8137,11 @@
 
   const WARDROBE_R2_BASE = "https://img.timelesswardrobe.uk/wardrobe";
 
+  /** Canonical CDN URL for a main image at position n (1 = cover, 2,3,… = gallery). */
+  function canonicalWardrobeMainImageUrl(itemId, n) {
+    return `${WARDROBE_R2_BASE}/${safeStorageSegment(itemId)}/main/${n}.webp`;
+  }
+
   function isSupabaseReady() {
     return Boolean(supabaseClient?.from && supabaseClient?.storage?.from);
   }
@@ -8505,30 +8510,30 @@
    * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string } | { type: "variant_gallery", key: string, index: number }} slot
    * @returns {string} object path (no bucket prefix)
    */
-  function wardrobeImageStorageObjectPath(itemId, file, slot) {
-    const root = safeStorageSegment(itemId);
-    const ext = fileExtensionFromFile(file);
-    const unique =
-      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`.replace(/[^a-z0-9-]/gi, "") ||
-      String(Date.now());
+  function wardrobeImageStorageObjectPath(itemId, _file, slot) {
+    const root = `wardrobe/${safeStorageSegment(itemId)}`;
     if (!slot || slot.type === "main_cover") {
-      return `${root}/main/${unique}-cover-edit.${ext}`;
+      return `${root}/main/1.webp`;
     }
     if (slot.type === "main_gallery") {
-      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return `${root}/main/gallery/${unique}-gallery-${String(n).padStart(2, "0")}.${ext}`;
+      // slot.index is 1-based gallery index; canonical n = index + 1 (cover occupies n=1)
+      const n = Math.max(2, Math.floor(Number(slot.index) || 1) + 1);
+      return `${root}/main/${n}.webp`;
     }
-    if (slot.type === "variant_cover" || slot.type === "variant_preview") {
+    if (slot.type === "variant_cover") {
       const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
-      const role = slot.type === "variant_preview" ? "preview" : "cover";
-      return `${root}/variants/${vk}/${unique}-${role}-edit.${ext}`;
+      return `${root}/variants/${vk}/1.webp`;
+    }
+    if (slot.type === "variant_preview") {
+      const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
+      return `${root}/variants/${vk}/0.webp`;
     }
     if (slot.type === "variant_gallery") {
       const vk = safeStorageSegment(String(slot.key ?? "").trim(), "variant");
-      const n = Math.min(99, Math.max(1, Math.floor(Number(slot.index) || 1)));
-      return `${root}/variants/${vk}/gallery/${unique}-gallery-${String(n).padStart(2, "0")}.${ext}`;
+      const n = Math.max(2, Math.floor(Number(slot.index) || 1) + 1);
+      return `${root}/variants/${vk}/${n}.webp`;
     }
-    return `${root}/main/${unique}-cover-edit.${ext}`;
+    return `${root}/main/1.webp`;
   }
 
   /**
@@ -19528,6 +19533,62 @@
   }
 
   /**
+   * Resequence R2 objects so each ends up at its canonical wardrobe/{id}/main/{n}.webp path.
+   * Uses a cycle-detection algorithm so swap reorders don't clobber source files.
+   * @param {{ src: string, dest: string, planIdx: number }[]} moves
+   * @param {(t: string, err?: boolean) => void} [setMsg]
+   */
+  async function executeR2Resequence(moves, setMsg) {
+    if (!moves.length) return;
+    const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
+    const session =
+      refreshed?.data?.session ??
+      (supabaseClient?.auth ? (await supabaseClient.auth.getSession())?.data?.session : null);
+    const token = session?.access_token || "";
+    if (!token) return;
+
+    const r2Move = async (src, dest) => {
+      const srcPath = storagePathFromWardrobeImageUrl(src);
+      const destPath = storagePathFromWardrobeImageUrl(dest);
+      if (!srcPath || !destPath || srcPath === destPath) return;
+      const res = await fetch(R2_UPLOAD_WORKER_URL, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ source: srcPath, dest: destPath }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => String(res.status));
+        throw new Error(`R2 move failed: ${msg}`);
+      }
+    };
+
+    const remaining = moves.map((m) => ({ src: m.src, dest: m.dest }));
+    let tempCounter = 0;
+
+    while (remaining.length) {
+      // Find a move whose dest is not a source of any other remaining move (safe to execute without clobbering)
+      const safeIdx = remaining.findIndex((m) => !remaining.some((o) => o.src === m.dest));
+      if (safeIdx >= 0) {
+        const m = remaining[safeIdx];
+        setMsg?.("Resequencing photo…", false);
+        await r2Move(m.src, m.dest);
+        remaining.splice(safeIdx, 1);
+      } else {
+        // Cycle detected — move the first item's source to a temp path to break it
+        const m = remaining[0];
+        const srcPath = storagePathFromWardrobeImageUrl(m.src);
+        const tempPath = srcPath.replace(/\/[^/]+$/, `/reseq-temp-${++tempCounter}.webp`);
+        const tempUrl = `https://img.timelesswardrobe.uk/${tempPath}`;
+        setMsg?.("Resequencing photo…", false);
+        await r2Move(m.src, tempUrl);
+        for (const o of remaining) {
+          if (o.src === m.src) o.src = tempUrl;
+        }
+      }
+    }
+  }
+
+  /**
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
    * @param {(t: string, err?: boolean) => void} setMsg
@@ -19622,6 +19683,34 @@
       if (i === 0) image = url;
       else gallery.push(url);
     }
+
+    // Resequence existing R2 objects that are not at their canonical main/{n}.webp positions.
+    // Only applies to main slots (not variants) and only when the user is authenticated.
+    if (!variantKey && isSupabaseReady()) {
+      const allUrls = [image, ...gallery];
+      const moves = [];
+      for (let i = 0; i < allUrls.length; i++) {
+        const currentUrl = allUrls[i].split("?")[0];
+        if (!isR2WardrobeImageUrl(currentUrl)) continue;
+        const canonicalUrl = canonicalWardrobeMainImageUrl(itemId, i + 1);
+        if (currentUrl !== canonicalUrl) {
+          moves.push({ src: currentUrl, dest: canonicalUrl, planIdx: i });
+        }
+      }
+      if (moves.length) {
+        try {
+          await executeR2Resequence(moves, setMsg);
+          // Update image/gallery to reflect canonical URLs now that files have moved
+          for (const m of moves) {
+            if (m.planIdx === 0) image = m.dest;
+            else gallery[m.planIdx - 1] = m.dest;
+          }
+        } catch (err) {
+          console.warn("R2 resequence failed, keeping original URLs:", err);
+        }
+      }
+    }
+
     return { image, gallery: dedupeGalleryUrls(image, gallery, 12) };
   }
 
