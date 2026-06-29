@@ -25034,6 +25034,126 @@ body.account-collection-drawer-open .account-page-main {
   margin-inline: auto;
 }
 
+@media (min-width: 1024px) {
+  .account-showcase-layout {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-rows: auto auto 1fr;
+    gap: 0 2.5rem;
+    align-items: start;
+  }
+  .account-showcase-summary { grid-column: 1; }
+  .account-showcase-hint    { grid-column: 1; }
+  .account-playlist         { grid-column: 1; }
+  .account-playlist-add     { grid-column: 1; }
+  .account-showcase-preview { grid-column: 2; grid-row: 1 / -1; }
+}
+
+/* ── Showcase preview panel ─────────────────────────────────────────────────── */
+
+.account-showcase-preview {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .account-showcase-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 5rem;
+  }
+
+  .account-showcase-preview__img-wrap {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: var(--media-cutout-canvas, #e6e7e9);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .account-showcase-preview__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .account-showcase-preview__empty {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  .account-showcase-preview__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .account-showcase-preview__name {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .account-showcase-preview__brand {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .account-showcase-preview__category {
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    opacity: 0.6;
+  }
+
+  .account-showcase-preview__notes {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    white-space: pre-line;
+    border-top: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+    padding-top: 0.75rem;
+  }
+
+  .account-showcase-preview__link {
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+    padding-bottom: 1px;
+    align-self: flex-start;
+    transition: color 0.12s, border-color 0.12s;
+  }
+
+  .account-showcase-preview__link:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+}
+
+.account-playlist-row.is-selected {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
 .account-showcase-summary {
   display: flex;
   flex-direction: column;

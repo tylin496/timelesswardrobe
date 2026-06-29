@@ -4586,7 +4586,112 @@
       });
     }
 
-    renderPlaylist();
+    // ── Preview panel (desktop only) ────────────────────────────────────────
+    const preview = document.createElement("div");
+    preview.className = "account-showcase-preview";
+
+    const emptyState = document.createElement("div");
+    emptyState.className = "account-showcase-preview__empty";
+    emptyState.textContent = "Select a piece to preview";
+    preview.appendChild(emptyState);
+
+    let _previewItemId = null;
+
+    function selectPreviewItem(it) {
+      if (!it) return;
+      _previewItemId = String(it.id ?? "");
+      // mark selected row
+      wrapper.querySelectorAll(".account-playlist-row").forEach((r) => {
+        r.classList.toggle("is-selected", r.dataset.itemId === _previewItemId);
+      });
+
+      preview.replaceChildren();
+
+      const imgWrap = document.createElement("div");
+      imgWrap.className = "account-showcase-preview__img-wrap";
+      const img = document.createElement("img");
+      img.className = "account-showcase-preview__img";
+      const _cutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
+        || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
+      const _fallback = withSupabaseWardrobeImageRenderSize(it?.image, 600, 800, { item: it }) || String(it?.image ?? "");
+      img.src = _cutout || _fallback;
+      if (_cutout) img.onerror = () => { img.onerror = null; img.src = _fallback; };
+      img.alt = String(it?.name ?? "");
+      img.loading = "lazy";
+      img.decoding = "async";
+      imgWrap.appendChild(img);
+      preview.appendChild(imgWrap);
+
+      const meta = document.createElement("div");
+      meta.className = "account-showcase-preview__meta";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "account-showcase-preview__name";
+      nameEl.textContent = String(it?.name ?? it?.id ?? "");
+      meta.appendChild(nameEl);
+
+      const brandStr = String(it?.brand ?? "").trim();
+      if (brandStr) {
+        const brandEl = document.createElement("span");
+        brandEl.className = "account-showcase-preview__brand";
+        brandEl.textContent = brandStr;
+        meta.appendChild(brandEl);
+      }
+
+      const categoryStr = String(it?.category ?? "").trim();
+      if (categoryStr) {
+        const catEl = document.createElement("span");
+        catEl.className = "account-showcase-preview__category";
+        catEl.textContent = categoryStr;
+        meta.appendChild(catEl);
+      }
+
+      preview.appendChild(meta);
+
+      const notesStr = String(it?.notes ?? "").trim();
+      if (notesStr) {
+        const notesEl = document.createElement("p");
+        notesEl.className = "account-showcase-preview__notes";
+        notesEl.textContent = notesStr;
+        preview.appendChild(notesEl);
+      }
+
+      const slug = String(it?.slug ?? it?.id ?? "");
+      if (slug) {
+        const link = document.createElement("a");
+        link.className = "account-showcase-preview__link";
+        link.href = `/item/${slug}`;
+        link.textContent = "View piece →";
+        preview.appendChild(link);
+      }
+    }
+
+    wrapper.appendChild(preview);
+
+    const _origRenderPlaylist = renderPlaylist;
+    function renderPlaylistWithPreview() {
+      _origRenderPlaylist();
+      // wire click on each row
+      wrapper.querySelectorAll(".account-playlist-row").forEach((row) => {
+        row.style.cursor = "pointer";
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".account-playlist-remove")) return;
+          const itemId = row.dataset.itemId;
+          const it = getShowcaseItems().find((x) => String(x.id) === itemId);
+          if (it) selectPreviewItem(it);
+        });
+        // restore selected state after re-render
+        if (row.dataset.itemId === _previewItemId) row.classList.add("is-selected");
+      });
+      // auto-select first if nothing selected
+      if (!_previewItemId) {
+        const first = getShowcaseItems()[0];
+        if (first) selectPreviewItem(first);
+      }
+    }
+
+    renderPlaylist = renderPlaylistWithPreview;
+    renderPlaylistWithPreview();
     el.appendChild(wrapper);
 
     function openShowcasePicker() {
