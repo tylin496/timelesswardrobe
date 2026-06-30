@@ -21442,6 +21442,50 @@
   }
 
   /**
+   * Shared viewport observer driving lazy collection-card gallery construction.
+   * One observer per grid render: build a card's carousel on approach, release it
+   * when far. Recreated each structural render so discarded cards stop being
+   * observed (a persistent observer would pin every detached card in memory).
+   */
+  let collectionCardGalleryIO = null;
+  const collectionCardGalleryHandlers = new WeakMap();
+
+  /** Drop the current observer + handlers — called before each structural grid rebuild. */
+  function resetCollectionCardGalleryObserver() {
+    collectionCardGalleryIO?.disconnect();
+    collectionCardGalleryIO = null;
+  }
+
+  /**
+   * @param {HTMLElement} media
+   * @param {() => void} onEnter build (or rebuild) the gallery
+   * @param {() => void} onLeave tear it down to free image-decode memory
+   */
+  function observeCollectionCardGallery(media, onEnter, onLeave) {
+    if (typeof IntersectionObserver !== "function") {
+      // No observer support — fall back to the legacy eager build.
+      onEnter();
+      return;
+    }
+    collectionCardGalleryHandlers.set(media, { onEnter, onLeave });
+    if (!collectionCardGalleryIO) {
+      collectionCardGalleryIO = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const handlers = collectionCardGalleryHandlers.get(entry.target);
+            if (!handlers) continue;
+            if (entry.isIntersecting) handlers.onEnter();
+            else handlers.onLeave();
+          }
+        },
+        // ~one screen of lead so carousels are ready before they scroll into view.
+        { root: null, rootMargin: "600px 0px", threshold: 0 }
+      );
+    }
+    collectionCardGalleryIO.observe(media);
+  }
+
+  /**
    * Chevron prev/next on collection PLP cards (cover + gallery frames).
    * @param {HTMLElement} media
    * @param {HTMLImageElement} img
@@ -21494,6 +21538,27 @@
       media.dataset.galleryFrameIndex = String(settled);
     }
 
+    // Build the (potentially heavy) carousel / desktop stage lazily: only while
+    // the card is near the viewport, tearing it down once it scrolls far away.
+    // renderGrid paints every card up front, so an eager build meant all ~82
+    // cards' multi-frame carousels existed simultaneously — each frame decodes to
+    // a full bitmap (px·px·4 bytes, independent of the compressed download), which
+    // blew the iOS WebKit image-decode ceiling and killed the tab. Gating on an
+    // IntersectionObserver bounds live carousels to roughly the visible set.
+    let galleryBuilt = false;
+    const ensureGalleryBuilt = () => {
+      galleryBuilt = true;
+      syncNav();
+    };
+    const releaseGallery = () => {
+      if (!galleryBuilt) return;
+      galleryBuilt = false;
+      // Frame index is preserved on media.dataset, so a later rebuild restores
+      // whatever frame the user had swiped to.
+      teardownMobileGalleryCarousel(media, img);
+      teardownDesktopGalleryStage(media, img);
+    };
+
     media.addEventListener("tw-collection-cover-change", (e) => {
       const forceCover = Boolean(
         e instanceof CustomEvent && /** @type {{ resetToCover?: boolean }} */ (e.detail)?.resetToCover
@@ -21512,11 +21577,13 @@
         }
       }
       media.dataset.galleryFrameIndex = "0";
-      syncNav();
+      // Off-screen cards have no carousel yet; the reset index is picked up when
+      // the observer rebuilds them on approach.
+      if (galleryBuilt) syncNav();
     });
 
     media.dataset.galleryFrameIndex = "0";
-    syncNav();
+    observeCollectionCardGallery(media, ensureGalleryBuilt, releaseGallery);
   }
 
   /**
@@ -22477,6 +22544,9 @@
     } else {
       lastGridStructuralKey = structuralKey;
       lastGridOutfitKey = outfitKey;
+      // Discard the previous render's gallery observer so its (now-detached) cards
+      // stop being held; the new cards register against a fresh observer.
+      resetCollectionCardGalleryObserver();
       const renderToken = ++gridRenderChunkToken;
       const FIRST_PAINT_COUNT = sorted.length;
       const CHUNK_SIZE = 16;
