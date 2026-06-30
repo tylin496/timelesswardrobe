@@ -14694,8 +14694,11 @@ body.item-page:has(.item-detail__root--edit) {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--ink) 28%, transparent) transparent;
+  scrollbar-width: none;
+}
+
+.item-detail__gallery-thumbs::-webkit-scrollbar {
+  display: none;
 }
 
 .item-detail__gallery-thumbs[hidden] {
