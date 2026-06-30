@@ -21399,8 +21399,14 @@
           ? "card__media-img card__media-img--cover"
           : "card__gallery-carousel-img card__gallery-frame-img";
         simg.alt = i === 0 ? alt : "";
-        // Clones are always adjacent to the visible frame — must load eagerly.
-        const eager = isClone || i <= eagerThrough;
+        // Clones sit adjacent to the visible frame, so for an actively-loaded
+        // carousel they must be eager. But the collection PLP builds a carousel
+        // for *every* card up front — eager clones there would fire ~2 full-image
+        // decodes per card (≈160 on an 82-card grid) and crash the iOS renderer.
+        // Gate eager clones behind eagerThroughIndex: only the opted-in card
+        // (the first swipe gallery card) loads them eagerly; all others stay
+        // lazy and load when scrolled near. Off-screen cards can't be swiped.
+        const eager = (isClone && eagerThrough >= 0) || i <= eagerThrough;
         simg.loading = eager ? "eager" : "lazy";
         if (eager) simg.fetchPriority = "high";
         simg.decoding = "async";
