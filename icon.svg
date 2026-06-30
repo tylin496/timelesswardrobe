@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0.00 0.00 1773.00 1773.00">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-184 -184 2141 2141">
 <style>
   path { fill: #163229; }
-  @media (prefers-color-scheme: dark) {
-    path { fill: #f7f4ed; }
-  }
 </style>
+<rect x="-184" y="-184" width="2141" height="2141" fill="#f7f4ed"/>
 <path d="
   M 1730.07 1028.05
   C 1703.84 1182.72 1635.13 1327.39 1530.93 1444.45
