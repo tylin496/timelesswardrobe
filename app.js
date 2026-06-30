@@ -26246,7 +26246,11 @@
         a.className = "item-detail__related-card";
         const img = document.createElement("img");
         img.className = "item-detail__related-img";
-        img.src = withSupabaseWardrobeImageRenderSize(peer.image, 1001, 1251, { item: peer }) || peer.image || "";
+        // Keep the request width ≤ WARDROBE_THUMB_MAX_REQUEST_WIDTH (1000): above it
+        // the resolver returns the full-resolution original. These cards render at
+        // ~250px, so the old 1001 silently shipped 1200×1600 originals (~7.7 MB decode
+        // each, up to 12 cards) — pure iOS decode-memory waste. 800w still resizes.
+        img.src = withSupabaseWardrobeImageRenderSize(peer.image, 800, 1000, { item: peer }) || peer.image || "";
         img.alt = displayNameWithoutLeadingColour(peer);
         img.loading = "lazy";
         img.decoding = "async";
