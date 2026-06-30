@@ -30296,7 +30296,7 @@
         // Pick up user-editable text columns saved to Supabase (e.g. brand, notes, season).
         // Skip placeholder fallbacks inserted by normalizeCloudItemRow for absent values.
         const cloudEditable = {};
-        const CATALOGUE_EDITABLE = ["brand", "name", "season", "colour", "colourCode", "fabric", "weight", "size", "measuredDimensions", "purchaseDate", "notes", "notesUpdatedAt", "is_future"];
+        const CATALOGUE_EDITABLE = ["brand", "name", "season", "colour", "colourCode", "fabric", "weight", "size", "measuredDimensions", "purchaseDate", "notes", "notesUpdatedAt"];
         for (const f of CATALOGUE_EDITABLE) {
           const v = hit[f];
           if (v == null) continue;
