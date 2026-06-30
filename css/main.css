@@ -14294,18 +14294,20 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
   object-fit: contain;
   object-position: top center;
   display: block;
-  /* Sharper scaling on hover devices only — mobile skips to avoid GPU layer exhaustion. */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   /* First click should open the card, not start an image drag (Safari / Chrome). */
   -webkit-user-drag: none;
   user-select: none;
 }
 
+/* Layer-promotion for sharper composited scaling — hover devices ONLY.
+   On iOS (all browsers are WebKit) BOTH translateZ(0) AND backface-visibility:hidden
+   promote a layer; ~82 cards would exhaust the GPU memory budget and crash. */
 @media (hover: hover) {
   .card__media-img.card__media-img--cover,
   .card__media-img:not(.card__gallery-frame-img) {
     transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 }
 
