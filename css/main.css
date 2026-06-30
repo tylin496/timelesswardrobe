@@ -14644,6 +14644,16 @@ body.item-page .site-header {
   }
 }
 
+/* ≥1280px: 右欄釘死 28rem（消除 42fr 超出 body max-width 的死角），
+   同時 max-width:64rem 把整塊 root 置中，讓圖文分界線落在畫面中央。
+   64rem = 1024px：root.left ≈ 440px, gallery ≈ 520px, boundary ≈ 960px (1920px 螢幕). */
+@media (min-width: 1280px) {
+  .item-detail__root--page {
+    grid-template-columns: minmax(0, 1fr) 28rem;
+    max-width: 64rem;
+  }
+}
+
 body.item-page:has(.item-detail__root--edit) {
   background-color: var(--bg);
 }
@@ -18975,14 +18985,18 @@ a.item-detail__breadcrumb-current {
 /* Desktop: align the related band with the visible content block (not the full
    grid). Left edge → the main gallery image, skipping the thumbnail strip
    (gallery col 1 = `6rem` thumbs + gallery gap). Right edge → the body/CTA
-   column: the root grid is `58fr 42fr` with `column-gap`, and the body caps at
-   `28rem`, so the dead space right of the CTA is `col2 − 28rem`.
-   NOTE: coupled to those layout values — update if the gallery thumb width
-   (6rem), body max-width (28rem), grid split (58/42), or the gaps change. */
+   column: at 901–1279px the grid is `58fr 42fr` and the body caps at `28rem`,
+   so dead space = col2 − 28rem; at ≥1280px the right column is pinned to 28rem,
+   so dead space = 0. */
 @media (min-width: 901px) {
   .item-detail__related-inner {
     padding-left: calc(6rem + clamp(0.5rem, 1.2vw, 0.85rem));
     padding-right: max(0px, calc((100% - clamp(2rem, 3.25vw, 3.5rem)) * 0.42 - 28rem));
+  }
+}
+@media (min-width: 1280px) {
+  .item-detail__related-inner {
+    padding-right: 0;
   }
 }
 
