@@ -22565,24 +22565,34 @@
         }, 1000);
       }
 
+      // Eager-load the first screenful (≈3 rows on mobile) so above-the-fold
+      // covers fetch immediately at high priority instead of trickling in via
+      // lazy-load. Carousels are now IntersectionObserver-gated, so these are the
+      // only initial decodes — a handful of ~37 KB resized covers, safely eager.
+      const FIRST_SCREEN_COUNT = 6;
       const firstFrag = document.createDocumentFragment();
       for (let i = 0; i < firstCount; i++) {
         firstFrag.appendChild(
           createCard(sorted[i], {
-            fetchPriority: i < 2 ? "high" : "auto",
-            eager: i < 2,
+            fetchPriority: i < 4 ? "high" : "auto",
+            eager: i < FIRST_SCREEN_COUNT,
             skipEnterAnimation: true,
           })
         );
       }
       els.grid.replaceChildren(firstFrag);
 
-      // Stagger-reveal first 6 cards: hold images behind skeleton bg until all
-      // are ready (or 3s), then fade in one by one with index-based delay.
+      // Hold the first screenful behind the skeleton until those covers are ready
+      // (or a short safety timeout), then reveal together. Gate ONLY on the eager
+      // first-screen cards: earlier this waited on 12 cards, but cards past the
+      // fold are lazy and never load proactively, so Promise.all never resolved
+      // early and the reveal always ate the full 3 s timeout — a blank-then-pop
+      // that read as "images are slow". Matching the wait-set to the eager set
+      // lets the reveal fire as soon as the visible covers decode (~300 ms).
       (function staggerFirstCards() {
         const STAGGER_STEP = 0;
-        const TIMEOUT = 3000;
-        const cards = [...els.grid.querySelectorAll(".card")].slice(0, 12);
+        const TIMEOUT = 1800;
+        const cards = [...els.grid.querySelectorAll(".card")].slice(0, FIRST_SCREEN_COUNT);
         if (!cards.length) return;
         cards.forEach((c) => c.classList.add("is-cover-pending"));
         const imgs = cards.map((c) => c.querySelector(".card__media-img"));
