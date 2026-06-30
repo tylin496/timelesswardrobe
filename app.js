@@ -30289,12 +30289,26 @@
       const hit = byId.get(id);
       if (!hit) return { ...row };
       if (isLocalCatalogueItemId(row.id)) {
-        // Merge cloud metadata. If the user uploaded a replacement cover via the Edit
-        // form the cloud image will be an R2 URL — a genuinely different path from the
-        // seed's local path — so honour it instead of reverting to the seed.
+        // Merge cloud metadata and user-editable top-level fields. If the user uploaded a
+        // replacement cover via the Edit form the cloud image will be an R2 URL — a genuinely
+        // different path from the seed's local path — so honour it instead of reverting to the seed.
         const cloudMeta = hit?.metadata && typeof hit.metadata === "object" ? hit.metadata : null;
+        // Pick up user-editable text columns saved to Supabase (e.g. brand, notes, season).
+        // Skip placeholder fallbacks inserted by normalizeCloudItemRow for absent values.
+        const cloudEditable = {};
+        const CATALOGUE_EDITABLE = ["brand", "name", "season", "colour", "colourCode", "fabric", "weight", "size", "measuredDimensions", "purchaseDate", "notes", "notesUpdatedAt", "is_future"];
+        for (const f of CATALOGUE_EDITABLE) {
+          const v = hit[f];
+          if (v == null) continue;
+          if (typeof v === "string") {
+            const trimmed = v.trim();
+            if (!trimmed || trimmed === "[No brand]" || trimmed === "[Untitled]") continue;
+          }
+          cloudEditable[f] = v;
+        }
         const base = {
           ...row,
+          ...cloudEditable,
           ...(cloudMeta ? { metadata: { ...(row.metadata ?? {}), ...cloudMeta } } : {}),
         };
         const cloudImageBase = String(hit.image ?? "").split("?")[0];
