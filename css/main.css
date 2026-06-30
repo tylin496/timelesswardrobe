@@ -13157,8 +13157,13 @@ body.collection-page:not(.tw-page-loader-revealed) #category-drill-grid {
 
 #grid .card {
   /* Pre-promote to compositing layer so hover transitions on child elements
-     don't trigger a subpixel re-snap of the card's pixel position. */
-  transform: translateZ(0);
+     don't trigger a subpixel re-snap of the card's pixel position.
+     Scoped to hover devices: 163 cards × translateZ(0) exhausts iOS GPU memory. */
+}
+@media (hover: hover) {
+  #grid .card {
+    transform: translateZ(0);
+  }
 }
 
 .grid-empty {
@@ -14289,13 +14294,19 @@ html.tw-preview-mobile #grid .card__hover-bar--solo {
   object-fit: contain;
   object-position: top center;
   display: block;
-  /* Sharper scaling when the card is composited (WebKit + cover + rounded parents). */
-  transform: translateZ(0);
+  /* Sharper scaling on hover devices only — mobile skips to avoid GPU layer exhaustion. */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   /* First click should open the card, not start an image drag (Safari / Chrome). */
   -webkit-user-drag: none;
   user-select: none;
+}
+
+@media (hover: hover) {
+  .card__media-img.card__media-img--cover,
+  .card__media-img:not(.card__gallery-frame-img) {
+    transform: translateZ(0);
+  }
 }
 
 @supports (image-rendering: high-quality) {
