@@ -47,6 +47,7 @@ const rootFiles = [
   "icon-512.png",
   "site.webmanifest",
   "icon.svg",
+  "icon-mark.svg",
   "logo.svg",
   "monogram.png",
   "loading-logo.png",
