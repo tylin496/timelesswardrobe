@@ -701,6 +701,8 @@ html {
 
 body {
   @apply m-0;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: clip;
@@ -1033,7 +1035,9 @@ body {
   transition: color var(--tw-header-overlay-duration, 400ms) var(--tw-header-overlay-ease, var(--ease-luxe));
 }
 
-/* Monogram: mask + header token so mark tracks wordmark (overlay / solid / dark). */
+/* Monogram: mask + header token so mark tracks wordmark (overlay / solid / dark).
+   Uses icon-mark.svg (transparent bg, path only) — NOT icon.svg, which bakes in an
+   opaque cream background rect for favicons/PWA icons and would mask as a solid block. */
 .site-title__mark {
   display: block;
   width: var(--site-title-mark-size);
@@ -1044,11 +1048,11 @@ body {
   padding: 0;
   background-color: var(--tw-header-monogram, var(--tw-brand-monogram-green));
   background-image: none;
-  mask-image: url(./icon.svg);
+  mask-image: url(./icon-mark.svg);
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
-  -webkit-mask-image: url(./icon.svg);
+  -webkit-mask-image: url(./icon-mark.svg);
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -19535,6 +19539,7 @@ a.item-detail__breadcrumb-current {
   flex-direction: column;
   align-items: center;
   gap: 0.62rem;
+  margin-top: auto;
   border-top: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
   padding: 1.5rem var(--space-page-inline) max(1.75rem, calc(0.85rem + env(safe-area-inset-bottom, 0px)));
   max-width: var(--content-max);
