@@ -21377,12 +21377,6 @@ body.home-page .home-hero__hero-inner {
   padding-right: var(--home-hero-hero-copy-x, clamp(2rem, 7vw, 7rem));
 }
 
-body.home-page .home-hero__season-grid {
-  max-width: none;
-  padding-left: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--catalogue-plp-inline-x, clamp(2rem, 4vw, 5rem)), env(safe-area-inset-right, 0px));
-}
-
 body.home-page .home-hero__division-rail {
   --home-hero-browse-to-highlights-gap: clamp(0.75rem, 2.3vw, 1.35rem);
   padding-top: clamp(1.25rem, 2vw, 2rem);
@@ -22828,195 +22822,6 @@ body.home-page #home-hero-highlights.home-hero__horizontal-rail-scroller .home-h
   }
 }
 
-body.home-page #main.home-hero .home-hero__band--season {
-  background-color: var(--tw-brand-page);
-  background-image: none;
-  padding-top: clamp(1.25rem, 2.5vw, 2rem);
-  padding-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
-}
-
-.home-hero__band--season {
-  padding-top: clamp(1.5rem, 3.5vw, 2.5rem);
-  padding-bottom: clamp(2rem, 4.5vw, 3.25rem);
-}
-
-@media (max-width: 767px) {
-  body.home-page #main.home-hero .home-hero__band--season {
-    background-color: var(--tw-brand-page);
-    background-image: none;
-  }
-}
-
-.home-hero__season-grid {
-  @apply mx-auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--home-hero-season-duo-gutter, clamp(10px, 0.85vw, 12px));
-  width: 100%;
-  max-width: 1320px;
-  padding: 0 clamp(1.25rem, 5vw, 3rem);
-  box-sizing: border-box;
-}
-
-.home-hero__season-tile {
-  position: relative;
-  display: block;
-  aspect-ratio: var(--home-hero-season-duo-aspect, 4 / 5);
-  min-height: 0;
-  overflow: hidden;
-  text-decoration: none;
-  color: #ffffff;
-  background:
-    radial-gradient(ellipse 72% 58% at 50% 36%, #5c4432 0%, transparent 58%),
-    linear-gradient(168deg, #3f3024 0%, #2c2119 38%, #1a1410 72%, #120e0b 100%);
-  box-shadow:
-    0 0 0 1px rgba(42, 30, 22, 0.35),
-    0 18px 48px var(--ed-paper-shadow, rgba(38, 32, 24, 0.12));
-}
-
-.home-hero__season-tile:focus-visible {
-}
-
-.home-hero__season-media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-/* Museum spotlight — separates dark garments from the warm ground */
-.home-hero__season-media::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 58% 62% at 50% 40%,
-    rgba(232, 198, 152, 0.2) 0%,
-    rgba(168, 124, 82, 0.09) 32%,
-    rgba(58, 40, 28, 0.04) 52%,
-    transparent 72%
-  );
-  mix-blend-mode: soft-light;
-}
-
-/* Seasonal still-life — overlapping cutout pieces (2–4 per card) */
-.home-hero__season-still {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: var(--media-cutout-canvas);
-  background-image: var(--collection-grid-media-bg);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.home-hero__season-still-inner {
-  position: relative;
-  width: min(86%, 28rem);
-  height: min(82%, 34rem);
-  flex-shrink: 0;
-}
-
-.home-hero__season-piece {
-  position: absolute;
-  left: var(--piece-x, 50%);
-  top: var(--piece-y, 44%);
-  width: var(--piece-w, 44%);
-  z-index: var(--piece-z, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translate(-50%, -50%) rotate(var(--piece-rot, 0deg)) scale(var(--piece-scale, 1));
-  transform-origin: center center;
-  pointer-events: none;
-}
-
-.home-hero__season-piece-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: min(92%, 18rem);
-  object-fit: contain;
-  object-position: center center;
-  filter: brightness(0.96) contrast(0.96);
-  opacity: 0;
-  transition:
-    opacity 0.35s ease,
-    filter 0.55s var(--ease-luxe);
-}
-
-.home-hero__season-piece-img.is-loaded {
-  opacity: 1;
-}
-
-.home-hero__season-tile:hover .home-hero__season-piece-img,
-.home-hero__season-tile:focus-visible .home-hero__season-piece-img {
-  filter: brightness(0.98) contrast(0.98);
-}
-
-.home-hero__season-media--missing {
-  background:
-    radial-gradient(ellipse 65% 55% at 50% 38%, #6b5040 0%, transparent 60%),
-    linear-gradient(155deg, #453528 0%, #2a2018 55%, #16120f 100%);
-}
-
-.home-hero__season-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      to top,
-      rgba(18, 11, 8, 0.82) 0%,
-      rgba(22, 14, 10, 0.28) 42%,
-      rgba(28, 18, 12, 0.12) 58%,
-      rgba(20, 12, 8, 0.38) 100%
-    ),
-    radial-gradient(ellipse 95% 85% at 50% 48%, transparent 0%, rgba(10, 6, 4, 0.22) 100%);
-}
-
-.home-hero__season-copy {
-  position: absolute;
-  left: var(--home-hero-season-duo-copy-x, 9%);
-  right: auto;
-  bottom: var(--home-hero-season-duo-copy-b, 11%);
-  z-index: 3;
-  width: min(22rem, 84%);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.home-hero__season-kicker {
-  margin: 0 0 0.5rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #ffffff;
-  opacity: 1;
-}
-
-.home-hero__season-title {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.65rem);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  color: #ffffff;
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .home-hero__hero-slide {
     transition-duration: 0.01ms;
@@ -23087,10 +22892,6 @@ body.home-page #main.home-hero .home-hero__band--season {
 
   #home-hero-highlights .home-hero__pcard-img {
     object-position: center 86%;
-  }
-
-  .home-hero__season-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -23274,13 +23075,6 @@ body.home-page #main.home-hero .home-hero__band--season {
     transform: translateY(0);
   }
 
-}
-
-
-@media (prefers-reduced-motion: reduce) {
-  .home-hero__season-piece {
-    transform: translate(-50%, -50%) rotate(var(--piece-rot, 0deg)) scale(var(--piece-scale, 1));
-  }
 }
 
 /* -------------------------------------------------------------------------- */

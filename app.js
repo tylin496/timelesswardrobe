@@ -12203,8 +12203,7 @@
       if (!link || !main.contains(link)) return;
       e.preventDefault();
 
-      const isSeasonalEntry =
-        link.dataset.edSeasonalEntry === "1" || link.classList.contains("home-hero__season-tile");
+      const isSeasonalEntry = link.dataset.edSeasonalEntry === "1";
       const seasonOnly = String(link.getAttribute("data-season-filter") ?? "").trim();
       if (isSeasonalEntry && (seasonOnly === "A/W" || seasonOnly === "S/S")) {
         if (!document.getElementById("grid")) {
@@ -31123,11 +31122,7 @@
       if (document.body.classList.contains("home-page")) {
         const devAsset = globalThis.TW_DEV_ASSET;
         if (devAsset?.isLocalDev) {
-          await devAsset.primeTokens([
-            "images/season-duo/summer.png",
-            "images/season-duo/winter.png",
-            ...HOME_HERO_IMAGES,
-          ]);
+          await devAsset.primeTokens([...HOME_HERO_IMAGES]);
           devAsset.refreshDomImages();
         }
         renderEditorialLandingPage();
