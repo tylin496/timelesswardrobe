@@ -22270,7 +22270,7 @@
 
     /* Collection hub + season-only PLP (e.g. S/S Collection) — HOME / (title carries "Collection"). */
     if (collectionHeadingUsesHomeCrumb(searchActive)) {
-      appendCrumb("HOME", { onClick: navigateToSiteHome });
+      appendCrumb("HOME", { isCurrent: true });
       appendSep();
       host.appendChild(nav);
       lastBreadcrumbLabels = nextLabels;
