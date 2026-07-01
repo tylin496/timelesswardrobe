@@ -21444,11 +21444,6 @@ body.home-page .home-hero__band-head {  @apply mb-[var(--home-hero-section-title
 .site-home-stage {
   position: relative;
   display: block;
-  /* RL FY25 homepage rhythm — narrow duo gutter, portrait tiles. */
-  --home-hero-season-duo-gutter: 0px;
-  --home-hero-season-duo-aspect: 4 / 5;
-  --home-hero-season-duo-copy-x: 9%;
-  --home-hero-season-duo-copy-b: 11%;
   --home-hero-hero-height: clamp(26rem, 72svh, 38.5rem);
 }
 
@@ -21472,15 +21467,6 @@ body.home-page .site-home-stage {
   .site-title__wordmark-line,
   .site-title__mark {
     transition-duration: 0.01ms;
-  }
-
-  .home-hero__season-duo-card:hover .home-hero__season-duo-img,
-  .home-hero__season-duo-card:focus-visible .home-hero__season-duo-img {
-    transform: none;
-  }
-
-  .home-hero__season-duo-img {
-    transition: none;
   }
 }
 
@@ -21996,120 +21982,6 @@ video.home-hero__hero-layer-video {
     font-size: 9.9px;
   }
 
-}
-
-/* Hero-adjacent S/S · A/W duo — full-bleed lifestyle stills (Ralph Lauren–style split). */
-.home-hero__season-duo {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  margin-top: 0;
-  padding-top: 0;
-  background-color: var(--tw-brand-page);
-  background-image: none;
-  box-sizing: border-box;
-}
-
-.home-hero__season-duo-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--home-hero-season-duo-gutter, 12px);
-  width: 100%;
-}
-
-.home-hero__season-duo-card {
-  position: relative;
-  display: block;
-  aspect-ratio: var(--home-hero-season-duo-aspect, 4 / 5);
-  min-height: 0;
-  overflow: hidden;
-  text-decoration: none;
-  color: #ffffff;
-  background: #2a2119;
-}
-
-.home-hero__season-duo-card:focus-visible {
-  z-index: 2;
-}
-
-.home-hero__season-duo-card:hover .home-hero__season-duo-img,
-.home-hero__season-duo-card:focus-visible .home-hero__season-duo-img {
-  transform: scale(1.02);
-}
-
-.home-hero__season-duo-media {
-  position: absolute;
-  inset: 0;
-}
-
-.home-hero__season-duo-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center center;
-  transform-origin: center center;
-  transition: transform 0.55s var(--ease-out);
-}
-
-.home-hero__season-duo-scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(18, 14, 10, 0.06) 0%,
-    rgba(18, 14, 10, 0) 42%,
-    rgba(18, 14, 10, 0.52) 100%
-  );
-}
-
-.home-hero__season-duo-copy {
-  position: absolute;
-  left: var(--home-hero-season-duo-copy-x, 9%);
-  right: auto;
-  bottom: var(--home-hero-season-duo-copy-b, 11%);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  width: min(26rem, 84%);
-  max-width: none;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.42);
-}
-
-.home-hero__season-duo-eyebrow {
-  margin: 0 0 0.5rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  line-height: 1.2;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.home-hero__season-duo-title {
-  margin: 0 0 0.875rem;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.35rem, 1.5rem + 3.2vw, 3.75rem);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  line-height: 0.95;
-  color: #ffffff;
-}
-
-.home-hero__season-duo-desc {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.2rem);
-  font-weight: 400;
-  font-style: normal;
-  letter-spacing: 0.01em;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 22rem;
 }
 
 /* Division rail — horizontal gallery picks (Ralph Lauren shop-by-category). */
@@ -23048,20 +22920,6 @@ body.home-page #main.home-hero .home-hero__band--season {
 }
 
 @media (max-width: 900px) {
-  .site-home-stage {
-    --home-hero-season-duo-copy-x: clamp(1rem, 8vw, 1.75rem);
-    --home-hero-season-duo-copy-b: clamp(1rem, 10vw, 2rem);
-  }
-
-  .home-hero__season-duo-title {
-    font-size: clamp(1.5rem, 1rem + 2.5vw, 2rem);
-  }
-
-  .home-hero__season-duo-desc {
-    font-size: 0.95rem;
-    max-width: 18rem;
-  }
-
   .home-hero__hero-layer[data-ed-hero-stack] {
     display: none;
   }
@@ -23094,7 +22952,6 @@ body.home-page #main.home-hero .home-hero__band--season {
   }
 }
 
-/* Mobile: side-by-side season duo, shorter banner, swipe + dots only */
 @media (max-width: 767px) {
   /* Collection Highlights: show 1.5 cards so the peek signals scrollability. */
   body.home-page #home-hero-highlights.home-hero__horizontal-rail-scroller .home-hero__pcard {
@@ -23118,35 +22975,7 @@ body.home-page #main.home-hero .home-hero__band--season {
   }
 
   .site-home-stage {
-    --home-hero-season-duo-gutter: 8px;
-    --home-hero-season-duo-aspect: 4 / 5;
     --home-hero-hero-height: clamp(22rem, 58vh, 30rem);
-    --home-hero-season-duo-copy-x: clamp(0.65rem, 4vw, 1rem);
-    --home-hero-season-duo-copy-b: clamp(0.75rem, 6vw, 1.25rem);
-  }
-
-  .home-hero__season-duo-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .home-hero__season-duo-title {
-    margin-bottom: 0;
-    font-size: clamp(1.2rem, 0.85rem + 2.4vw, 1.5rem);
-    letter-spacing: 0.03em;
-  }
-
-  .home-hero__season-duo-desc {
-    display: none;
-  }
-
-  .home-hero__season-duo-eyebrow {
-    margin-bottom: 0.35rem;
-    font-size: 9px;
-    letter-spacing: 0.14em;
-  }
-
-  .home-hero__season-duo-copy {
-    width: min(100%, 92%);
   }
 
   /* Mobile: centered copy — bottom pool + light top veil (no heavy side band). */
