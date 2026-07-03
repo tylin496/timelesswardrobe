@@ -2,12 +2,12 @@
 /**
  * Generate dist/item/[id].html for every wardrobe item.
  *
- * Static files take precedence over Vercel rewrites, so bots fetching
+ * Static files take precedence over the host's rewrites, so bots fetching
  * /item/[id] receive HTML with per-item OG meta tags. Browsers get the
  * same file — the SPA extracts the id from the URL path (parseItemPageRoute
  * already handles /item/[id] path-based lookup, no query string needed).
  *
- * Run after vercel-build.mjs (needs dist/item.html to exist).
+ * Run after build-static-dist.mjs (needs dist/item.html to exist).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -29,7 +29,7 @@ let items;
 // ── Load item.html template ───────────────────────────────────────────────────
 const templatePath = path.join(DIST, "item.html");
 if (!fs.existsSync(templatePath)) {
-  console.error("[item-og] dist/item.html not found — run vercel-build.mjs first");
+  console.error("[item-og] dist/item.html not found — run build-static-dist.mjs first");
   process.exit(1);
 }
 const template = fs.readFileSync(templatePath, "utf8");

@@ -1,7 +1,7 @@
 /**
  * POST /api/wardrobe/rename-gallery
- * Renames gallery image files in git via GitHub API so prod (Vercel) can reorder
- * images without local filesystem access.
+ * Cloudflare Pages Function. Renames gallery image files in git via GitHub API
+ * so prod can reorder images without local filesystem access.
  *
  * Body: { itemId: string, orderedPaths: string[] }
  *   orderedPaths — current gallery paths in desired order (leading "/" included)
@@ -9,32 +9,15 @@
  * Response: { ok: true, image: string, gallery: string[] }
  *   canonical paths after rename (1.webp, 2.webp, …)
  *
- * Requires env vars:
+ * Requires Pages environment variables:
  *   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
  *   GITHUB_TOKEN  — fine-grained PAT with Contents: write for this repo
  *   GITHUB_REPO   — "owner/repo" (default: tylin496/timeless-wardrobe)
  *   GITHUB_BRANCH — target branch (default: main)
  */
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 const GH = "https://api.github.com";
-
-// Load public Supabase config from the static JS file (already deployed alongside the function).
-// This avoids needing SUPABASE_URL / SUPABASE_ANON_KEY as Vercel env vars.
-function loadPublicConfig() {
-  try {
-    const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-    const src = readFileSync(resolve(root, "js/tw-supabase-config.js"), "utf8");
-    const url = src.match(/SUPABASE_URL:\s*"([^"]+)"/)?.[1] ?? "";
-    const anonKey = src.match(/SUPABASE_ANON_KEY:\s*"([^"]+)"/)?.[1] ?? "";
-    return { url, anonKey };
-  } catch {
-    return { url: "", anonKey: "" };
-  }
-}
 
 async function gh(token, path, { method = "GET", body } = {}) {
   const res = await fetch(`${GH}${path}`, {
@@ -81,58 +64,52 @@ function patchWardrobeJs(src, itemId, newImage, newGalleryPaths) {
   return src.slice(0, start) + block + src.slice(end);
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.status(405).end();
-    return;
-  }
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
-  // --- Auth ---
-  const authHeader = String(req.headers["authorization"] ?? "");
+export async function onRequestPost({ request, env }) {
+  const authHeader = request.headers.get("authorization") ?? "";
   const accessToken = authHeader.replace(/^Bearer\s+/i, "").trim();
-  if (!accessToken) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!accessToken) return json({ error: "Unauthorized" }, 401);
 
-  const { url: supabaseUrl, anonKey: supabaseAnonKey } = loadPublicConfig();
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const githubToken = process.env.GITHUB_TOKEN;
+  const supabaseUrl = env.SUPABASE_URL;
+  const supabaseAnonKey = env.SUPABASE_ANON_KEY;
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const githubToken = env.GITHUB_TOKEN;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    res.status(500).json({ error: "Supabase config not found" });
-    return;
-  }
-  if (!githubToken) {
-    res.status(500).json({ error: "GITHUB_TOKEN not configured" });
-    return;
-  }
+  if (!supabaseUrl || !supabaseAnonKey) return json({ error: "Supabase config not found" }, 500);
+  if (!githubToken) return json({ error: "GITHUB_TOKEN not configured" }, 500);
 
   const sbAuth = createClient(supabaseUrl, supabaseAnonKey);
   const { data: { user }, error: authErr } = await sbAuth.auth.getUser(accessToken);
-  if (authErr || !user) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
   // --- Input validation ---
-  const { itemId, orderedPaths } = req.body ?? {};
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    payload = {};
+  }
+  const { itemId, orderedPaths } = payload ?? {};
   if (!itemId || typeof itemId !== "string" || !Array.isArray(orderedPaths) || orderedPaths.length === 0) {
-    res.status(400).json({ error: "Expected { itemId: string, orderedPaths: string[] }" });
-    return;
+    return json({ error: "Expected { itemId: string, orderedPaths: string[] }" }, 400);
   }
 
   const pathRe = /^\/images\/wardrobe\/[a-z0-9-]+\/main\/\d+\.\w+$/;
   for (const p of orderedPaths) {
     if (!pathRe.test(p) || !p.includes(`/images/wardrobe/${itemId}/`)) {
-      res.status(400).json({ error: `Invalid path: ${p}` });
-      return;
+      return json({ error: `Invalid path: ${p}` }, 400);
     }
   }
 
   // --- GitHub ---
-  const [owner, repo] = (process.env.GITHUB_REPO ?? "tylin496/timeless-wardrobe").split("/");
-  const branch = process.env.GITHUB_BRANCH ?? "main";
+  const [owner, repo] = (env.GITHUB_REPO ?? "tylin496/timeless-wardrobe").split("/");
+  const branch = env.GITHUB_BRANCH ?? "main";
 
   try {
     // 1. Current commit + tree
@@ -179,7 +156,7 @@ export default async function handler(req, res) {
 
     const wjsPath = "data/wardrobe.js";
     const wjsFile = await gh(githubToken, `/repos/${owner}/${repo}/contents/${wjsPath}?ref=${branch}`);
-    const wjsSrc = Buffer.from(wjsFile.content, "base64").toString("utf8");
+    const wjsSrc = atob(wjsFile.content.replace(/\n/g, ""));
     const wjsUpdated = patchWardrobeJs(wjsSrc, itemId, newImage, newGallery);
 
     if (wjsUpdated !== wjsSrc) {
@@ -234,9 +211,9 @@ export default async function handler(req, res) {
       }
     }
 
-    res.json({ ok: true, image: newImage, gallery: newGallery });
+    return json({ ok: true, image: newImage, gallery: newGallery });
   } catch (err) {
     console.error("[rename-gallery]", err);
-    res.status(500).json({ error: String(err?.message ?? err) });
+    return json({ error: String(err?.message ?? err) }, 500);
   }
 }

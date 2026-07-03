@@ -1,0 +1,13 @@
+# Cloudflare Pages redirects/rewrites — mirrors vercel.json's "redirects" and "rewrites" blocks.
+# Redirects (client sees new URL, 302) — must come before overlapping rewrites.
+/collection/additem   /collection   302
+/collection/editor     /collection   302
+/item/:id/edit          /item?id=:id&edit=1   302
+/collection/login      /login        302
+
+# Rewrites (URL stays, content served from destination) — status 200 signals a rewrite/proxy, not a redirect.
+/outfit/:slug           /             200
+/collection/item.html   /item         200
+/collection/item        /item         200
+/collection/:division   /collection   200
+/favicon.ico            /favicon.png  200

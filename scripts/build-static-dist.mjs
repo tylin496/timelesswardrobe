@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Copy static site assets into `dist/` for Vercel (avoids Output Directory = public 404s).
+ * Copy static site assets into `dist/` (the static host's Output Directory).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -31,6 +31,8 @@ function buildHomeHeroManifestSource() {
   }
   return `window.TW_HOME_HERO_IMAGES = ${JSON.stringify(images, null, 2)};\n`;
 }
+
+const platformConfigFiles = ["_redirects", "_headers"];
 
 const rootFiles = [
   "index.html",
@@ -66,7 +68,7 @@ if (fs.existsSync(publicDir)) {
   fs.cpSync(publicDir, dist, { recursive: true });
 }
 
-for (const name of rootFiles) {
+for (const name of [...rootFiles, ...platformConfigFiles]) {
   const src = path.join(root, name);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(dist, name));
 }
@@ -79,4 +81,4 @@ for (const name of rootDirs) {
 fs.mkdirSync(path.join(dist, "js"), { recursive: true });
 fs.writeFileSync(path.join(dist, "js", "tw-home-hero-manifest.js"), buildHomeHeroManifestSource(), "utf8");
 
-console.log("Vercel static build → dist/");
+console.log("Static build → dist/");
