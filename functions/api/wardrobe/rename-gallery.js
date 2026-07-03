@@ -12,7 +12,7 @@
  * Requires Pages environment variables:
  *   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
  *   GITHUB_TOKEN  — fine-grained PAT with Contents: write for this repo
- *   GITHUB_REPO   — "owner/repo" (default: tylin496/timeless-wardrobe)
+ *   GITHUB_REPO   — "owner/repo" (default: tylin496/timelesswardrobe)
  *   GITHUB_BRANCH — target branch (default: main)
  */
 import { createClient } from "@supabase/supabase-js";
@@ -108,7 +108,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   // --- GitHub ---
-  const [owner, repo] = (env.GITHUB_REPO ?? "tylin496/timeless-wardrobe").split("/");
+  const [owner, repo] = (env.GITHUB_REPO ?? "tylin496/timelesswardrobe").split("/");
   const branch = env.GITHUB_BRANCH ?? "main";
 
   try {

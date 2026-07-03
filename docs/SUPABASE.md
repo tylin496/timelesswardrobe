@@ -56,8 +56,8 @@ The migration enables RLS with **prototype** policies:
 ## 6. Google Sign-In (editors only)
 
 1. Supabase Dashboard → **Authentication → Providers** → enable **Google** (OAuth client from Google Cloud Console).
-2. **URL Configuration → Site URL:** `https://timeless-wardrobe.vercel.app`
-3. **Redirect URLs:** `http://127.0.0.1:8787/**`, `http://localhost:8787/**`, `https://timeless-wardrobe.vercel.app/**`, optional `https://tylin496.github.io/timeless-wardrobe/**` if you use GitHub Pages.
+2. **URL Configuration → Site URL:** `https://timelesswardrobe.uk`
+3. **Redirect URLs:** `http://127.0.0.1:8787/**`, `http://localhost:8787/**`, `https://timelesswardrobe.uk/**`, optional `https://tylin496.github.io/timelesswardrobe/**` if you use GitHub Pages.
 4. In `js/tw-supabase-config.js`, set `SITE_ORIGIN` to the same URL (OAuth return base).
 5. Run `supabase/migrations/20260520120000_wardrobe_editor_auth.sql` in the SQL editor.
 6. Run `supabase/migrations/20260526120000_editorial_stories.sql` to enable cloud-backed Editorial editing and hero image uploads.
@@ -73,7 +73,7 @@ The migration enables RLS with **prototype** policies:
 
 - Open **`/login`** (rewrites to `login.html`) to start Google sign-in, or use **Sign in** in the site header on any page.
 - After OAuth with an allowed email, you are redirected to the collection (or `?next=/path` if provided). Admin tools match local dev: **+ NEW PIECE**, edit icon on piece pages, duplicate/delete in edit mode, export actions.
-- Add `https://timeless-wardrobe.vercel.app/login` to Supabase **Redirect URLs** (the `/**` wildcard usually covers this).
+- Add `https://timelesswardrobe.uk/login` to Supabase **Redirect URLs** (the `/**` wildcard usually covers this).
 - Piece edit URLs may use **`?edit=1`** (example: `item.html?id=ruby-gypsy-ring&edit=1`). Legacy `/item/<id>/edit` and `?additem` bookmarks redirect to normal collection/item URLs.
 
 Local dev (`127.0.0.1`) still skips sign-in; the header sign-in control is hidden on localhost.

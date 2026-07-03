@@ -11,7 +11,7 @@ frozen local catalogue.
 model and merge pipeline, and **[docs/CONVENTIONS.md](docs/CONVENTIONS.md)**
 for the design system (BEM, tokens, rails).
 
-Production (Vercel): [timeless-wardrobe.vercel.app](https://timeless-wardrobe.vercel.app/). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Mirror: [GitHub Pages](https://tylin496.github.io/timeless-wardrobe/). Build: `npm run build` → `dist/`.
+Production (Cloudflare Pages): [timelesswardrobe.uk](https://timelesswardrobe.uk/). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Mirror: [GitHub Pages](https://tylin496.github.io/timelesswardrobe/). Build: `npm run build` → `dist/`.
 
 ## Supabase
 
