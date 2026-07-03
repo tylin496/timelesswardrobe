@@ -1,16 +1,25 @@
 # Timeless Wardrobe
 
-Static collection UI for a personal wardrobe: filters, outfit builder, saved looks.
+Static menswear-archive UI: filters, outfit builder, saved looks. Vanilla JS
+(`app.js`) + a single compiled stylesheet, data merged from Supabase and a
+frozen local catalogue.
 
 ## Quick start
 
-Serve the folder (any static server), open `index.html`. By default data comes from `data/wardrobe.js` and saved outfits from `localStorage`.
+`npm run dev` starts the dev server (also rebuilds CSS on change), open
+`index.html`. See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the data
+model and merge pipeline, and **[docs/CONVENTIONS.md](docs/CONVENTIONS.md)**
+for the design system (BEM, tokens, rails).
 
-Production (Vercel): [timeless-wardrobe.vercel.app](https://timeless-wardrobe.vercel.app/). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Mirror: [GitHub Pages](https://tylin496.github.io/timeless-wardrobe/). Build: `npm run build` → `dist/`. URL guard: `npm run check:urls`.
+Production (Vercel): [timeless-wardrobe.vercel.app](https://timeless-wardrobe.vercel.app/). See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Mirror: [GitHub Pages](https://tylin496.github.io/timeless-wardrobe/). Build: `npm run build` → `dist/`.
 
-## Supabase (optional)
+## Supabase
 
-See **[docs/SUPABASE.md](docs/SUPABASE.md)** for schema SQL, env vars, seed import, and security notes. Copy `.env.example` to `.env` for the Node import script; fill `js/tw-supabase-config.js` with the **public** URL and anon key for the browser.
+See **[docs/SUPABASE.md](docs/SUPABASE.md)** for schema SQL, env vars, and
+security notes. Copy `.env.example` to `.env` for Node scripts (service role
+key); fill `js/tw-supabase-config.js` with the **public** URL and anon key for
+the browser. Data-shape/contract details: **[docs/DATA-CONTRACT.md](docs/DATA-CONTRACT.md)**
+and **[docs/DATA-INVARIANTS.md](docs/DATA-INVARIANTS.md)**.
 
 ## CSS
 
@@ -22,6 +31,14 @@ Edit **`css/main.css`**, then compile to **`styles.css`** (`npm run css:build`).
 
 | Command | Purpose |
 | --- | --- |
+| `npm run dev` | Local dev server + CSS watch |
+| `npm run build` | Full production build → `dist/` |
 | `npm run css:build` | Compile Tailwind + `main.css` → `styles.css` |
-| `npm run export:wardrobe-json` | Write `data/wardrobe.json` from `data/wardrobe.js` |
-| `npm run db:import-seed` | Upsert `wardrobe_items` via service role |
+| `npm run check` | Run all guard scripts (insets, URLs, id-drift, data integrity, CSS build) |
+| `npm run check:data` | Validate Supabase/catalogue data integrity |
+| `npm run check:id-drift` | Guard against wardrobe item `id` renames |
+| `npm run check:showcase` | Validate Showcase order snapshot |
+| `npm run db:backup` | Back up Supabase data |
+| `npm run db:freeze-catalogue` | Snapshot Supabase into the frozen local catalogue |
+| `npm run images:rebuild` | Regenerate cutout thumbnails |
+| `npm run og:build` / `npm run og:items` | Generate OG images (site / per-item pages) |
