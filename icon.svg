@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-184 -184 2141 2141">
-<style>
-  path { fill: #163229; }
-</style>
-<rect x="-184" y="-184" width="2141" height="2141" fill="#f7f4ed"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="#f7f4ed"/>
+  <g transform="translate(71.68,71.68) scale(0.49669)" fill="#163229">
+
 <path d="
   M 1730.07 1028.05
   C 1703.84 1182.72 1635.13 1327.39 1530.93 1444.45
@@ -843,4 +841,5 @@
   A 0.69 0.68 69.0 0 0 994.53 1570.45
   Z"
 />
+</g>
 </svg>
