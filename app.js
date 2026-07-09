@@ -3029,6 +3029,69 @@
     { key: "brands",      label: "Brands"      },
   ];
 
+  const ACCOUNT_MASTHEAD_COPY = {
+    overview: {
+      eyebrow: "Private Archive",
+      title: "The Collection, at a Glance",
+      lede: (n) => `${n} pieces, catalogued and kept — a standing account of only what endures.`,
+    },
+    collection: {
+      eyebrow: "The Archive",
+      title: "Collection",
+      lede: () => "Every piece on record. Search, sort, and keep the ledger honest.",
+    },
+    showcase: {
+      eyebrow: "Public Order",
+      title: "Showcase",
+      lede: () => "The pieces shown to the world, arranged by hand.",
+    },
+    notes: {
+      eyebrow: "Marginalia",
+      title: "Notes",
+      lede: () => "Provenance, reasoning, and the quiet case for each acquisition.",
+    },
+    brands: {
+      eyebrow: "The Houses",
+      title: "Brands",
+      lede: (n) => `${n} makers represented across the collection.`,
+    },
+  };
+
+  function renderAccountMasthead(tab) {
+    const host = document.getElementById("account-masthead");
+    if (!host) return;
+    const copy = ACCOUNT_MASTHEAD_COPY[tab] || ACCOUNT_MASTHEAD_COPY.collection;
+    const ownedCount = items.filter((it) => !it?.is_future).length;
+    const brandCount = twDistinctBrandCounts().length;
+    const n = tab === "brands" ? brandCount : ownedCount;
+
+    host.replaceChildren();
+    const copyCol = document.createElement("div");
+    copyCol.className = "account-masthead__copy";
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "account-masthead__eyebrow";
+    eyebrow.textContent = copy.eyebrow;
+    const h1 = document.createElement("h1");
+    h1.className = "account-masthead__title";
+    h1.textContent = copy.title;
+    const lede = document.createElement("p");
+    lede.className = "account-masthead__lede";
+    lede.textContent = copy.lede(n);
+    copyCol.append(eyebrow, h1, lede);
+
+    const meta = document.createElement("div");
+    meta.className = "account-masthead__meta";
+    const curator = document.createElement("span");
+    curator.className = "account-masthead__curator";
+    curator.textContent = "Curated by T. Y. Lin";
+    const summary = document.createElement("span");
+    summary.className = "account-masthead__summary";
+    summary.textContent = `${ownedCount} pieces · Est. 2020`;
+    meta.append(curator, summary);
+
+    host.append(copyCol, meta);
+  }
+
   const _accountTabScrollPositions = {};
   let _accountCurrentTab = "collection";
   function getAccountActiveTab() {
@@ -3249,6 +3312,7 @@
     }
 
     contentEl.replaceChildren();
+    renderAccountMasthead(tab);
     // Leaving Collection drops the edit drawer; clear its body class so the
     // reserved drawer gutter (padding-right) doesn't strand other tabs left.
     document.body.classList.remove("account-collection-drawer-open");
@@ -4776,7 +4840,7 @@
     removeBtn.type = "button";
     removeBtn.className = "account-playlist-remove";
     removeBtn.setAttribute("aria-label", `Remove ${String(it?.name ?? it?.id ?? "")} from Showcase`);
-    removeBtn.textContent = "×";
+    removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const itemLabel = String(it?.name ?? it?.id ?? "this piece").trim();
@@ -5231,7 +5295,7 @@
     // Desktop column header
     const hdr = document.createElement("div");
     hdr.className = "account-brands-v2-hdr";
-    ["BRAND", "SINCE", "PIECES", "", ""].forEach((t) => {
+    ["BRAND", "SINCE", "PIECES", "", "", ""].forEach((t) => {
       const s = document.createElement("span");
       s.textContent = t;
       hdr.appendChild(s);
@@ -5259,6 +5323,13 @@
       const countEl = document.createElement("span");
       countEl.className = "account-brands-v2-count";
       countEl.textContent = String(count);
+
+      const barWrap = document.createElement("span");
+      barWrap.className = "account-brands-v2-bar-wrap";
+      const bar = document.createElement("span");
+      bar.className = "account-brands-v2-bar";
+      bar.style.width = `${Math.round((count / (brands[0]?.count || 1)) * 100)}%`;
+      barWrap.appendChild(bar);
 
       const statusEl = document.createElement("span");
       statusEl.className = "account-brands-v2-status";
@@ -5320,7 +5391,7 @@
         }
       });
 
-      row.append(input, sinceEl, countEl, filterLink, statusEl);
+      row.append(input, sinceEl, countEl, barWrap, filterLink, statusEl);
       list.appendChild(row);
     }
 
