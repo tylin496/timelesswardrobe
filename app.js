@@ -8487,7 +8487,7 @@
    * @param {{ type: "main_cover" } | { type: "main_gallery", index: number } | { type: "variant_cover", key: string } | { type: "variant_preview", key: string } | { type: "variant_gallery", key: string, index: number }} slot
    * @returns {string} object path (no bucket prefix)
    */
-  function wardrobeImageStorageObjectPath(itemId, _file, slot) {
+  function canonicalWardrobeStoragePathForSlot(itemId, _file, slot) {
     const root = `wardrobe/${safeStorageSegment(itemId)}`;
     if (!slot || slot.type === "main_cover") {
       return `${root}/main/1.webp`;
@@ -8529,7 +8529,7 @@
 
   async function uploadWardrobeImageFileToCloud(file, itemId, slot = /** @type {const} */ ({ type: "main_cover" })) {
     if (!file) return "";
-    const path = wardrobeImageStorageObjectPath(itemId, file, slot);
+    const path = canonicalWardrobeStoragePathForSlot(itemId, file, slot);
 
     // Get Supabase session token for Worker auth — refresh to avoid expired cached tokens
     const refreshed = supabaseClient?.auth ? await supabaseClient.auth.refreshSession().catch(() => null) : null;
@@ -8811,7 +8811,7 @@
   }
 
   /** Bust browser/CDN cache for wardrobe images (same R2 path after upsert). */
-  function wardrobeImageCacheBustToken(item) {
+  function wardrobeImageCacheBustTokenFromItem(item) {
     if (!item || typeof item !== "object") return "";
     const o = /** @type {any} */ (item);
     if (typeof o.__displayNonce === "number" && Number.isFinite(o.__displayNonce)) {
@@ -8835,7 +8835,7 @@
     if (!isWardrobeMedia) return raw;
     // R2 URLs carry a ?v= content hash in the seed — no cb token needed.
     if (isR2WardrobeImageUrl(raw)) return raw;
-    const token = wardrobeImageCacheBustToken(item) || wardrobeImageCacheBustTokenFromPath(raw);
+    const token = wardrobeImageCacheBustTokenFromItem(item) || wardrobeImageCacheBustTokenFromPath(raw);
     if (!token) return raw;
     try {
       const u = new URL(raw);
