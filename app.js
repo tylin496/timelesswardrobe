@@ -8102,7 +8102,6 @@
           detectSessionInUrl: true,
         },
       });
-      console.info("Supabase client initialized.");
       return client;
     } catch (err) {
       console.warn("Could not initialize Supabase client.", err);
@@ -9378,7 +9377,6 @@
       return [];
     }
     const rawRows = data || [];
-    console.info("[wardrobe_items] Supabase raw row count:", rawRows.length);
     const normalized = rawRows
       .map((row) => {
         const out = normalizeCloudItemRow(row);
@@ -9389,7 +9387,6 @@
         return out;
       })
       .filter(Boolean);
-    console.info("[wardrobe_items] after normalize:", normalized.length);
     if (rawRows.length !== normalized.length) {
       console.warn(
         `[wardrobe_items] ${rawRows.length - normalized.length} row(s) dropped — usually empty id/brand/name in DB`
@@ -30780,16 +30777,6 @@
     ]);
     catalogueLockManifest = lockManifest;
     hybridLocalCatalogueManifest = hybridManifest;
-    if (catalogueLockManifest) {
-      console.info(
-        `[catalogue lock] Frozen catalogue: ${catalogueLockManifest.count} pieces (${catalogueLockManifest.frozenAt || "—"}).`
-      );
-    }
-    if (isHybridLocalCatalogueEnabled()) {
-      console.info(
-        `[hybrid local] Catalogue (${catalogueLockManifest.count} pieces) from data/wardrobe.js + ${hybridLocalCatalogueManifest.localImageRoot}; new rows still from Supabase.`
-      );
-    }
     const hasCollectionGridEarly = Boolean(document.getElementById("grid"));
     const itemRootEarly = document.getElementById("item-detail-root");
     const pageIdEarly = parseItemPageRoute().id;
