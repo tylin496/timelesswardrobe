@@ -36,35 +36,8 @@
   const OUTFIT_STORAGE_VERSION = 2;
   const OUTFITS_DRAFT_VERSION = 1;
 
-  /** Header / mobile nav — editorial moodboard grid (single-stroke layout, 15×15). */
-  const HEADER_SEARCH_GLYPH_SVG =
-    '<svg class="site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-    '<circle class="site-header__tool-glyph" cx="7" cy="7" r="4.25"/>' +
-    '<line class="site-header__tool-glyph site-header__tool-glyph--cap-round" x1="10.35" y1="10.35" x2="13.15" y2="13.15"/>' +
-    "</svg>";
-  const HEADER_MENU_GLYPH_SVG =
-    '<svg class="site-header__tool-glyphs site-header__menu-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-    '<g class="site-header__menu-glyph-bars">' +
-    '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--top" x1="2.2" y1="5.65" x2="13.8" y2="5.65"/>' +
-    '<line class="site-header__tool-glyph site-header__menu-glyph-line site-header__menu-glyph-line--bottom" x1="2.2" y1="10.35" x2="13.8" y2="10.35"/>' +
-    "</g></svg>";
-  const OUTFITS_GLYPH_SVG =
-    '<svg class="outfits-glyph site-header__tool-glyphs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-    '<g class="outfits-glyph__fills" aria-hidden="true">' +
-    '<rect class="outfits-glyph__cell" x="1.6" y="2.35" width="7.15" height="4.55" />' +
-    '<rect class="outfits-glyph__cell" x="1.6" y="7.2" width="7.15" height="6.45" />' +
-    '<rect class="outfits-glyph__cell" x="9.05" y="2.35" width="5.25" height="7.92" />' +
-    '<rect class="outfits-glyph__cell" x="9.05" y="10.52" width="5.25" height="3.13" />' +
-    "</g>" +
-    '<path class="outfits-glyph__grid site-header__tool-glyph" pathLength="100" d="M1.45 2.2H14.55M1.45 13.8H14.5M1.45 2.2V13.8M14.5 2.25V13.75M8.9 2.15V13.85M1.5 7.05H8.85M8.92 10.42H14.52"/>' +
-    "</svg>";
-  const HEADER_SEARCH_ICON_HTML =
-    '<span class="site-header__search-icon" aria-hidden="true">' + HEADER_SEARCH_GLYPH_SVG + "</span>";
-  const HEADER_MENU_ICON_HTML =
-    '<span class="site-header__menu-icon" aria-hidden="true">' + HEADER_MENU_GLYPH_SVG + "</span>";
   /** Thin-arm × — search, drawers, mobile shell (see `--tw-dismiss-icon-*` in main.css). */
   const HEADER_DISMISS_ICON_HTML = '<span class="site-mobile-shell__close-icon" aria-hidden="true"></span>';
-
 
 
   function slugItemName(name) {
@@ -5356,7 +5329,6 @@
   }
 
 
-
   function twSiteBaseUrl() {
     const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
     if (configured) return configured;
@@ -6555,15 +6527,6 @@
       value: "",
       labelPlaceholder,
     }));
-  }
-
-  function resolveInitialMeasurementRowsForEditor(rows, opts = {}) {
-    const cleaned = cleanMeasurementRows(Array.isArray(rows) ? rows : []).filter((r) =>
-      String(r.value ?? "").trim()
-    );
-    if (cleaned.length) return cleaned;
-    if (opts.defaultsForEmpty) return defaultMeasurementPlaceholderRows();
-    return [{ label: "", value: "" }];
   }
 
   /**
@@ -10326,7 +10289,6 @@
     const popularCoverW = 480;
     const popularCoverH = 640;
     const popularCoverQuality = 88;
-    const mainHref = COLLECTION_HOME_URL;
 
     /** @type {{ slot: string, sub: string, pool: object[], score: number, coverN: number }[]} */
     const candidates = [];
@@ -10942,10 +10904,6 @@
       syncHomeHeroSlideMedia(slides, index);
       const nextPath = String(slides[index]?.dataset.heroSrc ?? "").trim();
       if (nextPath) preloadHomeHeroImage(nextPath);
-    };
-
-    const resetSlideMotionClasses = () => {
-      slides.forEach((slide) => slide.classList.remove(...slideMotionClasses));
     };
 
     const finishSlideTransition = () => {
@@ -11931,7 +11889,6 @@
     if (!siteHeader || !shell) return;
 
     const hero = document.querySelector(".home-hero__hero");
-    const heroInner = hero?.querySelector(".home-hero__hero-inner") ?? null;
 
     const syncHeights = () => {
       syncBrandSignatureBarHeight();
@@ -12114,37 +12071,10 @@
     initHomeHeroHeader();
   }
 
-  function wireEditorialQuoteReveal() {
-    const quote = document.querySelector(".editorial-quote");
-    if (!(quote instanceof HTMLElement)) return;
-    if (quote.classList.contains("is-in-view")) return;
-
-    const reveal = () => quote.classList.add("is-in-view");
-    const prefersReducedMotion =
-      typeof globalThis.matchMedia === "function" &&
-      globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion || typeof IntersectionObserver !== "function") {
-      reveal();
-      return;
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        reveal();
-        io.disconnect();
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
-    );
-    io.observe(quote);
-  }
-
   function renderEditorialLandingPage() {
     if (!document.body.classList.contains("home-page")) return;
     mountHomePageHero();
     wireHomeCollectionEntryLinks();
-    wireEditorialQuoteReveal();
     const root = document.getElementById("main");
     if (!root?.classList.contains("home-hero")) return;
 
@@ -12160,11 +12090,6 @@
         img.addEventListener("load", () => refreshHomeHorizontalRailScroller(highHost), { once: true });
       });
     }
-
-    /** @type {Set<string>} */
-    const highlightItemIds = new Set(
-      highlightItems.map((it) => String(it?.id ?? "").trim()).filter(Boolean)
-    );
     syncCategoryTabUI();
   }
 
@@ -14725,8 +14650,6 @@
   function noteCollectionSearchUserChoseMainSlotFilter() {
     if (collectionSubmittedSearchNorm) collectionSearchBrowseAllSlots = false;
   }
-
-
 
 
   /** Basic colour collection filter: enabled on the collection grid (all category tabs + “All”); hidden on `item.html`. */
@@ -17503,10 +17426,6 @@
     return `outfit-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function outfitIdSet() {
-    return new Set(currentOutfitSlots.map((s) => s.itemId));
-  }
-
   function outfitSlotKeySet() {
     return new Set(currentOutfitSlots.map(outfitSlotKey));
   }
@@ -19866,12 +19785,6 @@
   }
 
 
-
-
-  /** Shown after `QuotaExceededError` when shrinking and retry did not help. */
-  const STORAGE_QUOTA_USER_HINT =
-    "This isn't a Chrome block: each site has about 5MB of browser storage. Try fewer photos, remove older custom pieces, or clear this site's data in your browser settings. If the error still mentions an old message (e.g. crop first), hard-refresh (⌘⇧R or Ctrl+Shift+R) to load the latest app.js.";
-
   function dedupeGalleryUrls(imageMain, galleryUrls, max = 12) {
     const main = String(imageMain ?? "").trim();
     const mainKey = wardrobeMediaPathKey(main) || main.split("?")[0];
@@ -21751,7 +21664,6 @@
   function createCard(item, cardOpts = {}) {
     const variants = getItemColourVariants(item);
     const gridSwatchVariants = getCollectionGridSwatchVariants(item);
-    const inOutfit = outfitIdSet().has(item.id);
     const allVariantKeys =
       variants?.map((v) => v.key) ??
       [];
@@ -22129,7 +22041,6 @@
     syncCollectionUrlFromBrowseState({ replace: true });
     scrollCollectionViewportTop();
   }
-
 
 
   /** Header logo / wordmark — always editorial home (`/`); scroll to top when already there. */
@@ -22723,7 +22634,6 @@
   }
 
 
-  let dragFromIndex = null;
   let outfitSlotAnimKeySeed = 1;
   /** @type {Map<string, { left: number, top: number }> | null} */
   let outfitStripFlipRects = null;
@@ -23205,8 +23115,6 @@
     const from = state.sourceIndex;
     const avatar = state.avatarEl instanceof HTMLElement ? state.avatarEl : null;
     const sourceEl = state.sourceEl instanceof HTMLElement ? state.sourceEl : null;
-    const dropClientX = state.lastClientX;
-    const dropClientY = state.lastClientY;
     let dropTargetRect = null;
     if (sourceEl instanceof HTMLElement) {
       try {
@@ -23692,7 +23600,6 @@
       const n = slots.filter((s) => itemById.has(s.itemId)).length;
       const dateStr = formatSavedDate(outfit.createdAt);
       const notes = String(outfit.notes ?? "").trim();
-      const notesSnip = notes ? (notes.length > 40 ? `${notes.slice(0, 37)}…` : notes) : "";
       // Header: title alone on line 1 (top-right corner reserved for the hover
       // tools); all metadata on line 2. The notes truncate but the piece-count +
       // date tail stays fixed, so the date is always visible and never collides
@@ -24477,9 +24384,6 @@
       delete updated.priceCurrency;
     }
     const galleryBeforeFrozenHeal = gallery;
-    const gallerySigAfterPhotos = gallery
-      .map((u) => String(u).split("?")[0])
-      .join("|");
     const photoManagerDirty = Boolean(
       document.getElementById("item-edit-photos")?.__twPhotoDirty
     );
@@ -26078,7 +25982,6 @@
         body.appendChild(picker);
       }
     }
-
 
 
     const dl = document.createElement("dl");
@@ -27987,9 +27890,6 @@
     const collectionMainHref = () => collectionHrefForBrowseState();
 
     /** Full-screen mobile nav shell (below utility bar); replaces legacy slide-in panel. */
-    const outfitsIconHtml =
-      '<span class="site-header__outfits-icon" aria-hidden="true">' + OUTFITS_GLYPH_SVG + "</span>";
-
     const MOBILE_NAV_DRILL_PORTAL_ID = "site-mobile-nav-drill-portal";
 
     /** Fixed layer above masthead + drawer; shell/header positions never change. */
@@ -28253,7 +28153,6 @@
     let headerSubmenuCloseAbort = null;
     const HEADER_SUBMENU_HOVER_HIDE_MS = 120;
     const HEADER_SUBMENU_HOVER_OPEN_MS = 170;
-    const HEADER_SUBMENU_OPEN_MOTION_MS = 300;
     const HEADER_SUBMENU_CLOSE_MOTION_MS = 120;
 
     const headerSubmenuUsesDomHidden = () => isHeaderCompactViewport();
@@ -28418,9 +28317,6 @@
 
     const headerMenuBtn = document.getElementById("site-header-menu-btn");
     const mobileShell = mountMobileNavigationShell();
-    const siteHeaderEl =
-      document.querySelector(".site-header-shell") || document.querySelector(".site-header");
-    const siteUtilityBarEl = document.querySelector(".site-utility-bar");
     const headerSearchBtn = document.getElementById("site-header-search-btn");
     const headerSearchWrap = document.getElementById("site-header-search-wrap");
     const headerSearchInput = /** @type {HTMLInputElement | null} */ (document.getElementById("filter-search"));
@@ -29153,7 +29049,6 @@
     }
 
     const showHeaderSubmenuForCategory = (jump) => {
-      const searchW = document.getElementById("site-header-search-wrap");
       if (isHeaderSearchWrapOpen()) closeHeaderSearch();
       const slot = String(jump ?? "").trim();
       const wrap = document.getElementById("site-header-submenu");
@@ -29224,7 +29119,6 @@
           hit.classList.add("is-active");
           hit.setAttribute("aria-current", "true");
         }
-        const activeLinks = menuLinks.filter((el) => el.classList.contains("is-active"));
         for (const el of menuLinks) {
           const isActive = el.classList.contains("is-active") || el.getAttribute("aria-current") === "true";
           el.style.setProperty("color", isActive ? "rgb(22, 50, 41)" : "rgba(22, 50, 41, 0.58)", "important");
