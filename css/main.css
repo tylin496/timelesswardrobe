@@ -14105,11 +14105,11 @@ html.tw-account-dark body.account-page {
   /* Account palette — neutral charcoal foundation, warm ivory text. Not OLED black.
      Backgrounds and borders are near-neutral (R-B ≤ 2) so data surfaces read cleanly.
      Warmth is concentrated in the text stack (--ink R-B +23) where it earns its keep. */
-  --bg: #1c1c1a;
-  --bg-elevated: #252523;
+  --bg: #161614;
+  --bg-elevated: #272725;
   --ink: #d9d0c2;
-  --ink-muted: #9e9688;
-  --ink-faint: #6e6860;
+  --ink-muted: #b2a99a;
+  --ink-faint: #7c766b;
   --line: #2f2f2d;
   --line-strong: #3d3d3b;
   --accent: #7a9978;
@@ -14174,6 +14174,14 @@ html.tw-account-dark body.account-page .account-filter-select {
 html.tw-account-dark body.account-page .account-overview__stat-sub,
 html.tw-account-dark body.account-page .account-overview__activity-ts {
   opacity: 1;
+}
+
+/* Data bars — lift the track off the (now darker) page so the ivory fill reads
+   as sitting in a channel, not stuck to the background. Dark-only: the 8% base
+   is correct on the light ivory field. */
+html.tw-account-dark body.account-page .account-overview__dist-bar-wrap,
+html.tw-account-dark body.account-page .account-timeline__bar-wrap {
+  background: color-mix(in srgb, var(--ink) 15%, transparent);
 }
 
 /* Status colors: hardcoded light-mode hex won't read in dark */
