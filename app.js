@@ -4030,7 +4030,7 @@
     }
     clearBtn.hidden = !hasActiveFilter();
 
-    function getFilteredItems() {
+    function getFilteredCollectionItems() {
       const q  = _accountCollectionSearch.trim().toLowerCase();
       const b  = _accountCollectionBrand;
       const c  = _accountCollectionCategory;
@@ -4063,7 +4063,7 @@
       if (drawer.parentElement === listPane) layout.appendChild(drawer);
       listPane.replaceChildren();
       clearBtn.hidden = !hasActiveFilter();
-      const filtered = getFilteredItems();
+      const filtered = getFilteredCollectionItems();
       countLabel.textContent = hasActiveFilter()
         ? `${filtered.length} of ${items.length} pieces`
         : `${items.length} pieces`;
@@ -4912,7 +4912,7 @@
     copyAllBtn.className = "account-notes-copy-all-btn";
     copyAllBtn.textContent = "Copy all";
     copyAllBtn.addEventListener("click", () => {
-      const items = getFilteredItems();
+      const items = getFilteredNotesItems();
       const text = items
         .filter((it) => String(it?.notes ?? "").trim())
         .map((it) => buildNotesCopyText(it))
@@ -4941,7 +4941,7 @@
     wrapper.appendChild(body);
 
     // ── Filtered + sorted items ──────────────────────────────────────────────────
-    function getFilteredItems() {
+    function getFilteredNotesItems() {
       const q = _accountNotesSearch.trim().toLowerCase();
       const filtered = items.filter((it) => {
         if (it.is_future) return false;
@@ -5203,7 +5203,7 @@
     // ── Refresh ──────────────────────────────────────────────────────────────────
     function refreshNotesList() {
       listPane.replaceChildren();
-      const filtered = getFilteredItems();
+      const filtered = getFilteredNotesItems();
       for (const it of filtered) {
         listPane.appendChild(buildListRow(it));
       }
@@ -6775,18 +6775,6 @@
     container.appendChild(block);
     syncValuePlaceholders();
     syncAddBtnPlacement();
-  }
-
-  function resetAddItemMeasurementBlock() {
-    const el = document.getElementById("add-item-measured-dims-block");
-    if (!el) return;
-    mountMeasurementRowsEditor(el, resolveInitialMeasurementRowsForEditor([], { defaultsForEmpty: true }), {
-      unitSelectId: "add-item-measurement-unit",
-      initialUnit: "cm",
-      unitHost: document.getElementById("add-item-measurement-unit-host"),
-    });
-    const hid = document.getElementById("add-item-measured-dimensions");
-    if (hid) hid.value = "";
   }
 
   /**
@@ -8488,17 +8476,6 @@
       .replace(/^-+|-+$/g, "")
       .slice(0, 80);
     return cleaned || fallback;
-  }
-
-  function fileExtensionFromFile(file) {
-    const name = String(file?.name ?? "").trim();
-    const m = name.match(/\.([a-z0-9]+)$/i);
-    if (m) return m[1].toLowerCase();
-    const type = String(file?.type ?? "").toLowerCase();
-    if (type.includes("png")) return "png";
-    if (type.includes("webp")) return "webp";
-    if (type.includes("gif")) return "gif";
-    return "jpg";
   }
 
   /**
@@ -18159,13 +18136,6 @@
     el.textContent = msg;
     el.hidden = !msg;
     el.classList.toggle("add-item-form__msg--error", Boolean(isError));
-  }
-
-  function resetAddItemPhotoManager() {
-    const host = document.getElementById("add-item-photos");
-    if (!(host instanceof HTMLElement)) return;
-    revokeItemEditPhotoManager(host);
-    mountItemEditPhotoManager(host, { uploadLabel: "Upload photos" });
   }
 
   /**
@@ -29097,13 +29067,6 @@
           const r = el.getBoundingClientRect();
           el.style.setProperty("--el-left", `${r.left - hRect.left}px`);
         });
-    }
-
-    function openMobileHeaderSearch() {
-      if (!headerSearchWrap || isHeaderSearchWrapOpen()) return;
-      closeMobileCategoryPanel();
-      headerSearchOutsideClickGuardUntil = performance.now() + 500;
-      headerSearchBtn?.click();
     }
 
     syncBrandSignatureBarHeight();
