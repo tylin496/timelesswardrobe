@@ -30,19 +30,11 @@ This repo sets `"workbench.editorAssociations": { "*.md": "default" }` in `.vsco
 
 Several selectors often target the **same node** on purpose:
 
-1. **Base component** — e.g. `.editorial-quote { padding: … }`
-2. **Page override** — e.g. `body.home-page #main.home-hero .home-hero__division-rail-philosophy.editorial-quote { padding-top: var(--home-hero-philosophy-pad-y); … }`
-3. **Breakpoint** — e.g. `@media (max-width: 768px) { … }`
+1. **Base component** — e.g. `.card__meta-line { … }`
+2. **Page override** — e.g. `body.collection-page #grid.grid--compact .card__meta-line { … }`
+3. **Breakpoint** — e.g. `@media (max-width: 768px) { #grid .card__meta-line { … } }`
 
 That is normal cascade, not a broken build. The more specific rule wins for the properties it sets.
-
-Homepage philosophy quote spacing is owned only by the `body.home-page #main.home-hero .home-hero__division-rail-philosophy` block and tokens:
-
-- `--home-hero-philosophy-block-gap` — symmetric external margin above and below the quote box (Browse rail → quote ↔ quote → Highlights)
-- `--home-hero-philosophy-pad-y` — padding inside the tinted quote box (text breathing room)
-- Highlights band after the quote uses `padding-top: 0`; do not add `--home-hero-section-pad-y` there or the lower gap doubles
-
-Generic `.editorial-quote` padding excludes that block via `:not(.home-hero__division-rail-philosophy)`.
 
 ## Debugging checklist
 
@@ -52,7 +44,23 @@ Generic `.editorial-quote` padding excludes that block via `:not(.home-hero__div
 4. In DevTools, select the element → **Computed** → see which rule wins and from which selector.
 5. Prefer adjusting **tokens** on `body.home-page` or the page-specific block instead of adding another global rule later in the file.
 
-## Reducing future overlap
+## Dead-CSS audit
+
+```bash
+node scripts/audit-dead-css.mjs
+```
+
+Reports classes defined in `css/main.css` that appear nowhere in HTML/JS — neither
+as a literal nor via string concatenation / template stems (`` `foo--${x}` ``).
+Report-only (not in `npm run check`): findings need a spot-check before deleting,
+because two selector shapes can fool it —
+
+- `.alive:not(.deadClass)` — the rule still matches (a never-present class makes
+  `:not()` always true); deleting it changes styling.
+- `.x:is(.deadClass, .aliveClass)` — the alive arm keeps the rule reachable.
+
+The July 2026 cleanup (196 classes, 318 rules, −8% source) checked both shapes:
+zero false positives, but always re-check new findings against them.
 
 - One **owner** per layout concern (spacing, typography) per page/section.
 - Use **CSS variables** on `body.home-page` / `body.collection-page` instead of duplicating `clamp()` in many places.
