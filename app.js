@@ -21165,6 +21165,26 @@
     }
   }
 
+  /**
+   * Byte-warm (HTTP cache only, no decode) the first editorial frame so the
+   * hover/swipe reveal doesn't wait on the network. Decode stays deferred until
+   * the frame is actually shown, so this cannot reopen the iOS decoded-bitmap
+   * OOM the IO lazy-build fixed — bytes are cheap, bitmaps are not.
+   */
+  const warmedGalleryFrameUrls = new Set();
+  function warmCollectionCardGalleryFrame(frameEntries) {
+    const entry = firstCollectionCardEditorialFrameEntry(frameEntries);
+    const url = String(entry?.url ?? "").trim();
+    if (!url || entry?.cutout || warmedGalleryFrameUrls.has(url)) return;
+    warmedGalleryFrameUrls.add(url);
+    try {
+      fetch(url, { priority: "low" }).catch(() => {});
+    } catch {
+      /* fetch priority unsupported — warm without it */
+      fetch(url).catch(() => {});
+    }
+  }
+
   function syncDesktopGalleryTrack(media, img, frameEntries) {
     const sig = collectionCardGalleryFrameSig(frameEntries);
     let stage = getDesktopGalleryStage(media);
@@ -21215,6 +21235,7 @@
       stage.appendChild(track);
       media.insertBefore(stage, media.firstChild);
       media.classList.add("card__media--has-desktop-gallery");
+      warmCollectionCardGalleryFrame(frameEntries);
     }
 
     stage = getDesktopGalleryStage(media);
@@ -21381,6 +21402,7 @@
       carousel.appendChild(track);
       media.insertBefore(carousel, img);
       wireMobileGalleryStrictSnap(carousel, media);
+      warmCollectionCardGalleryFrame(frameEntries);
     }
 
     const startIdx = readMobileGalleryFrameIndex(media);
