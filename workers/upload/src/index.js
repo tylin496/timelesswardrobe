@@ -17,12 +17,27 @@
  *   PATCH  — copy/rename an object (JSON: { source, dest }) — R2 has no rename; copies then deletes source
  */
 
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20 MB — crop export is ~1-4 MB; generous headroom
+
+function resolveCorsOrigin(origin, allowedList) {
+  if (allowedList === "*") return "*";
+  if (!origin) return "";
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return origin;
+  const allowed = allowedList.split(",").map((s) => s.trim()).filter(Boolean);
+  return allowed.includes(origin) ? origin : "";
+}
+
+// Bucket keys are only ever written under wardrobe/ (the img worker serves nothing else)
+function safeWardrobeKey(path) {
+  const key = String(path).replace(/^\/+/, "").replace(/\.\./g, "");
+  return key.startsWith("wardrobe/") ? key : "";
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
-    const allowed = env.ALLOWED_ORIGIN || "*";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": allowed === "*" ? "*" : origin,
+      "Access-Control-Allow-Origin": resolveCorsOrigin(origin, env.ALLOWED_ORIGIN || "*"),
       "Access-Control-Allow-Methods": "POST, DELETE, PATCH, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
@@ -72,7 +87,10 @@ export default {
       if (typeof path !== "string" || !path.trim()) {
         return new Response("Missing path", { status: 400, headers: corsHeaders });
       }
-      const safePath = path.replace(/^\/+/, "").replace(/\.\./g, "");
+      const safePath = safeWardrobeKey(path);
+      if (!safePath) {
+        return new Response("Path must be under wardrobe/", { status: 400, headers: corsHeaders });
+      }
       await env.WARDROBE_IMAGES.delete(safePath);
       return new Response(JSON.stringify({ deleted: safePath }), {
         status: 200,
@@ -92,8 +110,11 @@ export default {
       if (typeof source !== "string" || !source.trim() || typeof dest !== "string" || !dest.trim()) {
         return new Response("Missing source or dest", { status: 400, headers: corsHeaders });
       }
-      const safeSrc = source.replace(/^\/+/, "").replace(/\.\./g, "");
-      const safeDest = dest.replace(/^\/+/, "").replace(/\.\./g, "");
+      const safeSrc = safeWardrobeKey(source);
+      const safeDest = safeWardrobeKey(dest);
+      if (!safeSrc || !safeDest) {
+        return new Response("Paths must be under wardrobe/", { status: 400, headers: corsHeaders });
+      }
       if (safeSrc === safeDest) {
         return new Response(JSON.stringify({ skipped: true }), {
           status: 200,
@@ -125,9 +146,17 @@ export default {
     if (!file || typeof path !== "string" || !path.trim()) {
       return new Response("Missing file or path", { status: 400, headers: corsHeaders });
     }
+    if (!file.type || !file.type.startsWith("image/")) {
+      return new Response("Only image uploads are allowed", { status: 415, headers: corsHeaders });
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return new Response("File too large (max 20 MB)", { status: 413, headers: corsHeaders });
+    }
 
-    // Sanitise path — no leading slash, no traversal
-    const safePath = path.replace(/^\/+/, "").replace(/\.\./g, "");
+    const safePath = safeWardrobeKey(path);
+    if (!safePath) {
+      return new Response("Path must be under wardrobe/", { status: 400, headers: corsHeaders });
+    }
 
     await env.WARDROBE_IMAGES.put(safePath, file.stream(), {
       httpMetadata: { contentType: file.type || "image/webp" },
