@@ -24232,7 +24232,10 @@
    * @param {HTMLFormElement} form
    * @param {object} prev
    * @param {(t: string, err?: boolean) => void} setMsg
-   * @param {{ cloudItemId?: string }} [opts]
+   * @param {{ cloudItemId?: string, onUpload?: (url: string) => void }} [opts]
+   *   `onUpload` fires synchronously after each successful R2 upload (cover/gallery/preview
+   *   across every colour row) — use it to accumulate a cleanup list that survives a
+   *   mid-batch throw.
    * @returns {Promise<{ key: string, label: string, colour: string, colourCode: string, image: string, previewImage?: string, gallery: string[], notes: string }[] | null>}
    */
   async function gatherColourVariantsFromEditForm(form, prev, setMsg, opts = {}) {
@@ -24297,11 +24300,19 @@
       const match = prevVars.find((x) => x && String(x.key ?? "").trim() === key);
       const prevCover = String(match?.image ?? row.getAttribute("data-prev-image") ?? "").trim();
       const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : id;
-      const materialized = await materializeItemEditPhotoSlots(photoSlots, cloudId, setMsg, {
-        variantKey: key,
-        keepCoverOnFailure: true,
-        previousCover: prevCover,
-      });
+      let materialized;
+      try {
+        materialized = await materializeItemEditPhotoSlots(photoSlots, cloudId, setMsg, {
+          variantKey: key,
+          keepCoverOnFailure: true,
+          previousCover: prevCover,
+          onUpload: opts.onUpload,
+        });
+      } catch (err) {
+        console.warn(err);
+        setMsg(String(err?.message || err || `Upload failed for colour row (${key || "unknown key"}).`), true);
+        return null;
+      }
       const image = materialized.image;
       const gallery = materialized.gallery;
       if (!image) {
@@ -24320,9 +24331,12 @@
         if (previewFile2) {
           try {
             const cloudId = opts?.cloudItemId && isSupabaseReady() ? String(opts.cloudItemId).trim() : "";
-            previewImage = cloudId
-              ? await uploadWardrobeImageFileToCloud(previewFile2, cloudId, { type: "variant_preview", key })
-              : await fileToStorageDataUrl(previewFile2);
+            if (cloudId) {
+              previewImage = await uploadWardrobeImageFileToCloud(previewFile2, cloudId, { type: "variant_preview", key });
+              if (previewImage) opts.onUpload?.(previewImage);
+            } else {
+              previewImage = await fileToStorageDataUrl(previewFile2);
+            }
           } catch (err) {
             console.warn(err);
             setMsg(messageForCloudUploadFailure(`variant preview (${key || "unknown key"})`, err), true);
@@ -24378,6 +24392,9 @@
       if (statusEl) statusEl.hidden = true;
     };
     let keepFinalWarningMessage = false;
+    /** Accumulated via onUpload (not a return value) so a mid-batch throw still leaves a cleanup
+     *  list; read by the save-failure paths below if the eventual DB write fails. */
+    const newlyUploadedImageUrls = [];
 
     const id = detailItemId;
     if (!id) return;
@@ -24428,8 +24445,14 @@
     let colourVariantsBuilt = null;
     if (variantsMode) {
       setMsg("Processing colour images…", false);
-      colourVariantsBuilt = await gatherColourVariantsFromEditForm(form, prev, setMsg, { cloudItemId: id });
-      if (colourVariantsBuilt == null) return;
+      colourVariantsBuilt = await gatherColourVariantsFromEditForm(form, prev, setMsg, {
+        cloudItemId: id,
+        onUpload: (url) => newlyUploadedImageUrls.push(url),
+      });
+      if (colourVariantsBuilt == null) {
+        cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
+        return;
+      }
     }
 
     const primaryColour =
@@ -24468,9 +24491,6 @@
       .map((u) => wardrobeMediaPathKey(u) || String(u).split("?")[0])
       .join("|");
     let hadNewPhotoFiles = false;
-    /** Accumulated via onUpload (not the return value) so a mid-batch throw still leaves a cleanup
-     *  list; read by the save-failure catch blocks below if the subsequent DB write fails. */
-    const newlyUploadedImageUrls = [];
     if (!(variantsMode && colourVariantsBuilt?.length)) {
       const photoHost = document.getElementById("item-edit-photos");
       if (photoHost) {
