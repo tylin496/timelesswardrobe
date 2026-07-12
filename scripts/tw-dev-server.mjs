@@ -445,31 +445,7 @@ function queueCssBuild(reason = "change") {
   }, 120);
 }
 
-const thumbsScriptPath = path.join(root, "scripts", "generate-wardrobe-thumbs.mjs");
 const wardrobeMainDir = path.join(root, "images", "wardrobe");
-let thumbBuildTimer = null;
-let thumbBuildRunning = false;
-
-function queueThumbBuild(reason) {
-  if (thumbBuildTimer) clearTimeout(thumbBuildTimer);
-  thumbBuildTimer = setTimeout(async () => {
-    thumbBuildTimer = null;
-    if (thumbBuildRunning) { queueThumbBuild("retry-busy"); return; }
-    thumbBuildRunning = true;
-    console.log(`[thumbs] rebuilding (${reason})…`);
-    try {
-      await new Promise((resolve, reject) => {
-        const child = spawn(process.execPath, [thumbsScriptPath], { stdio: "inherit" });
-        child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`exit ${code}`))));
-      });
-      console.log("[thumbs] done.");
-    } catch (err) {
-      console.warn("[thumbs] build failed:", err?.message || err);
-    } finally {
-      thumbBuildRunning = false;
-    }
-  }, 600);
-}
 
 // Source normaliser: force-centre cover cutouts (1.webp) before deriving thumbs/
 // cutouts, so a newly-added cover is auto-centred with no manual step. Hash-gated,
@@ -496,8 +472,8 @@ function queueCenterBuild(reason) {
       console.warn("[center] failed:", err?.message || err);
     } finally {
       centerBuildRunning = false;
-      // Always derive presentation sets afterwards (hash-gated, near-instant if nothing moved).
-      queueThumbBuild(`after-center:${reason}`);
+      // Always derive the cutout set afterwards (hash-gated, near-instant if nothing moved).
+      // (The pre-generated thumb/ set was retired — Worker resize covers card sizes.)
       queueCutoutBuild(`after-center:${reason}`);
     }
   }, 600);
@@ -681,8 +657,8 @@ const server = http.createServer((req, res) => {
 
 installCssAutoBuildWatcher();
 installThumbWatcher();
-// Startup image reconcile is handled by the predev hook (runs center → thumbs →
-// cutouts before the server starts). Watcher handles live edits from here on.
+// Startup image reconcile is handled by the predev hook (runs center → cutouts
+// before the server starts). Watcher handles live edits from here on.
 
 function listenWithFallback(port, triesLeft) {
   server.once("error", (err) => {

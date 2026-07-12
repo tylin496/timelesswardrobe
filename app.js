@@ -9131,13 +9131,19 @@
    * @param {{ zoom?: number, quality?: number }} [transformOpts]
    * @returns {string}
    */
-  /** Card-sized requests (≤ this width) get the static thumbnail; detail/zoom keep the original. */
-  const WARDROBE_THUMB_MAX_REQUEST_WIDTH = 1000;
+  /**
+   * Resize cap: requests ≤ this width get a Worker resize; above it the original ships.
+   * 1600 admits the PDP hero (1200) and home hero stack (1536) — previously 1000
+   * silently bypassed both, shipping unoptimized full-res originals. The pinch-zoom
+   * viewer (1800) stays above the cap on purpose: zoom wants the original.
+   */
+  const WARDROBE_THUMB_MAX_REQUEST_WIDTH = 1600;
 
   /**
-   * Map a local `/images/wardrobe/<item>/main/<n>.<ext>` path to its pre-generated
-   * `thumb/<n>.webp` when the requested render width is card-sized. Returns "" otherwise
-   * (no thumb for detail/zoom, non-local URLs, or non-`main/` paths).
+   * Append Worker resize params (`?w=&h=&fit=&q=`) to an R2/CDN wardrobe image URL
+   * when the requested render width is within the cap. Returns "" otherwise
+   * (over-cap detail/zoom, non-R2 URLs, cutouts). The deleted local `thumb/`
+   * pipeline used to be redirected here — local paths now just serve raw.
    * @param {string} localUrl
    * @param {number} width
    */
@@ -9146,6 +9152,10 @@
     const targetHeight = typeof height === "number" && height > 0 ? height : Math.round(width * 4 / 3);
     const s = String(localUrl ?? "").trim();
     const [pathPart, query = ""] = s.split("?");
+
+    // Invariant: cutouts are alpha and must never be resized (resize breaks alpha).
+    // Upstream builders already filter them out; this guard makes it enforced.
+    if (/\/cutout\//i.test(pathPart)) return "";
 
     // CDN: apply Worker resize to every wardrobe frame used in cards/carousels.
     // Collection gallery paths can be full-resolution uploads; loading them raw is
@@ -9164,19 +9174,8 @@
       return `${pathPart}?${params}`;
     }
 
-    // Local path: keep thumb/ redirect for local dev.
-    let thumb = "";
-    const mMain = pathPart.match(/^((?:\/)?images\/wardrobe\/[^/]+\/)main\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-    if (mMain) {
-      thumb = `${mMain[1]}thumb/${mMain[2]}.webp`;
-    } else {
-      const mVar = pathPart.match(
-        /^((?:\/)?images\/wardrobe\/[^/]+\/variants\/[^/]+\/)([^/]+)\.(?:webp|png|jpe?g)$/i
-      );
-      if (mVar && !/^preview$/i.test(mVar[2])) thumb = `${mVar[1]}thumb/${mVar[2]}.webp`;
-    }
-    if (!thumb) return "";
-    return query ? `${thumb}?${query}` : thumb;
+    // Local paths: the pre-generated thumb/ set was deleted — serve the raw file.
+    return "";
   }
 
   function withSupabaseWardrobeImageRenderSize(url, width, height, transformOpts) {
@@ -9281,7 +9280,14 @@
       .filter((u) => wardrobeStoragePathFromMediaUrl(u))
       .filter((u) => !wardrobeImageUrlStillReferencedByOtherItems(u, excludeId));
     if (!cloudUrls.length) return;
-    await Promise.allSettled(cloudUrls.map(deleteWardrobeImageUrlFromCloud));
+    const results = await Promise.allSettled(cloudUrls.map(deleteWardrobeImageUrlFromCloud));
+    const failed = cloudUrls.filter((_, i) => results[i].status !== "fulfilled" || results[i].value !== true);
+    if (failed.length) {
+      console.warn(
+        `[wardrobe images] ${failed.length}/${cloudUrls.length} R2 delete(s) failed for item "${excludeId}" — orphaned:`,
+        failed
+      );
+    }
   }
 
   /**
@@ -9410,7 +9416,15 @@
     ]);
     const drop = collectWardrobeImageStoragePaths(prevItem).filter((p) => !keep.has(p));
     if (!drop.length) return;
-    await Promise.allSettled(drop.map((p) => deleteWardrobeImageUrlFromCloud(p)));
+    const results = await Promise.allSettled(drop.map((p) => deleteWardrobeImageUrlFromCloud(p)));
+    const failed = drop.filter((_, i) => results[i].status !== "fulfilled" || results[i].value !== true);
+    if (failed.length) {
+      const itemId = String(prevItem?.id ?? "").trim();
+      console.warn(
+        `[wardrobe images] ${failed.length}/${drop.length} stale R2 delete(s) failed for item "${itemId}" — orphaned:`,
+        failed
+      );
+    }
   }
 
   async function loadWardrobeItemsFromCloud() {
@@ -26239,6 +26253,9 @@
         img.alt = displayNameWithoutLeadingColour(peer);
         img.loading = "lazy";
         img.decoding = "async";
+        // Seed fallback — the only card surface that previously had none: a stale
+        // cloud URL left a broken image with no recovery.
+        wireImgSeedFallback(img, seedCoverFallbackFrameUrl(peer, peer.image, { width: 800, height: 1000 }));
         const meta = document.createElement("div");
         meta.className = "item-detail__related-meta";
         const brand = document.createElement("span");
