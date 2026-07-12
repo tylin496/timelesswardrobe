@@ -2572,8 +2572,8 @@
     }
   }
 
-  /** Vercel production default origin. */
-  const TW_VERCEL_PRODUCTION_ORIGIN = "https://timelesswardrobe.uk";
+  /** Production default origin. */
+  const TW_PRODUCTION_ORIGIN = "https://timelesswardrobe.uk";
 
   let twLoginOAuthKickoff = false;
 
@@ -5404,14 +5404,11 @@
     const configured = String(globalThis.APP_CONFIG?.SITE_ORIGIN ?? "").trim().replace(/\/$/, "");
     if (configured) return configured;
     if (isTwLocalDevHost()) return globalThis.location.origin;
-    if (globalThis.location.hostname.endsWith(".vercel.app")) {
-      return globalThis.location.origin;
-    }
-    return TW_VERCEL_PRODUCTION_ORIGIN;
+    return TW_PRODUCTION_ORIGIN;
   }
 
   /**
-   * OAuth must return to the live deployment (`SITE_ORIGIN` or current `.vercel.app` host).
+   * OAuth must return to the live deployment (`SITE_ORIGIN` or the production origin).
    * @returns {string}
    */
   function twOAuthRedirectUrl() {
