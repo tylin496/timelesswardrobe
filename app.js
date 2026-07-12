@@ -3659,7 +3659,7 @@
           const thumb = document.createElement("img");
           thumb.className = "account-overview__activity-thumb";
           const _actCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-            || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
+            || wardrobeCutoutFallbackUrlForItemId(it?.id);
           thumb.src = _actCutout || String(it?.image ?? "");
           if (_actCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = String(it?.image ?? ""); };
           thumb.alt = "";
@@ -4283,7 +4283,7 @@
     const img = document.createElement("img");
     img.className = "account-cat-thumb";
     const _catCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-      || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
+      || wardrobeCutoutFallbackUrlForItemId(it?.id);
     const _catFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     img.src = _catCutout || _catFallback;
     if (_catCutout) img.onerror = () => { img.onerror = null; img.src = _catFallback; };
@@ -4649,7 +4649,7 @@
       const img = document.createElement("img");
       img.className = "account-showcase-preview__img";
       const _cutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-        || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
+        || wardrobeCutoutFallbackUrlForItemId(it?.id);
       const _fallback = withSupabaseWardrobeImageRenderSize(it?.image, 600, 800, { item: it }) || String(it?.image ?? "");
       img.src = _cutout || _fallback;
       if (_cutout) img.onerror = () => { img.onerror = null; img.src = _fallback; };
@@ -4820,7 +4820,7 @@
     const thumb = document.createElement("img");
     thumb.className = "account-playlist-thumb";
     const _plCutout = wardrobeCutoutUrlFromCoverUrl(String(it?.image ?? ""))
-      || (isLocalCatalogueItemId(it?.id) ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(it.id))}/cutout/1.webp` : "");
+      || wardrobeCutoutFallbackUrlForItemId(it?.id);
     const _plFallback = withSupabaseWardrobeImageRenderSize(it?.image, 200, 250, { item: it }) || String(it?.image ?? "");
     thumb.src = _plCutout || _plFallback;
     if (_plCutout) thumb.onerror = () => { thumb.onerror = null; thumb.src = _plFallback; };
@@ -16147,6 +16147,17 @@
       return `/images/wardrobe/${mVar[1]}/variants/${mVar[2]}/cutout/${mVar[3]}.webp`;
     }
     return "";
+  }
+
+  /**
+   * Last-resort cutout guess from an item id alone (no cover URL to derive from —
+   * e.g. the cover itself failed to resolve). Only meaningful for local-catalogue
+   * ids, which are the only rows with a local `cutout/` set.
+   */
+  function wardrobeCutoutFallbackUrlForItemId(id) {
+    return isLocalCatalogueItemId(id)
+      ? `${WARDROBE_R2_BASE}/${encodeURIComponent(String(id))}/cutout/1.webp`
+      : "";
   }
 
   /**

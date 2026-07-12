@@ -20,6 +20,7 @@
     "dev": "node scripts/tw-dev-server.mjs",
     "dev:monitor": "node scripts/tw-dev-monitor.mjs",
     "check:showcase": "node scripts/check-showcase-order.mjs",
+    "check:r2-orphans": "node scripts/check-r2-orphans.mjs",
     "db:backup": "node scripts/backup.mjs",
     "db:freeze-catalogue": "node scripts/freeze_catalogue_from_supabase.mjs"
   },
