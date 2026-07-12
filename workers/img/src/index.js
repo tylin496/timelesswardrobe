@@ -1,3 +1,7 @@
+// R2 keys are stable per slot (wardrobe/<id>/main/<n>.webp), not content-addressed.
+// Safe to cache 1y immutable because re-uploads are busted client-side: a media-touching
+// save stamps item.__displayNonce and withWardrobeImageCacheBust appends it as `?cb=`,
+// so a re-upload gets a new URL rather than relying on this cache expiring.
 const CACHE_TTL = 60 * 60 * 24 * 365; // 1 year — immutable assets
 
 // Diagnostic probe image — small known-size WebP, change w= to force a different size.
@@ -37,11 +41,22 @@ export default {
       return new Response("Not found", { status: 404 });
     }
 
-    const w = parseInt(url.searchParams.get("w") || "0") || undefined;
-    const h = parseInt(url.searchParams.get("h") || "0") || undefined;
+    // Clamp dimensions: unbounded w/h means unbounded paid transforms + cache-key
+    // cardinality from an unauthenticated endpoint. 2400 covers the largest client
+    // request (zoom preset height); anything above is clamped, not rejected, so a
+    // bad param still renders.
+    const MAX_DIM = 2400;
+    const clampDim = (v) => {
+      const n = parseInt(v || "0", 10);
+      return n > 0 ? Math.min(n, MAX_DIM) : undefined;
+    };
+    const w = clampDim(url.searchParams.get("w"));
+    const h = clampDim(url.searchParams.get("h"));
     const qRaw = parseInt(url.searchParams.get("q") || "0", 10) || undefined;
     const q = qRaw && qRaw >= 20 && qRaw <= 95 ? qRaw : undefined;
-    const fit = url.searchParams.get("fit") || "contain";
+    const FITS = new Set(["scale-down", "contain", "cover", "crop", "pad"]);
+    const fitRaw = url.searchParams.get("fit") || "contain";
+    const fit = FITS.has(fitRaw) ? fitRaw : "contain";
     const bg = url.searchParams.get("background") || undefined;
 
     const sourceUrl = `${(env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${key}`;
