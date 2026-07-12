@@ -7,7 +7,6 @@ binding = "WARDROBE_IMAGES"
 bucket_name = "wardrobe-images"
 
 [vars]
-R2_PUBLIC_URL = "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev"
 R2_CDN_URL = "https://img.timelesswardrobe.uk"
 SUPABASE_URL = "https://yyzrzmbsxphlhoqzikjn.supabase.co"
 # Comma-separated exact origins; localhost/127.0.0.1 (any port) always allowed for dev

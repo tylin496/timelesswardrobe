@@ -1,39 +1,73 @@
+// Wardrobe image worker — serves img.timelesswardrobe.uk/wardrobe/<key>.
+//
+// Reads originals straight from the R2 bucket via the WARDROBE_IMAGES binding
+// (NOT the public pub-*.r2.dev URL) and resizes on demand with the Cloudflare
+// Images binding (env.IMAGES). This is what lets the r2.dev public subdomain be
+// disabled: nothing here depends on the bucket being publicly reachable.
+//
 // R2 keys are stable per slot (wardrobe/<id>/main/<n>.webp), not content-addressed.
-// Safe to cache 1y immutable because re-uploads are busted client-side: a media-touching
-// save stamps item.__displayNonce and withWardrobeImageCacheBust appends it as `?cb=`,
-// so a re-upload gets a new URL rather than relying on this cache expiring.
+// Safe to cache 1y immutable because re-uploads are busted client-side: a media-
+// touching save stamps item.__displayNonce and withWardrobeImageCacheBust appends
+// it as `?cb=`, so a re-upload gets a new URL rather than relying on expiry.
 const CACHE_TTL = 60 * 60 * 24 * 365; // 1 year — immutable assets
 
-// Diagnostic probe image — small known-size WebP, change w= to force a different size.
+// Diagnostic probe image — small known-size WebP.
 const PROBE_KEY = "wardrobe/tank-solo/main/1.webp";
 
+// Unbounded w/h means unbounded paid transforms + cache-key cardinality from an
+// unauthenticated endpoint. 2400 covers the largest client request (zoom preset
+// height); anything above is clamped, not rejected, so a bad param still renders.
+const MAX_DIM = 2400;
+const FITS = new Set(["scale-down", "contain", "cover", "crop", "pad"]);
+
+const clampDim = (v) => {
+  const n = parseInt(v || "0", 10);
+  return n > 0 ? Math.min(n, MAX_DIM) : undefined;
+};
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const key = url.pathname.slice(1); // strip leading /
+    // R2 object keys are the decoded path; client URLs percent-encode each segment.
+    let key;
+    try {
+      key = decodeURIComponent(url.pathname.slice(1));
+    } catch {
+      key = url.pathname.slice(1);
+    }
 
     // ── Diagnostic endpoint ──────────────────────────────────────────────────
-    // GET /diagnostics — fetches probe image with and without cf.image to check
-    // whether Image Transformations are active on this zone.
+    // GET /diagnostics — reads the probe via the R2 binding and runs an Images
+    // transform, comparing byte sizes to confirm the binding + Images are live.
     if (key === "diagnostics") {
-      const base = `${(env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${PROBE_KEY}`;
-      const [orig, resized] = await Promise.all([
-        fetch(base),
-        fetch(base, { cf: { image: { width: 50, height: 50, fit: "contain", format: "webp" } } }),
-      ]);
-      const origLen = orig.headers.get("content-length");
-      const resizedLen = resized.headers.get("content-length");
-      const origType = orig.headers.get("content-type");
-      const resizedType = resized.headers.get("content-type");
+      const cors = { "Access-Control-Allow-Origin": "*" };
+      const src = await env.WARDROBE_IMAGES.get(PROBE_KEY);
+      if (!src) {
+        return Response.json({ error: "probe key missing", key: PROBE_KEY }, { status: 404, headers: cors });
+      }
+      const origLen = (await src.arrayBuffer()).byteLength;
+      let resizedLen = null;
+      let err = null;
+      try {
+        const probe = await env.WARDROBE_IMAGES.get(PROBE_KEY);
+        const out = await env.IMAGES
+          .input(probe.body)
+          .transform({ width: 50, height: 50, fit: "contain" })
+          .output({ format: "image/webp" });
+        resizedLen = (await out.response().arrayBuffer()).byteLength;
+      } catch (e) {
+        err = String(e);
+      }
       const working = resizedLen !== null && resizedLen !== origLen;
       return Response.json({
-        cf_image_working: working,
-        original: { content_length: origLen, content_type: origType, status: orig.status },
-        resized:  { content_length: resizedLen, content_type: resizedType, status: resized.status },
+        images_binding_working: working,
+        original_bytes: origLen,
+        resized_bytes: resizedLen,
+        error: err,
         note: working
-          ? "cf.image is applying transforms — sizes differ."
-          : "cf.image is NOT working — sizes identical. Image Transformations may not be enabled on this zone.",
-      }, { headers: { "Access-Control-Allow-Origin": "*" } });
+          ? "Images binding transform active — sizes differ."
+          : "Images binding NOT transforming — check the [images] binding is deployed and Images is enabled on the account.",
+      }, { headers: cors });
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -41,47 +75,55 @@ export default {
       return new Response("Not found", { status: 404 });
     }
 
-    // Clamp dimensions: unbounded w/h means unbounded paid transforms + cache-key
-    // cardinality from an unauthenticated endpoint. 2400 covers the largest client
-    // request (zoom preset height); anything above is clamped, not rejected, so a
-    // bad param still renders.
-    const MAX_DIM = 2400;
-    const clampDim = (v) => {
-      const n = parseInt(v || "0", 10);
-      return n > 0 ? Math.min(n, MAX_DIM) : undefined;
-    };
+    // Transforms are billed and non-trivial; serve repeat requests from the edge
+    // cache so a given (key + params) is only transformed once.
+    const cache = caches.default;
+    const cacheKey = new Request(url.toString(), { method: "GET" });
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+
     const w = clampDim(url.searchParams.get("w"));
     const h = clampDim(url.searchParams.get("h"));
     const qRaw = parseInt(url.searchParams.get("q") || "0", 10) || undefined;
     const q = qRaw && qRaw >= 20 && qRaw <= 95 ? qRaw : undefined;
-    const FITS = new Set(["scale-down", "contain", "cover", "crop", "pad"]);
     const fitRaw = url.searchParams.get("fit") || "contain";
     const fit = FITS.has(fitRaw) ? fitRaw : "contain";
-    const bg = url.searchParams.get("background") || undefined;
+    const bgRaw = url.searchParams.get("background") || "";
+    const background = bgRaw ? `#${bgRaw.replace(/^#/, "")}` : undefined;
 
-    const sourceUrl = `${(env.R2_PUBLIC_URL || "").replace(/\/$/, "")}/${key}`;
+    const obj = await env.WARDROBE_IMAGES.get(key);
+    if (!obj) return new Response("Not found", { status: 404 });
 
-    const cfImage = (w || h) ? {
-      width: w,
-      height: h,
-      fit,
-      format: "webp",
-      ...(q ? { quality: q } : {}),
-      ...(bg ? { background: `#${bg.replace(/^#/, "")}` } : {}),
-    } : undefined;
-
-    const response = await fetch(sourceUrl, {
-      cf: cfImage ? { image: cfImage } : undefined,
-    });
-
-    if (!response.ok) {
-      return new Response(response.statusText, { status: response.status });
+    let body;
+    let contentType = "image/webp";
+    if (w || h) {
+      // Resize path. Cutouts (alpha) never carry w/h — they fall through to the
+      // raw branch below, so the transform never touches an alpha image.
+      const transform = { fit };
+      if (w) transform.width = w;
+      if (h) transform.height = h;
+      if (background) transform.background = background;
+      const out = await env.IMAGES
+        .input(obj.body)
+        .transform(transform)
+        .output({ format: "image/webp", ...(q ? { quality: q } : {}) });
+      body = out.response().body;
+    } else {
+      // No resize (e.g. cutouts) — serve raw bytes, preserve stored content-type.
+      body = obj.body;
+      if (obj.httpMetadata?.contentType) contentType = obj.httpMetadata.contentType;
     }
 
-    const headers = new Headers(response.headers);
-    headers.set("Cache-Control", `public, max-age=${CACHE_TTL}, immutable`);
-    headers.set("Access-Control-Allow-Origin", "*");
+    const response = new Response(body, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Cache-Control": `public, max-age=${CACHE_TTL}, immutable`,
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
 
-    return new Response(response.body, { status: 200, headers });
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
   },
 };

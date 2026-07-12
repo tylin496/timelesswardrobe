@@ -1,10 +1,17 @@
 name = "timeless-wardrobe-img"
 main = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
 
 routes = [
   { pattern = "img.timelesswardrobe.uk/*", zone_name = "timelesswardrobe.uk" }
 ]
 
-[vars]
-R2_PUBLIC_URL = "https://pub-f0dd24245fc04b73b2bffc58bebc2f02.r2.dev"
+# Originals are read straight from the bucket via this binding — no dependency on
+# the public pub-*.r2.dev URL, so that subdomain can be disabled.
+[[r2_buckets]]
+binding = "WARDROBE_IMAGES"
+bucket_name = "wardrobe-images"
+
+# On-demand resizing (env.IMAGES.input().transform().output()).
+[images]
+binding = "IMAGES"
