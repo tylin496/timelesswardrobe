@@ -8859,6 +8859,17 @@
     return "";
   }
 
+  function appendCacheBustToken(url, token) {
+    try {
+      const u = new URL(url);
+      u.searchParams.set("cb", token);
+      return u.href;
+    } catch {
+      const sep = url.includes("?") ? "&" : "?";
+      return `${url}${sep}cb=${encodeURIComponent(token)}`;
+    }
+  }
+
   function withWardrobeImageCacheBust(url, item) {
     const raw = String(url ?? "").trim();
     if (!raw) return "";
@@ -8866,18 +8877,20 @@
     const isWardrobeMedia =
       Boolean(storagePathFromWardrobeImageUrl(raw)) || /^\/images\/wardrobe\//i.test(pathKey);
     if (!isWardrobeMedia) return raw;
-    // R2 URLs carry a ?v= content hash in the seed — no cb token needed.
-    if (isR2WardrobeImageUrl(raw)) return raw;
-    const token = wardrobeImageCacheBustTokenFromItem(item) || wardrobeImageCacheBustTokenFromPath(raw);
-    if (!token) return raw;
-    try {
-      const u = new URL(raw);
-      u.searchParams.set("cb", token);
-      return u.href;
-    } catch {
-      const sep = raw.includes("?") ? "&" : "?";
-      return `${raw}${sep}cb=${encodeURIComponent(token)}`;
+    if (isR2WardrobeImageUrl(raw)) {
+      // Seed R2 URLs carry a ?v= content hash already. Only append cb when the item
+      // carries an explicit in-session __displayNonce (set by stampWardrobeItemMediaNonce
+      // when a save actually touches media) — falling back to updatedAt/createdAt here
+      // would cb-bust every render of every item (any field edit updates updatedAt),
+      // permanently defeating the img worker's immutable 1yr edge cache.
+      const o = /** @type {any} */ (item);
+      const nonce = o && typeof o.__displayNonce === "number" && Number.isFinite(o.__displayNonce)
+        ? String(Math.floor(o.__displayNonce))
+        : "";
+      return nonce ? appendCacheBustToken(raw, nonce) : raw;
     }
+    const token = wardrobeImageCacheBustTokenFromItem(item) || wardrobeImageCacheBustTokenFromPath(raw);
+    return token ? appendCacheBustToken(raw, token) : raw;
   }
 
   function clearCoverResolutionCacheForItem(itemId) {
@@ -9055,8 +9068,9 @@
     const raw = String(url ?? "").trim();
     if (!raw) return "";
     if (raw.startsWith("blob:") || raw.startsWith("data:")) return raw;
-    // CDN URL is already in its final form — preserve ?v= cache-bust hash from seed.
-    if (isR2WardrobeImageUrl(raw)) return raw;
+    // CDN URL is already in its final form (preserves ?v= cache-bust hash from seed);
+    // still route through cache-bust so a fresh __displayNonce reaches re-uploaded slots.
+    if (isR2WardrobeImageUrl(raw)) return withWardrobeImageCacheBust(raw, item);
     const existing = storagePathFromWardrobeImageUrl(raw);
     if (existing) {
       // Supabase Storage URL (legacy) — redirect to local file if available, else strip query.
@@ -9083,11 +9097,10 @@
     return withWardrobeImageCacheBust(raw, item);
   }
 
-  /** Full-resolution URL for crop / download source. R2 URLs are already final. */
+  /** Full-resolution URL for crop / download source. R2 URLs are already final (bar cache-bust). */
   function wardrobeImageFullResolutionUrl(url, item) {
     const raw = String(url ?? "").trim();
     if (!raw) return "";
-    if (isR2WardrobeImageUrl(raw)) return raw.split("?")[0];
     return withWardrobeImageCacheBust(raw.split("?")[0], item);
   }
 
