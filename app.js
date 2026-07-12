@@ -9186,6 +9186,44 @@
     return localWardrobeThumbPath(resolved, width, height, transformOpts) || resolved;
   }
 
+  /**
+   * DPR-aware `srcset` for a wardrobe render preset.
+   *
+   * Every preset (COLLECTION_GRID_CARD_RENDER, ITEM_DETAIL_GALLERY_RENDER, …) is
+   * authored at ~2× its on-screen slot — the size shipped to *every* client today,
+   * including plain DPR-1 desktops that only need ~half those pixels. We keep the
+   * preset size as the `2x` candidate (retina / mobile — byte-for-byte unchanged,
+   * so no quality or decode-memory regression on the iOS path) and add a half-size
+   * `1x` so DPR-1 displays fetch roughly a quarter of the pixels.
+   *
+   * Returns "" when a real two-density srcset can't be built — cutouts (alpha,
+   * never resized), non-R2 URLs, or over-cap sizes where the resize helper returns
+   * the raw original for both densities. Callers then leave `srcset` unset and let
+   * plain `src` govern.
+   * @returns {string}
+   */
+  function wardrobeImageRenderSrcSet(url, width, height, transformOpts) {
+    if (!(typeof width === "number" && width > 0 && typeof height === "number" && height > 0)) return "";
+    const half = withSupabaseWardrobeImageRenderSize(url, Math.round(width / 2), Math.round(height / 2), transformOpts);
+    const full = withSupabaseWardrobeImageRenderSize(url, width, height, transformOpts);
+    // Both densities must be genuine, distinct CDN resizes — otherwise a srcset
+    // would list the same file twice (or the raw original), so skip it.
+    if (!half || !full || half === full) return "";
+    return `${half} 1x, ${full} 2x`;
+  }
+
+  /**
+   * Set `img.srcset` when non-empty, else clear it. Clearing matters: a stale
+   * `srcset` fully overrides `src`, so any code that recovers by re-setting only
+   * `.src` (seed fallbacks, frame swaps) must route the empty case through here.
+   * @param {HTMLImageElement} imgEl
+   * @param {string} srcset
+   */
+  function applyImgSrcSet(imgEl, srcset) {
+    if (srcset) imgEl.setAttribute("srcset", srcset);
+    else imgEl.removeAttribute("srcset");
+  }
+
   /** True when the URL is served from the CDN image origin (img.timelesswardrobe.uk or pub-*.r2.dev). */
   function isR2WardrobeImageUrl(url) {
     return /^https?:\/\/(?:[^/]*\.r2\.dev|img\.timelesswardrobe\.uk)\//i.test(String(url ?? "").trim().split("?")[0]);
@@ -9203,12 +9241,17 @@
   function wireItemThumbWithSeedFallback(img, it, w = 200, h = 250) {
     const src = withSupabaseWardrobeImageRenderSize(it?.image, w, h, { item: it }) || String(it?.image ?? "");
     img.src = src;
+    applyImgSrcSet(img, wardrobeImageRenderSrcSet(it?.image, w, h, { item: it }));
     if (isLocalCatalogueItemId(it?.id) && /^https?:\/\//i.test(String(it?.image ?? "").split("?")[0])) {
       const seed = catalogueSeedRow(it.id);
       const seedRaw = String(seed?.image ?? seed?.colourVariants?.[0]?.image ?? "").trim();
       if (seedRaw) {
         const seedSrc = withSupabaseWardrobeImageRenderSize(seedRaw, w, h, { item: it }) || seedRaw;
-        img.onerror = () => { img.onerror = null; img.src = seedSrc; };
+        img.onerror = () => {
+          img.onerror = null;
+          applyImgSrcSet(img, wardrobeImageRenderSrcSet(seedRaw, w, h, { item: it }));
+          img.src = seedSrc;
+        };
       }
     }
   }
@@ -16255,6 +16298,8 @@
       const fb = String(fallbackUrl ?? "").trim();
       if (fb && imgEl.dataset.twSeedFallbackTried !== "1" && imgEl.src !== fb) {
         imgEl.dataset.twSeedFallbackTried = "1";
+        // A lingering render srcset would override this single-size seed src.
+        imgEl.removeAttribute("srcset");
         imgEl.src = fb;
         return;
       }
@@ -16446,6 +16491,18 @@
     });
   }
 
+  /** `srcset` companion to `wardrobeImageForFrame` (same cache-bust + frame sizing). */
+  function wardrobeImageForFrameSrcSet(url, item, frame) {
+    const bust = withWardrobeImageCacheBust(String(url ?? "").trim(), item);
+    if (!bust || !isDisplayableCloudImageUrl(bust) || !frame?.width || !frame?.height) return "";
+    return wardrobeImageRenderSrcSet(bust, frame.width, frame.height, {
+      item,
+      resize: frame.resize === "contain" ? "contain" : "cover",
+      quality: frame.quality,
+      zoom: typeof frame.zoom === "number" && frame.zoom > 1 && frame.zoom <= 3 ? frame.zoom : undefined,
+    });
+  }
+
   /**
    * Try `buildCoverCandidates` in order until one loads. Optionally cache working URL on `item.id`.
    * @param {{ host?: HTMLElement, missingClass?: string | null, onResolved?: (url: string) => void, onExhausted?: () => void, preferredUrl?: string, coverCandidates?: string[], coverRenderWidth?: number, coverRenderHeight?: number, coverRenderZoom?: number, coverRenderQuality?: number, coverRenderResize?: "cover" | "contain" }} [opts]
@@ -16468,6 +16525,8 @@
       Array.isArray(opts?.coverCandidates) && opts.coverCandidates.length
         ? opts.coverCandidates.map((u) => String(u ?? "").trim()).filter(Boolean)
         : buildCoverCandidates(item);
+    /** DPR-aware srcset per candidate (aligned by index; "" = single-size). */
+    let candidateSrcSets = [];
     const preferredRaw = String(opts?.preferredUrl ?? "").trim();
     if (preferredRaw && isDisplayableCloudImageUrl(preferredRaw)) {
       const bust = withWardrobeImageCacheBust(preferredRaw, item);
@@ -16487,23 +16546,27 @@
           ? opts.coverRenderResize
           : "contain";
       const expanded = [];
+      /** @type {string[]} aligned with `expanded`; "" = single-size candidate. */
+      const expandedSrcSets = [];
       const seenExpanded = new Set();
       /** @type {string[]} */
       const rawLocalFallbacks = [];
-      const pushCandidate = (u) => {
+      const pushCandidate = (u, srcset = "") => {
         const x = String(u ?? "").trim();
         if (!x || seenExpanded.has(x)) return;
         seenExpanded.add(x);
         expanded.push(x);
+        expandedSrcSets.push(srcset || "");
       };
       for (const u of candidates) {
-        const rendered = withSupabaseWardrobeImageRenderSize(u, rw, rh, {
+        const renderOpts = {
           item,
           resize,
           zoom: typeof z === "number" && z > 1 && z <= 3 ? z : undefined,
           quality: typeof q === "number" && q >= 20 ? q : undefined,
-        });
-        pushCandidate(rendered);
+        };
+        const rendered = withSupabaseWardrobeImageRenderSize(u, rw, rh, renderOpts);
+        pushCandidate(rendered, wardrobeImageRenderSrcSet(u, rw, rh, renderOpts));
         /* Try Supabase transforms first; keep local originals only as a last resort. */
         const deferRawFallback = Boolean(wardrobeImageObjectPath(u) && getSupabaseProjectOrigin());
         if (!deferRawFallback && rendered !== u) pushCandidate(u);
@@ -16514,6 +16577,7 @@
       }
       for (const raw of rawLocalFallbacks) pushCandidate(raw);
       candidates = expanded;
+      candidateSrcSets = expandedSrcSets;
     }
     if (!candidates.length) {
       /** @type {any} */ (img).__twCoverWireAbort = undefined;
@@ -16576,13 +16640,19 @@
       img.classList.add("card__media-img--loaded");
       onResolved?.(url);
     }
+    function setImgCandidate(i) {
+      // srcset before src: with srcset present the browser ignores src entirely,
+      // so it must be in place (or cleared) as the resource decision is made.
+      applyImgSrcSet(img, candidateSrcSets[i] || "");
+      img.src = candidates[i];
+    }
     function tryNext() {
       idx += 1;
       if (idx >= candidates.length) {
         finishFail();
         return;
       }
-      img.src = candidates[idx];
+      setImgCandidate(idx);
     }
     function onLoad() {
       if (!img.naturalWidth && !img.naturalHeight) {
@@ -16597,7 +16667,7 @@
 
     img.addEventListener("load", onLoad);
     img.addEventListener("error", onErr);
-    img.src = candidates[0];
+    setImgCandidate(0);
     if (img.complete && img.naturalWidth > 0) {
       finishSuccess();
       return;
@@ -16971,6 +17041,8 @@
       const fb = fr?.fallback ? heroFrameSrc(fr.fallback) : "";
       if (fb && heroImgEl.src !== fb && heroImgEl.dataset.twSeedFallbackTried !== "1") {
         heroImgEl.dataset.twSeedFallbackTried = "1";
+        // The seed fallback is a single-size frame — drop any render srcset first.
+        heroImgEl.removeAttribute("srcset");
         heroImgEl.src = fb;
       }
     });
@@ -16984,6 +17056,7 @@
         heroImgEl.dataset.frameRaw = String(frames[idx].url ?? "").trim();
         if (!carousel) {
           delete heroImgEl.dataset.twSeedFallbackTried;
+          applyImgSrcSet(heroImgEl, wardrobeImageForFrameSrcSet(frames[idx].url, item, frameSpec));
           heroImgEl.src = url;
         }
       }
@@ -17239,8 +17312,13 @@
       const cached = String(heroImgEl.dataset.coverSrc ?? "").trim();
       const coverRaw = inCollectionGrid ? collectionGridCoverFrameRaw(item) : (buildCoverCandidates(item)[0] ?? "");
       const src = cached || heroFrameSrc(coverRaw || firstCover, "cover");
-      if (src) heroImgEl.src = src;
-      else heroImgEl.removeAttribute("src");
+      if (src) {
+        applyImgSrcSet(heroImgEl, wardrobeImageForFrameSrcSet(coverRaw || firstCover, item, coverFrame));
+        heroImgEl.src = src;
+      } else {
+        heroImgEl.removeAttribute("srcset");
+        heroImgEl.removeAttribute("src");
+      }
       heroImgEl.alt = imageAltForItem(item);
       syncCardMediaImgFitClass(heroImgEl, "cover");
       setActive(mainBtn);
@@ -17259,6 +17337,7 @@
       ti.addEventListener("error", () => { btn.hidden = true; });
       btn.appendChild(ti);
       btn.addEventListener("click", () => {
+        applyImgSrcSet(heroImgEl, wardrobeImageForFrameSrcSet(url, item, galleryFrame));
         heroImgEl.src = heroFrameSrc(url, "gallery");
         heroImgEl.alt = `${item.brand} — ${displayNameWithoutLeadingColour(item)} (detail)`;
         syncCardMediaImgFitClass(heroImgEl, "gallery");
@@ -26340,6 +26419,7 @@
         // ~250px, so the old 1001 silently shipped 1200×1600 originals (~7.7 MB decode
         // each, up to 12 cards) — pure iOS decode-memory waste. 800w still resizes.
         img.src = withSupabaseWardrobeImageRenderSize(peer.image, 800, 1000, { item: peer }) || peer.image || "";
+        applyImgSrcSet(img, wardrobeImageRenderSrcSet(peer.image, 800, 1000, { item: peer }));
         img.alt = displayNameWithoutLeadingColour(peer);
         img.loading = "lazy";
         img.decoding = "async";
