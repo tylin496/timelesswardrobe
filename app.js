@@ -9427,6 +9427,25 @@
     }
   }
 
+  /**
+   * Best-effort cleanup of R2 objects freshly uploaded during a save whose DB write then
+   * failed — these are brand-new content with no other reference, so deleting them on
+   * failure is always safe (unlike resequence-moved existing photos, which stay put).
+   * @param {string[] | null | undefined} urls
+   */
+  async function cleanupOrphanedUploadsAfterFailedSave(urls) {
+    const list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+    if (!list.length) return;
+    const results = await Promise.allSettled(list.map(deleteWardrobeImageUrlFromCloud));
+    const failed = list.filter((_, i) => results[i].status !== "fulfilled" || results[i].value !== true);
+    if (failed.length) {
+      console.warn(
+        `[wardrobe images] ${failed.length}/${list.length} orphan cleanup delete(s) failed after aborted save:`,
+        failed
+      );
+    }
+  }
+
   async function loadWardrobeItemsFromCloud() {
     if (!isSupabaseReady()) return [];
     const { data, error } = await supabaseClient
@@ -19602,7 +19621,9 @@
    * @param {({ kind: "url", url: string } | { kind: "file", file: File })[]} slots
    * @param {string} itemId
    * @param {(t: string, err?: boolean) => void} setMsg
-   * @param {{ variantKey?: string, keepCoverOnFailure?: boolean, previousCover?: string }} [opts]
+   * @param {{ variantKey?: string, keepCoverOnFailure?: boolean, previousCover?: string, onUpload?: (url: string) => void }} [opts]
+   *   `onUpload` fires synchronously after each successful R2 upload — use it to accumulate a
+   *   cleanup list that survives a mid-batch throw (the return value only covers a clean finish).
    */
   async function materializeItemEditPhotoSlots(slots, itemId, setMsg, opts = {}) {
     const variantKey = String(opts.variantKey ?? "").trim();
@@ -19634,7 +19655,7 @@
     }
 
     if (!planned.length) {
-      return { image: opts.keepCoverOnFailure && prevCover ? prevCover : "", gallery: [] };
+      return { image: opts.keepCoverOnFailure && prevCover ? prevCover : "", gallery: [], uploadedFileUrls: [] };
     }
 
     /** Existing URLs are immutable media objects; reordering only changes the saved image/gallery arrays. */
@@ -19645,6 +19666,40 @@
       plan.url = rawUrl;
     }
 
+    // Resequence existing R2 objects BEFORE uploading new files into canonical slots.
+    // New files upload straight to their final canonical main/{n}.webp key (below); if that
+    // key still held an existing, not-yet-moved photo, the upload would silently overwrite it
+    // before this could relocate it out of the way. Doing the move first guarantees every
+    // canonical key is either already correct or free by the time uploads start.
+    // Only applies to main slots (not variants) and only when the user is authenticated.
+    // relocateFile plans are excluded — they need a fresh upload to reach their canonical
+    // slot (copy from elsewhere), not an in-place move.
+    if (!variantKey && isSupabaseReady()) {
+      const moves = [];
+      for (let i = 0; i < planned.length; i++) {
+        const plan = planned[i];
+        if (plan.source.kind !== "url" || plan.skip || plan.relocateFile) continue;
+        const currentUrl = String(plan.url ?? "").trim().split("?")[0];
+        if (!currentUrl || !isR2WardrobeImageUrl(currentUrl)) continue;
+        const canonicalUrl = canonicalWardrobeMainImageUrl(itemId, i + 1);
+        if (currentUrl !== canonicalUrl) {
+          moves.push({ src: currentUrl, dest: canonicalUrl, planIdx: i });
+        }
+      }
+      if (moves.length) {
+        try {
+          await executeR2Resequence(moves, setMsg);
+          for (const m of moves) {
+            planned[m.planIdx].url = m.dest;
+          }
+        } catch (err) {
+          console.warn("R2 resequence failed, keeping original URLs:", err);
+        }
+      }
+    }
+
+    /** Freshly uploaded (not moved) R2 URLs — safe to delete if the caller's DB save then fails. */
+    const uploadedFileUrls = [];
     const newFileCount = planned.filter((p) => p.source.kind === "file").length;
     let newFileIdx = 0;
     for (let i = 0; i < planned.length; i++) {
@@ -19660,6 +19715,10 @@
           setMsg?.(`Uploading ${where}…`, false);
           try {
             url = await uploadWardrobeImageFileToCloud(plan.relocateFile, itemId, plan.slot);
+            if (url) {
+              uploadedFileUrls.push(url);
+              opts.onUpload?.(url);
+            }
           } catch (err) {
             console.warn(err);
             throw new Error(messageForCloudUploadFailure(where, err));
@@ -19681,6 +19740,10 @@
         try {
           if (isSupabaseReady()) {
             url = await uploadWardrobeImageFileToCloud(plan.source.file, itemId, plan.slot);
+            if (url) {
+              uploadedFileUrls.push(url);
+              opts.onUpload?.(url);
+            }
           } else {
             url = await fileToStorageDataUrl(plan.source.file, { preferJpeg: i > 0 });
           }
@@ -19694,34 +19757,7 @@
       else gallery.push(url);
     }
 
-    // Resequence existing R2 objects that are not at their canonical main/{n}.webp positions.
-    // Only applies to main slots (not variants) and only when the user is authenticated.
-    if (!variantKey && isSupabaseReady()) {
-      const allUrls = [image, ...gallery];
-      const moves = [];
-      for (let i = 0; i < allUrls.length; i++) {
-        const currentUrl = allUrls[i].split("?")[0];
-        if (!isR2WardrobeImageUrl(currentUrl)) continue;
-        const canonicalUrl = canonicalWardrobeMainImageUrl(itemId, i + 1);
-        if (currentUrl !== canonicalUrl) {
-          moves.push({ src: currentUrl, dest: canonicalUrl, planIdx: i });
-        }
-      }
-      if (moves.length) {
-        try {
-          await executeR2Resequence(moves, setMsg);
-          // Update image/gallery to reflect canonical URLs now that files have moved
-          for (const m of moves) {
-            if (m.planIdx === 0) image = m.dest;
-            else gallery[m.planIdx - 1] = m.dest;
-          }
-        } catch (err) {
-          console.warn("R2 resequence failed, keeping original URLs:", err);
-        }
-      }
-    }
-
-    return { image, gallery: dedupeGalleryUrls(image, gallery, 12) };
+    return { image, gallery: dedupeGalleryUrls(image, gallery, 12), uploadedFileUrls };
   }
 
   /** Target max decoded size per embedded photo (local JSON + uploads). Tune here (bytes). */
@@ -20168,12 +20204,26 @@
 
     let dataUrl = "";
     let galleryDeduped = [];
+    /** Accumulated via onUpload (not the return value) so a mid-batch throw still leaves a cleanup list. */
+    const newlyUploadedImageUrls = [];
     if (photoSlots.length) {
-      const materialized = await materializeItemEditPhotoSlots(photoSlots, newId, (msg, err) =>
-        showAddItemFormMsg(msg, err)
-      );
-      dataUrl = materialized.image;
-      galleryDeduped = materialized.gallery;
+      try {
+        const materialized = await materializeItemEditPhotoSlots(
+          photoSlots,
+          newId,
+          (msg, err) => showAddItemFormMsg(msg, err),
+          { onUpload: (url) => newlyUploadedImageUrls.push(url) }
+        );
+        dataUrl = materialized.image;
+        galleryDeduped = materialized.gallery;
+      } catch (uploadErr) {
+        showAddItemFormMsg(
+          String(uploadErr?.message || uploadErr || "Upload failed — check network and try again."),
+          true
+        );
+        cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
+        return;
+      }
     }
 
     const colourTrim = String(colourVal ?? "").trim();
@@ -20251,6 +20301,7 @@
     } catch (err) {
       console.warn(err);
       showAddItemFormMsg(`Cloud row save failed: ${messageForFailedWardrobeUpsert(err)}`, true);
+      cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
       return;
     }
   }
@@ -24417,6 +24468,9 @@
       .map((u) => wardrobeMediaPathKey(u) || String(u).split("?")[0])
       .join("|");
     let hadNewPhotoFiles = false;
+    /** Accumulated via onUpload (not the return value) so a mid-batch throw still leaves a cleanup
+     *  list; read by the save-failure catch blocks below if the subsequent DB write fails. */
+    const newlyUploadedImageUrls = [];
     if (!(variantsMode && colourVariantsBuilt?.length)) {
       const photoHost = document.getElementById("item-edit-photos");
       if (photoHost) {
@@ -24432,11 +24486,13 @@
             const materialized = await materializeItemEditPhotoSlots(slots, id, setMsg, {
               keepCoverOnFailure: true,
               previousCover: image,
+              onUpload: (url) => newlyUploadedImageUrls.push(url),
             });
             image = materialized.image;
             gallery = materialized.gallery;
           } catch (uploadErr) {
             setMsg(String(uploadErr?.message || uploadErr || "Upload failed — check network and try again."), true);
+            cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
             return;
           }
         } else {
@@ -24669,6 +24725,7 @@
       } catch (e) {
         console.warn(e);
         setMsg(`Failed to save "${name}" (custom item) — ${messageForFailedWardrobeUpsert(e)}`, true);
+        cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
         return;
       }
     } else {
@@ -24800,6 +24857,7 @@
           } catch (e) {
             setMsg(`Failed to save "${name}" (media + row) — ${messageForFailedWardrobeUpsert(e)}`, true);
             keepFinalWarningMessage = true;
+            cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
             return;
           }
         } else {
@@ -24844,6 +24902,7 @@
         } catch (e) {
           setMsg(`Failed to save "${name}" — ${messageForFailedWardrobeUpsert(e)}`, true);
           keepFinalWarningMessage = true;
+          cleanupOrphanedUploadsAfterFailedSave(newlyUploadedImageUrls);
           return;
         }
       }
