@@ -50,11 +50,8 @@ const rootFiles = [
   "site.webmanifest",
   "icon.svg",
   "icon-mark.svg",
-  "logo.svg",
-  "monogram.png",
   "loading-logo.png",
   "og-image.png",
-  "og-image.svg",
   "robots.txt",
 ];
 
