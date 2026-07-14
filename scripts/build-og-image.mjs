@@ -53,55 +53,65 @@ function loadWardrobeItems() {
   return fn();
 }
 
-// Source image for an item: prefers cutout/1.webp (transparent, 720×960),
-// falls back to main/1.webp (full-res transparent source).
-function thumbFileForItem(item) {
-  const id = String(item?.id ?? "").trim();
-  if (id) {
-    const cutout = path.join(root, "images", "wardrobe", id, "cutout", "1.webp");
-    if (fs.existsSync(cutout)) return cutout;
-    const main = path.join(root, "images", "wardrobe", id, "main", "1.webp");
-    if (fs.existsSync(main)) return main;
+// Originals live on R2 behind the img worker — local images/wardrobe/ copies
+// were retired with the R2 migration, so the CDN is the normal source here.
+const CDN_BASE = "https://img.timelesswardrobe.uk";
+
+async function fetchImageBuffer(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return Buffer.from(await res.arrayBuffer());
+  } catch {
+    return null;
   }
-  const raw = String(item?.image ?? "").trim().split("?")[0];
-  const m = raw.match(/\/images\/wardrobe\/([^/]+)\/variants\/([^/]+)\/([^/]+)\.(?:webp|png|jpe?g)$/i);
-  if (m && !/^preview$/i.test(m[3])) {
-    const seg = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
-    const cutout = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), "cutout", `${seg(m[3])}.webp`);
-    if (fs.existsSync(cutout)) return cutout;
-    const main = path.join(root, "images", "wardrobe", seg(m[1]), "variants", seg(m[2]), `${seg(m[3])}.webp`);
-    if (fs.existsSync(main)) return main;
-  }
-  return "";
 }
 
-function resolveItems() {
+// Source image for an item: prefers cutout/1.webp (transparent, 720×960),
+// falls back to main/1.webp, then the seed's own image URL. Local disk is
+// checked first so a dev with local copies skips the network.
+async function thumbBufferForItem(item) {
+  const id = String(item?.id ?? "").trim();
+  if (id) {
+    for (const slot of ["cutout", "main"]) {
+      const local = path.join(root, "images", "wardrobe", id, slot, "1.webp");
+      if (fs.existsSync(local)) return fs.readFileSync(local);
+    }
+    for (const slot of ["cutout", "main"]) {
+      const buf = await fetchImageBuffer(`${CDN_BASE}/wardrobe/${encodeURIComponent(id)}/${slot}/1.webp`);
+      if (buf) return buf;
+    }
+  }
+  const raw = String(item?.image ?? "").trim();
+  if (/^https?:\/\//i.test(raw)) return fetchImageBuffer(raw);
+  return null;
+}
+
+async function resolveItems() {
   const all = loadWardrobeItems();
   const byId = new Map(all.map((it) => [String(it.id), it]));
 
-  const picks = []; // { id, thumb }
-  const seen = new Set();
-  const tryAdd = (item) => {
-    if (!item || picks.length >= 5) return;
-    const id = String(item.id ?? "").trim();
-    if (!id || seen.has(id)) return;
-    const thumb = thumbFileForItem(item);
-    if (!thumb) return;
-    seen.add(id);
-    picks.push({ id, thumb });
-  };
-
   // Prefer items with showcase_rank, sorted by rank; then top up from fallback.
-  all
+  const ranked = all
     .filter((it) => {
       const r = it?.metadata?.showcase_rank;
       return typeof r === "number" && Number.isInteger(r) && r >= 0;
     })
-    .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank)
-    .forEach(tryAdd);
-  for (const id of FALLBACK_IDS) tryAdd(byId.get(id));
+    .sort((a, b) => a.metadata.showcase_rank - b.metadata.showcase_rank);
+  const candidates = [...ranked, ...FALLBACK_IDS.map((id) => byId.get(id))];
 
-  return picks.slice(0, 5);
+  const picks = []; // { id, buf }
+  const seen = new Set();
+  for (const item of candidates) {
+    if (picks.length >= 5) break;
+    const id = String(item?.id ?? "").trim();
+    if (!id || seen.has(id)) continue;
+    const buf = await thumbBufferForItem(item);
+    if (!buf) continue;
+    seen.add(id);
+    picks.push({ id, buf });
+  }
+  return picks;
 }
 
 // ── Text overlay (hero panel only) ───────────────────────────────────────────
@@ -160,30 +170,30 @@ function heroOverlaySvg() {
 
 const sharp = (await import("sharp")).default;
 
-const picks = resolveItems();
+const picks = await resolveItems();
 console.log(`[og-build] hero: ${picks[0]?.id}`);
 console.log(`[og-build] supporting: ${picks.slice(1).map((p) => p.id).join(", ")}`);
 
 if (picks.length < 5) {
-  console.log(`[og-build] only ${picks.length}/5 thumbs found locally — skipping og-image generation (keeping existing if present)`);
+  console.log(`[og-build] only ${picks.length}/5 thumbs found (local or CDN) — skipping og-image generation (keeping existing if present)`);
   process.exit(0);
 }
 
 // Resize each slot — contain keeps transparent cutouts from being cropped.
 const [heroBuf, s2, s3, s4, s5] = await Promise.all([
-  sharp(picks[0].thumb)
+  sharp(picks[0].buf)
     .resize(HERO_W, HERO_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
-  sharp(picks[1].thumb)
+  sharp(picks[1].buf)
     .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
-  sharp(picks[2].thumb)
+  sharp(picks[2].buf)
     .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
-  sharp(picks[3].thumb)
+  sharp(picks[3].buf)
     .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
-  sharp(picks[4].thumb)
+  sharp(picks[4].buf)
     .resize(CELL_W, CELL_H, { fit: "contain", background: { r: 251, g: 248, b: 241, alpha: 1 } })
     .toBuffer(),
 ]);
