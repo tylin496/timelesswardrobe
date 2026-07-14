@@ -2,7 +2,8 @@
 
 Read this first. It is the map a new session needs to reason about the catalogue
 without reading `app.js` (32k lines) end to end. It describes **what the code does
-today**, with file:line anchors you can verify. When it goes stale, fix it — this
+today**, with symbol anchors you can grep in `app.js` (never line numbers — they
+rot; `npm run check:doc-anchors` enforces this). When it goes stale, fix it — this
 doc is load-bearing.
 
 Companion docs: [DATA-CONTRACT.md](DATA-CONTRACT.md) (per-field ownership,
@@ -18,7 +19,7 @@ The catalogue is **seed-first, cloud-hydrated**. A synchronous `<script>`
 Supabase fetch then merges editable metadata on top. Everything the UI renders
 comes from a single in-memory array, `items`, produced by one function,
 `mergeWardrobeFromSources()`. Images are **never** taken from the cloud row — the
-seed path is the sole image truth ([app.js:10635](../app.js)).
+seed path is the sole image truth — see `mergeWardrobeFromSources` ([app.js](../app.js)).
 
 ## Data flow
 
@@ -33,16 +34,17 @@ Supabase wardrobe_items (editable          merged from cloud            − hidd
         │                                        │                          │
 Supabase wardrobe_app_state                      ▼                          ▼
   • collection_hidden_ids  ─────────────►  filtered out at  ──────►  mergeWardrobeFromSources()
-      (LIVE: hides rows)                     merge                     app.js:10633
+      (LIVE: hides rows)                     merge                     app.js
   • collection_overrides   ──╳ DROPPED ── (column deleted Jun 30 2026; see Audit Matrix below)
   • showcase_order (wardrobe_items) ─────►  orders the curated collection grid
       (LIVE: read by the deferred cloud     (bake layer deleted Jun 30 2026 —
        fetch; skeleton holds until it lands)  never read by app.js)
 ```
 
-Anchors: `wardrobeBase` declared [app.js:7170](../app.js); built from
-`seedItemsFromScript()` then cloud-aligned (app.js:31332, 31360, 31866);
-`mergeWardrobeFromSources()` [app.js:10633](../app.js) produces `items`.
+Anchors: `wardrobeBase` ([app.js](../app.js)) is declared then built from
+`seedItemsFromScript` ([app.js](../app.js)) and cloud-aligned in the boot/refresh
+paths (grep `seedItemsFromScript` assignments); `mergeWardrobeFromSources`
+([app.js](../app.js)) produces `items`.
 
 ## Layer ownership
 
@@ -112,8 +114,8 @@ introduced together ("cloud sync for hybrid catalogue edits", renamed from
 
 | Column | Status | Evidence |
 |---|---|---|
-| `collection_hidden_ids` | **LIVE — keep** | Read every merge; filters rows out at [app.js:10637](../app.js). 10 ids in prod. |
-| `collection_overrides` | **DEAD on read, redundant, still dual-written → RETIRE** | Merge explicitly skips it ([app.js:10634](../app.js): "No override patch is applied"). |
+| `collection_hidden_ids` | **LIVE — keep** | Read every merge; filters rows out via `loadCollectionHiddenIds` ([app.js](../app.js)). 10 ids in prod. |
+| `collection_overrides` | **DEAD on read, redundant, still dual-written → RETIRE** | Merge explicitly skips it — `mergeWardrobeFromSources` (app.js) carries the comment "No override patch is applied". |
 
 Live contents of `collection_overrides`: 14 item ids. 12 carry only `notes`; 2
 (`polo-coat`, `tank-solo`) carry a full field set. **Parity check vs

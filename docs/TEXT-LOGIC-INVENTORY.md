@@ -21,7 +21,7 @@ internal UI state last.
 
 ### 1. ~~`isFuturePiece()` — wishlist/ownership detection via text scan~~ ✅ RESOLVED
 
-**Resolved Jun 2026.** Text scan removed. `deriveItemIsFuture` (app.js:10138)
+**Resolved Jun 2026.** Text scan removed. `deriveItemIsFuture` (app.js)
 now reads `metadata.ownership_status === "future"` only. No substring scanning.
 See [[project-ownership-status-migration]].
 
@@ -29,7 +29,7 @@ See [[project-ownership-status-migration]].
 
 ### 2. `itemSlot()` — navigation tab routing via 30+ hardcoded category strings
 
-**File:** `app.js:7902`
+**File:** `itemSlot` (app.js)
 
 ```js
 if (rawCat === "Objects" || rawCat === "Small Goods" || rawCat === "Small accessories") return SLOT_ACCESSORIES;
@@ -61,7 +61,7 @@ script.
 
 ### 3. `recordCategoryForDrill()` — drill subcategory routing via category strings
 
-**File:** `app.js:16160`
+**File:** `recordCategoryForDrill` (app.js)
 
 ```js
 if (raw === "項鏈" || raw === "手鏈" || raw === "戒指") raw = "Jewellery";
@@ -86,7 +86,7 @@ write time. `recordCategoryForDrill()` becomes a passthrough.
 
 ### 4. `editorialHeroVisualScore()` — homepage hero pool via keyword blob scan
 
-**File:** `app.js:11017`
+**File:** `editorialHeroVisualScore` (app.js)
 
 ```js
 const blob = `${rec} ${sub} ${nm}`;
@@ -113,7 +113,7 @@ editorial quality.
 
 ### 5. `normalizeSeason()` — season enum derivation from free-form strings ✅ TRAP FIXED
 
-**File:** `app.js:9870`
+**File:** `normalizeSeason` (app.js)
 
 `"Fall".includes("all")` trap fixed Jun 2026: replaced `v.includes("all")` with
 `v === "all" || v.startsWith("all-") || v.startsWith("all ")`. Actual seed values
@@ -136,7 +136,7 @@ not a brand-name prefix check.
 
 ### 7. `startsWith("custom-")` — custom-item identification via ID prefix
 
-**File:** `app.js:21010, 23012, 25257, 26297`
+**File:** `startsWith("custom-")` (app.js) — single call site now (the merge cleanup collapsed the earlier four)
 
 ```js
 const isCustom = sid.startsWith("custom-");
@@ -158,7 +158,7 @@ once the field is available.
 
 ### 8. `searchQueryIntentForTokens()` + `searchCategoryAffinityAdjustment()` — search ranking via name substring
 
-**File:** `app.js:14820`, `14838`
+**File:** `searchQueryIntentForTokens` (app.js), `searchCategoryAffinityAdjustment` (app.js)
 
 ```js
 const poloFamily = tokens.includes("polo") || joined.includes("polo");
@@ -193,7 +193,7 @@ if the codebase is ever modularised.
 
 ### 9. Collection status filter strings
 
-**File:** `app.js:4094`
+**File:** `st === "showcase"` (app.js) — status-filter block
 
 ```js
 if (st === "showcase")  …
@@ -234,7 +234,7 @@ directly.
 
 ### 11. Sort mode and view mode validation via `COLLECTION_SORT_MODES.includes()`
 
-**File:** `app.js:5630, 5642, 5647, 5661, 5670, 5674`
+**File:** `COLLECTION_SORT_MODES.includes` (app.js)
 
 ```js
 if (COLLECTION_SORT_MODES.includes(v)) return v;
@@ -256,7 +256,7 @@ They are not fragile to data-field drift.
 
 ### 12. `endsWith("/edit")` / `endsWith("/login")` — URL path normalisation
 
-**File:** `app.js:2520`
+**File:** `endsWith("/edit")` (app.js)
 
 ```js
 if (id.endsWith("/edit"))  id = id.slice(0, -"/edit".length);
@@ -294,7 +294,7 @@ File utility. Acceptable; no replacement needed.
 
 ### 15. Search haystack substring match — user query UX
 
-**File:** `app.js:4106, 4662, 4891`
+**File:** `hay.includes` (app.js)
 
 ```js
 const hay = [it?.name, it?.brand, it?.category, ...].join(" ");

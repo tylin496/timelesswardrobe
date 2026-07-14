@@ -67,8 +67,8 @@ E1 and E2, which matches the data.
   (e.g. lock to `100svh` / the pre-keyboard layout height) and disable JS height
   writes together. Tests the "height should never follow the keyboard" thesis.
 - **E5 (only if E3/E4 fail):** Check for an async **content rebuild** —
-  `syncHeaderSearchFeaturedSubcategoryCards()` re-running (Supabase data arrival,
-  app.js:10837) during the open window, which `replaceChildren()`-wipes the grid.
+  `syncHeaderSearchFeaturedSubcategoryCards` (app.js) re-running on Supabase data
+  arrival during the open window, which `replaceChildren()`-wipes the grid.
 
 ## Excluded / parked
 

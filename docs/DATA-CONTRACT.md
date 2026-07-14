@@ -60,8 +60,8 @@ Persisted in `localStorage` under key `timeless-wardrobe-collection-sort-v1`.
 | `date-asc` | `purchase_date` ascending (oldest first) | Nulls last | `compareCollectionGridItems` |
 | `date-desc` | `purchase_date` descending (newest first) | Nulls last | `compareCollectionGridItems` |
 
-Sort is applied in `compareGridItems` (app.js:22120) → `compareCollectionGridItems`
-(app.js:22148) → `compareArchiveItems`. The sort comparator reads the live `items`
+Sort is applied in `compareGridItems` (app.js) → `compareCollectionGridItems`
+(app.js) → `compareArchiveItems`. The sort comparator reads the live `items`
 array; it does not query Supabase.
 
 **Fields that are NOT sortable:** name, brand, category, season, colour, fabric,
@@ -72,7 +72,7 @@ a case in `compareGridItems`, and a sort UI control.
 
 ## Derived fields — do not edit directly
 
-These are computed at write time by `itemToCloudRow` (app.js:8398) and must not
+These are computed at write time by `itemToCloudRow` (app.js) and must not
 be set by the editor or any other caller:
 
 - `measured_dimensions` — summary string; source of truth is `measurementRows`
@@ -85,7 +85,7 @@ be set by the editor or any other caller:
 ## Image fields — seed wins, cloud is ignored at read
 
 `image` and `gallery` are written to `wardrobe_items` on every upsert (so the
-cloud row is not empty), but `mergeWardrobeFromSources` at app.js:10633 does
+cloud row is not empty), but `mergeWardrobeFromSources` (app.js) does
 **not** apply them back to the in-memory item. The seed `wardrobe.js` path wins.
 Updating images = regenerate the seed (pipeline), not editing the cloud row.
 See [ARCHITECTURE.md → Layer ownership](ARCHITECTURE.md).

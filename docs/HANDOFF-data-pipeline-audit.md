@@ -1,5 +1,16 @@
 # Handoff — Data-Pipeline Audit (roadmap item "single flow")
 
+> **✅ RESOLVED 2026-07-14.** All three actions in §4 are done. The decision the
+> handoff left open (§4.2) was made: **stop depending on line numbers, don't build a
+> line-number checker.** Every `app.js:<line>` anchor across the map docs was removed
+> and re-expressed as a symbol name (`` `mergeWardrobeFromSources` (app.js) `` — grep
+> it). New guard `scripts/check-doc-anchors.mjs` (`npm run check:doc-anchors`, wired
+> into the `npm run check` pre-commit hook) **bans line-number anchors** and **verifies
+> every symbol anchor still resolves** in app.js. ARCHITECTURE.md prose re-confirmed
+> against the 48-line merge. The pipeline chapter is closed; only the optional roadmap
+> tails in §5 remain. The line numbers quoted below are the historical drift evidence
+> that motivated the fix — the guard exempts this HANDOFF file so they can stand.
+
 **For:** a cold Claude session picking up the last structural roadmap item.
 **Written:** 2026-07-14, verified against HEAD (`app.js` = 31302 lines).
 **TL;DR:** The pipeline restructuring is already **done**. What's left is not

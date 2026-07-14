@@ -43,12 +43,12 @@ sprawl.
   `wardrobe_items` has a server-authoritative `updated_at` trigger (indexed
   `updated_at desc`), but that stamp moves whenever *any* field on the item
   changes — price, measurements, image — not just the note. So Overview's
-  "Recently Updated Notes" (`app.js` ~3681) ranks by item churn, not note edits.
+  "Recently Updated Notes" (`Recently Updated Notes` (app.js) block) ranks by item churn, not note edits.
 - **Discoverability is substring search.** The Notes tab filters by
-  `name + brand + category + notes` substring (`app.js` ~4794). There are no
+  `name + brand + category + notes` substring (`getFilteredNotesItems` (app.js)). There are no
   tags, facets, or structure to search *by*.
 - **Sorting proxies for quality.** The three sorts are `A–Z`,
-  `Recently edited`, `Longest first` (`app.js` ~4761). "Longest first" is the
+  `Recently edited`, `Longest first` (`_accountNotesSort` (app.js)). "Longest first" is the
   tell: with no quality or type signal on a note, word-count is the only
   available proxy for "substantial."
 - **No relationships.** A note cannot reference another note, cannot be attached
