@@ -22,6 +22,14 @@ npm run css:build
 
 **Guard:** `npm run check:css` (part of `npm run check`) rebuilds to a temp file and fails if it differs from the committed `styles.css`. This catches the two recurring mistakes — hand-editing `styles.css`, or changing `css/main.css` without re-running `css:build` — before they ship. Fix: run `npm run css:build` and commit the result.
 
+**Enforcement:** the full `npm run check` suite runs as a pre-commit hook
+([.githooks/pre-commit](../.githooks/pre-commit)). `npm install` wires it up via
+the `prepare` script (`git config core.hooksPath .githooks`); a commit that
+violates any invariant is blocked. This exists because the drift shipped anyway
+in Jul 2026: a later edit to scanned source (`app.js`/HTML) changed Tailwind's
+utility output without anyone re-running `css:build`, and the manual-only check
+never caught it. Bypass only in emergencies with `git commit --no-verify`.
+
 ## Cursor: disable Markdown Reading Mode
 
 This repo sets `"workbench.editorAssociations": { "*.md": "default" }` in `.vscode/settings.json` so `.md` files open as plain text, not Cursor’s rich Reading / WYSIWYG editor. Reload the window after changing editor associations. For a tab already in Reading Mode: Command Palette → **Reopen Editor With…** → **Text Editor**.

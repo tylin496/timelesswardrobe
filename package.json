@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "css:build": "node scripts/build-css.mjs",
     "lint:insets": "node scripts/check-safe-area-insets.mjs",
     "check:urls": "node scripts/check-public-urls.mjs",

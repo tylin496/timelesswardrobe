@@ -1,0 +1,7 @@
+#!/bin/sh
+# Blocks the commit if any repo invariant is violated (insets, public URLs,
+# catalogue id drift, data integrity, styles.css in sync with css/main.css).
+# Wired up via `git config core.hooksPath .githooks` (npm "prepare" does this).
+# Bypass for emergencies: git commit --no-verify
+
+npm run --silent check
