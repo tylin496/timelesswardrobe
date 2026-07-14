@@ -9559,6 +9559,13 @@
   /** Upsert one custom row to `wardrobe_items` and return the normalized row from Postgres. */
   async function saveWardrobeItemToCloud(item) {
     if (!isSupabaseReady()) throw new Error("Supabase is not ready.");
+    // Write-invariant gate. This is the one canonical wardrobe_items write (upsert on
+    // id). `id` and `name` are structural: id is the PK + image folder + slug, and a
+    // blank name renders an empty card. The item-edit form already checks them, but
+    // guarding here covers every caller (present and future), not just that one form —
+    // a malformed item can never silently clobber or blank a row.
+    if (!String(item?.id ?? "").trim()) throw new Error("Cannot save: this item has no id.");
+    if (!String(item?.name ?? "").trim()) throw new Error("Cannot save: please give the item a name before saving.");
     const itemForCloud = normalizeItemMediaUrlsForCloudPersistence(item);
     /** Prefer British columns; if PostgREST / DB only exposes American names, retry once. */
     const spellings = /** @type {const} */ (["uk", "us"]);

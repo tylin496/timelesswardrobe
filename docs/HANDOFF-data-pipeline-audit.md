@@ -108,9 +108,13 @@ lowest-risk work on the pipeline.
 ## 5. Genuinely-open roadmap tails (low priority, optional)
 
 From [[project-refactor-roadmap]] PENDING — real but not urgent:
-- **Step 10 (validation gate):** editor → validate → write. Only worth doing if
-  paired with the Step 9 physical Repository move, which was DECLINED. Skip
-  unless a concrete bad-write bug appears.
+- **Step 10 (validation gate):** ✅ done cheaply (2026-07-14). Rather than the full
+  editor→validate→write layer (which needed the DECLINED Step 9 Repository move), a
+  minimal write-invariant gate now sits at the one canonical write,
+  `saveWardrobeItemToCloud` (app.js): it refuses any item with a blank `id` or `name`
+  (id = PK + image folder + slug; blank name = empty card). Covers every caller, not
+  just the item-edit form. Field-level sanitisation (price → number-or-null, etc.)
+  already lived in the form + `itemToCloudRow`.
 - **Step 8 edge cases:** `reconcileItemDetailPageAfterCloudFetch` (`app.js`,
   grep the name) re-renders PDP after cloud fetch; first-paint≠hydrated flashes
   are structural. No open bug — leave unless one is reported.
