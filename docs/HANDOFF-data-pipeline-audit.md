@@ -50,10 +50,17 @@ roadmap are done; steps 9–11 were deliberately DECLINED (see roadmap memory).
 
 ## 3. The real open problem — doc drift with zero guard
 
-The whole AI-maintainer strategy leans on four orientation docs
-(`ARCHITECTURE.md`, `DATA-CONTRACT.md`, `DEBUG-RUNBOOK.md`, `DATA-INVARIANTS.md`)
-that carry **38 hardcoded `app.js:<line>` anchors**. Nothing checks them, and
-they have rotted:
+The AI-maintainer strategy leans on orientation docs that carry hardcoded
+`app.js:<line>` anchors — **48 anchors across five docs**, nothing checks them,
+and they have rotted. Extract the full inventory with:
+
+```sh
+for f in docs/*.md; do grep -Hno "app\.js:[0-9]\+" "$f"; done   # excludes this handoff
+```
+
+Distribution (HEAD, 2026-07-14): **`DEBUG-RUNBOOK.md` 25** (by far the biggest —
+do not skip it), `ARCHITECTURE.md` 7, `DATA-CONTRACT.md` 4,
+`TEXT-LOGIC-INVENTORY.md` 11, `SEARCH-OVERLAY-COLLAPSE.md` 1. Confirmed rot:
 
 | Doc claim | Cited | Actual (HEAD) | Drift |
 |---|---|---|---|
@@ -68,9 +75,10 @@ lowest-risk work on the pipeline.
 
 ## 4. What to actually do (in order)
 
-1. **Refresh the anchors.** Re-verify every `app.js:<line>` in the four docs
-   above against HEAD and correct them. ~38 anchors; most drift is uniform
-   (content shifted down), so a re-grep per symbol is fast.
+1. **Refresh the anchors.** Re-verify every `app.js:<line>` from the extraction
+   command above against HEAD and correct it — all 48, across the five docs
+   (`DEBUG-RUNBOOK.md` holds 25, so start there). Most drift is uniform (content
+   shifted down), so a re-grep per symbol is fast.
 2. **Add `check:doc-anchors` to the invariant suite.** A ~30-line
    `scripts/check-doc-anchors.mjs`: parse `app.js:<line>` (and `:line` on
    markdown file links) from `docs/*.md`, fail if any line is past EOF **or**
