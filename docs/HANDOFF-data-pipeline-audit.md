@@ -115,9 +115,15 @@ From [[project-refactor-roadmap]] PENDING — real but not urgent:
   (id = PK + image folder + slug; blank name = empty card). Covers every caller, not
   just the item-edit form. Field-level sanitisation (price → number-or-null, etc.)
   already lived in the form + `itemToCloudRow`.
-- **Step 8 edge cases:** `reconcileItemDetailPageAfterCloudFetch` (`app.js`,
-  grep the name) re-renders PDP after cloud fetch; first-paint≠hydrated flashes
-  are structural. No open bug — leave unless one is reported.
+- **Step 8 edge cases:** ✅ flash reduced (2026-07-14). `reconcileItemDetailPageAfterCloudFetch`
+  (app.js) used to `innerHTML = ""` + full rebuild on every cloud fetch, even when the
+  hydrated item matched the seed-painted one (the common case — images come from the
+  seed). It now compares an `itemDetailDisplaySignature` (whole item minus `__`-prefixed
+  volatile keys) stamped at first paint, and skips the teardown when nothing the page
+  shows changed. Genuine metadata changes still re-render; uncomputable signature falls
+  back to the old always-render. Note: the signature is per-item, so it does not re-render
+  the related-items rail if the *catalogue pool* grows (custom items arriving) without this
+  item changing — acceptable, pre-existing, non-critical; narrow-fix only if reported.
 
 ## 6. Where NOT to look / do not do
 

@@ -27013,12 +27013,31 @@
       replaceItemPageUrl(item.id, false);
     }
     renderItemDetailContent(root, item, { edit: allowEdit });
+    if (!allowEdit) root.__itemDetailSig = itemDetailDisplaySignature(item);
+  }
+
+  /**
+   * Signature of everything the item page renders from the item object. Lets the
+   * post-cloud-fetch reconcile skip its full re-render when the hydrated data is
+   * identical to what the seed already painted (the common case — images come from
+   * the seed, so most items are fully painted on first pass). Internal/volatile keys
+   * (`__collectionOrdinal`, media nonce, …) are excluded. Returns "" if it can't be
+   * computed, which forces a safe re-render.
+   */
+  function itemDetailDisplaySignature(item) {
+    if (!item || typeof item !== "object") return "";
+    try {
+      return JSON.stringify(item, (k, v) => (k.startsWith("__") ? undefined : v));
+    } catch {
+      return "";
+    }
   }
 
   /**
    * After the deferred cloud fetch lands on the item page, re-render the item
    * content with the now-fresh data (notes, showcase rank, cloud metadata).
    * Skip if the user is in edit mode — re-rendering would clobber their changes.
+   * Skip too when nothing the page shows changed — avoids a teardown-rebuild flash.
    */
   function reconcileItemDetailPageAfterCloudFetch() {
     const root = itemDetailMountRoot();
@@ -27030,8 +27049,11 @@
     const canonical = resolveCanonicalItemId(pageId);
     const item = itemById.get(canonical) || itemById.get(pageId);
     if (!item) return;
+    const sig = itemDetailDisplaySignature(item);
+    if (sig && root.__itemDetailSig === sig) return; // hydrated data == painted data → no wipe
     root.innerHTML = "";
     renderItemDetailContent(root, item, { edit: false });
+    root.__itemDetailSig = sig;
   }
 
   function syncCategoryTabUI() {
