@@ -34,10 +34,10 @@ Supabase wardrobe_items (editable          merged from cloud            − hidd
 Supabase wardrobe_app_state                      ▼                          ▼
   • collection_hidden_ids  ─────────────►  filtered out at  ──────►  mergeWardrobeFromSources()
       (LIVE: hides rows)                     merge                     app.js:10633
-  • collection_overrides   ──╳ NOT READ ── (dead on read; see Audit Matrix below)
-        │
-dist/data/showcase-order.js (baked from   orders the curated
-  Supabase showcase_order; gitignored)      collection grid
+  • collection_overrides   ──╳ DROPPED ── (column deleted Jun 30 2026; see Audit Matrix below)
+  • showcase_order (wardrobe_items) ─────►  orders the curated collection grid
+      (LIVE: read by the deferred cloud     (bake layer deleted Jun 30 2026 —
+       fetch; skeleton holds until it lands)  never read by app.js)
 ```
 
 Anchors: `wardrobeBase` declared [app.js:7170](../app.js); built from

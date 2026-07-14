@@ -69,7 +69,7 @@ Companion: [ARCHITECTURE.md](ARCHITECTURE.md) (data flow), [DATA-CONTRACT.md](DA
 
 ## Where NOT to look first
 
-- **`collection_overrides` apply logic** — there is none. Dead on read since Jun 2026.
+- **`collection_overrides` apply logic** — there is none. Column dropped from Supabase Jun 30 2026.
 - **`editorial-priorities` / `featured_rank`** — fully deleted Jun 2026.
 - **`archive_overrides`** — old column name; renamed to `collection_overrides`, then retired.
 - **`section` / `pillar` fields** — legacy, not rendered in UI.

@@ -12,9 +12,9 @@ verify with a command instead of reading `app.js` or guessing.
 `data/wardrobe.js` is the **seed catalogue** — 82 rows, the synchronous source of
 truth for catalogue fields (id, category, brand, name, image, gallery, …). It is
 loaded as a plain `<script>` (no network) for the first paint. `showcase_rank` is
-**not** in the seed — it lives in Supabase and is baked into the gitignored
-`dist/data/showcase-order.js` (`window.TW_SHOWCASE_ORDER`). See
-[SUPABASE.md](SUPABASE.md) for the cloud side.
+**not** in the seed — it lives in Supabase (`showcase_order`) and is read only by
+the deferred cloud fetch; the old `dist/data/showcase-order.js` bake was deleted
+Jun 30 2026. See [SUPABASE.md](SUPABASE.md) for the cloud side.
 
 ## Enforced invariants
 
