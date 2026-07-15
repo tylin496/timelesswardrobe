@@ -1799,10 +1799,10 @@ body.home-page .site-header--scroll-driven::before {
     transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
     z-index: 2100;
     /* Reset ink vars overridden by header overlay state */
-    --ink: #163229;
+    --ink: var(--tw-brand-green);
     --ink-muted: rgba(22, 50, 41, 0.58);
     --line: rgba(22, 50, 41, 0.18);
-    color: #163229;
+    color: var(--tw-brand-green);
   }
 
   html.tw-account-dark .account-flyout {
@@ -2706,7 +2706,7 @@ body.collection-page
   min-height: 28px;
   padding: 0 10px;
   border-radius: 7px;
-  background: #eee9df;
+  background: var(--tw-surface-rail);
   border: none;
   box-sizing: border-box;
   font-family: var(--font-sans);
@@ -6590,7 +6590,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    background-color: #eee9df;
+    background-color: var(--tw-surface-rail);
     transform: translate3d(0, 0, 0);
     transition: none;
   }
@@ -6727,7 +6727,7 @@ body.collection-ui--header-submenu-open .site-header__search-wrap:not(.is-open):
 
   #site-mobile-nav-drill.site-mobile-nav__level--drill.is-active,
   #site-mobile-nav-drill-list.site-mobile-nav__list--drill {
-    background-color: #eee9df;
+    background-color: var(--tw-surface-rail);
   }
 
   .site-mobile-nav__list {
@@ -7211,7 +7211,7 @@ body.collection-ui--mobile-nav-drill .site-mobile-shell__body,
 body.collection-ui--mobile-nav-drill .site-mobile-nav,
 body.collection-ui--mobile-nav-drill #site-mobile-nav-drill.site-mobile-nav__level--drill.is-active,
 body.collection-ui--mobile-nav-drill #site-mobile-nav-drill-list.site-mobile-nav__list--drill {
-  background-color: #eee9df;
+  background-color: var(--tw-surface-rail);
 }
 
 @media (max-width: 900px) {
@@ -8082,7 +8082,7 @@ body.collection-ui--all-pieces-landing .collection-heading__title {  @apply mb-2
 .items-toolbar__view-toggle-btn.is-active,
 .items-toolbar__view-toggle-btn[aria-pressed="true"] {
   color: color-mix(in srgb, var(--ink) 90%, var(--ink-muted));
-  background: #eee9df;
+  background: var(--tw-surface-rail);
 }
 
 @supports not (color: color-mix(in srgb, red, blue)) {
@@ -8867,7 +8867,7 @@ body.collection-ui--outfits .site-header__submenu,
 body.collection-ui--outfits .site-header__submenu.desktop-mega-menu,
 body.collection-ui--outfits .site-header__search-megamenu,
 body.collection-ui--outfits .site-header__search-megamenu-inner {
-  background-color: #eee9df;
+  background-color: var(--tw-surface-rail);
   background-image: none;
 }
 
@@ -11894,7 +11894,7 @@ dialog.add-item-dialog[open]::backdrop {
 
 /* Variants */
 .outfit-toast[data-toast-variant="success"] {
-  background: #163229;
+  background: var(--tw-brand-green);
 }
 
 .outfit-toast[data-toast-variant="error"] {
@@ -18328,7 +18328,7 @@ body.collection-page .collection-container > .collection-actions {
     letter-spacing: 0.01em;
     line-height: 1;
     border-radius: 7px;
-    background: #eee9df;
+    background: var(--tw-surface-rail);
     border: none;
     gap: 0;
   }
@@ -20265,7 +20265,8 @@ video.home-hero__hero-layer-video {
 .home-hero__rail-progress {
   margin-top: clamp(1rem, 2vw, 1.35rem);
   margin-left: var(--home-hero-division-rail-pad-left);
-  margin-right: max(1rem, env(safe-area-inset-right, 0px));
+  /* Symmetric with margin-left (Rails contract #4) while keeping right-notch safe. */
+  margin-right: max(var(--home-hero-division-rail-pad-left), env(safe-area-inset-right, 0px));
   position: relative;
   padding: 14px 0;
   box-sizing: border-box;
