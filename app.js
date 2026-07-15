@@ -11953,8 +11953,8 @@
     if (!(track instanceof HTMLElement)) {
       track = document.createElement("div");
       track.className = "outfits__outfit-rail-progress";
-      track.setAttribute("role", "slider");
-      track.setAttribute("aria-label", "Scroll current outfit pieces");
+      track.setAttribute("role", "progressbar");
+      track.setAttribute("aria-label", "Current outfit scroll position");
       track.setAttribute("aria-valuemin", "0");
       track.setAttribute("aria-valuemax", "100");
       track.setAttribute("aria-valuenow", "0");
@@ -26133,7 +26133,7 @@
       wrap.appendChild(statusEl);
 
       if (isPageEdit) {
-        const srTitle = document.createElement("h2");
+        const srTitle = document.createElement("h1");
         srTitle.id = "item-detail-heading";
         srTitle.className = "item-detail__heading--sr";
         srTitle.textContent = displayNameWithoutLeadingColour(item);
@@ -26238,10 +26238,14 @@
 
     body.appendChild(buildItemDetailBreadcrumbNav(item));
 
-    const title = document.createElement("h2");
+    // On the standalone item page the piece title is the page's <h1> (the header
+    // wordmark is a plain <div> there); inside the collection overlay it stays an
+    // <h2> under that page's own <h1>.
+    const isItemDetailPage = root.classList.contains("item-detail__root--page");
+    const title = document.createElement(isItemDetailPage ? "h1" : "h2");
     title.id = "item-detail-heading";
     title.className = "item-detail__title";
-    if (root.classList.contains("item-detail__root--page")) {
+    if (isItemDetailPage) {
       title.classList.add("item-detail__title--product");
       title.tabIndex = -1;
     }
@@ -30599,6 +30603,14 @@
         const cloudMeta = hit?.metadata && typeof hit.metadata === "object" ? hit.metadata : null;
         // Pick up user-editable text columns saved to Supabase (e.g. brand, notes, season).
         // Skip placeholder fallbacks inserted by normalizeCloudItemRow for absent values.
+        //
+        // SEED-CANONICAL, BY DESIGN (do not "fix" this into honouring blanks): for a
+        // local-catalogue item the authored seed value is the floor. An empty/placeholder
+        // cloud value means "no override", so we fall back to the seed rather than wiping
+        // it — consistent with seed being the sole truth for the catalogue (same rule the
+        // image merge below follows). Clearing brand/season/colour therefore reverts to the
+        // seed on reload; that is intended, not a lost write. Persisting an intentional blank
+        // would require a distinct "cleared" sentinel threaded through save→normalize→merge.
         const cloudEditable = {};
         const CATALOGUE_EDITABLE = ["brand", "name", "season", "colour", "colourCode", "fabric", "weight", "size", "measuredDimensions", "purchaseDate", "notes", "notesUpdatedAt"];
         for (const f of CATALOGUE_EDITABLE) {
