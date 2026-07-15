@@ -44,6 +44,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/+esm" crossorigin />
+    <link rel="preload" href="app.js" as="script" />
     <link
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap"
       rel="stylesheet"
@@ -387,7 +388,7 @@
             <div class="home-hero__division-rail-scroller-wrap home-hero__highlights-rail-wrap">
               <div class="home-hero__horizontal-rail-scroller" id="home-hero-highlights" role="list"></div>
             </div>
-            <div class="home-hero__rail-progress" role="slider" aria-label="Scroll Collection Highlights" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0%" hidden>
+            <div class="home-hero__rail-progress" role="progressbar" aria-label="Collection Highlights scroll position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0%" hidden>
               <span class="home-hero__rail-progress-bar" aria-hidden="true"></span>
             </div>
           </section>
