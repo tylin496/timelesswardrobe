@@ -3266,12 +3266,14 @@
       drawer.classList.add("account-tab-drawer--visible");
       menuBtn.setAttribute("aria-expanded", "true");
       document.body.style.overflow = "hidden";
+      setModalBackgroundInert(drawer, true);
     }
 
     function closeDrawer() {
       drawer.classList.remove("account-tab-drawer--visible");
       menuBtn.setAttribute("aria-expanded", "false");
       document.body.style.overflow = "";
+      setModalBackgroundInert(drawer, false);
       const onEnd = () => {
         drawer.hidden = true;
         drawer.setAttribute("aria-hidden", "true");
@@ -3293,6 +3295,30 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !drawer.hidden) closeDrawer();
     });
+  }
+
+  /**
+   * While a modal drawer is open, mark every other top-level element `inert` so
+   * Tab is trapped inside the drawer and assistive tech can't reach the page
+   * behind it. Restores each element's prior inert state on close. `modal` (a
+   * direct child of <body>, with its own backdrop nested inside) stays live.
+   */
+  function setModalBackgroundInert(modal, on) {
+    const body = document.body;
+    if (!body || !modal) return;
+    for (const child of Array.from(body.children)) {
+      if (child === modal) continue;
+      if (child.tagName === "SCRIPT" || child.tagName === "STYLE") continue;
+      if (on) {
+        if (!child.hasAttribute("data-tw-inert-prev")) {
+          child.setAttribute("data-tw-inert-prev", child.inert ? "1" : "0");
+        }
+        child.inert = true;
+      } else if (child.hasAttribute("data-tw-inert-prev")) {
+        child.inert = child.getAttribute("data-tw-inert-prev") === "1";
+        child.removeAttribute("data-tw-inert-prev");
+      }
+    }
   }
 
   function renderAccountActiveTab(contentEl) {
@@ -3703,11 +3729,15 @@
           entry.className = "account-overview__activity-row account-overview__activity-row--note";
           entry.setAttribute("role", "button");
           entry.setAttribute("tabindex", "0");
-          entry.addEventListener("click", () => {
+          const activateNote = () => {
             history.pushState(null, "", "/account#notes");
             _accountCurrentTab = "notes";
             const contentEl = document.querySelector(".account-tab-content");
             if (contentEl) renderAccountActiveTab(contentEl);
+          };
+          entry.addEventListener("click", activateNote);
+          entry.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateNote(); }
           });
 
           const thumb = document.createElement("img");
@@ -11845,7 +11875,17 @@
     for (const scrollPort of scrollTargets) {
       scrollPort.addEventListener("scroll", scrollSyncHandler, { passive: true });
     }
-    window.addEventListener("resize", syncUi);
+    // Rails are rebuilt via innerHTML wipes, producing a fresh scroller each time.
+    // Self-remove this window listener once its scroller detaches so a rebuilt rail
+    // doesn't leak a permanent resize handler bound to a stale, detached closure.
+    const onRailResize = () => {
+      if (!scroller.isConnected) {
+        window.removeEventListener("resize", onRailResize);
+        return;
+      }
+      syncUi();
+    };
+    window.addEventListener("resize", onRailResize);
 
     if (track instanceof HTMLElement && thumb instanceof HTMLElement) {
       const endTrackDrag = () => {
@@ -23613,6 +23653,7 @@
       outfitsDrawerFocusReturn = document.activeElement;
       root.removeAttribute("hidden");
       root.setAttribute("aria-hidden", "false");
+      setModalBackgroundInert(root, true);
       const sheet = root.querySelector(".outfits-drawer__sheet");
       if (sheet instanceof HTMLElement) {
         sheet.style.removeProperty("transition");
@@ -23657,6 +23698,7 @@
     const root = document.getElementById("outfits-drawer");
     if (!root) return;
     outfitsDrawerOpen = false;
+    setModalBackgroundInert(root, false);
     if (outfitsDrawerOpenRaf) {
       cancelAnimationFrame(outfitsDrawerOpenRaf);
       outfitsDrawerOpenRaf = 0;
@@ -30744,11 +30786,21 @@
   async function refreshHybridCloudAfterCollectionPaint(api) {
     if (!isSupabaseReady() || !isHybridLocalCatalogueEnabled()) return;
     // Fetch all items — catalogue IDs included so R2-uploaded images survive cross-device refresh.
-    const res = await withTimeout(
-      api.fetchWardrobeItems(supabaseClient, []),
-      9000,
-      "fetchWardrobeItems(hybrid)"
-    );
+    let res;
+    try {
+      res = await withTimeout(
+        api.fetchWardrobeItems(supabaseClient, []),
+        9000,
+        "fetchWardrobeItems(hybrid)"
+      );
+    } catch (err) {
+      // A timeout/reject here must still clear the skeleton — otherwise the
+      // collection stays behind the pending-source veil until the 6 s safety net.
+      console.warn("Hybrid cloud refresh failed; keeping seed render.", err);
+      showcaseSourcePending = false;
+      _commitCollectionRender();
+      return;
+    }
     if (res.ok && res.items.length) {
       const normalized = res.items.map((row) => normalizeCloudItemRow(row)).filter(Boolean);
       cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(normalized);
@@ -31174,21 +31226,30 @@
       fileBackedCustomItems = [];
           if (isHybridLocalCatalogueEnabled()) {
         if (!deferHybridCloudRefresh && !cloudBackedCustomItems.length) {
+          try {
               const allCloud = await withTimeout(loadWardrobeItemsFromCloud(), 5000, "loadWardrobeItemsFromCloud");
           cloudBackedCustomItems = filterCloudRowsForHybridCatalogue(allCloud);
           if (allCloud.length) {
             stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
             mergeWardrobeBaseWithFetchedCloudRows(allCloud);
           }
+          } catch (err) {
+            console.warn("Hybrid cloud catalogue fetch failed; continuing with seed data.", err);
+          }
         }
       } else if (wardrobeCatalogueSource === "cloud" && wardrobeBase.length) {
         cloudBackedCustomItems = wardrobeBase.map((r) => (r && typeof r === "object" ? { ...r } : /** @type {any} */ (r)));
         stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
       } else {
+        try {
             cloudBackedCustomItems = await withTimeout(loadWardrobeItemsFromCloud(), 5000, "loadWardrobeItemsFromCloud");
         if (cloudBackedCustomItems.length) {
           stripCustomIdsFromLocalStorage(cloudBackedCustomItems.map((r) => String(r?.id ?? "")));
           mergeWardrobeBaseWithFetchedCloudRows(cloudBackedCustomItems);
+        }
+        } catch (err) {
+          console.warn("Cloud catalogue fetch failed; continuing with seed data.", err);
+          cloudBackedCustomItems = [];
         }
       }
     } else {
@@ -31299,6 +31360,8 @@
     } else if (deferOutfitsFetch && bootstrapSupabaseApi && isSupabaseReady()) {
       scheduleCollectionDeferredWork(() => void refreshOutfitsAfterCollectionPaint(bootstrapSupabaseApi));
     }
+    } catch (err) {
+      console.error("Bootstrap failed; UI continues on seed data only.", err);
     } finally {
       await completeTwInitialPageLoader(twLoaderPageStarted);
     }
