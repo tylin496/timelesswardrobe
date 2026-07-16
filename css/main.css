@@ -15185,7 +15185,9 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   min-height: min(70svh, 40rem);
 }
 
-.item-detail__root--edit > .item-edit-preview .item-detail__gallery-stage .card__media-img {
+/* Direct-child hero only — slide imgs inside the mobile swipe carousel must keep
+   their in-slide flow (absolute would pin them to the transformed track). */
+.item-detail__root--edit > .item-edit-preview .item-detail__gallery-stage > .card__media-img {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -15261,6 +15263,13 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
     width: 100%;
     max-width: 260px;
     margin-inline: auto;
+  }
+
+  /* The 70svh desktop min-height breaks the capped 260px column's aspect —
+     let the stage follow the cover ratio instead. */
+  .item-detail__root--edit > .item-edit-preview .item-detail__gallery-stage.card__media {
+    min-height: 0;
+    aspect-ratio: 3 / 4;
   }
 
   .item-detail__root--edit .item-detail__body--edit {
