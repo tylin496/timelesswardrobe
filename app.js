@@ -20714,6 +20714,12 @@
       catSel.value = slot;
       const prefer = subcategoryFilters.size === 1 ? [...subcategoryFilters][0] : "";
       fillItemEditRecordTypeSelect(recordSel, slot, prefer);
+      /* Setting .value directly doesn't fire "change" — the Identity section's
+         breadcrumb-style heading (refreshIdentityBrowsePath, wired to catSel's
+         change listener inside mountItemEditFormSections) needs this dispatch
+         to actually show the prefilled Section/Type instead of staying on
+         whatever it rendered at initial mount. */
+      catSel.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
     form.addEventListener("submit", (e) => void handleAddItemSubmit(e));
