@@ -5560,7 +5560,9 @@
             twLoginOAuthKickoff = false;
           }
         }
-        exitItemDetailEditIfOpen();
+        // Localhost is admin-by-host with no Supabase session — a null INITIAL_SESSION
+        // must not tear down an edit page that host-admin legitimately opened.
+        if (!canUseItemDetailEdit()) exitItemDetailEditIfOpen();
         return;
       }
       if (isTwAdminMode()) {
@@ -12696,13 +12698,13 @@
    * desktop width loses its layout CSS and the track collapses to a 7574px vertical
    * stack (the very symptom first seen here). Re-mount on the live stage for the new
    * viewport, preserving the current frame. mountItemDetailPageGallery tears down
-   * fully first, so this is leak-free. Skipped in edit mode (the edit preview wires
-   * its own photo-manager sync).
+   * fully first, so this is leak-free. Also applies in edit mode: the edit preview
+   * column hosts this same live gallery (the old read-only clone + sync path is gone),
+   * so it strands identically without the re-mount.
    */
   function remountItemPageGalleryForViewportChange() {
     const root = itemDetailMountRoot();
     if (!root || !root.classList.contains("item-detail__root--page")) return;
-    if (root.classList.contains("item-detail__root--edit")) return;
     const stage = root.querySelector(".item-detail__gallery-stage");
     if (!(stage instanceof HTMLElement)) return;
     const heroImg = stage.__twGalleryHeroImg;
@@ -16691,6 +16693,8 @@
     const missingClass = opts?.missingClass !== undefined ? opts.missingClass : "card__media--missing";
     const onResolved = opts?.onResolved;
     const onExhausted = opts?.onExhausted;
+    const orderedReveal = Boolean(opts?.orderedReveal);
+    if (orderedReveal) registerGridCoverReveal(img);
     let candidates =
       Array.isArray(opts?.coverCandidates) && opts.coverCandidates.length
         ? opts.coverCandidates.map((u) => String(u ?? "").trim()).filter(Boolean)
@@ -16798,6 +16802,7 @@
       const ck = cacheKeyForItem();
       if (ck) coverResolutionCache.delete(ck);
       if (host && missingClass) host.classList.add(missingClass);
+      if (orderedReveal) settleGridCoverReveal(img, false);
       onExhausted?.();
       img.removeAttribute("src");
     }
@@ -16807,7 +16812,8 @@
       const url = img.currentSrc || img.src;
       const ck = cacheKeyForItem();
       if (ck) coverResolutionCache.set(ck, url);
-      img.classList.add("card__media-img--loaded");
+      if (orderedReveal) settleGridCoverReveal(img, true);
+      else img.classList.add("card__media-img--loaded");
       onResolved?.(url);
     }
     function setImgCandidate(i) {
@@ -21777,6 +21783,91 @@
   }
 
   /**
+   * Ordered reveal queue for lazy collection-grid covers. Lazy covers fetch in
+   * parallel and finish in network-random order; fading each in the instant it
+   * loads makes the grid fill chaotically (mid-page before top). Instead, a
+   * loaded cover reveals only after every cover before it (DOM order) has
+   * revealed or failed — so the grid always fills top-to-bottom. A straggler
+   * holds its successors at most GRID_COVER_REVEAL_STALL_MS before they're
+   * released; it still fades in on its own once it eventually loads.
+   */
+  const GRID_COVER_REVEAL_STALL_MS = 600;
+  /** @type {{ img: HTMLImageElement, state: "pending" | "ready" | "done", readyAt: number }[]} */
+  let gridCoverRevealEntries = [];
+  let gridCoverRevealTimer = 0;
+
+  /** Drop all queue state — called alongside each structural grid rebuild. */
+  function resetGridCoverRevealQueue() {
+    gridCoverRevealEntries = [];
+    if (gridCoverRevealTimer) {
+      clearTimeout(gridCoverRevealTimer);
+      gridCoverRevealTimer = 0;
+    }
+  }
+
+  /** Claim a queue slot at wire time (card-creation order = DOM order). */
+  function registerGridCoverReveal(img) {
+    const existing = gridCoverRevealEntries.find((e) => e.img === img);
+    if (existing) {
+      existing.state = "pending";
+      existing.readyAt = 0;
+      return;
+    }
+    gridCoverRevealEntries.push({ img, state: "pending", readyAt: 0 });
+  }
+
+  /** Mark a registered cover loaded (queues its reveal) or failed (unblocks successors). */
+  function settleGridCoverReveal(img, loaded) {
+    const entry = gridCoverRevealEntries.find((e) => e.img === img);
+    if (!entry) {
+      // Not registered (e.g. queue reset mid-flight) — reveal immediately.
+      if (loaded) img.classList.add("card__media-img--loaded");
+      return;
+    }
+    if (entry.state !== "pending") return;
+    if (loaded) {
+      entry.state = "ready";
+      entry.readyAt = performance.now();
+    } else {
+      entry.state = "done";
+    }
+    flushGridCoverReveals();
+  }
+
+  function flushGridCoverReveals() {
+    const now = performance.now();
+    // blocked: some earlier cover is still unrevealed (loading or held).
+    // heldReady: some earlier LOADED cover is still held — successors must not
+    // stall-reveal past it, or two loaded images would swap order.
+    let blocked = false;
+    let heldReady = false;
+    let nextDelay = Infinity;
+    for (const entry of gridCoverRevealEntries) {
+      if (entry.state === "done") continue;
+      if (entry.state === "pending") {
+        blocked = true;
+        continue;
+      }
+      const waited = now - entry.readyAt;
+      if (!blocked || (!heldReady && waited >= GRID_COVER_REVEAL_STALL_MS)) {
+        entry.img.classList.add("card__media-img--loaded");
+        entry.state = "done";
+      } else {
+        blocked = true;
+        heldReady = true;
+        nextDelay = Math.min(nextDelay, Math.max(0, GRID_COVER_REVEAL_STALL_MS - waited));
+      }
+    }
+    if (gridCoverRevealTimer) {
+      clearTimeout(gridCoverRevealTimer);
+      gridCoverRevealTimer = 0;
+    }
+    if (nextDelay < Infinity) {
+      gridCoverRevealTimer = setTimeout(flushGridCoverReveals, Math.max(16, nextDelay));
+    }
+  }
+
+  /**
    * Shared viewport observer driving lazy collection-card gallery construction.
    * One observer per grid render: build a card's carousel on approach, release it
    * when far. Recreated each structural render so discarded cards stop being
@@ -22158,6 +22249,9 @@
     if (cardOpts.fetchPriority === "high") img.fetchPriority = "high";
     wireCoverImageWithFallbacks(img, cardCoverMediaItem, {
       host: media,
+      // Lazy covers reveal in DOM order (see gridCoverRevealEntries); eager
+      // first-screen covers keep the skeleton-gated collective reveal.
+      orderedReveal: !cardOpts.eager && isCollectionGridCardContext(),
       coverCandidates: buildCollectionGridCoverCandidates(cardCoverMediaItem),
       coverRenderWidth: COLLECTION_GRID_CARD_RENDER.width,
       coverRenderHeight: COLLECTION_GRID_CARD_RENDER.height,
@@ -22880,6 +22974,9 @@
       // Discard the previous render's gallery observer so its (now-detached) cards
       // stop being held; the new cards register against a fresh observer.
       resetCollectionCardGalleryObserver();
+      // Same for the ordered-reveal queue: stale pending entries from discarded
+      // cards would otherwise stall the new render's reveals.
+      resetGridCoverRevealQueue();
       const renderToken = ++gridRenderChunkToken;
       const FIRST_PAINT_COUNT = sorted.length;
       const CHUNK_SIZE = 16;
@@ -25373,7 +25470,10 @@
     };
     scrollHost.addEventListener("scroll", spy, { passive: true });
     scrollHost.prepend(nav);
-    spy();
+    // scrollHost is still detached here (offsetTop all 0, so spy() would pick the
+    // last section) — default to the first item and re-spy once attached and laid out.
+    btns[0].classList.add("item-edit-section-nav__item--active");
+    requestAnimationFrame(spy);
     return nav;
   }
 
