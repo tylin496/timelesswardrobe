@@ -407,15 +407,15 @@
     <dialog id="add-item-dialog" class="add-item-dialog tw-admin-only" hidden aria-labelledby="add-item-heading" aria-modal="true">
       <div class="add-item-dialog__inner">
         <div class="add-item-dialog__toolbar">
-          <button type="button" class="btn btn--ghost" id="add-item-close" aria-label="Close add piece dialog">
-            Close
+          <button type="button" class="add-item-dialog__close" id="add-item-close" aria-label="Close add piece dialog">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/></svg>
           </button>
         </div>
         <section class="add-item-panel add-item-panel--dialog" id="add-item-panel" aria-labelledby="add-item-heading">
           <div class="add-item-panel__head">
             <h2 id="add-item-heading" class="add-item-panel__title">Add a piece</h2>
             <p class="add-item-panel__hint">
-              Required: <strong>brand</strong>, <strong>name</strong>, <strong>section</strong>, and <strong>type</strong>. Same layout as edit — first photo is the cover; drag tiles to reorder. Saved to cloud when Supabase is configured.
+              Only <strong>Name</strong> and <strong>Section</strong> are required — everything else can come later.
             </p>
           </div>
           <form id="add-item-form" class="add-item-form item-edit-form" novalidate>
@@ -426,8 +426,9 @@
             <div class="item-edit-form-footer add-item-form__footer">
               <p id="add-item-form-msg" class="item-detail__edit-msg add-item-form__msg" role="status" aria-live="polite" hidden></p>
               <div class="item-detail__form-actions add-item-form__actions">
-                <button type="submit" class="btn item-edit-text-btn--primary" id="add-item-submit">Add to wardrobe</button>
-                <button type="button" class="btn btn--ghost" id="add-item-reset">Reset</button>
+                <button type="button" class="item-edit-text-btn item-edit-text-btn--subtle" id="add-item-reset">Reset</button>
+                <span id="add-item-status" class="item-edit-dirty-status" role="status" aria-live="polite">Name is required</span>
+                <button type="submit" class="item-edit-text-btn item-edit-text-btn--primary is-not-ready" id="add-item-submit">Add to wardrobe</button>
               </div>
             </div>
           </form>

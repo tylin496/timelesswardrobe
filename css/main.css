@@ -36,6 +36,11 @@
   --ink-faint: #7f8d87;
   --line: #e8e4dd;
   --line-strong: #d6d0c6;
+  /* Edit/Add item form redesign — field surface one step brighter than --bg,
+     a slightly deeper field border, and a warm "unsaved" warning tone. */
+  --field-bg: #fefdf9;
+  --field-border: #e0ddd5;
+  --warn: #8b6a2c;
   --accent: var(--tw-brand-green);
   --accent-brand: var(--tw-brand-green);
   --shadow: rgba(20, 18, 16, 0.05);
@@ -11408,6 +11413,8 @@ input[type="search"]:focus-visible,
   border-radius: var(--radius-lg);
   max-width: min(56rem, 96vw);
   width: min(56rem, 96vw);
+  max-height: min(92vh, 920px);
+  height: min(92vh, 920px);
   margin: auto;
   background: var(--bg-elevated);
   color: var(--ink);
@@ -11427,15 +11434,22 @@ dialog.add-item-dialog[open]::backdrop {
   animation: tlw-backdrop-in 0.38s var(--ease-luxe) both;
 }
 
+/* Three-part flex column (toolbar+head fixed / .item-edit-form-scroll scrolls /
+   footer fixed) instead of the whole dialog scrolling as one block — the footer
+   (Submit/Reset) needs to stay reachable without scrolling past a long form. */
 .add-item-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
   padding: 0.75rem 0.85rem max(1rem, env(safe-area-inset-bottom, 0px));
-  max-height: min(92vh, 920px);
-  overflow: auto;
-  overscroll-behavior: contain;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .add-item-dialog__toolbar {
   @apply mb-1.5;
+  flex: none;
   display: flex;
   justify-content: flex-end;
 }
@@ -11443,6 +11457,28 @@ dialog.add-item-dialog[open]::backdrop {
 .add-item-dialog__toolbar .btn {
   min-height: var(--tap-min);
   padding-inline: 1rem;
+}
+
+.add-item-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.add-item-dialog__close:hover,
+.add-item-dialog__close:focus-visible {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
 }
 
 .tw-confirm-dialog {
@@ -11535,6 +11571,14 @@ dialog.add-item-dialog[open]::backdrop {
   cursor: not-allowed;
 }
 
+/* Add Item submit — visual-only "not ready yet" state (name empty). Native
+   `required` validation still gates the actual submit; this never sets
+   `disabled`, it only recolours. */
+#add-item-submit.item-edit-text-btn--primary.is-not-ready {
+  background: #9aa79f;
+  border-color: #9aa79f;
+}
+
 .add-item-panel {
   @apply mx-auto;
   max-width: var(--content-max);
@@ -11545,6 +11589,10 @@ dialog.add-item-dialog[open]::backdrop {
 
 .add-item-panel--dialog {
   @apply m-0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 0;
   max-width: none;
   border: none;
@@ -11552,7 +11600,7 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .add-item-panel__head {  @apply mb-4;
-
+  flex: none;
 }
 
 .add-item-panel__title {
@@ -11573,12 +11621,16 @@ dialog.add-item-dialog[open]::backdrop {
 .add-item-form.item-edit-form {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 0;
 }
 
 .add-item-form.item-edit-form .item-edit-form-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .add-item-form.item-edit-form .item-edit-section:last-of-type {
@@ -11597,7 +11649,23 @@ dialog.add-item-dialog[open]::backdrop {
 }
 
 .add-item-form__footer.item-edit-form-footer {
+  flex: none;
   margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .add-item-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .add-item-form .item-edit-pair-row,
+  .add-item-form .item-edit-triple-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .field--span2 {
@@ -13393,7 +13461,7 @@ body.item-page .site-header {
 
   .item-detail__root--page > .item-detail__body--edit {
     grid-column: 2;
-    grid-row: 1 / -1;
+    grid-row: 2;
   }
 
   .item-detail__root--page.item-detail__root--edit {
@@ -13404,9 +13472,15 @@ body.item-page .site-header {
     width: 100%;
   }
 
+  /* Head band spans both columns on its own row; preview + body--edit sit in row 2. */
+  .item-detail__root--edit > .item-edit-head-band {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
   .item-detail__root--edit > .item-edit-preview {
     grid-column: 1;
-    grid-row: 1 / -1;
+    grid-row: 2;
     position: sticky;
     top: 7.5rem;
     align-self: start;
@@ -13414,7 +13488,7 @@ body.item-page .site-header {
 
   .item-detail__root--edit > .item-detail__body--edit {
     grid-column: 2;
-    grid-row: 1 / -1;
+    grid-row: 2;
     position: sticky;
     top: var(--site-header-chrome-bottom, 7.5rem);
     align-self: start;
@@ -14977,8 +15051,132 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   color: var(--ink-muted);
 }
 
+/* Standalone edit page only: full-width band above the two-column grid. */
+.item-edit-head-band {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(1.5rem, 2.5vw, 2.25rem);
+}
+
+.item-edit-head-band__main {
+  min-width: 0;
+}
+
+.item-edit-head-band__crumb {
+  margin-bottom: 0.5rem;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  opacity: 0.7;
+}
+
+.item-edit-head-band__crumb .item-detail__breadcrumb {
+  margin: 0;
+  font-size: inherit;
+}
+
+.item-edit-head-band__crumb .item-detail__breadcrumb-current-leaf {
+  font-weight: 500;
+}
+
+.item-edit-head-band__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.item-edit-head-band__subline {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+.item-edit-head-band__status {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .item-edit-head-band {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+}
+
 .item-edit-preview .item-detail__gallery {
   width: 100%;
+}
+
+.item-edit-preview-photos__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.85rem 0 0.6rem;
+}
+
+.item-edit-preview-photos__label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.item-edit-preview-photos__count {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.item-edit-preview-summary {
+  margin: 1.1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  font-size: 0.78rem;
+}
+
+.item-edit-preview-summary dt {
+  margin: 0;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  align-self: baseline;
+  padding-top: 0.1rem;
+}
+
+.item-edit-preview-summary dd {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.item-edit-preview-summary__swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 50, 41, 0.15);
+  display: inline-block;
+  flex: none;
 }
 
 /* Edit preview: hero fills the stage (cover, no letterboxing). */
@@ -15054,8 +15252,15 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
     display: block;
   }
 
+  /* Preview column now holds the real photo manager (see mountItemEditFormSections'
+     editPreviewCol path) — it must stay visible and stack on top, not hide, or
+     mobile users lose photo editing entirely (it's no longer duplicated in the
+     form). Cap the cover stage width so it doesn't dominate a mobile screen. */
   .item-detail__root--edit > .item-edit-preview {
-    display: none;
+    position: static;
+    width: 100%;
+    max-width: 260px;
+    margin-inline: auto;
   }
 
   .item-detail__root--edit .item-detail__body--edit {
@@ -15078,6 +15283,21 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
     overflow-y: visible;
     overscroll-behavior: auto;
   }
+
+  .item-edit-form input,
+  .item-edit-form select,
+  .item-edit-form textarea {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .item-edit-form-footer button {
+    min-height: 44px;
+  }
+
+  .item-edit-keycap {
+    display: none;
+  }
 }
 
 /* Each section opens on a hairline top rule + generous air, so the form reads as
@@ -15089,13 +15309,56 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
 }
 
-.item-edit-section:first-child {
+/* :first-of-type (not :first-child) — the standalone edit page prepends
+   .item-edit-section-nav as formScroll's actual first child (see
+   mountItemEditSectionNav), which would otherwise still leave the first
+   <section> matching :first-child and losing its own reset. */
+.item-edit-section:first-of-type {
   padding-top: 0;
   border-top: none;
 }
 
 .item-edit-section:last-child {
   @apply mb-2;
+}
+
+.item-edit-section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  gap: 1.15rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.65rem 0 0;
+  margin-bottom: 1.5rem;
+  background: var(--bg);
+  box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--bg) 90%, transparent);
+}
+
+.item-edit-section-nav__item {
+  flex: none;
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 0.15rem 0.05rem 0.45rem;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.item-edit-section-nav__item:hover {
+  color: var(--ink);
+}
+
+.item-edit-section-nav__item--active {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--ink);
 }
 
 /* Section label — uppercase eyebrow, darker + heavier than the muted field labels
@@ -15284,6 +15547,89 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   border-top: none;
 }
 
+/* Standalone edit page only: JS moves formFooter to be a direct child of
+   .item-detail__root--edit instead of nesting it under .item-detail__body--edit
+   (which has `container-type: inline-size` for its own narrow-column @container
+   query — that containment would otherwise trap `position: fixed` here to the
+   46% form column instead of the full page width). */
+.item-detail__root--edit > .item-edit-form-footer {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 1250;
+  margin-top: 0;
+  max-width: 80rem;
+  margin-inline: auto;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line-strong);
+  box-shadow: none;
+  padding: 0.7rem clamp(1.75rem, 4.5vw, 2.75rem) calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.item-detail__root--edit > .item-edit-form-footer .item-detail__form-actions {
+  padding-top: 0;
+  border-top: none;
+  min-width: 0;
+  max-width: 100%;
+}
+
+body.item-page:has(.item-detail__root--edit) .item-page-main {
+  padding-bottom: 7rem;
+}
+
+.item-edit-dirty-status {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.item-edit-dirty-status--dirty {
+  color: var(--warn);
+}
+
+.item-edit-keycap {
+  font-size: 0.66rem;
+  color: var(--ink-faint);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  white-space: nowrap;
+}
+
+.item-edit-text-btn--subtle {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: color-mix(in srgb, var(--ink-muted) 92%, transparent);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.item-edit-text-btn--subtle:hover,
+.item-edit-text-btn--subtle:focus-visible {
+  opacity: 1;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 @media (max-width: 540px) {
   .item-edit-section__grid.item-detail__form-grid,
   .item-detail__body--edit .item-edit-aligned-grid {
@@ -15427,6 +15773,60 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
 .item-edit-basic-colour-pair select {
   font-size: 0.82rem;
   color: var(--ink-muted);
+}
+
+.item-edit-broad-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.item-edit-broad-chip {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  padding: 0;
+  border: 1px solid rgba(22, 50, 41, 0.18);
+  cursor: pointer;
+  flex: none;
+}
+
+.item-edit-broad-chip:hover {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #9aa39c;
+}
+
+.item-edit-broad-chip.is-selected {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--ink);
+}
+
+.item-edit-broad-chip--pill {
+  flex: none;
+  border: 1px solid var(--field-border);
+  background: transparent;
+  color: var(--ink-faint);
+  border-radius: 999px;
+  padding: 0.22rem 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.item-edit-broad-chip--pill:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.item-edit-broad-chip--pill.is-selected {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.item-edit-broad-chips__status {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-left: 0.25rem;
 }
 
 .item-edit-single-colour-block.field--span2 > .item-edit-variant-migrate-hint,
@@ -15877,6 +16277,43 @@ html.tw-account-dark body.account-page .account-brands-v2-status[data-state="err
   display: none;
 }
 
+/* Progressive disclosure card (single-colour block only — variant rows are untouched). */
+.item-edit-secondary-colour-block:not(.item-edit-secondary-colour-block--variant)
+  .item-edit-secondary-colour-panel {
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--line) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, #ffffff 35%, transparent);
+  box-sizing: border-box;
+}
+
+.item-edit-secondary-toggle {
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.item-edit-secondary-toggle:hover {
+  background: none;
+  border-color: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.item-edit-secondary-colour-block:not(.item-edit-secondary-colour-block--variant) .item-edit-colour-swap {
+  align-self: flex-end;
+  margin-left: auto;
+}
+
 .item-edit-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -16151,9 +16588,10 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
 
 .measured-dims-row {
   display: grid;
-  /* Label | value | unit | delete | add */
-  grid-template-columns: minmax(6.5rem, 1fr) 5rem 3.5rem 2rem 2rem;
-  gap: 0.35rem 0.5rem;
+  /* Label | value (with in-field unit suffix) | delete — the per-row unit select
+     is hidden (a single global unit control drives cm/mm for every row). */
+  grid-template-columns: minmax(7rem, 1fr) 7rem 2rem;
+  gap: 0.4rem;
   align-items: center;
 }
 
@@ -16176,14 +16614,98 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
   text-align: center;
 }
 
-.measured-dims-row__remove-slot,
-.measured-dims-row__add-slot {
+.measured-dims-value-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--field-bg);
+  overflow: hidden;
+}
+
+.measured-dims-value-wrap .measured-dims-row__value {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.measured-dims-value-wrap__unit {
+  flex: none;
+  padding: 0 0.55rem 0 0.25rem;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+}
+
+.measured-dims-row__remove-slot {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
   min-width: 2rem;
   min-height: 2rem;
+}
+
+.measured-dims-row__remove {
+  border: none;
+  background: transparent;
+  color: #a9b3ac;
+}
+
+.measured-dims-row__remove:hover,
+.measured-dims-row__remove:focus-visible {
+  color: var(--error);
+  background: var(--error-soft);
+}
+
+.measured-dims-quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.measured-dims-quick__label {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.measured-dims-quick__chip {
+  flex: none;
+  border: 1px solid var(--field-border);
+  background: transparent;
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 0.18rem 0.66rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.measured-dims-quick__chip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.measured-dims-add-btn {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0.3rem 0;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.measured-dims-add-btn:hover {
+  color: var(--ink);
+  text-decoration: underline;
 }
 
 .item-edit-measured-dims-host {
@@ -16421,6 +16943,53 @@ body:has(#item-photo-crop-dialog[open]) .item-edit-form-footer {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+}
+
+/* Single-colour block only (not variant rows, which keep the 3-action grid above):
+   swap + add-secondary move into the secondary-colour block (see the JS reparenting
+   comment near secondaryColourMount), so this row now holds only swatch + input +
+   (eyedropper or, on the secondary row, the remove button) — merge into one flush
+   bordered group instead of three separate boxes. */
+.item-edit-single-colour-block .item-edit-colour-code-row {
+  --item-edit-colour-action-cols: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--field-bg);
+  overflow: hidden;
+}
+
+.item-edit-single-colour-block .item-edit-colour-code-row .item-edit-colour-code-preview {
+  width: 2.6rem;
+  flex: none;
+  border: none;
+  border-right: 1px solid var(--field-border);
+  border-radius: 0;
+}
+
+.item-edit-single-colour-block .item-edit-colour-code-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.item-edit-single-colour-block .item-edit-colour-code-row .item-edit-colour-code-row__actions {
+  flex: none;
+  width: auto;
+  max-width: none;
+}
+
+.item-edit-single-colour-block .item-edit-colour-code-row .item-edit-eyedropper-btn,
+.item-edit-single-colour-block .item-edit-colour-code-row .item-edit-secondary-colour-remove {
+  width: 2.6rem;
+  border: none;
+  border-left: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  border-radius: 0;
+  background: transparent;
 }
 
 .item-edit-colour-code-row input {

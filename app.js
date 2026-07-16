@@ -1511,8 +1511,14 @@
     setItemEditColourFieldValue(colourCodeInput, secCode, { dispatch: false });
     setItemEditColourFieldValue(secNameIn, priName, { dispatch: false });
     setItemEditColourFieldValue(secCodeIn, priCode, { dispatch: false });
-    if (basicSel instanceof HTMLSelectElement) basicSel.value = secBasic;
-    if (secBasicSel instanceof HTMLSelectElement) secBasicSel.value = priBasic;
+    if (basicSel instanceof HTMLSelectElement) {
+      basicSel.value = secBasic;
+      basicSel.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    if (secBasicSel instanceof HTMLSelectElement) {
+      secBasicSel.value = priBasic;
+      secBasicSel.dispatchEvent(new Event("change", { bubbles: true }));
+    }
 
     const hasSecondaryAfter = Boolean(String(priName).trim() || String(priCode).trim());
     if (panel instanceof HTMLElement) panel.hidden = !hasSecondaryAfter;
@@ -6352,6 +6358,7 @@
     if (opts.id) sel.id = opts.id;
     fillBasicColourSelectOptions(sel, initialPick, { includeOmit: true });
     wrap.append(span, sel);
+    mountBasicColourChips(sel);
     const sync =
       typeof opts.getFields === "function"
         ? wireItemEditSecondaryBasicColourAutoDisplay(sel, opts.getFields)
@@ -6388,6 +6395,66 @@
     green: "#4f7b56",
     grey: "#8d8e95",
   };
+
+  /**
+   * Wrap a broad-colour `<select>` (built by fillBasicColourSelectOptions /
+   * refillBasicColourSelectOptions) with tappable swatch chips. The select stays
+   * the source of truth (hidden, not removed) — chips write into it and dispatch
+   * `change`, so all existing read/save/auto-derive/swap logic is untouched.
+   * @param {HTMLSelectElement} basicSel
+   */
+  function mountBasicColourChips(basicSel) {
+    if (!(basicSel instanceof HTMLSelectElement)) return null;
+    basicSel.hidden = true;
+    const row = document.createElement("div");
+    row.className = "item-edit-broad-chips";
+    const status = document.createElement("span");
+    status.className = "item-edit-broad-chips__status";
+    const setVal = (v) => {
+      basicSel.value = v;
+      basicSel.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    /** @type {[HTMLButtonElement, string][]} */
+    const chips = [];
+    for (const key of BASIC_COLOUR_FAMILY_KEYS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "item-edit-broad-chip";
+      b.style.background = BASIC_COLOUR_SWATCH_HEX[key] || "";
+      b.title = basicColourLabelEn(key);
+      b.setAttribute("aria-label", b.title);
+      b.addEventListener("click", () => setVal(key));
+      chips.push([b, key]);
+      row.appendChild(b);
+    }
+    for (const [label, v] of [
+      ["Auto", ""],
+      ["None", BASIC_COLOUR_CLASSIFICATION_OMIT],
+    ]) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "item-edit-broad-chip--pill";
+      b.textContent = label;
+      b.addEventListener("click", () => setVal(v));
+      chips.push([b, v]);
+      row.appendChild(b);
+    }
+    row.appendChild(status);
+    function sync() {
+      const v = basicSel.value;
+      for (const [b, key] of chips) b.classList.toggle("is-selected", key === v);
+      status.textContent =
+        v === ""
+          ? "Auto (from colour label / hex)"
+          : v === BASIC_COLOUR_CLASSIFICATION_OMIT
+            ? "Not filtered by colour"
+            : basicColourLabelEn(v);
+    }
+    basicSel.addEventListener("change", sync);
+    basicSel.insertAdjacentElement("afterend", row);
+    sync();
+    return { row, sync };
+  }
 
   /**
    * Parse price from form strings or JSON (supports `12.34` and `12,34` as decimal comma).
@@ -6739,31 +6806,48 @@
       for (const sel of dyn.querySelectorAll(".measured-dims-row__unit")) {
         /** @type {HTMLSelectElement} */ (sel).value = u;
       }
+      for (const suffix of dyn.querySelectorAll(".measured-dims-value-wrap__unit")) {
+        suffix.textContent = u;
+      }
     }
 
-    unitSel?.addEventListener("change", syncValuePlaceholders);
+    /* cm/mm only — MEASUREMENT_UNITS also has in/g/ct for per-row overrides that
+       this global control doesn't expose; those rows still get force-synced to
+       cm/mm like today (pre-existing syncValuePlaceholders behavior, unchanged). */
+    let previousGlobalUnit = initialUnit;
+    function convertMeasurementValues(fromUnit, toUnit) {
+      const factor =
+        fromUnit === "cm" && toUnit === "mm" ? 10 : fromUnit === "mm" && toUnit === "cm" ? 0.1 : null;
+      if (factor == null) return;
+      for (const inp of dyn.querySelectorAll(".measured-dims-row__value")) {
+        const raw = /** @type {HTMLInputElement} */ (inp).value.trim();
+        if (!raw) continue;
+        const num = Number(raw);
+        if (!Number.isFinite(num)) continue;
+        const converted = Math.round(num * factor * 100) / 100;
+        /** @type {HTMLInputElement} */ (inp).value = String(converted);
+      }
+    }
 
-    const addBtn = createItemEditIconButton(
-      "item-edit-icon-btn--compact measured-dims-row__add",
-      TW_ITEM_EDIT_ICON.plus,
-      "Add measurement row"
-    );
+    unitSel?.addEventListener("change", () => {
+      const newUnit = parseMeasurementUnitInput(unitSel.value);
+      convertMeasurementValues(previousGlobalUnit, newUnit);
+      previousGlobalUnit = newUnit;
+      syncValuePlaceholders();
+    });
+
+    const addBtn = createItemEditTextButton("measured-dims-add-btn", "+ Add measurement", {
+      ariaLabel: "Add measurement row",
+      bare: true,
+    });
     addBtn.addEventListener("click", () => {
       appendRow("", "");
       syncValuePlaceholders();
+      syncQuickAddChips();
       const rows = dyn.querySelectorAll(".measured-dims-row");
       const last = rows[rows.length - 1];
       last?.querySelector(".measured-dims-row__label")?.focus();
     });
-
-    function syncAddBtnPlacement() {
-      for (const row of dyn.querySelectorAll(".measured-dims-row")) {
-        row.querySelector(".measured-dims-row__add-slot")?.replaceChildren();
-      }
-      const last = dyn.querySelector(".measured-dims-row:last-child");
-      const addSlot = last?.querySelector(".measured-dims-row__add-slot");
-      if (addSlot instanceof HTMLElement) addSlot.appendChild(addBtn);
-    }
 
     function appendRow(label = "", value = "", labelPlaceholder = "", unit = "") {
       const row = document.createElement("div");
@@ -6793,7 +6877,12 @@
       valIn.autocomplete = "off";
       valIn.value = value;
       const rowUnitSel = document.createElement("select");
+      /* Hidden — a single global unit select (above) now drives cm/mm for every
+         row; this per-row select stays in the DOM (still written by
+         syncValuePlaceholders, still read by readMeasurementRowsFromEditor) so
+         existing read/save logic is untouched, it's just not shown. */
       rowUnitSel.className = "measured-dims-row__unit";
+      rowUnitSel.hidden = true;
       rowUnitSel.setAttribute("aria-label", "Unit");
       const rowInitialUnit = parseMeasurementUnitInput(unit || (unitSel ? unitSel.value : "cm"));
       for (const u of MEASUREMENT_UNITS) {
@@ -6803,6 +6892,13 @@
         if (u === rowInitialUnit) o.selected = true;
         rowUnitSel.appendChild(o);
       }
+      const valWrap = document.createElement("span");
+      valWrap.className = "measured-dims-value-wrap";
+      const valUnitSuffix = document.createElement("span");
+      valUnitSuffix.className = "measured-dims-value-wrap__unit";
+      valUnitSuffix.setAttribute("aria-hidden", "true");
+      valUnitSuffix.textContent = rowInitialUnit;
+      valWrap.append(valIn, valUnitSuffix);
       const rm = createItemEditIconButton(
         "item-edit-icon-btn--compact measured-dims-row__remove",
         TW_ITEM_EDIT_ICON.trash,
@@ -6811,16 +6907,44 @@
       rm.addEventListener("click", () => {
         row.remove();
         if (!dyn.querySelector(".measured-dims-row")) appendRow("", "");
-        else syncAddBtnPlacement();
+        syncQuickAddChips();
       });
       const rmSlot = document.createElement("div");
       rmSlot.className = "measured-dims-row__remove-slot";
       rmSlot.appendChild(rm);
-      const addSlot = document.createElement("div");
-      addSlot.className = "measured-dims-row__add-slot";
-      row.append(labIn, valIn, rowUnitSel, rmSlot, addSlot);
+      row.append(labIn, valWrap, rowUnitSel, rmSlot);
       dyn.appendChild(row);
-      syncAddBtnPlacement();
+    }
+
+    const QUICK_MEASUREMENT_LABELS = ["Chest", "Shoulder", "Sleeve", "Length", "Hem"];
+    const quick = document.createElement("div");
+    quick.className = "measured-dims-quick";
+    const quickLabel = document.createElement("span");
+    quickLabel.className = "measured-dims-quick__label";
+    quickLabel.textContent = "Quick add";
+    quick.appendChild(quickLabel);
+    /** @type {HTMLButtonElement[]} */
+    const quickChipBtns = [];
+    function syncQuickAddChips() {
+      const existing = new Set(
+        [...dyn.querySelectorAll(".measured-dims-row__label")].map((i) =>
+          /** @type {HTMLInputElement} */ (i).value.trim().toLowerCase()
+        )
+      );
+      for (const b of quickChipBtns) b.hidden = existing.has(b.textContent.toLowerCase());
+    }
+    for (const label of QUICK_MEASUREMENT_LABELS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "measured-dims-quick__chip";
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        appendRow(label, "");
+        syncValuePlaceholders();
+        syncQuickAddChips();
+      });
+      quickChipBtns.push(b);
+      quick.appendChild(b);
     }
 
     for (const r of rowsToShow) {
@@ -6832,10 +6956,12 @@
       );
     }
 
+    block.appendChild(quick);
     block.appendChild(dyn);
+    block.appendChild(addBtn);
     container.appendChild(block);
     syncValuePlaceholders();
-    syncAddBtnPlacement();
+    syncQuickAddChips();
   }
 
   /**
@@ -20558,6 +20684,24 @@
     // Mount the shared form fields (same builder as Edit form)
     mountItemEditFormSections(/** @type {HTMLElement} */ (formScroll), {}, { allowVariants: false });
 
+    /* Visual-only "ready to submit" status — never disables the submit button,
+       native `required` validation still gates the actual submit. Re-run after
+       Reset remounts fresh fields (a new #item-edit-name element). */
+    function wireAddItemReadyStatus() {
+      const nameIn = /** @type {HTMLInputElement | null} */ (form.querySelector("#item-edit-name"));
+      const statusEl = document.getElementById("add-item-status");
+      const submitBtn = document.getElementById("add-item-submit");
+      if (!nameIn || !statusEl || !submitBtn) return;
+      const sync = () => {
+        const ready = Boolean(nameIn.value.trim());
+        statusEl.textContent = ready ? "Ready to add" : "Name is required";
+        submitBtn.classList.toggle("is-not-ready", !ready);
+      };
+      nameIn.addEventListener("input", sync);
+      sync();
+    }
+    wireAddItemReadyStatus();
+
     function applyCurrentBrowseContextToAddItemForm() {
       const slot = String(categoryNavFilter ?? "").trim();
       const catSel = /** @type {HTMLSelectElement | null} */ (form.querySelector("#item-edit-browse-slot"));
@@ -20580,6 +20724,7 @@
       showAddItemFormMsg("", false);
       /** @type {HTMLElement} */ (formScroll).innerHTML = "";
       mountItemEditFormSections(/** @type {HTMLElement} */ (formScroll), {}, { allowVariants: false });
+      wireAddItemReadyStatus();
       form.querySelector("#item-edit-brand")?.focus();
     });
 
@@ -25185,9 +25330,51 @@
     return buildCollectionBrowseBreadcrumbNav(slotLabel, recordCategoryForDrill(item, slotLabel));
   }
 
+  /**
+   * Sticky section nav with scroll-spy. `scrollHost` is the element that actually
+   * scrolls — `.item-edit-form-scroll` on the standalone edit page, NOT window
+   * (the internal-scroll-container model there is unchanged; only the action
+   * footer breaks out to the viewport — see mountItemEditHeaderBand's neighbour).
+   * @param {HTMLElement} scrollHost
+   */
+  function mountItemEditSectionNav(scrollHost) {
+    const sections = [...scrollHost.querySelectorAll(".item-edit-section[id]")];
+    if (sections.length < 2) return null;
+    const nav = document.createElement("nav");
+    nav.className = "item-edit-section-nav";
+    nav.setAttribute("aria-label", "Form sections");
+    const btns = sections.map((sec) => {
+      const label =
+        sec.querySelector(".item-edit-section__eyebrow, .item-edit-section__heading")?.textContent?.trim() || "";
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "item-edit-section-nav__item";
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        // Not scrollIntoView — compute the offset manually so the sticky nav doesn't cover the target.
+        const top = sec.offsetTop - nav.offsetHeight - 8;
+        scrollHost.scrollTo({ top, behavior: "smooth" });
+      });
+      nav.appendChild(b);
+      return b;
+    });
+    const spy = () => {
+      let idx = 0;
+      for (let i = 0; i < sections.length; i++) {
+        if (sections[i].offsetTop - nav.offsetHeight - 24 <= scrollHost.scrollTop) idx = i;
+      }
+      btns.forEach((b, i) => b.classList.toggle("item-edit-section-nav__item--active", i === idx));
+    };
+    scrollHost.addEventListener("scroll", spy, { passive: true });
+    scrollHost.prepend(nav);
+    spy();
+    return nav;
+  }
+
   function createItemEditSection(headingText, options = {}) {
     const section = document.createElement("section");
     section.className = "item-edit-section";
+    section.id = "item-edit-sec-" + (headingText || "identity").toLowerCase().replace(/[^a-z]+/g, "-");
     if (options.pathHeading) {
       // Identity: standalone section eyebrow above the breadcrumb path line, so the
       // first block reads as a labelled section like the rest (not just a path crumb).
@@ -25415,12 +25602,13 @@
    *
    * @param {HTMLElement} formScroll - The `.item-edit-form-scroll` container to populate.
    * @param {object} item - Existing item data (use `{}` for Add).
-   * @param {{ editPreviewCol?: HTMLElement|null, itemForMedia?: object, allowVariants?: boolean }} [opts]
+   * @param {{ editPreviewCol?: HTMLElement|null, itemForMedia?: object, allowVariants?: boolean, onIdentityChange?: (info: {name: string, brand: string, season: string, section: string, recordType: string}) => void }} [opts]
    */
   function mountItemEditFormSections(formScroll, item, opts = {}) {
     const editPreviewCol = opts.editPreviewCol ?? null;
     const itemForMedia = opts.itemForMedia ?? item ?? {};
     const allowVariants = Boolean(opts.allowVariants);
+    const onIdentityChange = typeof opts.onIdentityChange === "function" ? opts.onIdentityChange : null;
     item = item ?? {};
 
     const identitySec = createItemEditSection("Identity", { pathHeading: true });
@@ -25511,28 +25699,80 @@
       { midRequired: true }
     );
 
-    const photosFieldWrap = document.createElement("div");
-    photosFieldWrap.className = "field field--span2 item-edit-photos-field";
-    photosFieldWrap.id = "item-edit-photos-field";
-    const photosLabel = document.createElement("span");
-    photosLabel.className = "field__label";
-    photosLabel.textContent = `Photos (up to ${ITEM_EDIT_PHOTO_MAX})`;
     const photosHost = document.createElement("div");
     photosHost.id = "item-edit-photos";
+    /** @type {HTMLElement | null} */
+    let photosCountEl = null;
+    /* Standalone edit page (editPreviewCol set): the real editable photo manager
+       mounts directly into the preview column instead of a form field — this
+       REPLACES the old read-only PDP-gallery-clone kept in sync via
+       syncItemEditPreviewGallery for that path (net simplification, one fewer
+       sync layer), not a relocation of a still-read-only view. Add Item (no
+       editPreviewCol) keeps the original form-field placement unchanged. */
+    if (editPreviewCol) {
+      const photosHeader = document.createElement("div");
+      photosHeader.className = "item-edit-preview-photos__header";
+      const photosHeaderLabel = document.createElement("span");
+      photosHeaderLabel.className = "item-edit-preview-photos__label";
+      photosHeaderLabel.textContent = "Photos";
+      photosCountEl = document.createElement("span");
+      photosCountEl.className = "item-edit-preview-photos__count";
+      photosHeader.append(photosHeaderLabel, photosCountEl);
+      editPreviewCol.append(photosHeader, photosHost);
+      var previewSummaryDl = document.createElement("dl");
+      previewSummaryDl.className = "item-edit-preview-summary";
+      var previewSummarySwatch = document.createElement("span");
+      previewSummarySwatch.className = "item-edit-preview-summary__swatch";
+      var previewSummaryColourDd = document.createElement("dd");
+      previewSummaryColourDd.append(previewSummarySwatch, document.createTextNode(""));
+      var previewSummarySeasonDd = document.createElement("dd");
+      var previewSummaryPriceDd = document.createElement("dd");
+      const summaryRows = [
+        ["Season", previewSummarySeasonDd],
+        ["Colour", previewSummaryColourDd],
+        ["Price", previewSummaryPriceDd],
+      ];
+      for (const [label, dd] of summaryRows) {
+        const dt = document.createElement("dt");
+        dt.textContent = label;
+        previewSummaryDl.append(dt, dd);
+      }
+      editPreviewCol.appendChild(previewSummaryDl);
+    } else {
+      const photosFieldWrap = document.createElement("div");
+      photosFieldWrap.className = "field field--span2 item-edit-photos-field";
+      photosFieldWrap.id = "item-edit-photos-field";
+      const photosLabel = document.createElement("span");
+      photosLabel.className = "field__label";
+      photosLabel.textContent = `Photos (up to ${ITEM_EDIT_PHOTO_MAX})`;
+      photosFieldWrap.appendChild(photosLabel);
+      photosFieldWrap.appendChild(photosHost);
+      photosFieldWrap.hidden = Boolean(initialVariants);
+      /* Add Item dialog only (editPreviewCol is only set on the standalone edit
+         page): photos come first, before Identity — prepend to formScroll
+         directly rather than nesting inside identityGrid. formScroll.prepend
+         still lands photos before identitySec.section even though that section
+         is appended later, since prepend always targets the current first slot. */
+      formScroll.prepend(photosFieldWrap);
+    }
+    function syncPhotosCount() {
+      if (!photosCountEl) return;
+      const n = Array.isArray(photosHost.__twPhotoEntries) ? photosHost.__twPhotoEntries.length : 0;
+      photosCountEl.textContent = `${n} of ${ITEM_EDIT_PHOTO_MAX} · first is cover`;
+    }
     if (!initialVariants) {
       mountItemEditPhotoManager(photosHost, {
         item: itemForMedia,
         coverUrl: String(itemForMedia.image ?? "").trim(),
         galleryUrls: resolvedItemGalleryList(itemForMedia),
         uploadLabel: "Upload photos",
-        onDirty: () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
+        onDirty: editPreviewCol
+          ? syncPhotosCount
+          : () => syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia),
       });
-      syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
+      if (!editPreviewCol) syncItemEditPreviewGallery(editPreviewCol, photosHost, itemForMedia);
     }
-    photosFieldWrap.appendChild(photosLabel);
-    photosFieldWrap.appendChild(photosHost);
-    photosFieldWrap.hidden = Boolean(initialVariants);
-    identityGrid.appendChild(photosFieldWrap);
+    syncPhotosCount();
 
     function refreshIdentityBrowsePath() {
       identitySec.heading.replaceChildren(
@@ -25540,12 +25780,30 @@
       );
     }
 
+    function emitIdentityChange() {
+      onIdentityChange?.({
+        name: nameIn.value,
+        brand: brandIn.value,
+        season: seaSel.value,
+        section: catSel.value,
+        recordType: recordTypeSel.value,
+      });
+    }
+
     catSel.addEventListener("change", () => {
       fillItemEditRecordTypeSelect(recordTypeSel, catSel.value, recordTypeSel.value);
       refreshIdentityBrowsePath();
+      emitIdentityChange();
     });
     recordTypeSel.addEventListener("change", refreshIdentityBrowsePath);
     refreshIdentityBrowsePath();
+
+    if (onIdentityChange) {
+      nameIn.addEventListener("input", emitIdentityChange);
+      brandIn.addEventListener("input", emitIdentityChange);
+      seaSel.addEventListener("change", emitIdentityChange);
+      recordTypeSel.addEventListener("change", emitIdentityChange);
+    }
 
     /** @type {HTMLElement | null} */
     let colourSingleField = null;
@@ -25624,6 +25882,7 @@
     bspan.textContent = "Broad colour — primary (optional)";
     basicLab.appendChild(bspan);
     basicLab.appendChild(basicSel);
+    mountBasicColourChips(basicSel);
 
     const basicPair = document.createElement("div");
     basicPair.className = "item-edit-basic-colour-pair";
@@ -25689,7 +25948,7 @@
     secColourBlock?.addEventListener("change", syncSecondaryBasicVisibility);
     basicPair.append(basicLab, secBasicMount.wrap);
     colourBlock.appendChild(basicPair);
-    wireItemEditColourSwapButton(colourCodeActions, {
+    const colourSwapBtn = wireItemEditColourSwapButton(colourCodeActions, {
       colourNameInput,
       colourCodeInput,
       basicSel,
@@ -25699,6 +25958,19 @@
       syncBasicAuto: syncItemBasicAuto,
       syncSecondaryBasicVisibility,
     });
+    /* Progressive disclosure: the merged colour-code control (swatch + input +
+       eyedropper, styled in CSS) should hold only those three controls — move the
+       existing add-secondary toggle and swap button (built above, wired against
+       colourCodeActions/itemEditRowActionsPush) into the secondary-colour block
+       itself. Pure DOM reparenting — click handlers/closures are unaffected, and
+       resetItemEditSecondaryColourBlock's `block.querySelector(".item-edit-secondary-colour-add")`
+       lookup finds the button correctly once it lives inside `block`. */
+    if (secondaryColourMount.addBtn) {
+      secondaryColourMount.addBtn.classList.add("item-edit-secondary-toggle");
+      secondaryColourMount.addBtn.append(" Add secondary colour");
+      secondaryColourMount.block.prepend(secondaryColourMount.addBtn);
+    }
+    if (colourSwapBtn) secondaryColourMount.block.appendChild(colourSwapBtn);
     syncSecondaryBasicVisibility();
 
     if (isCustomPiece) {
@@ -26012,6 +26284,96 @@
       initialUnit: getMeasurementUnit(item),
       unitHost: measUnitHost,
     });
+
+    // Standalone edit page: live preview-column summary (Season / Colour / Price).
+    if (previewSummaryDl) {
+      const updatePreviewSummary = () => {
+        previewSummarySeasonDd.textContent = seasonUiLabel(seaSel.value);
+        const colourName = colourNameInput.value.trim();
+        const code = colourCodeInput.value.trim();
+        const swatchOk = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(code);
+        previewSummarySwatch.style.background = swatchOk ? code : "var(--swatch-empty)";
+        previewSummaryColourDd.lastChild.textContent = colourName || "—";
+        const priceRaw = priceIn.value.trim();
+        previewSummaryPriceDd.textContent = priceRaw ? `${priceCurSel.value} ${priceRaw}` : "—";
+      };
+      seaSel.addEventListener("change", updatePreviewSummary);
+      colourNameInput.addEventListener("input", updatePreviewSummary);
+      colourCodeInput.addEventListener("input", updatePreviewSummary);
+      priceIn.addEventListener("input", updatePreviewSummary);
+      priceCurSel.addEventListener("change", updatePreviewSummary);
+      updatePreviewSummary();
+    }
+  }
+
+  /**
+   * Standalone Edit Item page only: breadcrumb + live serif H1 + subline
+   * (brand · section · type · season) + save-status line, mounted full-width
+   * above the two-column grid. `statusEl` is the existing `#item-detail-edit-status`
+   * element — this function un-hides it and places it in the band instead of
+   * creating a parallel status node.
+   * @param {object} item
+   * @param {HTMLElement} statusEl
+   */
+  function mountItemEditHeaderBand(item, statusEl) {
+    const band = document.createElement("div");
+    band.className = "item-edit-head-band";
+
+    const main = document.createElement("div");
+    main.className = "item-edit-head-band__main";
+
+    const crumbHost = document.createElement("div");
+    crumbHost.className = "item-edit-head-band__crumb";
+
+    const h1 = document.createElement("h1");
+    h1.id = "item-detail-heading";
+    h1.className = "item-edit-head-band__title";
+
+    const subline = document.createElement("p");
+    subline.className = "item-edit-head-band__subline";
+
+    main.append(crumbHost, h1, subline);
+    statusEl.className += " item-edit-head-band__status";
+    band.append(main, statusEl);
+
+    function renderCrumb(section, recordType) {
+      const nav = buildCollectionBrowseBreadcrumbNav(section, recordType);
+      const sep = document.createElement("span");
+      sep.className = "item-detail__breadcrumb-sep";
+      sep.setAttribute("aria-hidden", "true");
+      sep.textContent = "/";
+      const leaf = document.createElement("span");
+      leaf.className = "item-detail__breadcrumb-current-leaf";
+      leaf.textContent = "Edit piece";
+      nav.append(sep, leaf);
+      crumbHost.replaceChildren(nav);
+    }
+
+    function update(info = {}) {
+      const name = String(info.name ?? "").trim();
+      const brand = String(info.brand ?? "").trim();
+      const section = String(info.section ?? "").trim() || itemSlot(item);
+      const recordType = String(info.recordType ?? "").trim();
+      h1.textContent = name || "Untitled piece";
+      const sectionLabel = categoryDisplayLabel(section);
+      const typeLabel = friendlyRecordCategory(recordType) || recordType;
+      const seasonLabel = seasonUiLabel(info.season);
+      subline.textContent = [brand || "Unknown maker", sectionLabel, typeLabel, seasonLabel]
+        .filter(Boolean)
+        .join(" · ");
+      renderCrumb(section, recordType);
+    }
+
+    const initialSlot = itemSlot(item);
+    update({
+      name: item.name,
+      brand: item.brand,
+      season: item.season,
+      section: initialSlot,
+      recordType: recordCategoryForDrill(item, initialSlot),
+    });
+
+    return { el: band, update };
   }
 
   function renderItemDetailContent(root, item, opts = {}) {
@@ -26123,22 +26485,19 @@
       const wrap = document.createElement("div");
       wrap.className = "item-detail__body item-detail__body--edit";
 
-
       const statusEl = document.createElement("p");
       statusEl.id = "item-detail-edit-status";
       statusEl.className = "item-edit-save-status";
-      statusEl.hidden = true;
       statusEl.setAttribute("role", "status");
       statusEl.setAttribute("aria-live", "polite");
-      wrap.appendChild(statusEl);
 
+      /** @type {{ el: HTMLElement, update: (info: object) => void } | null} */
+      let headBand = null;
       if (isPageEdit) {
-        const srTitle = document.createElement("h1");
-        srTitle.id = "item-detail-heading";
-        srTitle.className = "item-detail__heading--sr";
-        srTitle.textContent = displayNameWithoutLeadingColour(item);
-        wrap.appendChild(srTitle);
+        headBand = mountItemEditHeaderBand(item, statusEl);
       } else {
+        wrap.appendChild(statusEl);
+        statusEl.hidden = true;
         const h2 = document.createElement("h2");
         h2.id = "item-detail-heading";
         h2.className = "item-detail__title item-detail__title--edit";
@@ -26158,9 +26517,17 @@
         editPreviewCol,
         itemForMedia,
         allowVariants: isCustomWardrobeItem(item),
+        onIdentityChange: headBand ? (info) => headBand.update(info) : undefined,
       });
+      if (isPageEdit) mountItemEditSectionNav(formScroll);
       itemEditDirty = false;
       formScroll.addEventListener("input", () => { itemEditDirty = true; }, { once: true });
+      if (isPageEdit) {
+        statusEl.textContent = "No changes yet";
+        formScroll.addEventListener("input", () => {
+          statusEl.textContent = "Edited — not yet saved";
+        });
+      }
       const formFooter = document.createElement("div");
       formFooter.className = "item-edit-form-footer";
 
@@ -26171,15 +26538,24 @@
       msg.setAttribute("role", "status");
       formFooter.appendChild(msg);
 
+      const handleSaveShortcut = (ev) => {
+        if (!(ev.ctrlKey || ev.metaKey) || ev.key !== "Enter") return;
+        ev.preventDefault();
+        void saveItemDetailEdit(form);
+      };
       form.addEventListener("submit", (ev) => {
         ev.preventDefault();
         void saveItemDetailEdit(form);
       });
-      form.addEventListener("keydown", (ev) => {
-        if (!(ev.ctrlKey || ev.metaKey) || ev.key !== "Enter") return;
-        ev.preventDefault();
-        void saveItemDetailEdit(form);
-      });
+      form.addEventListener("keydown", handleSaveShortcut);
+      /* isPageEdit moves formFooter out of `form` (see below) so it can become a
+         viewport-fixed, full-page-width bar instead of being confined to the 46%
+         form column — .item-detail__body--edit has `container-type: inline-size`
+         (needed for its own narrow-column @container query), which would otherwise
+         trap `position: fixed` descendants to that column's box. The footer's own
+         keydown listener keeps ⌘/Ctrl+Enter working when focus lands on a footer
+         button instead of a form field. */
+      formFooter.addEventListener("keydown", handleSaveShortcut);
 
       const act = document.createElement("div");
       act.className = "item-detail__form-actions item-edit-form-actions";
@@ -26191,10 +26567,15 @@
         title: "Discard changes",
       });
       cancelBtn.id = "item-detail-cancel-edit";
-      const dupBtn = createItemEditTextButton("tw-admin-only item-detail-duplicate", "Duplicate", {
-        title:
-          "Save a copy as a new custom piece (same photos and fields; name gets “ (copy)”) — opens the copy here for editing.",
-      });
+      const dupBtn = createItemEditTextButton(
+        "tw-admin-only item-detail-duplicate item-edit-text-btn--subtle",
+        "Duplicate",
+        {
+          bare: isPageEdit,
+          title:
+            "Save a copy as a new custom piece (same photos and fields; name gets “ (copy)”) — opens the copy here for editing.",
+        }
+      );
       dupBtn.id = "item-detail-duplicate";
       const saveBtn = createItemEditTextButton(
         "item-edit-text-btn--primary item-detail-save",
@@ -26212,13 +26593,48 @@
         }
       );
       delBtn.id = "item-detail-delete";
-      actMain.append(cancelBtn, dupBtn);
-      actEnd.append(delBtn, saveBtn);
+      /** @type {HTMLElement | null} */
+      let dirtyStatusEl = null;
+      if (isPageEdit) {
+        dirtyStatusEl = document.createElement("span");
+        dirtyStatusEl.id = "item-edit-dirty-status";
+        dirtyStatusEl.className = "item-edit-dirty-status";
+        dirtyStatusEl.setAttribute("role", "status");
+        dirtyStatusEl.setAttribute("aria-live", "polite");
+        dirtyStatusEl.textContent = "No changes yet";
+        const keycapEl = document.createElement("span");
+        keycapEl.className = "item-edit-keycap";
+        keycapEl.setAttribute("aria-hidden", "true");
+        keycapEl.textContent = "⌘ ↵";
+        actMain.append(delBtn, dupBtn);
+        actEnd.append(dirtyStatusEl, keycapEl, cancelBtn, saveBtn);
+      } else {
+        actMain.append(cancelBtn, dupBtn);
+        actEnd.append(delBtn, saveBtn);
+      }
       act.append(actMain, actEnd);
       formFooter.appendChild(act);
 
+      /* Separate from the one-shot `itemEditDirty` flag above (which only gates the
+         Cancel/beforeunload confirm dialogs) — this listener just repaints the
+         visible footer status text and can fire on every input without changing
+         that flag's coarse semantics. */
+      if (dirtyStatusEl) {
+        formScroll.addEventListener("input", () => {
+          dirtyStatusEl.textContent = "Unsaved changes";
+          dirtyStatusEl.classList.add("item-edit-dirty-status--dirty");
+        });
+      }
+
       form.appendChild(formScroll);
-      form.appendChild(formFooter);
+      if (isPageEdit) {
+        /* Save is `type=submit` but formFooter is no longer a descendant of `form`
+           (see the container-type comment above) — `form` attribute keeps native
+           submit wired to the same <form> from outside its subtree. */
+        saveBtn.setAttribute("form", form.id);
+      } else {
+        form.appendChild(formFooter);
+      }
 
       let editDirty = false;
       const markEditDirty = () => {
@@ -26229,6 +26645,10 @@
 
       wrap.appendChild(form);
       root.appendChild(wrap);
+      if (isPageEdit) {
+        root.prepend(headBand.el);
+        root.appendChild(formFooter);
+      }
       afterItemDetailPageRender(root, true);
       return;
     }

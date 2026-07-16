@@ -115,6 +115,13 @@ Use a named `--z-*` token, never a raw number. Current ladder (low → high):
 
 New overlays slot into a gap in this range with a new `--z-*` token.
 
+Known exceptions (raw numbers, not yet tokenized — don't copy the pattern, but
+don't "fix" them opportunistically either): `.account-tab-drawer` and the
+standalone Edit Item page's `.item-edit-form-footer` (`.item-detail__root--edit
+> .item-edit-form-footer`) both use a raw `1250`. They never render at the same
+time (different pages), so there's no real collision — flagged here only so a
+future new overlay at 1250 doesn't assume the slot is free.
+
 ## Rails (horizontal card scrollers)
 
 Every horizontal card rail follows **one contract** — Collection Highlights
