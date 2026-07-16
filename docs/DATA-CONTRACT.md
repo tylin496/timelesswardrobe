@@ -70,6 +70,31 @@ a case in `compareGridItems`, and a sort UI control.
 
 ---
 
+## Write gate — this contract is machine-enforced at save time
+
+Every `wardrobe_items` upsert flows through `saveWardrobeItemToCloud` (app.js),
+which builds the row (`wardrobeItemsStrictUpsertRowFromItem`: coerce → derive →
+column allowlist) and then validates it with `wardrobeItemsUpsertRowViolations`
+(app.js). Any violation **throws and blocks the save**; the editor surfaces the
+message verbatim.
+
+Two layers, two jobs:
+
+- **Derivation** (`itemToCloudRow`) *corrects* loose input — normalizes
+  basicColour, recomputes `measured_dimensions`, drops invalid price, resolves
+  `colourVariants` vs `basicColour` exclusivity.
+- **The gate** (`wardrobeItemsUpsertRowViolations`) *rejects* what derivation
+  can't fix — unknown columns, unknown `metadata` keys (allowlist:
+  `WARDROBE_METADATA_ALLOWED_KEYS`, app.js), blank `id`/`name`/`category`,
+  malformed dates/hex/currency, tampered derived fields, non-integer
+  `showcase_order`.
+
+When a save is rejected, the caller or the data is wrong — extend the contract
+(field table above + `WARDROBE_METADATA_ALLOWED_KEYS` + the gate) deliberately;
+never loosen the gate to make one save pass.
+
+---
+
 ## Derived fields — do not edit directly
 
 These are computed at write time by `itemToCloudRow` (app.js) and must not

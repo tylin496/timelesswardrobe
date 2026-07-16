@@ -82,7 +82,7 @@ state mutation, which is why they're still inline:
 | Table / store | Function (app.js) | Op |
 |---|---|---|
 | `wardrobe_items` | `loadWardrobeItemsFromCloud` | READ all (boot, non-hybrid) |
-| `wardrobe_items` | `saveWardrobeItemToCloud` | **WRITE** (upsert, `onConflict:"id"`) — the one canonical write; payload filtered to `WARDROBE_ITEMS_UPSERT_KEYS_UK` (fields outside it are silently dropped) |
+| `wardrobe_items` | `saveWardrobeItemToCloud` | **WRITE** (upsert, `onConflict:"id"`) — the one canonical write; payload filtered to `WARDROBE_ITEMS_UPSERT_KEYS_UK` (fields outside it are silently dropped), then schema-checked by `wardrobeItemsUpsertRowViolations` (violations throw and block the save — see DATA-CONTRACT.md → Write gate) |
 | `wardrobe_items` | `deleteWardrobePieceFromBrowser` | DELETE one row |
 | `wardrobe_items` | `resolveOutfitSlotsForCloudSave` | SELECT id (existence check before outfit save) |
 | `wardrobe_app_state` | `fetchWardrobeAppStateFromCloud` | READ the single `id="default"` row |

@@ -8609,11 +8609,9 @@
     else delete meta.secondaryBasicColour;
 
     // Ownership status is the authored source of truth (brand = maker only).
+    delete meta.ownershipStatus;
     if (item.is_future) meta.ownership_status = "future";
-    else {
-      delete meta.ownership_status;
-      delete meta.ownershipStatus;
-    }
+    else delete meta.ownership_status;
 
     const metadataOut = sanitizeWardrobeMetadataForPostgres(meta);
     const colourText = String(item.colour ?? item.color ?? "").trim();
@@ -8652,6 +8650,142 @@
   function wardrobeItemsStrictUpsertRowFromItem(item, spelling = "uk") {
     const coerced = coerceLooseWardrobeItemForCloudWrite(item);
     return pickWardrobeItemsUpsertPayload(itemToCloudRow(coerced, spelling), spelling);
+  }
+
+  /** Top-level `metadata` keys the app writes. Anything else is an editor bug or legacy junk (docs/DATA-CONTRACT.md). */
+  const WARDROBE_METADATA_ALLOWED_KEYS = [
+    "basicColour",
+    "colourVariants",
+    "measurementRows",
+    "measurementUnit",
+    "ownership_status",
+    "price",
+    "priceCurrency",
+    "secondaryBasicColour",
+    "secondaryColour",
+    "secondaryColourCode",
+    "showcase_rank",
+  ];
+
+  /**
+   * Validation gate for the one canonical `wardrobe_items` write. Runs on the OUTPUT of
+   * {@link wardrobeItemsStrictUpsertRowFromItem} — after coercion and derivation — so a pass
+   * means the row honours docs/DATA-CONTRACT.md regardless of which caller built the item.
+   * Messages are user-facing (the editor surfaces the thrown save error verbatim).
+   * @param {Record<string, unknown>} row
+   * @param {"uk" | "us"} spelling
+   * @returns {string[]} violations (empty = valid)
+   */
+  function wardrobeItemsUpsertRowViolations(row, spelling = "uk") {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return ["row is not an object"];
+    const v = [];
+    const allowed = spelling === "us" ? WARDROBE_ITEMS_UPSERT_KEYS_US : WARDROBE_ITEMS_UPSERT_KEYS_UK;
+    for (const k of Object.keys(row)) {
+      if (!allowed.includes(k)) v.push(`unknown column "${k}"`);
+    }
+    const colourKey = spelling === "us" ? "color" : "colour";
+    const stringCols = [
+      "id", "pillar", "section", "category", "brand", "name", "season", colourKey,
+      "fabric", "weight", "size", "measured_dimensions", "purchase_date", "image", "notes",
+    ];
+    for (const k of stringCols) {
+      if (typeof row[k] !== "string") v.push(`"${k}" must be a string`);
+    }
+    for (const k of ["id", "name", "category"]) {
+      if (typeof row[k] === "string" && !row[k].trim()) v.push(`"${k}" must not be blank`);
+    }
+    if (typeof row.id === "string" && /\s/.test(row.id)) v.push('"id" must not contain whitespace');
+    const codeKey = spelling === "us" ? "color_code" : "colour_code";
+    const code = row[codeKey];
+    if (typeof code !== "string" || (code && !parseHex6Colour(code))) {
+      v.push(`"${codeKey}" must be empty or a hex colour`);
+    }
+    if (typeof row.season === "string" && normalizeStoredItemSeason(row.season) !== row.season) {
+      v.push('"season" is not normalized (empty / "All" must be stored as the default season)');
+    }
+    const pd = row.purchase_date;
+    if (typeof pd === "string" && pd && !(/^\d{4}-\d{2}-\d{2}$/.test(pd) && Number.isFinite(Date.parse(pd)))) {
+      v.push('"purchase_date" must be empty or a valid YYYY-MM-DD date');
+    }
+    if (!Array.isArray(row.gallery) || row.gallery.some((g) => typeof g !== "string" || !g.trim())) {
+      v.push('"gallery" must be an array of non-empty strings');
+    }
+    const nullOrTimestamp = (k) =>
+      row[k] === null || (typeof row[k] === "string" && Number.isFinite(Date.parse(/** @type {string} */ (row[k]))));
+    if (!nullOrTimestamp("notes_updated_at")) v.push('"notes_updated_at" must be null or a timestamp');
+    if (!nullOrTimestamp("showcase_at")) v.push('"showcase_at" must be null or a timestamp');
+    if (!(row.showcase_order === null || (Number.isInteger(row.showcase_order) && /** @type {number} */ (row.showcase_order) >= 0))) {
+      v.push('"showcase_order" must be null or a non-negative integer');
+    }
+
+    const meta = /** @type {Record<string, unknown> | null} */ (row.metadata ?? null);
+    if (meta === null) return v;
+    if (typeof meta !== "object" || Array.isArray(meta)) {
+      v.push('"metadata" must be null or an object');
+      return v;
+    }
+    for (const k of Object.keys(meta)) {
+      if (!WARDROBE_METADATA_ALLOWED_KEYS.includes(k)) v.push(`unknown metadata key "${k}"`);
+    }
+    if ("price" in meta) {
+      if (!(typeof meta.price === "number" && Number.isFinite(meta.price) && meta.price >= 0)) {
+        v.push('"metadata.price" must be a non-negative number');
+      }
+      if (!/^[A-Z]{3}$/.test(String(meta.priceCurrency ?? ""))) {
+        v.push('"metadata.priceCurrency" must be a 3-letter currency code');
+      }
+    } else if ("priceCurrency" in meta) {
+      v.push('"metadata.priceCurrency" is set without "metadata.price"');
+    }
+    if ("measurementRows" in meta) {
+      const rows = meta.measurementRows;
+      const rowOk = (x) =>
+        x && typeof x === "object" && !Array.isArray(x) &&
+        typeof x.label === "string" && typeof x.value === "string" &&
+        (x.label.trim() || x.value.trim()) &&
+        (x.unit === undefined || MEASUREMENT_UNITS.includes(x.unit));
+      if (!Array.isArray(rows) || !rows.length || !rows.every(rowOk)) {
+        v.push('"metadata.measurementRows" must be a non-empty array of { label, value, unit? } rows');
+      } else if (!MEASUREMENT_UNITS.some((u) => row.measured_dimensions === measurementRowsToSummaryString(rows, u))) {
+        v.push('"measured_dimensions" is out of sync with metadata.measurementRows (derived — never set directly)');
+      }
+    }
+    if ("measurementUnit" in meta) {
+      if (meta.measurementUnit !== "mm") v.push('"metadata.measurementUnit" may only be "mm" (cm is implied when absent)');
+      if (!("measurementRows" in meta)) v.push('"metadata.measurementUnit" is set without measurementRows');
+    }
+    const normalizedBasic = (raw) =>
+      raw === BASIC_COLOUR_CLASSIFICATION_OMIT ||
+      (typeof raw === "string" && raw !== "" && normalizeStoredBasicColourKey(raw) === raw);
+    if ("basicColour" in meta && !normalizedBasic(meta.basicColour)) {
+      v.push('"metadata.basicColour" must be a normalized colour-family key (derived — never set directly)');
+    }
+    if ("secondaryBasicColour" in meta && !normalizedBasic(meta.secondaryBasicColour)) {
+      v.push('"metadata.secondaryBasicColour" must be a normalized colour-family key (derived)');
+    }
+    if ("secondaryColour" in meta && !(typeof meta.secondaryColour === "string" && meta.secondaryColour.trim())) {
+      v.push('"metadata.secondaryColour" must be a non-empty string');
+    }
+    if ("secondaryColourCode" in meta && !(typeof meta.secondaryColourCode === "string" && parseHex6Colour(meta.secondaryColourCode))) {
+      v.push('"metadata.secondaryColourCode" must be a hex colour');
+    }
+    if ("ownership_status" in meta && meta.ownership_status !== "future") {
+      v.push('"metadata.ownership_status" may only be "future" (absent = owned)');
+    }
+    if ("colourVariants" in meta) {
+      const cv = meta.colourVariants;
+      const entryOk = (x) =>
+        x && typeof x === "object" && !Array.isArray(x) &&
+        (String(x.key ?? "").trim() || String(x.label ?? "").trim());
+      if (!Array.isArray(cv) || !cv.length || !cv.every(entryOk)) {
+        v.push('"metadata.colourVariants" must be a non-empty array of variant objects (each with a key or label)');
+      }
+      if ("basicColour" in meta) v.push('"metadata.colourVariants" and "metadata.basicColour" are mutually exclusive');
+    }
+    if ("showcase_rank" in meta && !(typeof meta.showcase_rank === "number" && Number.isFinite(meta.showcase_rank))) {
+      v.push('"metadata.showcase_rank" must be a number');
+    }
+    return v;
   }
 
   function safeStorageSegment(value, fallback = "item") {
@@ -9730,6 +9864,12 @@
     let lastErr = /** @type {any} */ (null);
     for (const sp of spellings) {
       const row = wardrobeItemsStrictUpsertRowFromItem(itemForCloud, sp);
+      // Full data-contract gate (beyond the structural id/name checks above). A violation
+      // is never a column-spelling issue, so throw instead of retrying the other spelling.
+      const violations = wardrobeItemsUpsertRowViolations(row, sp);
+      if (violations.length) {
+        throw new Error(`Cannot save — data contract violation: ${violations.join("; ")}.`);
+      }
       const { data, error } = await supabaseClient.from(WARDROBE_TABLE).upsert(row, { onConflict: "id" }).select("*").single();
       if (!error) {
         const norm = normalizeCloudItemRow(data);
