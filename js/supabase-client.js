@@ -1,8 +1,14 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/+esm";
-
-/** @param {import('@supabase/supabase-js').SupabaseClient} client */
+/**
+ * Uses the UMD Supabase SDK global (loaded via <script> before app.js on every
+ * page) instead of importing the ESM CDN build — the site ships one SDK copy.
+ */
 export function createBrowserClient(url, key) {
   if (!url || !key) return null;
+  const createClient = globalThis.supabase?.createClient;
+  if (!createClient) {
+    console.warn("Supabase JS SDK not loaded — make sure the Supabase CDN script is loaded before app.js.");
+    return null;
+  }
   return createClient(url, key, {
     auth: {
       persistSession: true,
