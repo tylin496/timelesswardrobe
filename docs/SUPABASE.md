@@ -39,14 +39,27 @@ npm run export:wardrobe-json
 USE_JSON=1 npm run db:import-seed
 ```
 
-## 4. Row Level Security (caveats)
+## 4. Row Level Security
 
-The migration enables RLS with **prototype** policies:
+Locked down as of `20260717090000_rls_policy_cleanup_outfit_guards.sql`
+(which also purged untracked dashboard-era permissive policies — tracked
+migrations are the whole truth; if `pg_policies` ever disagrees with them
+again, that's drift to fix, not intent to preserve):
 
-- **`wardrobe_items`**: `anon` / `authenticated` may **SELECT** only. Writes use **`service_role`** (bypasses RLS) for the import script — keep that key secret.
-- **`outfits` / `outfit_items`**: `anon` may **insert/update/delete** so a static site with only the anon key can manage outfits.
+- **`wardrobe_items` / `wardrobe_app_state`**: public **SELECT**; writes only
+  via editor policies (`tw_is_wardrobe_editor()`) or `service_role` scripts.
+- **`outfits` / `outfit_items`**: public **SELECT** (column grant hides
+  `owner_token_hash` / `db_created_at`); editors write directly
+  (authenticated); **visitors have no direct write policy at all** — their
+  mutations go through the `outfit-create` / `outfit-mutate` Edge Functions
+  (service role, owner-token check server-side).
+- `anon` holds no insert/update/delete grants on any table (belt-and-braces).
 
-**Security:** anyone who has your **anon key** and project URL can change outfits tables. For a private collection this is often acceptable; if the key leaks, rotate it in the dashboard. **Replace these policies with auth (e.g. magic link) or Edge Functions + service role before a public deploy.** Comments in the SQL file repeat this.
+**Abuse guards** (DB triggers — they apply to the service-role Edge Function
+path too, which RLS cannot limit): max 30 new outfits per rolling 10 minutes
+(counted on server-set `outfits.db_created_at`), max 40 items per outfit,
+name ≤ 200 / notes ≤ 4000 chars. Bulk-restoring outfits? Disable
+`tw_outfits_rate_guard` for the session first — see the migration header.
 
 ## 5. Offline behaviour
 
