@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { transform } from "esbuild";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -77,5 +78,22 @@ for (const name of rootDirs) {
 
 fs.mkdirSync(path.join(dist, "js"), { recursive: true });
 fs.writeFileSync(path.join(dist, "js", "tw-home-hero-manifest.js"), buildHomeHeroManifestSource(), "utf8");
+
+// Minify the JS we ship (source files stay readable; only dist/ is transformed).
+const jsTargets = [
+  path.join(dist, "app.js"),
+  path.join(dist, "data", "wardrobe.js"),
+  ...fs
+    .readdirSync(path.join(dist, "js"))
+    .filter((name) => name.endsWith(".js"))
+    .map((name) => path.join(dist, "js", name)),
+].filter((file) => fs.existsSync(file));
+
+for (const file of jsTargets) {
+  const source = fs.readFileSync(file, "utf8");
+  const { code } = await transform(source, { minify: true, target: "es2020", charset: "utf8" });
+  fs.writeFileSync(file, code, "utf8");
+  console.log(`minified ${path.relative(dist, file)}: ${source.length} → ${code.length} bytes`);
+}
 
 console.log("Static build → dist/");
