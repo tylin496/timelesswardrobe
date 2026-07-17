@@ -5,6 +5,7 @@ Disallow: /item
 Disallow: /editorial
 Disallow: /account
 Disallow: /login
+Disallow: /outfit/
 Disallow: /data/
 Allow: /$
 

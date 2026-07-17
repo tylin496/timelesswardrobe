@@ -1,5 +1,40 @@
-# Cloudflare Pages headers — mirrors vercel.json's "headers" block.
+# Cloudflare Pages headers.
+#
+# Security headers apply everywhere. CSP notes:
+# - script-src sha256 covers the single inline boot script in collection.html
+#   (compact-view class, FOUC guard). If that script's text changes, recompute:
+#   python3 -c "import hashlib,base64;print(base64.b64encode(hashlib.sha256(open(0,'rb').read()).digest()).decode())" < snippet
+# - style-src 'unsafe-inline' is required: app.js sets style.cssText at runtime.
+# - connect-src: Supabase (REST/auth/functions), the image worker (blob fetches
+#   for editor cropping), and the R2 upload worker.
 /*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-4bfNZdrOx7PHTjpBLPUVcAMyaIFgLdpIN+I5Abaz4nY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://img.timelesswardrobe.uk; media-src 'self'; connect-src 'self' https://yyzrzmbsxphlhoqzikjn.supabase.co https://img.timelesswardrobe.uk https://timeless-wardrobe-upload.tylin496.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# Search indexing: homepage only. Inner pages are noindexed per-path (mirrors
+# robots.txt) — do NOT put X-Robots-Tag back on /* or the homepage vanishes
+# from Google again.
+/collection
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/collection/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/item
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/item/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/outfit/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/login
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/account
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/data/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+/images/*
   X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
 
 /*.css
