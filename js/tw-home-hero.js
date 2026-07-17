@@ -8,7 +8,7 @@
     "images/heroes/0512_mlp_c02a_img.jpg",
     "images/heroes/0616_hp_c01_img.jpg",
     "images/heroes/cable-knit-convertible.jpg",
-    "images/heroes/greece-maritime.png",
+    "images/heroes/greece-maritime.jpg",
     "images/heroes/linen-summer-editorial.jpg",
     "images/heroes/pink-stripe-summer.jpg",
     "images/heroes/rl-designer-mens.mp4",
