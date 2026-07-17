@@ -2,6 +2,7 @@
 /**
  * Copy static site assets into `dist/` (the static host's Output Directory).
  */
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -104,5 +105,39 @@ for (const file of jsTargets) {
   fs.writeFileSync(file, code, "utf8");
   console.log(`minified ${path.relative(dist, file)}: ${source.length} → ${code.length} bytes`);
 }
+
+// Content-hash versioning (?v=<hash>) on every shipped JS/CSS reference.
+// The edge caches .js/.css for 7 days but never caches HTML, so a new deploy
+// must change asset URLs or visitors keep getting the previous bundle.
+const shortHash = (buf) => crypto.createHash("sha256").update(buf).digest("hex").slice(0, 8);
+const relPosix = (file) => path.relative(dist, file).split(path.sep).join("/");
+
+const versions = new Map();
+const appJsFile = path.join(dist, "app.js");
+for (const file of [path.join(dist, "styles.css"), ...jsTargets]) {
+  if (file === appJsFile || !fs.existsSync(file)) continue;
+  versions.set(relPosix(file), shortHash(fs.readFileSync(file)));
+}
+
+// app.js dynamically imports the supabase module — stamp that specifier first,
+// then hash the final app.js content.
+let appCode = fs.readFileSync(appJsFile, "utf8");
+appCode = appCode.replaceAll(
+  "./js/supabase-client.js",
+  `./js/supabase-client.js?v=${versions.get("js/supabase-client.js")}`,
+);
+fs.writeFileSync(appJsFile, appCode, "utf8");
+versions.set("app.js", shortHash(appCode));
+
+for (const name of rootFiles.filter((n) => n.endsWith(".html"))) {
+  const file = path.join(dist, name);
+  if (!fs.existsSync(file)) continue;
+  let html = fs.readFileSync(file, "utf8");
+  for (const [rel, hash] of versions) {
+    html = html.replaceAll(`"${rel}"`, `"${rel}?v=${hash}"`);
+  }
+  fs.writeFileSync(file, html, "utf8");
+}
+console.log(`versioned ${versions.size} assets (?v=) across shipped pages`);
 
 console.log("Static build → dist/");
