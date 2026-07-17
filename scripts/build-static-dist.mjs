@@ -43,7 +43,6 @@ const rootFiles = [
   "account.html",
   "app.js",
   "styles.css",
-  "favicon.png",
   "icon-pwa.png",
   "icon-180.png",
   "icon-192.png",
@@ -74,6 +73,16 @@ for (const name of [...rootFiles, ...platformConfigFiles]) {
 for (const name of rootDirs) {
   const src = path.join(root, name);
   if (fs.existsSync(src)) fs.cpSync(src, path.join(dist, name), { recursive: true });
+}
+
+// Wardrobe masters (images/wardrobe/*/main) are served from R2 — ship only the
+// local cutouts the app actually requests (…/cutout/<n>.webp).
+const distWardrobe = path.join(dist, "images", "wardrobe");
+if (fs.existsSync(distWardrobe)) {
+  for (const entry of fs.readdirSync(distWardrobe, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    fs.rmSync(path.join(distWardrobe, entry.name, "main"), { recursive: true, force: true });
+  }
 }
 
 fs.mkdirSync(path.join(dist, "js"), { recursive: true });
