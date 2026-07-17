@@ -326,25 +326,6 @@ export async function mutateOutfitViaEdgeFunction(client, opts) {
 }
 
 /**
- * Duplicate an outfit via Edge Function.
- * Returns { ok: true, id, slug, ownerToken, slots } or { ok: false, error }.
- * @param {import('@supabase/supabase-js').SupabaseClient} client
- * @param {string} sourceOutfitId
- */
-export async function duplicateOutfitViaEdgeFunction(client, sourceOutfitId) {
-  try {
-    const { data, error } = await client.functions.invoke("outfit-duplicate", {
-      body: { sourceOutfitId },
-    });
-    if (error) return { ok: false, error: error.message ?? String(error) };
-    if (data?.error) return { ok: false, error: data.error };
-    return { ok: true, id: data.id, slug: data.slug, ownerToken: data.ownerToken, slots: data.slots ?? [] };
-  } catch (e) {
-    return { ok: false, error: typeof e?.message === "string" ? e.message : String(e ?? "") };
-  }
-}
-
-/**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
  * @param {{ id: string, name: string, slots?: { itemId: string, colourKey?: string; colorKey?: string }[], itemIds?: string[], createdAt: string }} record
  */

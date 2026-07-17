@@ -67,10 +67,9 @@ catalogue code.
 ### Home 1 — `js/supabase-client.js` (the module, imported as `api`)
 
 A real Repository module. Takes a `client`, returns data; no app state. Owns:
-- **Outfits — full CRUD** (all via edge functions): `fetchOutfits`,
+- **Outfits — full CRUD**: `fetchOutfits`,
   `fetchOutfitBySlugOrId`, `insertOutfitWithItems`, `updateOutfitWithItems`,
-  `deleteOutfitById`, `createOutfitViaEdgeFunction`, `mutateOutfitViaEdgeFunction`,
-  `duplicateOutfitViaEdgeFunction`.
+  `deleteOutfitById`, `createOutfitViaEdgeFunction`, `mutateOutfitViaEdgeFunction`.
 - **wardrobe_items READ** (deferred hydration): `fetchWardrobeItems(client, excludeIds)`.
 - Client + normalizer: `createBrowserClient`, `mapRowToItem`.
 
