@@ -21605,6 +21605,28 @@
     delete img.dataset.twFrameSrc;
   }
 
+  /**
+   * Cover-first contract (shared with warmCollectionCardGalleryFrame): the
+   * next-frame hydration must not race the stage's own cover slide, so it
+   * waits for the cover img (track slot 0) to settle (load or error) first.
+   */
+  function hydrateGalleryFrameAfterCoverSettled(track, frameImg) {
+    if (!(frameImg instanceof HTMLImageElement)) return;
+    if (!String(frameImg.dataset.twFrameSrc ?? "").trim()) return;
+    const coverImg = track.children[0]?.querySelector("img");
+    if (coverImg instanceof HTMLImageElement && !coverImg.complete) {
+      const done = () => {
+        coverImg.removeEventListener("load", done);
+        coverImg.removeEventListener("error", done);
+        ensureDeferredGalleryFrameImageLoaded(frameImg);
+      };
+      coverImg.addEventListener("load", done);
+      coverImg.addEventListener("error", done);
+      return;
+    }
+    ensureDeferredGalleryFrameImageLoaded(frameImg);
+  }
+
   /** Hover crossfade stacks slides — track translate must stay at 0 (not chevron index). */
   function resetDesktopGalleryTrackTransformForHoverFade(track) {
     if (!(track instanceof HTMLElement)) return;
@@ -21647,7 +21669,8 @@
         if (!(slide instanceof HTMLElement)) return;
         slide.classList.toggle("is-active", i === idx);
         const frameImg = slide.querySelector("img");
-        if (i === idx || i === idx + 1) ensureDeferredGalleryFrameImageLoaded(frameImg);
+        if (i === idx) ensureDeferredGalleryFrameImageLoaded(frameImg);
+        else if (i === idx + 1) hydrateGalleryFrameAfterCoverSettled(track, frameImg);
       });
       return idx;
     }
@@ -21656,7 +21679,8 @@
       if (!(slide instanceof HTMLElement)) return;
       slide.classList.toggle("is-active", i === idx);
       const frameImg = slide.querySelector("img");
-      if (i === idx || i === idx + 1) ensureDeferredGalleryFrameImageLoaded(frameImg);
+      if (i === idx) ensureDeferredGalleryFrameImageLoaded(frameImg);
+      else if (i === idx + 1) hydrateGalleryFrameAfterCoverSettled(track, frameImg);
     });
     return idx;
   }
@@ -21683,17 +21707,33 @@
    * OOM the IO lazy-build fixed — bytes are cheap, bitmaps are not.
    */
   const warmedGalleryFrameUrls = new Set();
-  function warmCollectionCardGalleryFrame(frameEntries) {
+  function warmCollectionCardGalleryFrame(frameEntries, coverImg) {
     const entry = firstCollectionCardEditorialFrameEntry(frameEntries);
     const url = String(entry?.url ?? "").trim();
     if (!url || entry?.cutout || warmedGalleryFrameUrls.has(url)) return;
-    warmedGalleryFrameUrls.add(url);
-    try {
-      fetch(url, { priority: "low" }).catch(() => {});
-    } catch {
-      /* fetch priority unsupported — warm without it */
-      fetch(url).catch(() => {});
+    const fire = () => {
+      if (warmedGalleryFrameUrls.has(url)) return;
+      warmedGalleryFrameUrls.add(url);
+      try {
+        fetch(url, { priority: "low" }).catch(() => {});
+      } catch {
+        /* fetch priority unsupported — warm without it */
+        fetch(url).catch(() => {});
+      }
+    };
+    // Cover-first contract: the editorial warm fetch must never race the card's
+    // own cover, so it waits for the cover slide to settle (load or error).
+    if (coverImg instanceof HTMLImageElement && !coverImg.complete) {
+      const done = () => {
+        coverImg.removeEventListener("load", done);
+        coverImg.removeEventListener("error", done);
+        fire();
+      };
+      coverImg.addEventListener("load", done);
+      coverImg.addEventListener("error", done);
+      return;
     }
+    fire();
   }
 
   function syncDesktopGalleryTrack(media, img, frameEntries) {
@@ -21720,6 +21760,8 @@
       const track = document.createElement("div");
       track.className = "card__gallery-desktop-track";
       const alt = String(img.alt ?? "").trim();
+      /** @type {HTMLImageElement | null} */
+      let coverSlideImg = null;
       frameEntries.forEach((entry, i) => {
         const slide = document.createElement("div");
         const useCoverPlate = entry.cutout;
@@ -21735,6 +21777,7 @@
         if (img.sizes) simg.sizes = img.sizes;
         if (i === 0) {
           simg.src = entry.url;
+          coverSlideImg = simg;
           if (useCoverPlate) wireGalleryCoverSlideLoaded(simg);
           wireImgSeedFallback(simg, entry.fallback, () => { slide.hidden = true; });
         } else {
@@ -21746,7 +21789,7 @@
       stage.appendChild(track);
       media.insertBefore(stage, media.firstChild);
       media.classList.add("card__media--has-desktop-gallery");
-      warmCollectionCardGalleryFrame(frameEntries);
+      warmCollectionCardGalleryFrame(frameEntries, coverSlideImg);
     }
 
     stage = getDesktopGalleryStage(media);
@@ -21913,7 +21956,9 @@
       carousel.appendChild(track);
       media.insertBefore(carousel, img);
       wireMobileGalleryStrictSnap(carousel, media);
-      warmCollectionCardGalleryFrame(frameEntries);
+      // DOM slot 0 is the clone-last boundary; slot 1 is the real cover slide.
+      const coverSlideImg = track.children[1]?.querySelector("img");
+      warmCollectionCardGalleryFrame(frameEntries, coverSlideImg);
     }
 
     const startIdx = readMobileGalleryFrameIndex(media);
