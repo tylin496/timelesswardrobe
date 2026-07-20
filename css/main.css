@@ -13484,7 +13484,7 @@ body.item-page .site-header {
     grid-column: 1;
     grid-row: 2;
     position: sticky;
-    top: 7.5rem;
+    top: 1.25rem;
     align-self: start;
   }
 
@@ -13517,6 +13517,16 @@ body.item-page .site-header {
 
 body.item-page:has(.item-detail__root--edit) {
   background-color: var(--bg);
+  /* Edit is a tool surface, not the storefront — the measured header offset must
+     read 0 for everything in the page (sticky form column, toasts). JS keeps
+     writing the live value on <html>; this body-level override wins below it. */
+  --site-header-chrome-bottom: 0rem;
+}
+
+/* Storefront chrome (utility bar + nav header) has no job in edit mode; Cancel
+   and the head-band breadcrumb are the exit paths. */
+body.item-page:has(.item-detail__root--edit) .site-header-shell {
+  display: none;
 }
 
 .item-page-main:has(.item-detail__root--edit) {
