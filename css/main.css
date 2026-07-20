@@ -505,6 +505,11 @@ body.collection-page:not(.collection-ui--search-results-plp) .items-toolbar__chi
 body.collection-page #main {
   display: flex;
   flex-direction: column;
+  /* Width must stay definite at every breakpoint: the nowrap type-chip strip's
+     min-content otherwise inflates #main past the viewport (body clips, so the
+     toolbar's right cluster gets cut off and the strip never becomes a scroller). */
+  width: 100%;
+  min-width: 0;
   padding-top: 0;
   padding-left: 0;
   padding-right: 0;
