@@ -6802,9 +6802,9 @@
 
     function syncValuePlaceholders() {
       const u = unitSel ? parseMeasurementUnitInput(unitSel.value) : "cm";
-      for (const inp of dyn.querySelectorAll(".measured-dims-row__value")) {
-        /** @type {HTMLInputElement} */ (inp).placeholder = u;
-      }
+      /* Placeholder deliberately NOT set to the unit — the in-field
+         .measured-dims-value-wrap__unit suffix already shows it; both at once
+         reads as a doubled "cm cm" while the field is empty. */
       for (const sel of dyn.querySelectorAll(".measured-dims-row__unit")) {
         /** @type {HTMLSelectElement} */ (sel).value = u;
       }
@@ -6875,7 +6875,7 @@
       valIn.type = "text";
       valIn.className = "measured-dims-row__value";
       valIn.maxLength = 80;
-      valIn.placeholder = "value";
+      valIn.placeholder = "";
       valIn.autocomplete = "off";
       valIn.value = value;
       const rowUnitSel = document.createElement("select");
