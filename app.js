@@ -9233,15 +9233,28 @@
     return next;
   }
 
-  /** Ensure wardrobe media URLs get a `cb` cache-bust token when loading edit / detail views. */
-  function ensureItemMediaCacheBust(item) {
+  /**
+   * Browse-surface media projection (PLP cards, PDP hero).
+   *
+   * This used to be `ensureItemMediaCacheBust`, which stamped a `Date.now()`
+   * nonce onto every card it touched. That defeated the whole caching stack:
+   * `withWardrobeImageCacheBust` sees the nonce and appends `?cb=<now>`, so
+   * every cover got a URL nobody had ever requested — browser cache cold, img
+   * worker edge cache cold (full R2 read + transform of a ~500 KB lossless
+   * original, ~600 ms TTFB) on *every* visit. Worse, the grid renders twice
+   * (seed pass, then again when the Supabase list lands ~400 ms later) and each
+   * pass minted a different `now`, so every visible cover downloaded twice.
+   *
+   * Nothing here needs a nonce. R2 cover URLs are already content-addressed via
+   * the seed's `?v=<hash>`, and a save that actually touches media stamps
+   * `__displayNonce` itself (stampWardrobeItemMediaNonce) — which this copy
+   * carries forward. Local `/images/wardrobe/…` URLs get their token from
+   * `wardrobeImageCacheBustTokenFromItem` (updatedAt → createdAt → path hash),
+   * which never needed a stamp either. So: copy, don't stamp.
+   */
+  function itemMediaProjection(item) {
     if (!item || typeof item !== "object") return item;
-    const o = /** @type {any} */ (item);
-    if (typeof o.__displayNonce === "number" && Number.isFinite(o.__displayNonce)) return item;
-    const ts = String(o.updatedAt ?? o.updated_at ?? "").trim();
-    const nonce = ts ? Date.parse(ts) || Date.now() : Date.now();
-    stampWardrobeItemMediaNonce(o, nonce);
-    return o;
+    return { ...item };
   }
 
   /** Persist a just-saved row across `item.html` → collection navigation (cloud list can lag). */
@@ -22442,7 +22455,7 @@
       variants?.length && colourBucket ? firstVariantKeyMatchingBasicColourBucket(item, colourBucket) : "";
     const cardCoverItem =
       variantKeyForHero ? itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: variantKeyForHero }) : item;
-    const cardCoverMediaItem = ensureItemMediaCacheBust({ ...cardCoverItem });
+    const cardCoverMediaItem = itemMediaProjection(cardCoverItem);
 
     const article = document.createElement("article");
     let cardClass = "card";
@@ -22594,9 +22607,9 @@
       const active = media.querySelector(".card__swatch.is-active");
       const ck = active instanceof HTMLElement ? String(active.dataset.variantKey ?? "").trim() : "";
       if (ck) {
-        return ensureItemMediaCacheBust({
-          ...itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: ck }),
-        });
+        return itemMediaProjection(
+          itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: ck })
+        );
       }
       // No active swatch (mobile hides the tray). Fall back to the default variant so
       // gallery images stored in colourVariants[].gallery are still reachable.
@@ -22609,9 +22622,9 @@
             ""
         );
         if (defaultKey) {
-          return ensureItemMediaCacheBust({
-            ...itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: defaultKey }),
-          });
+          return itemMediaProjection(
+            itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: defaultKey })
+          );
         }
       }
       return cardCoverMediaItem;
@@ -26725,7 +26738,7 @@
     const projectedForMedia = defaultVariantKey
       ? itemProjectionForOutfitSlot(item, { itemId: String(item.id), colourKey: defaultVariantKey })
       : item;
-    const itemForMedia = ensureItemMediaCacheBust({ ...projectedForMedia });
+    const itemForMedia = itemMediaProjection(projectedForMedia);
 
     const media = document.createElement("div");
     media.className = "card__media item-detail__media";
