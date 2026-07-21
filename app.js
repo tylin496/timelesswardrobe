@@ -11971,7 +11971,16 @@
       // (~half a card). When the cards nearly fit, a near-full bar with a
       // permanent right gap just reads as confusing dead space — hide it instead.
       // The strip can still be nudge-scrolled natively; it just shows no rail.
-      const minScroll = isOutfitStripRailScroller(scroller) ? 56 : 4;
+      // Hysteresis: the .is-rail-scrollable bleed widens the strip by the inline
+      // gutter, so overflow just past 56px measures under 56px once bled — a
+      // strict threshold flip-flops the state (and hides the desktop scrub bar,
+      // the only mouse affordance). Once scrollable, stay scrollable until the
+      // overflow genuinely collapses.
+      const railIsBled =
+        isOutfitStripRailScroller(scroller) &&
+        section instanceof HTMLElement &&
+        section.classList.contains("is-rail-scrollable");
+      const minScroll = isOutfitStripRailScroller(scroller) && !railIsBled ? 56 : 4;
       const canScroll = max > minScroll;
       const atStart = el.scrollLeft <= 2;
       const atEnd = canScroll && el.scrollLeft >= max - 2;
