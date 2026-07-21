@@ -74,7 +74,7 @@ the browser.
 | `npm run check:doc-anchors` | Verify doc symbol anchors exist (and ban line refs) |
 | `npm run check:showcase` | Validate Showcase order snapshot |
 | `npm run check:r2-orphans` | Find R2 objects no catalogue item references |
-| `npm run images:rebuild` | Re-centre cutouts + regenerate cutout thumbnails |
+| `npm run images:rebuild` | Re-centre covers + rebuild transparent cutouts under `images/wardrobe/` |
 | `npm run og:build` / `npm run og:items` | Generate OG images (site / per-item pages) |
 | `npm run db:backup` | Back up Supabase data |
 | `npm run db:freeze-catalogue` | Snapshot Supabase into the frozen local catalogue |
