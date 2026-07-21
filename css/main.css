@@ -10515,8 +10515,10 @@ body.tw-outfit-drag-active * {
 }
 
 .outfits-drawer #outfits-save-form .field--notes .outfits__notes {
+  /* min-height (not just height) so nothing can squeeze the box below the
+     name input's 2.85rem — the two fields must always read as one row. */
   height: 2.85rem;
-  min-height: 0;
+  min-height: 2.85rem;
   resize: none;
   overflow-y: auto;
 }
@@ -10535,7 +10537,7 @@ body.tw-outfit-drag-active * {
 
   .outfits-drawer #outfits-save-form .field--notes .outfits__notes {
     height: 2.85rem;
-    min-height: 0;
+    min-height: 2.85rem;
     flex: none;
     resize: none;
   }
