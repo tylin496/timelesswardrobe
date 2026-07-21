@@ -13747,6 +13747,14 @@
     if (!(ta instanceof HTMLTextAreaElement)) return;
     ta.style.height = "auto";
     const next = Math.min(ta.scrollHeight, TEXTAREA_AUTOSIZE_MAX_PX);
+    /* Not rendered (closed <dialog>, hidden drawer): scrollHeight measures 0 and a
+       written inline height would collapse the box to bare padding once shown.
+       Leave CSS in control until a sync runs while visible. */
+    if (next <= 0) {
+      ta.style.removeProperty("height");
+      ta.style.removeProperty("overflow-y");
+      return;
+    }
     ta.style.height = `${next}px`;
     ta.style.overflowY = ta.scrollHeight > TEXTAREA_AUTOSIZE_MAX_PX ? "auto" : "hidden";
   }
@@ -20919,6 +20927,9 @@
       openAdd?.setAttribute("aria-expanded", "true");
       queueMicrotask(() => {
         form.querySelector("#item-edit-brand")?.focus();
+        /* Fields were mounted while the dialog was closed — autosize skipped its
+           hidden-measure; sync now that the textareas are rendered. */
+        installTextareaAutosizeFields(form);
       });
     });
     closeAdd?.addEventListener("click", () => addDlg?.close());
