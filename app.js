@@ -18117,6 +18117,7 @@
     if (open) {
       form.removeAttribute("hidden");
       root?.classList.add("outfits-drawer--save-form-open");
+      syncOutfitNamePlaceholder();
       form.scrollIntoView({ block: "nearest", behavior: "smooth" });
     } else {
       form.setAttribute("hidden", "");
@@ -18259,17 +18260,25 @@
     return Number.isNaN(d.getTime()) ? null : d.toISOString();
   }
 
+  /** Default name when the name field is left blank, e.g. "Outfit · 21 Jul 2026". */
+  function defaultOutfitName() {
+    const base = `Outfit · ${formatDisplayDate(new Date())}`;
+    const taken = new Set(savedOutfits.map((o) => String(o.name ?? "").trim()));
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base} (${n})`)) n += 1;
+    return `${base} (${n})`;
+  }
+
+  function syncOutfitNamePlaceholder() {
+    if (els.outfitName) els.outfitName.placeholder = defaultOutfitName();
+  }
+
   async function saveCurrentOutfit() {
-    const name = els.outfitName?.value.trim() ?? "";
+    const name = els.outfitName?.value.trim() || defaultOutfitName();
     const notes = els.outfitNotes?.value.trim() ?? "";
     if (!currentOutfitSlots.length) {
       showToast(`Add at least one piece to ${OUTFITS_UI_NAME.toLowerCase()} first.`, { variant: "error" });
-      return;
-    }
-    if (!name) {
-      setOutfitSaveFormOpen(true);
-      showToast("Please name this outfit.", { variant: "error" });
-      els.outfitName?.focus();
       return;
     }
     const slots = currentOutfitSlots.map((s) =>
