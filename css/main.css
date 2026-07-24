@@ -690,6 +690,8 @@ html {
      which causes the sticky header to appear wider as content drifts left on scroll.
      `clip` avoids creating a scroll container (unlike `hidden`) so sticky positioning is unaffected. */
   overflow-x: clip;
+  /* Loaded faces cover 400-700; a wrong weight should render thin, not faux-bold. */
+  font-synthesis: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
